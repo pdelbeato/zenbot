@@ -32,6 +32,9 @@ module.exports = function (program, conf) {
     .option('--buy_pct <pct>', 'buy with this % of currency balance', Number, conf.buy_pct)
     .option('--deposit <amt>', 'absolute initial capital (in currency) at the bots disposal (previously --buy_max_amt)', Number, conf.deposit)
     .option('--sell_pct <pct>', 'sell with this % of asset balance', Number, conf.sell_pct)
+    .option('--quantum_size <amount>', 'buy up to this amount of currency every time', Number, conf.quantum_size)
+    .option('--max_nr_quantum <amount>', 'Max nr of quantum which could be traded', Number, conf.max_nr_quantum)
+    .option('--quantum_profit <pct>', '% of minimum profit to achieve for each quantum', Number, conf.quantum_profit)
     .option('--markdown_buy_pct <pct>', '% to mark down buy price', Number, conf.markdown_buy_pct)
     .option('--markup_sell_pct <pct>', '% to mark up sell price', Number, conf.markup_sell_pct)
     .option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, conf.order_adjust_time)
@@ -87,7 +90,7 @@ module.exports = function (program, conf) {
         so.deposit = so.buy_max_amt
       }
 
-      so.selector = objectifySelector(selector || conf.selector)      
+      so.selector = objectifySelector(selector || conf.selector)
       var engine = engineFactory(s, conf)
       var collectionServiceInstance = collectionService(conf)
 
@@ -732,4 +735,3 @@ module.exports = function (program, conf) {
       }
     })
 }
-

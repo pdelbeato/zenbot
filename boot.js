@@ -11,6 +11,8 @@ module.exports = function (cb) {
   var config = {}
   var overrides = {}
 
+  console.log('\n' + 'Zenbot - Quantum Feature version')
+
   // 1. load conf overrides file if present
   if(!_.isUndefined(args.conf)){
     try {
