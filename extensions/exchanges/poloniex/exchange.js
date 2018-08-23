@@ -60,11 +60,11 @@ module.exports = function container (conf) {
       }
       if (args.start && !args.end) {
         // add 12 hours
-        args.end = args.start + opts.offset
+        args.end = args.start + (opts.offset || this.offset)
       }
       else if (args.end && !args.start) {
         // subtract 12 hours
-        args.start = args.end - opts.offset
+        args.start = args.end - (opts.offset || this.offset)
       }
 
       client._public('returnTradeHistory', args, function (err, body) {
@@ -79,7 +79,7 @@ module.exports = function container (conf) {
         }
 
         if (body.length >= 50000) {
-          func_args[0].offset = opts.offset / 2;
+          func_args[0].offset = opts.offset / 2
           return retry('getTrades', func_args)
         }
 
@@ -220,7 +220,7 @@ module.exports = function container (conf) {
           order.reject_reason = 'balance'
           return cb(null, order)
         } else if (result && result.error && result.error.match(/^Nonce must be greater/)) {
-            return retry('trade', args)
+          return retry('trade', args)
         }
         if (!err && result.error) {
           err = new Error('unable to ' + type)
