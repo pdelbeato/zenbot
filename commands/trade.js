@@ -39,6 +39,8 @@ module.exports = function (program, conf) {
     .option('--best_ask', 'mark down as little as possible the sell price to be the best ask', Boolean, false)
     .option('--dump_watchdog', 'check for dumps. Strategy is in charge', Boolean, false)
     .option('--pump_watchdog', 'check for pumps. Strategy is in charge', Boolean, false)
+    .option('--buy_calmdown <amount>', 'Minutes to wait before next buy', Number, conf.buy_calmdown)
+    .option('--sell_calmdown <amount>', 'Minutes to wait before next sell', Number, conf.sell_calmdown)
     .option('--markdown_buy_pct <pct>', '% to mark down buy price', Number, conf.markdown_buy_pct)
     .option('--markup_sell_pct <pct>', '% to mark up sell price', Number, conf.markup_sell_pct)
     .option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, conf.order_adjust_time)
