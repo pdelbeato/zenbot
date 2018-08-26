@@ -50,9 +50,9 @@ module.exports = {
 
         //Se non siamo in watchdog, utilizza la normale strategia
         if (!s.is_dump_watchdog && !s.is_pump_watchdog) {
-          if (s.period.close > (upperBound / 100) * (100 - s.options.bollinger_upper_bound_pct)) {
+          if (s.period.close > (upperBound - (upperBandWidth * s.options.bollinger_upper_bound_pct/100))) {
             s.signal = 'sell'
-          } else if (s.period.close < (lowerBound / 100) * (100 + s.options.bollinger_lower_bound_pct)) {
+          } else if (s.period.close < (lowerBound + (lowerBandWidth * s.options.bollinger_lower_bound_pct/100))) {
             s.signal = 'buy'
           } else {
             s.signal = null // hold
@@ -79,11 +79,11 @@ module.exports = {
         let lowerBandWidth = (s.period.bollinger.mid[s.period.bollinger.mid.length-1] - s.period.bollinger.lower[s.period.bollinger.lower.length-1])
         let upperWatchdogBound = upperBound + (upperBandWidth * s.options.bollinger_upper_watchdog_pct/100)
         let lowerWatchdogBound = lowerBound - (lowerBandWidth * s.options.bollinger_lower_watchdog_pct/100)
-        
+
         var color = 'grey'
-        if (s.period.close > (upperBound / 100) * (100 - s.options.bollinger_upper_bound_pct)) {
+        if (s.period.close > (upperBound - (upperBandWidth * s.options.bollinger_upper_bound_pct/100))) {
           color = 'green'
-        } else if (s.period.close < (lowerBound / 100) * (100 + s.options.bollinger_lower_bound_pct)) {
+        } else if (s.period.close < (lowerBound + (lowerBandWidth * s.options.bollinger_lower_bound_pct/100))) {
           color = 'red'
         }
 
