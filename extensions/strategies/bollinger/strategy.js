@@ -10,7 +10,8 @@ module.exports = {
   getOptions: function () {
     this.option('period', 'period length, same as --period_length', String, '15m')
     this.option('period_length', 'period length, same as --period', String, '15m')
-    this.option('min_periods', 'min. number of history periods', Number, 52)
+    this.option('period_calc', 'calculate Bollinger Bands every periode_calc time period_length (or period)', Number, 1)
+    this.option('min_periods', 'min. number of history periods', Number, 301)
     this.option('bollinger_size', 'period size', Number, 20)
     this.option('bollinger_time', 'times of standard deviation between the upper band and the moving averages', Number, 1.5)
     this.option('bollinger_upper_bound_pct', 'pct the current price should be near the bollinger upper bound before we sell', Number, 0)
@@ -22,7 +23,7 @@ module.exports = {
 
   calculate: function (s) {
     // calculate Bollinger Bands
-    bollinger(s, 'bollinger', s.options.bollinger_size)
+    bollinger(s, 'bollinger', s.options.bollinger_size, 'close', s.options.period_calc)
   },
 
   onPeriod: function (s, cb) {
