@@ -702,6 +702,25 @@ module.exports = function (program, conf) {
                 })
                 my_trades_size = s.my_trades.length
               }
+
+              //Per registrare le posizioni nel database
+              // if (s.my_positions.length > my_positions_size) {
+              //   s.my_position.slice(my_positions_size).forEach(function (my_position) {
+              //     my_position.id = crypto.randomBytes(4).toString('hex')
+              //     my_position._id = my_position.id
+              //     my_position.selector = so.selector.normalized
+              //     my_position.session_id = session.id
+              //     my_position.mode = so.mode
+              //     my_positions.save(my_position, function (err) {
+              //       if (err) {
+              //         console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
+              //         console.error(err)
+              //       }
+              //     })
+              //   })
+              //   my_positions_size = s.my_positions.length
+              // }
+
               function savePeriod (period) {
                 if (!period.id) {
                   period.id = crypto.randomBytes(4).toString('hex')
