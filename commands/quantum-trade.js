@@ -76,11 +76,13 @@ module.exports = function (program, conf) {
       if (cmd.conf) {
         var overrides = require(path.resolve(process.cwd(), cmd.conf))
         Object.keys(overrides).forEach(function (k) {
+        //console.log('overrides k=' + k + ' - ' + overrides[k])
           so[k] = overrides[k]
         })
       }
       Object.keys(conf).forEach(function (k) {
         if (typeof cmd[k] !== 'undefined') {
+        //console.log('cmd k=' + k + ' - ' + cmd[k])
           so[k] = cmd[k]
         }
       })
@@ -398,8 +400,23 @@ module.exports = function (program, conf) {
       marker._id = marker.id
       var lookback_size = 0
       var my_trades_size = 0
+      // var my_positions_size = 0
       var my_trades = collectionServiceInstance.getMyTrades()
+      var my_positions = collectionServiceInstance.getMyPositions()
       var periods = collectionServiceInstance.getPeriods()
+
+      if (cmd.reset_profit) {
+        console.log('\nDeleting my_positions collection...')
+        my_positions.remove({})
+      }
+      //Recupera tutte le vecchie posizioni aperte e le copia in s.my_positions
+      my_positions.find({selector: so.selector.normalized}).toArray(function (err, my_prev_positions) {
+        if (err) throw err
+        if (my_prev_positions.length) {
+          s.my_positions = my_prev_positions.slice(0)
+          // my_positions_size = s.my_positions.length
+        }
+      })
 
       console.log('fetching pre-roll data:')
       var zenbot_cmd = process.platform === 'win32' ? 'zenbot.bat' : 'zenbot.sh' // Use 'win32' for 64 bit windows too
@@ -699,27 +716,29 @@ module.exports = function (program, conf) {
                       console.error(err)
                     }
                   })
+                  //Per registrare/rimuovere le posizioni nel database
+                  if (my_trade.type == 'buy') {
+                    let my_position = s.my_positions[s.my_positions.length-1]
+                    my_position._id = my_position.id
+                    my_position.session_id = session.id
+                    my_position.mode = so.mode
+                    my_positions.save(my_position, function (err) {
+                      if (err) {
+                        console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
+                        console.error(err)
+                      }
+                    })
+                  } else {
+                    my_positions.remove({id: s.working_position_id}, function (err) {
+                      if (err) {
+                        console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error removing my_position')
+                        console.error(err)
+                      }
+                    })
+                  }
                 })
                 my_trades_size = s.my_trades.length
               }
-
-              //Per registrare le posizioni nel database
-              // if (s.my_positions.length > my_positions_size) {
-              //   s.my_position.slice(my_positions_size).forEach(function (my_position) {
-              //     my_position.id = crypto.randomBytes(4).toString('hex')
-              //     my_position._id = my_position.id
-              //     my_position.selector = so.selector.normalized
-              //     my_position.session_id = session.id
-              //     my_position.mode = so.mode
-              //     my_positions.save(my_position, function (err) {
-              //       if (err) {
-              //         console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
-              //         console.error(err)
-              //       }
-              //     })
-              //   })
-              //   my_positions_size = s.my_positions.length
-              // }
 
               function savePeriod (period) {
                 if (!period.id) {

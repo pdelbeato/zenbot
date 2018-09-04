@@ -120,8 +120,8 @@ module.exports = {
     bollinger_time: Phenotypes.RangeFloat(1,6),
     bollinger_upper_bound_pct: Phenotypes.RangeFloat(-1, 30),
     bollinger_lower_bound_pct: Phenotypes.RangeFloat(-1, 30),
-    bollinger_upper_watchdog_pct: Phenotypes.RangeFloat(50, 100),
-    bollinger_lower_watchdog_pct: Phenotypes.RangeFloat(50, 100),
-    bollinger_calmdown_watchdog_pct: Phenotypes.RangeFloat(30, 80)
+    bollinger_upper_watchdog_pct: Phenotypes.RangeFloat(50, 300),
+    bollinger_lower_watchdog_pct: Phenotypes.RangeFloat(50, 300),
+    bollinger_calmdown_watchdog_pct: Phenotypes.RangeFloat(-50, 80)
   }
 }
