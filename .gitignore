@@ -16,6 +16,7 @@ data/*
 conf.js
 conf-*
 conf_*
+conf/*
 !conf-sample.js
 sim_result*
 trade_result*

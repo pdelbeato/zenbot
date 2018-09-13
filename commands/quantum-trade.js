@@ -237,16 +237,16 @@ module.exports = function (program, conf) {
           }
         })
 
-        //if (s.my_prev_trades.length) {
-        //  s.my_prev_trades.forEach(function (trade) {
-        //    if (trade.type === 'sell') {
-        //      if (trade.profit > 0)
-        //        sells++
-        //      else
-        //        losses++
-        //    }
-        //  }
-        //})
+        if (s.my_prev_trades.length) {
+          s.my_prev_trades.forEach(function (trade) {
+            if (trade.type === 'sell') {
+              if (trade.profit > 0)
+                sells++
+              else
+                losses++
+            }
+          })
+        }
 
 
         if (s.my_trades.length && sells > 0) {
@@ -352,16 +352,24 @@ module.exports = function (program, conf) {
         var last_buy
         var losses = 0, sells = 0
         s.my_trades.forEach(function (trade) {
-          if (trade.type === 'buy') {
-            last_buy = trade.price
-          }
-          else {
-            if (last_buy && trade.price < last_buy) {
-              losses++
+//          if (trade.type === 'buy') {
+//            last_buy = trade.price
+//          }
+//          else {
+//            if (last_buy && trade.price < last_buy) {
+//              losses++
+//            }
+//            sells++
+//          }
+        	
+        	if (trade.type === 'sell') {
+                if (trade.profit > 0)
+                  sells++
+                else
+                  losses++
             }
-            sells++
-          }
         })
+        
         if (s.my_trades.length && sells > 0) {
           output_lines.push('win/loss: ' + (sells - losses) + '/' + losses)
           output_lines.push('error rate: ' + (sells ? n(losses).divide(sells).format('0.00%') : '0.00%').yellow)
@@ -532,7 +540,7 @@ module.exports = function (program, conf) {
                     }
                   }
                   if(s.lookback.length > so.keep_lookback_periods){
-                    s.lookback.splice(-1,1)
+                    s.lookback.splice(-1,1) //Toglie l'ultimo elemento
                   }
 
                   forwardScan()
