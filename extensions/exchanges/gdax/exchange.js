@@ -1,4 +1,4 @@
-let debug = require('../lib/debug')
+let debug = require('../../../lib/debug')
 var Gdax = require('gdax'),
   minimist = require('minimist')
 
