@@ -587,7 +587,7 @@ module.exports = function (program, conf) {
                         console.log('\nWriting statistics...'.grey)
                         printTrade(false)
                       } else if (key === 'p' && !info.ctrl) {
-                        console.log('\nListing positions opened...'.grey)
+                        //console.log('\nListing positions opened...'.grey)
                         debug.printPosition(s.my_positions)
                       } else if (key === 'X' && !info.ctrl) {
                         console.log('\nExiting... ' + '\nWriting statistics...'.grey)

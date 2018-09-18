@@ -1,3 +1,4 @@
+let debug = require('../lib/debug')
 var Gdax = require('gdax'),
   minimist = require('minimist')
 
@@ -43,17 +44,19 @@ module.exports = function gdax (conf) {
       }
 
       websocket_client[product_id].on('open', () => {
-        if (so.debug) {
-          console.log('websocket connection to ' + product_id + ' opened')
-        }
+//        if (so.debug) {
+//          console.log('websocket connection to ' + product_id + ' opened')
+//        }
+    	debug.msg('websocket connection to ' + product_id + ' opened')
       })
 
       websocket_client[product_id].on('message', (message) => {
         // all messages with user_id are related to trades for current authenticated user
         if(message.user_id){
-          if (so.debug) {
-            console.log('websocket user channel income', message)
-          }
+//          if (so.debug) {
+//            console.log('websocket user channel income', message)
+//          }
+          debug.msg('websocket user channel income', message)
 
           switch (message.type) {
           case 'open':
@@ -94,9 +97,10 @@ module.exports = function gdax (conf) {
       websocket_client[product_id].on('error', (err) => {
         client_state.errored = true
 
-        if (so.debug) {
-          console.error('websocket error: ', err, 'restarting websocket connection')
-        }
+//        if (so.debug) {
+//          console.error('websocket error: ', err, 'restarting websocket connection')
+//        }
+        debug.msg('websocket error: ', err, 'restarting websocket connection')
 
         websocket_client[product_id].disconnect()
         websocket_client[product_id] = null
@@ -110,9 +114,10 @@ module.exports = function gdax (conf) {
           return
         }
 
-        if (so.debug) {
-          console.error('websocket connection to '+product_id+' closed, attempting reconnect')
-        }
+//        if (so.debug) {
+//          console.error('websocket connection to '+product_id+' closed, attempting reconnect')
+//        }
+        debug.msg('websocket connection to '+product_id+' closed, attempting reconnect')
 
         websocket_client[product_id] = null
         websocket_client[product_id] = websocketClient(product_id)
@@ -291,7 +296,9 @@ module.exports = function gdax (conf) {
         cache.trade_ids = cache.trade_ids.slice(fromIndex)
         return
       }
-      if(so.debug) console.log('getproducttrades call')
+//      if(so.debug) console.log('getproducttrades call')
+      debug.msg('getproducttrades call')
+      
       client.getProductTrades(opts.product_id, args, function (err, resp, body) {
         if (!err) err = statusErr(resp, body)
         if (err) return retry('getTrades', func_args, err)
@@ -313,9 +320,10 @@ module.exports = function gdax (conf) {
       var func_args = [].slice.call(arguments)
       var client = authedClient()
 
-      if (so.debug) {
-        console.log('getaccounts call')
-      }
+//      if (so.debug) {
+//        console.log('getaccounts call')
+//      }
+      debug.msg('getaccounts call')
 
       client.getAccounts(function (err, resp, body) {
         if (!err) err = statusErr(resp, body)
@@ -346,7 +354,8 @@ module.exports = function gdax (conf) {
       }
       var func_args = [].slice.call(arguments)
       var client = publicClient(opts.product_id)
-      if(so.debug) console.log('getproductticker call')
+//      if(so.debug) console.log('getproductticker call')
+      debug.msg('getproductticker call')
       client.getProductTicker(opts.product_id, function (err, resp, body) {
         if (!err) err = statusErr(resp, body)
         if (err) return retry('getQuote', func_args, err)
@@ -361,9 +370,10 @@ module.exports = function gdax (conf) {
       var func_args = [].slice.call(arguments)
       var client = authedClient()
 
-      if (so.debug) {
-        console.log('cancelorder call')
-      }
+//      if (so.debug) {
+//        console.log('cancelorder call')
+//      }
+      debug.msg('cancelorder call')
 
       client.cancelOrder(opts.order_id, function (err, resp, body) {
         if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
@@ -399,9 +409,10 @@ module.exports = function gdax (conf) {
       }
       delete opts.order_type
 
-      if (so.debug) {
-        console.log('buy call')
-      }
+//      if (so.debug) {
+//        console.log('buy call')
+//      }
+      debug.msg('buy call')
 
       client.buy(opts, function (err, resp, body) {
         if (body && body.message === 'Insufficient funds') {
@@ -443,9 +454,10 @@ module.exports = function gdax (conf) {
       }
       delete opts.order_type
 
-      if (so.debug) {
-        console.log('sell call')
-      }
+//      if (so.debug) {
+//        console.log('sell call')
+//      }
+      debug.msg('sell call')
 
       client.sell(opts, function (err, resp, body) {
         if (body && body.message === 'Insufficient funds') {
@@ -472,9 +484,10 @@ module.exports = function gdax (conf) {
       if(websocket_cache[opts.product_id] && websocket_cache[opts.product_id].orders['~' + opts.order_id]) {
         let order_cache = websocket_cache[opts.product_id].orders['~' + opts.order_id]
 
-        if (so.debug) {
-          console.log('getOrder websocket cache', order_cache)
-        }
+//        if (so.debug) {
+//          console.log('getOrder websocket cache', order_cache)
+//        }
+        debug.msg('getOrder websocket cache', order_cache)
 
         cb(null, order_cache)
         return
@@ -483,9 +496,10 @@ module.exports = function gdax (conf) {
       var func_args = [].slice.call(arguments)
       var client = authedClient()
 
-      if (so.debug) {
-        console.log('getorder call')
-      }
+//      if (so.debug) {
+//        console.log('getorder call')
+//      }
+      debug.msg('getorder call')
 
       client.getOrder(opts.order_id, function (err, resp, body) {
         if (!err && resp.statusCode !== 404) {
