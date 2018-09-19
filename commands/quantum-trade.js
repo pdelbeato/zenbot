@@ -148,9 +148,9 @@ module.exports = function (program, conf) {
         console.log('\n')
         process.stdout.write([
           z(25, (so.mode === 'paper' ? so.mode.toUpperCase() : so.mode.toUpperCase()) + ' MODE'.grey, ' '),
-          z(10, 'PERIOD LENGTH'.grey, ' '),
-          z(15, 'PERIOD CALC'.grey, ' '),
-          z(18, 'ORDER TYPE'.grey, ' '),
+          z(25, 'PERIOD LENGTH'.grey, ' '),
+          z(25, 'PERIOD CALC'.grey, ' '),
+          z(25, 'ORDER TYPE'.grey, ' '),
           z(25, 'SLIPPAGE'.grey, ' '),
           z(30, 'EXCHANGE FEES'.grey, ' ')
         ].join('') + '\n')
@@ -159,7 +159,7 @@ module.exports = function (program, conf) {
           z(10, so.period_length, ' '),
           z(17, so.period_calc, ' '),
           z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
-          z(27, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
+          z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
           z(17, (so.order_type === 'maker' ? so.order_type + ' ' + n(s.exchange.makerFee).format('0.0000%')  : so.order_type + ' ' + s.exchange.takerFee), ' ')
         ].join('') + '\n')
         process.stdout.write('')
