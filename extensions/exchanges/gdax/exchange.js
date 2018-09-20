@@ -380,7 +380,7 @@ module.exports = function gdax (conf) {
 
       client.cancelOrder(opts.order_id, function (err, resp, body) {
         //if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
-    	if (body && (body.message.includes('Order already done') || body.message.includes('order not found'))) {
+    	if (body && (body.message.indexOf('Order already done') != -1 || body.message.indexOf('order not found') != -1)) {
           return cb()
         }
 
