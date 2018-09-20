@@ -56,7 +56,8 @@ module.exports = function gdax (conf) {
 //          if (so.debug) {
 //            console.log('websocket user channel income', message)
 //          }
-          debug.msg('websocket user channel income: \n' + message)
+          debug.msg('websocket user channel income: \n')
+          debug.msg(message, false)
 
           switch (message.type) {
           case 'open':
@@ -100,7 +101,9 @@ module.exports = function gdax (conf) {
 //        if (so.debug) {
 //          console.error('websocket error: ', err, 'restarting websocket connection')
 //        }
-        debug.msg('websocket error: \n' + err + '\nrestarting websocket connection')
+        debug.msg('websocket error: \n')
+        debug.msg(err, false)
+        debug.msg('\nrestarting websocket connection', false)
 
         websocket_client[product_id].disconnect()
         websocket_client[product_id] = null
@@ -487,7 +490,8 @@ module.exports = function gdax (conf) {
 //        if (so.debug) {
 //          console.log('getOrder websocket cache', order_cache)
 //        }
-        debug.msg('getOrder websocket cache:\n' + order_cache)
+        debug.msg('getOrder websocket cache:')
+        debug.msg(order_cache, false)
 
         cb(null, order_cache)
         return
