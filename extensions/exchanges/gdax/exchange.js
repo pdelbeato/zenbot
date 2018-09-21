@@ -236,7 +236,13 @@ module.exports = function gdax (conf) {
     var cached_order = websocket_cache[product_id].orders['~'+update.maker_order_id] || websocket_cache[product_id].orders['~'+update.taker_order_id]
     if(cached_order){
       cached_order.price = update.price
-      cached_order.filled_size = (parseFloat(cached_order.filled_size) + update.size).toString()
+      //cached_order.filled_size = (parseFloat(cached_order.filled_size) + update.size).toString()
+      cached_order.filled_size = (parseFloat(cached_order.filled_size) + parseFloat(update.size)).toString()
+      debug.msg('handleOrderMatch: cached_order.filled_size= ' + cached_order.filled_size)
+      
+      //Aggiunto per vedere di risolvere il problema del invalid date
+      cached_order.done_at = update.time
+      debug.msg('handleOrderMatch: cached_order.done_at= ' + cached_order.done_at)
     }
   }
 
@@ -508,7 +514,7 @@ module.exports = function gdax (conf) {
 //      if (so.debug) {
 //        console.log('getorder call')
 //      }
-      debug.msg('getorder call')
+      debug.msg('getOrder call')
 
       client.getOrder(opts.order_id, function (err, resp, body) {
         if (!err && resp.statusCode !== 404) {
