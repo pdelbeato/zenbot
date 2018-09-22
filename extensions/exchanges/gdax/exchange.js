@@ -240,7 +240,7 @@ module.exports = function gdax (conf) {
       cached_order.filled_size = (parseFloat(cached_order.filled_size) + parseFloat(update.size)).toString()
       debug.msg('handleOrderMatch: cached_order.filled_size= ' + cached_order.filled_size)
       
-      //Aggiunto per vedere di risolvere il problema del invalid date
+      //Aggiunto per risolvere il problema dell'invalid date in caso di partial filled
       cached_order.done_at = update.time
       debug.msg('handleOrderMatch: cached_order.done_at= ' + cached_order.done_at)
     }
