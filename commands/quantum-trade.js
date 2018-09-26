@@ -14,6 +14,7 @@ var tb = require('timebucket')
   , objectifySelector = require('../lib/objectify-selector')
   , engineFactory = require('../lib/quantum-engine')
   , collectionService = require('../lib/services/collection-service')
+  , { formatAsset, formatPercent, formatCurrency } = require('./format')
   , debug = require('../lib/debug')
 
 module.exports = function (program, conf) {
@@ -180,8 +181,8 @@ module.exports = function (program, conf) {
 
       /* Implementing statistical Exit */
       function printTrade (quit, dump, statsonly = false) {
-        var tmp_balance = n(s.net_currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00000000')
-        if (quit) {
+        var tmp_balance = n(s.net_currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
+    	if (quit) {
           if (s.my_trades.length) {
             s.my_trades.push({
               price: s.period.close,
@@ -200,9 +201,9 @@ module.exports = function (program, conf) {
         if (!statsonly) {
           console.log()
           var output_lines = []
-          output_lines.push('Starting capital: ' + n(s.start_capital).format('0.00').yellow)
+          output_lines.push('Starting capital: ' + formatCurrency(s.start_capital, s.currency).yellow)
           output_lines.push('Last balance: ' + n(tmp_balance).format('0.00').yellow + ' (' + profit.format('0.00%') + ')')
-          output_lines.push('BuyHold: ' + buy_hold.format('0.00000000').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
+          output_lines.push('BuyHold: ' + buy_hold.format('0.00').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
           output_lines.push('vs. BuyHold: ' + n(tmp_balance).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
           //output_lines.push((s.my_prev_trades.length ? s.my_trades.length + s.my_prev_trades.length : s.my_trades.length) + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
           output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
@@ -211,8 +212,8 @@ module.exports = function (program, conf) {
         // Build stats for UI
         s.stats = {
           profit: profit.format('0.00%'),
-          tmp_balance: n(tmp_balance).format('0.00000000'),
-          buy_hold: buy_hold.format('0.00000000'),
+          tmp_balance: n(tmp_balance).format('0.00'),
+          buy_hold: buy_hold.format('0.00'),
           buy_hold_profit: n(buy_hold_profit).format('0.00%'),
           day_count: s.day_count,
           trade_per_day: n(s.my_trades.length / s.day_count).format('0.00')
@@ -331,14 +332,14 @@ module.exports = function (program, conf) {
         if(!shouldSaveStats) return
 
         var output_lines = []
-        var tmp_balance = n(s.net_currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00000000')
+        var tmp_balance = n(s.net_currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
 
         var profit = s.start_capital ? n(tmp_balance).subtract(s.start_capital).divide(s.start_capital) : n(0)
-        output_lines.push('last balance: ' + n(tmp_balance).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
+        output_lines.push('Last balance: ' + formatCurrency(tmp_balance, s.currency).yellow + ' (' + profit.format('0.00%') + ')')
         var buy_hold = s.start_price ? n(s.period.close).multiply(n(s.start_capital).divide(s.start_price)) : n(tmp_balance)
         var buy_hold_profit = s.start_capital ? n(buy_hold).subtract(s.start_capital).divide(s.start_capital) : n(0)
-        output_lines.push('buy hold: ' + buy_hold.format('0.00000000').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
-        output_lines.push('vs. buy hold: ' + n(tmp_balance).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
+        output_lines.push('BuyHold: ' + formatCurrency(buy_hold, s.currency).yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
+        output_lines.push('vs. BuyHold: ' + n(tmp_balance).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
         output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
         // Build stats for UI
         s.stats = {
