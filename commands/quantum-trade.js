@@ -14,7 +14,7 @@ var tb = require('timebucket')
   , objectifySelector = require('../lib/objectify-selector')
   , engineFactory = require('../lib/quantum-engine')
   , collectionService = require('../lib/services/collection-service')
-  , { formatAsset, formatPercent, formatCurrency } = require('./format')
+  , { formatAsset, formatPercent, formatCurrency } = require('../lib/format')
   , debug = require('../lib/debug')
 
 module.exports = function (program, conf) {
