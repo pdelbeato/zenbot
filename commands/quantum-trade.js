@@ -202,6 +202,7 @@ module.exports = function (program, conf) {
           console.log()
           var output_lines = []
           output_lines.push('Starting capital: ' + formatCurrency(s.start_capital, s.currency).yellow)
+          output_lines.push('Original capital: ' + formatCurrency(s.orig_capital, s.currency).yellow)
           output_lines.push('Last balance: ' + n(tmp_balance).format('0.00').yellow + ' (' + profit.format('0.00%') + ')')
           output_lines.push('BuyHold: ' + buy_hold.format('0.00').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
           output_lines.push('vs. BuyHold: ' + n(tmp_balance).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
