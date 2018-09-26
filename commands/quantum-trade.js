@@ -27,7 +27,7 @@ module.exports = function (program, conf) {
     .option('--paper', 'use paper trading mode (no real trades will take place)', Boolean, false)
     .option('--manual', 'watch price and account balance, but do not perform trades automatically', Boolean, false)
     .option('--non_interactive', 'disable keyboard inputs to the bot', Boolean, false)
-    .option('--currency_capital <amount>', 'for paper trading, amount of start capital in currency', Number, conf.currency_capital)
+    .option('--currency_capital <amount>', 'for paper trading, amount of start capital in currency. For live trading, amount of new starting capital in currency.', Number, conf.currency_capital)
     .option('--asset_capital <amount>', 'for paper trading, amount of start capital in asset', Number, conf.asset_capital)
     .option('--avg_slippage_pct <pct>', 'avg. amount of slippage to apply to paper trades', Number, conf.avg_slippage_pct)
   //.option('--buy_pct <pct>', 'buy with this % of currency balance', Number, conf.buy_pct)	//da togliere
@@ -532,7 +532,7 @@ module.exports = function (program, conf) {
                   var prev_session = prev_sessions[0]
                   if (prev_session && !cmd.reset) {
                     if (prev_session.orig_capital && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
-                      s.orig_capital = session.orig_capital = prev_session.orig_capital
+                      s.orig_capital = session.orig_capital = so.currency_capital || prev_session.orig_capital
                       s.orig_price = session.orig_price = prev_session.orig_price
                       if (so.mode === 'paper') {
                         s.balance = prev_session.balance
