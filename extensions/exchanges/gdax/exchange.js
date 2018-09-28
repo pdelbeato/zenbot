@@ -393,9 +393,9 @@ module.exports = function gdax (conf) {
     	  	debug.msg(JSON.parse(JSON.stringify(body)), false)
     		debug.msg('\n\n ' + typeof(body), false)
     	//}
-    	//if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
-    	if (err.data.message === 'Order already done' || err.data.message === 'order not found') {
-          debug.msg('Exchange cancelOrder err.data.message: ' + err.data.message)
+    	if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
+    	//if (err.data.message === 'Order already done' || err.data.message === 'order not found') {
+        //  debug.msg('Exchange cancelOrder err.data.message: ' + err.data.message)
     	  return cb()
         }
 
