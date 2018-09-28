@@ -76,6 +76,7 @@ module.exports = function (program, conf) {
         var botStartTime = moment().add(so.run_for, 'm')
       }
       
+      debug.msg('updateMsg=' + so.update_msg)
       if (so.update_msg) {
     	  var nextUpdateMsg = moment().add(so.update_msg, 'm')
     	  debug.msg('nextUpdateMsg=' + nextUpdateMsg)
