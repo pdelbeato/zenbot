@@ -78,6 +78,7 @@ module.exports = function (program, conf) {
       
       if (so.update_msg) {
     	  var nextUpdateMsg = moment().add(so.update_msg, 'm')
+    	  debug.msg('nextUpdateMsg=' + nextUpdateMsg)
       }
       
       delete so._
@@ -656,6 +657,8 @@ module.exports = function (program, conf) {
             }
             
             if (nextUpdateMsg && nextUpdateMsg - moment() < 0) {
+            	nextUpdateMsg = moment().add(so.update_msg, 'm')
+          	  	debug.msg('nextUpdateMsg=' + nextUpdateMsg)
             	updateMessage()
             }
             
