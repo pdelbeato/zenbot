@@ -65,14 +65,21 @@ module.exports = function (program, conf) {
     .option('--reset', 'reset previous positions and start new profit calculation from 0')
     .option('--use_fee_asset', 'Using separated asset to pay for fees. Such as binance\'s BNB or Huobi\'s HT', Boolean, false)
     .option('--run_for <minutes>', 'Execute for a period of minutes then exit with status 0', String, null)
+    .option('--update_msg <minutes>', 'Send an update message every <minutes>', String, null)
     .option('--debug', 'output detailed debug info')
     .action(function (selector, cmd) {
       var raw_opts = minimist(process.argv)
       var s = {options: JSON.parse(JSON.stringify(raw_opts))}
       var so = s.options
+      
       if (so.run_for) {
         var botStartTime = moment().add(so.run_for, 'm')
       }
+      
+      if (so.update_msg) {
+    	  var nextUpdateMsg = moment().add(so.update_msg, 'm')
+      }
+      
       delete so._
       if (cmd.conf) {
         var overrides = require(path.resolve(process.cwd(), cmd.conf))
@@ -647,6 +654,11 @@ module.exports = function (program, conf) {
                 printTrade(true)
               })
             }
+            
+            if (nextUpdateMsg && nextUpdateMsg - moment() < 0) {
+            	updateMessage()
+            }
+            
             session.updated = new Date().getTime()
             session.balance = s.balance
             session.start_capital = s.start_capital
