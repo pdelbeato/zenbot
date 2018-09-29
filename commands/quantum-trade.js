@@ -64,7 +64,7 @@ module.exports = function (program, conf) {
     .option('--disable_stats', 'disable printing order stats')
     .option('--reset', 'reset previous positions and start new profit calculation from 0')
     .option('--use_fee_asset', 'Using separated asset to pay for fees. Such as binance\'s BNB or Huobi\'s HT', Boolean, false)
-    .option('--run_for <minutes>', 'Execute for a period of minutes then exit with status 0', String, null)
+    .option('--run_for <minutes>', 'Execute for a period of minutes then exit with status 0', String, conf.run_for)
     .option('--update_msg <minutes>', 'Send an update message every <minutes>', String, conf.update_msg)
     .option('--debug', 'output detailed debug info')
     .action(function (selector, cmd) {
@@ -73,15 +73,10 @@ module.exports = function (program, conf) {
       var so = s.options
       
       if (so.run_for) {
-        var botStartTime = moment().add(so.run_for, 'm')
+    	  debug.msg('Run_for option = ', so.run_for)
+    	  var botStartTime = moment().add(so.run_for, 'm')
       }
-      
-//      debug.msg('updateMsg=' + so.update_msg)
-//      if (so.update_msg) {
-//    	  var nextUpdateMsg = moment().add(so.update_msg, 'm')
-//    	  debug.msg('nextUpdateMsg=' + nextUpdateMsg)
-//      }
-//      
+          
       delete so._
       if (cmd.conf) {
         var overrides = require(path.resolve(process.cwd(), cmd.conf))
@@ -155,7 +150,7 @@ module.exports = function (program, conf) {
           console.log('Interactive Buy/Sell disabled')
       }
 
-
+      /* To list options*/
       function listOptions () {
         console.log()
         console.log(s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey)
@@ -193,6 +188,7 @@ module.exports = function (program, conf) {
         ].join('') + '\n')
         process.stdout.write('')
       }
+      /* End listOptions() */
 
       /* Implementing statistical Exit */
       function printTrade (quit, dump, statsonly = false) {
@@ -266,7 +262,6 @@ module.exports = function (program, conf) {
           })
         }
 
-
         if (s.my_trades.length && sells > 0) {
           if (!statsonly) {
             output_lines.push('win/loss: ' + (sells - losses) + '/' + losses)
@@ -325,6 +320,7 @@ module.exports = function (program, conf) {
         }
       }
       /* The end of printTrade */
+
 
       /* Implementing statistical status dump every 10 secs */
       var shouldSaveStats = false
@@ -429,8 +425,9 @@ module.exports = function (program, conf) {
           fs.writeFileSync(out_target, out)
         //console.log('\nwrote'.grey, out_target)
         }
-
       }
+      /* End of implementing statistical status */
+      
 
       var order_types = ['maker', 'taker']
       if (!order_types.includes(so.order_type)) {
@@ -441,10 +438,19 @@ module.exports = function (program, conf) {
       var query_start = tb().resize(so.period_length).subtract(so.min_periods * 2).toMilliseconds()
       var days = Math.ceil((new Date().getTime() - query_start) / 86400000)
       var session = null
+      
+      var lookback_size = 0
+      var my_trades_size = 0
+      
+    //Recupera tutti i vecchi database
+      var my_trades = collectionServiceInstance.getMyTrades()
+      var my_positions = collectionServiceInstance.getMyPositions()
+      var periods = collectionServiceInstance.getPeriods()
       var sessions = collectionServiceInstance.getSessions()
       var balances = collectionServiceInstance.getBalances()
       var trades = collectionServiceInstance.getTrades()
       var resume_markers = collectionServiceInstance.getResumeMarkers()
+      
       var marker = {
         id: crypto.randomBytes(4).toString('hex'),
         selector: so.selector.normalized,
@@ -453,23 +459,24 @@ module.exports = function (program, conf) {
         oldest_time: null
       }
       marker._id = marker.id
-      var lookback_size = 0
-      var my_trades_size = 0
-      // var my_positions_size = 0
-      var my_trades = collectionServiceInstance.getMyTrades()
-      var my_positions = collectionServiceInstance.getMyPositions()
-      var periods = collectionServiceInstance.getPeriods()
 
+      //Se richiesto nel comando, esegue il reset dei database 
       if (cmd.reset) {
         console.log('\nDeleting my_positions collection...')
         my_positions.remove({})
+        console.log('\nDeleting my_trades collection...')
+        my_trades.remove({})
+        console.log('\nDeleting sessions collection...')
+        sessions.remove({})
+        console.log('\nDeleting balances collection...')
+        balances.remove({})
       }
+      
       //Recupera tutte le vecchie posizioni aperte e le copia in s.my_positions
       my_positions.find({selector: so.selector.normalized}).toArray(function (err, my_prev_positions) {
         if (err) throw err
         if (my_prev_positions.length) {
           s.my_positions = my_prev_positions.slice(0)
-        // my_positions_size = s.my_positions.length
         }
       })
 
@@ -513,6 +520,7 @@ module.exports = function (program, conf) {
               if (!so.min_prev_trades) {
                 prevOpts.query.time = {$gte : trades[0].time}
               }
+              //Recupera i vecchi my_trades e li mette in s.my_prev_trades
               my_trades.find(prevOpts.query).sort({$natural:-1}).limit(prevOpts.limit).toArray(function (err, my_prev_trades) {
                 if (err) throw err
                 if (my_prev_trades.length) {
@@ -561,8 +569,10 @@ module.exports = function (program, conf) {
                     s.lookback.splice(-1,1) //Toglie l'ultimo elemento
                   }
 
+                  //Chiamata alla funzione forwardScan()
                   forwardScan()
                   setInterval(forwardScan, so.poll_trades)
+                  
                   readline.emitKeypressEvents(process.stdin)
                   if (!so.non_interactive && process.stdin.setRawMode) {
                     process.stdin.setRawMode(true)
@@ -656,6 +666,8 @@ module.exports = function (program, conf) {
               if (err.body) console.error(err.body)
               console.error(err)
             }
+            
+            //Check sul run_for
             if (botStartTime && botStartTime - moment() < 0 ) {
             // Not sure if I should just handle exit code directly or thru printTrade.  Decided on printTrade being if code is added there for clean exits this can just take advantage of it.
               engine.exit(() => {
@@ -663,9 +675,10 @@ module.exports = function (program, conf) {
               })
             }
             
+            //Check per invio messaggi di status
             if (nextUpdateMsg && nextUpdateMsg - moment() < 0) {
             	nextUpdateMsg = moment().add(so.update_msg, 'm')
-          	  	debug.msg('nextUpdateMsg=' + nextUpdateMsg)
+          	  	//debug.msg('nextUpdateMsg=' + nextUpdateMsg)
             	engine.updateMessage()
             }
             
