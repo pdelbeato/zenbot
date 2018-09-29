@@ -666,7 +666,7 @@ module.exports = function (program, conf) {
             if (nextUpdateMsg && nextUpdateMsg - moment() < 0) {
             	nextUpdateMsg = moment().add(so.update_msg, 'm')
           	  	debug.msg('nextUpdateMsg=' + nextUpdateMsg)
-            	updateMessage()
+            	engine.updateMessage()
             }
             
             session.updated = new Date().getTime()
