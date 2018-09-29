@@ -387,7 +387,7 @@ module.exports = function gdax (conf) {
       client.cancelOrder(opts.order_id, function (err, resp, body) {
     	//if (body) {
     		debug.msg('Response= ')
-    		debug.msg(JSON.parse(JSON.stringify(resp)), false)
+    		debug.msg(resp, false)
     		
     	  	debug.msg('Body= ')
     	  	debug.msg(JSON.parse(JSON.stringify(body)), false)
