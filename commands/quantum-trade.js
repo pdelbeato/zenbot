@@ -65,7 +65,7 @@ module.exports = function (program, conf) {
     .option('--reset', 'reset previous positions and start new profit calculation from 0')
     .option('--use_fee_asset', 'Using separated asset to pay for fees. Such as binance\'s BNB or Huobi\'s HT', Boolean, false)
     .option('--run_for <minutes>', 'Execute for a period of minutes then exit with status 0', String, null)
-    .option('--update_msg <minutes>', 'Send an update message every <minutes>', String, conf.update_msg)
+    .option('--update_msg <hours>', 'Send an update message every <hours>', String, conf.update_msg)
     .option('--debug', 'output detailed debug info')
     .action(function (selector, cmd) {
       var raw_opts = minimist(process.argv)
@@ -111,7 +111,7 @@ module.exports = function (program, conf) {
     	  
 	  //debug.msg('updateMsg=' + so.update_msg)
       if (so.update_msg) {
-    	  var nextUpdateMsg = moment().add(so.update_msg, 'm')
+    	  var nextUpdateMsg = moment().add(so.update_msg, 'h')
     	  //debug.msg('nextUpdateMsg=' + nextUpdateMsg)
       }
       
