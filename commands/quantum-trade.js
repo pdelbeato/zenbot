@@ -76,12 +76,12 @@ module.exports = function (program, conf) {
         var botStartTime = moment().add(so.run_for, 'm')
       }
       
-      debug.msg('updateMsg=' + so.update_msg)
-      if (so.update_msg) {
-    	  var nextUpdateMsg = moment().add(so.update_msg, 'm')
-    	  debug.msg('nextUpdateMsg=' + nextUpdateMsg)
-      }
-      
+//      debug.msg('updateMsg=' + so.update_msg)
+//      if (so.update_msg) {
+//    	  var nextUpdateMsg = moment().add(so.update_msg, 'm')
+//    	  debug.msg('nextUpdateMsg=' + nextUpdateMsg)
+//      }
+//      
       delete so._
       if (cmd.conf) {
         var overrides = require(path.resolve(process.cwd(), cmd.conf))
@@ -108,7 +108,13 @@ module.exports = function (program, conf) {
       //  console.log(('--buy_max_amt is deprecated, use --deposit instead!\n').red)
       //  so.deposit = so.buy_max_amt
       //}
-
+    	  
+	  debug.msg('updateMsg=' + so.update_msg)
+      if (so.update_msg) {
+    	  var nextUpdateMsg = moment().add(so.update_msg, 'm')
+    	  debug.msg('nextUpdateMsg=' + nextUpdateMsg)
+      }
+      
       so.selector = objectifySelector(selector || conf.selector)
       var engine = engineFactory(s, conf)
       var collectionServiceInstance = collectionService(conf)
