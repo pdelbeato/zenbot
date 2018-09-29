@@ -109,10 +109,10 @@ module.exports = function (program, conf) {
       //  so.deposit = so.buy_max_amt
       //}
     	  
-	  debug.msg('updateMsg=' + so.update_msg)
+	  //debug.msg('updateMsg=' + so.update_msg)
       if (so.update_msg) {
     	  var nextUpdateMsg = moment().add(so.update_msg, 'm')
-    	  debug.msg('nextUpdateMsg=' + nextUpdateMsg)
+    	  //debug.msg('nextUpdateMsg=' + nextUpdateMsg)
       }
       
       so.selector = objectifySelector(selector || conf.selector)
