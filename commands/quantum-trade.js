@@ -677,7 +677,7 @@ module.exports = function (program, conf) {
             
             //Check per invio messaggi di status
             if (nextUpdateMsg && nextUpdateMsg - moment() < 0) {
-            	nextUpdateMsg = moment().add(so.update_msg, 'm')
+            	nextUpdateMsg = moment().add(so.update_msg, 'h')
           	  	//debug.msg('nextUpdateMsg=' + nextUpdateMsg)
             	engine.updateMessage()
             }
