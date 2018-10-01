@@ -151,7 +151,7 @@ module.exports = function gdax (conf) {
   function retry (method, args, err) {
     if (method !== 'getTrades') {
       console.error(('\nGDAX API is down! unable to call ' + method + ', retrying in 10s').red)
-      if (err) console.error(err)
+      if (err) console.error('***err= \n\n' + err)
       console.error(args.slice(0, -1)) //slice prende l'ultimo valore di args
     }
     setTimeout(function () {
@@ -385,20 +385,24 @@ module.exports = function gdax (conf) {
       debug.msg('cancelorder call')
 
       client.cancelOrder(opts.order_id, function (err, resp, body) {
-    	if (body && resp) {
+    	if (resp) {
     		debug.msg('Response= ')
     		debug.msg(resp, false)
-    		
+    	}
+    	
+    	if (body) {
     	  	debug.msg('Body= ')
     	  	debug.msg(JSON.parse(JSON.stringify(body)), false)
-    		debug.msg('\n\n ' + typeof(body), false)
     	}
     	
     	if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
-    	//if (err.data.message === 'Order already done' || err.data.message === 'order not found') {
-        //  debug.msg('Exchange cancelOrder err.data.message: ' + err.data.message)
     	  return cb()
         }
+    	
+    	if (err.data.message && err.data.message == 'Order already done') {
+          debug.msg('Exchange cancelOrder err.data.message: ' + err.data.message)
+          return cb()
+    	}
 
         if (!err) {
           err = statusErr(resp, body)
