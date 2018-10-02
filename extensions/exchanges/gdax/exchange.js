@@ -385,6 +385,11 @@ module.exports = function gdax (conf) {
       debug.msg('cancelorder call')
 
       client.cancelOrder(opts.order_id, function (err, resp, body) {
+    	if (err) {
+      		debug.msg('err= ')
+      		debug.msg(err, false)
+      	}
+    	  
     	if (resp) {
     		debug.msg('Response= ')
     		debug.msg(resp, false)
@@ -399,7 +404,7 @@ module.exports = function gdax (conf) {
     	  return cb()
         }
     	
-    	if (err.data.message && err.data.message == 'Order already done') {
+    	if (err && err.data && err.data.message == 'Order already done') {
           debug.msg('Exchange cancelOrder err.data.message: ' + err.data.message)
           return cb()
     	}
