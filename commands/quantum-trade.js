@@ -44,6 +44,7 @@ module.exports = function (program, conf) {
     .option('--sell_calmdown <amount>', 'Minutes to wait before next sell', Number, conf.sell_calmdown)
     .option('--markdown_buy_pct <pct>', '% to mark down buy price', Number, conf.markdown_buy_pct)
     .option('--markup_sell_pct <pct>', '% to mark up sell price', Number, conf.markup_sell_pct)
+    .option('--buy_price_limit <amount>', 'Limit buy to be under <amount>', Number, conf.buy_price_limit)
     .option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, conf.order_adjust_time)
     .option('--order_poll_time <ms>', 'poll order status on this interval', Number, conf.order_poll_time)
     .option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, conf.sell_stop_pct)
