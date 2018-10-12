@@ -306,7 +306,7 @@ module.exports = function gdax (conf) {
         return
       }
 //      if(so.debug) console.log('getproducttrades call')
-      debug.msg('getproducttrades call')
+      debug.msg('getTrades - getproducttrades call')
       
       client.getProductTrades(opts.product_id, args, function (err, resp, body) {
         if (!err) err = statusErr(resp, body)
@@ -332,7 +332,7 @@ module.exports = function gdax (conf) {
 //      if (so.debug) {
 //        console.log('getaccounts call')
 //      }
-      debug.msg('getaccounts call')
+      debug.msg('getBalance - getaccounts call')
 
       client.getAccounts(function (err, resp, body) {
         if (!err) err = statusErr(resp, body)
@@ -357,6 +357,7 @@ module.exports = function gdax (conf) {
       if(websocket_cache[opts.product_id]) {
         var ticker = websocket_cache[opts.product_id].ticker
         if(ticker.best_ask && ticker.best_bid){
+          debug.msg('getQuote - ticker from websocket_cache')
           cb(null, {bid: ticker.best_bid, ask: ticker.best_ask})
           return
         }
@@ -364,7 +365,7 @@ module.exports = function gdax (conf) {
       var func_args = [].slice.call(arguments)
       var client = publicClient(opts.product_id)
 //      if(so.debug) console.log('getproductticker call')
-      debug.msg('getproductticker call')
+      debug.msg('getQuote - getproductticker call')
       client.getProductTicker(opts.product_id, function (err, resp, body) {
         if (!err) err = statusErr(resp, body)
         if (err) return retry('getQuote', func_args, err)
