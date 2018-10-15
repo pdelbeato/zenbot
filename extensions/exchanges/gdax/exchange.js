@@ -383,7 +383,7 @@ module.exports = function gdax (conf) {
 //      if (so.debug) {
 //        console.log('cancelorder call')
 //      }
-      debug.msg('cancelorder call')
+      debug.msg('cancelOrder - cancelorder call')
 
       client.cancelOrder(opts.order_id, function (err, resp, body) {
     	if (err) {
@@ -442,7 +442,7 @@ module.exports = function gdax (conf) {
 //      if (so.debug) {
 //        console.log('buy call')
 //      }
-      debug.msg('buy call')
+      debug.msg('buy - buy call')
 
       client.buy(opts, function (err, resp, body) {
         if (body && body.message === 'Insufficient funds') {
@@ -487,7 +487,7 @@ module.exports = function gdax (conf) {
 //      if (so.debug) {
 //        console.log('sell call')
 //      }
-      debug.msg('sell call')
+      debug.msg('sell - sell call')
 
       client.sell(opts, function (err, resp, body) {
         if (body && body.message === 'Insufficient funds') {
@@ -517,7 +517,7 @@ module.exports = function gdax (conf) {
 //        if (so.debug) {
 //          console.log('getOrder websocket cache', order_cache)
 //        }
-        debug.msg('getOrder websocket cache:')
+        debug.msg('getOrder - websocket cache:')
         debug.msg(order_cache, false)
 
         cb(null, order_cache)
@@ -530,7 +530,7 @@ module.exports = function gdax (conf) {
 //      if (so.debug) {
 //        console.log('getorder call')
 //      }
-      debug.msg('getOrder call')
+      debug.msg('getOrder - getOrder call')
 
       client.getOrder(opts.order_id, function (err, resp, body) {
         if (!err && resp.statusCode !== 404) {
