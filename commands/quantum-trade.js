@@ -18,7 +18,7 @@ var tb = require('timebucket')
 , debug = require('../lib/debug')
 
 //Per eseguire comandi da bash
-var sys = require('sys')
+var sys = require('util')
 var exec = require('child_process').exec;
 function puts(error, stdout, stderr) { sys.puts(stdout) }
 
@@ -158,16 +158,13 @@ module.exports = function (program, conf) {
 		}
 
 		/* Trying to recover MongoDB connection */
-		function recoverMongoDB() {
-			
+		function recoverMongoDB() {			
 			exec("sudo rm /var/lib/mongodb/mongod.lock", puts);
-			
 			exec("sudo mongod --repair", puts);
-
 			exec("sudo service mongodb start", puts);
-
 			exec("sudo service mongodb status", puts);
 			
+			debug.msg('Recupero i vecchi database...')
 			//Recupera tutti i vecchi database
 			var my_trades = collectionServiceInstance.getMyTrades()
 			var my_positions = collectionServiceInstance.getMyPositions()
@@ -176,6 +173,7 @@ module.exports = function (program, conf) {
 			var balances = collectionServiceInstance.getBalances()
 			var trades = collectionServiceInstance.getTrades()
 			var resume_markers = collectionServiceInstance.getResumeMarkers()
+			debug.msg(' fatto!', false)
 		}
 		
 		/* To list options*/
