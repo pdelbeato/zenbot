@@ -20,6 +20,10 @@ var tb = require('timebucket')
 //Per eseguire comandi da bash
 var sys = require('util')
 var exec = require('child_process').exec;
+function execs(cmd, puts, cb) {
+	exec(cmd, puts)
+	return cb()
+}
 function puts(error, stdout, stderr) { console.log(stdout) }
 
 module.exports = function (program, conf) {
@@ -162,7 +166,7 @@ module.exports = function (program, conf) {
 			exec("sudo rm /var/lib/mongodb/mongod.lock", puts);
 			exec("sudo mongod --repair", puts);
 			exec("sudo service mongodb start", puts);
-			exec("sudo service mongodb status", puts, function() {			
+			execs("sudo service mongodb status", puts, function() {			
 				debug.msg('Recupero i vecchi database...')
 				//Recupera tutti i vecchi database
 				var my_trades = collectionServiceInstance.getMyTrades()
