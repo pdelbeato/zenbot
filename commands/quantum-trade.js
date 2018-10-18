@@ -77,6 +77,7 @@ module.exports = function (program, conf) {
 	.option('--run_for <minutes>', 'Execute for a period of minutes then exit with status 0', String, conf.run_for)
 	.option('--update_msg <hours>', 'Send an update message every <hours>', String, conf.update_msg)
 	.option('--debug', 'output detailed debug info')
+	.option('--notify_level', 'level of notify messages (0=status, 5=operations, 9=everything)', Number, conf.notify_level)
 	.action(function (selector, cmd) {
 		var raw_opts = minimist(process.argv)
 		var s = {options: JSON.parse(JSON.stringify(raw_opts))}
