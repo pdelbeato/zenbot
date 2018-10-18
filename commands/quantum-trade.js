@@ -171,18 +171,21 @@ module.exports = function (program, conf) {
         exec('sudo mongod --repair', puts)
         exec('sudo service mongodb start', puts)
         exec('sudo service mongodb status', puts)
-        setTimeout(function() {
-          debug.msg('Recupero i vecchi database...')
-          //Recupera tutti i vecchi database
-          my_trades = collectionServiceInstance.getMyTrades()
-          my_positions = collectionServiceInstance.getMyPositions()
-          periods = collectionServiceInstance.getPeriods()
-          sessions = collectionServiceInstance.getSessions()
-          balances = collectionServiceInstance.getBalances()
-          trades = collectionServiceInstance.getTrades()
-          resume_markers = collectionServiceInstance.getResumeMarkers()
-          debug.msg(' fatto!', false)
-        }, 5000)
+
+        //Se recupero i vecchi database, e non sono aggiornati, faccio un danno!!
+        //Da verificare se con MongoDB riavviato, la conessione è ripristinata o meno.
+        // setTimeout(function() {
+        //   debug.msg('Recupero i vecchi database...')
+        //   //Recupera tutti i vecchi database
+        //   my_trades = collectionServiceInstance.getMyTrades()
+        //   my_positions = collectionServiceInstance.getMyPositions()
+        //   periods = collectionServiceInstance.getPeriods()
+        //   sessions = collectionServiceInstance.getSessions()
+        //   balances = collectionServiceInstance.getBalances()
+        //   trades = collectionServiceInstance.getTrades()
+        //   resume_markers = collectionServiceInstance.getResumeMarkers()
+        //   debug.msg(' fatto!', false)
+        // }, 5000)
       }
 
       /* To list options*/
