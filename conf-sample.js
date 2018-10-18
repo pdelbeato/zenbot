@@ -176,6 +176,7 @@ c.min_prev_trades = 0
 
 // Notifiers:
 c.notifiers = {}
+c.notifier_lvl = 9
 
 // xmpp config
 c.notifiers.xmpp = {}
