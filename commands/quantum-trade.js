@@ -21,8 +21,8 @@ var tb = require('timebucket')
 var sys = require('util')
 var exec = require('child_process').exec;
 //function execs(cmd, puts, cb) {
-//	exec(cmd, puts)
-//	return cb()
+//exec(cmd, puts)
+//return cb()
 //}
 function puts(error, stdout, stderr) { console.log(stdout) }
 
@@ -109,16 +109,18 @@ module.exports = function (program, conf) {
 		so.stats = !cmd.disable_stats
 		so.mode = so.paper ? 'paper' : 'live'
 
-			//if (so.buy_max_amt) {
-			//  console.log(('--buy_max_amt is deprecated, use --deposit instead!\n').red)
-			//  so.deposit = so.buy_max_amt
-			//}
+		//if (so.buy_max_amt) {
+		//  console.log(('--buy_max_amt is deprecated, use --deposit instead!\n').red)
+		//  so.deposit = so.buy_max_amt
+		//}
 
-			//debug.msg('updateMsg=' + so.update_msg)
-			if (so.update_msg) {
-				var nextUpdateMsg = moment().add(so.update_msg, 'h')
-				//debug.msg('nextUpdateMsg=' + nextUpdateMsg)
-			}
+		//debug.msg('updateMsg=' + so.update_msg)
+		if (so.update_msg) {
+			var nextUpdateMsg = moment().add(so.update_msg, 'h')
+			//debug.msg('nextUpdateMsg=' + nextUpdateMsg)
+		}
+
+		if (!so.min_periods) so.min_periods = 1
 
 		so.selector = objectifySelector(selector || conf.selector)
 		var engine = engineFactory(s, conf)
@@ -178,9 +180,9 @@ module.exports = function (program, conf) {
 				var trades = collectionServiceInstance.getTrades()
 				var resume_markers = collectionServiceInstance.getResumeMarkers()
 				debug.msg(' fatto!', false)
-			 }, 5000)
+			}, 5000)
 		}
-		
+
 		/* To list options*/
 		function listOptions () {
 			console.log()
