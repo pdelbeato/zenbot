@@ -40,6 +40,14 @@
     "label": "DASH/USD"
   },
   {
+    "asset": "LTC",
+    "currency": "USD",
+    "min_size": "1.2",
+    "max_size": null,
+    "increment": "0.01",
+    "label": "LTC/USD"
+  },
+  {
     "asset": "XRP",
     "currency": "USD",
     "min_size": "40",
@@ -208,6 +216,14 @@
     "label": "DASH/BTC"
   },
   {
+    "asset": "LTC",
+    "currency": "BTC",
+    "min_size": "1.2",
+    "max_size": null,
+    "increment": "0.000001",
+    "label": "LTC/BTC"
+  },
+  {
     "asset": "XRP",
     "currency": "BTC",
     "min_size": "40",
@@ -230,13 +246,5 @@
     "max_size": null,
     "increment": "0.000001",
     "label": "ZEC/BTC"
-  },
-  {
-    "asset": "GHS",
-    "currency": "BTC",
-    "min_size": "100",
-    "max_size": null,
-    "increment": "0.00000001",
-    "label": "GHS/BTC"
   }
 ]

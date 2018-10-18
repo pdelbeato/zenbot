@@ -1,13 +1,5 @@
 [
   {
-    "asset": "AMP",
-    "currency": "BTC",
-    "min_total": "0.0001",
-    "max_size": null,
-    "increment": "0.00000001",
-    "label": "Synereo AMP/Bitcoin"
-  },
-  {
     "asset": "ARDR",
     "currency": "BTC",
     "min_total": "0.0001",
@@ -264,14 +256,6 @@
     "label": "Ethereum/Tether USD"
   },
   {
-    "asset": "EXP",
-    "currency": "BTC",
-    "min_total": "0.0001",
-    "max_size": null,
-    "increment": "0.00000001",
-    "label": "Expanse/Bitcoin"
-  },
-  {
     "asset": "FCT",
     "currency": "BTC",
     "min_total": "0.0001",
@@ -302,22 +286,6 @@
     "max_size": null,
     "increment": "0.00000001",
     "label": "Gas/Ethereum"
-  },
-  {
-    "asset": "GNO",
-    "currency": "BTC",
-    "min_total": "0.0001",
-    "max_size": null,
-    "increment": "0.00000001",
-    "label": "Gnosis/Bitcoin"
-  },
-  {
-    "asset": "GNO",
-    "currency": "ETH",
-    "min_total": "0.0001",
-    "max_size": null,
-    "increment": "0.00000001",
-    "label": "Gnosis/Ethereum"
   },
   {
     "asset": "GNT",
@@ -470,6 +438,30 @@
     "max_size": null,
     "increment": "0.00000001",
     "label": "MaidSafeCoin/Monero"
+  },
+  {
+    "asset": "MANA",
+    "currency": "BTC",
+    "min_total": "0.0001",
+    "max_size": null,
+    "increment": "0.00000001",
+    "label": "Decentraland/Bitcoin"
+  },
+  {
+    "asset": "MANA",
+    "currency": "ETH",
+    "min_total": "0.0001",
+    "max_size": null,
+    "increment": "0.00000001",
+    "label": "Decentraland/Ethereum"
+  },
+  {
+    "asset": "MANA",
+    "currency": "USDT",
+    "min_total": "1",
+    "max_size": null,
+    "increment": "0.00000001",
+    "label": "Decentraland/Tether USD"
   },
   {
     "asset": "NAV",
