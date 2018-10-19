@@ -43,7 +43,7 @@ module.exports = function (program, conf) {
     .option('--asset_capital <amount>', 'for paper trading, amount of start capital in asset', Number, conf.asset_capital)
     .option('--avg_slippage_pct <pct>', 'avg. amount of slippage to apply to paper trades', Number, conf.avg_slippage_pct)
   //.option('--buy_pct <pct>', 'buy with this % of currency balance', Number, conf.buy_pct)	//da togliere
-    .option('--deposit <amt>', 'absolute initial capital (in currency) at the bots disposal (previously --buy_max_amt)', Number, conf.deposit)
+//    .option('--deposit <amt>', 'absolute initial capital (in currency) at the bots disposal (previously --buy_max_amt)', Number, conf.deposit)
   //.option('--sell_pct <pct>', 'sell with this % of asset balance', Number, conf.sell_pct)	//da togliere
     .option('--quantum_size <amount>', 'buy up to this amount of currency every time', Number, conf.quantum_size)
     .option('--max_nr_quantum <amount>', 'Max nr of quantum which could be traded', Number, conf.max_nr_quantum)
@@ -84,12 +84,18 @@ module.exports = function (program, conf) {
       var s = {options: JSON.parse(JSON.stringify(raw_opts))}
       var so = s.options
 
+      //Se è stata impostata la funzione per il tempo di esecuzione, fissa il tempo di partenza
       if (so.run_for) {
         debug.msg('Run_for option = ', so.run_for)
         var botStartTime = moment().add(so.run_for, 'm')
       }
 
+      //Dovrebbe cancellare tutte le opzioni passate a riga di comando senza denominazione
+      // (minimist mette queste opzioni dentro un array chiamato _) 
       delete so._
+      
+      //Punto controverso. Le opzioni dovrebbero essere già sovrascritte dal file --conf (vedi boot.js)
+      // Perchè questa nuova sovrascrittura? cmd.conf dovrebbe essere il file passato con --conf
       if (cmd.conf) {
         var overrides = require(path.resolve(process.cwd(), cmd.conf))
         Object.keys(overrides).forEach(function (k) {
@@ -97,12 +103,21 @@ module.exports = function (program, conf) {
           so[k] = overrides[k]
         })
       }
+      
+      //Da capire bene a cosa serve. conf sono le opzioni passate a quantum-trade, quindi zenbot.conf, quindi l'unione
+      // delle opzioni conf_file, conf.js e conf-sample.js
       Object.keys(conf).forEach(function (k) {
         if (typeof cmd[k] !== 'undefined') {
           //console.log('cmd k=' + k + ' - ' + cmd[k])
           so[k] = cmd[k]
         }
       })
+      
+      //Punto controverso. A quanto sembra, tutte le opzioni passate in command line sono messe in so=s.options (riga 83-85).
+      // Dopodiché, vengono sovrascritte dal file --conf (riga 99-104).
+      //Quindi vengono prese tutte le opzioni passate a quantum-trade (quindi zenbot.conf da zenbot.js, quindi l'unione di 
+      // conf_file, conf.js e conf-sample.js) e vengono reinserite in so.
+      // Infine, con le righe seguenti, alcune opzioni di so vengono nuovamente riscritte dalle opzioni passate in riga di comando.
       so.currency_increment = cmd.currency_increment
       so.keep_lookback_periods = cmd.keep_lookback_periods
       so.use_prev_trades = (cmd.use_prev_trades||conf.use_prev_trades)
@@ -125,6 +140,9 @@ module.exports = function (program, conf) {
       if (!so.min_periods) so.min_periods = 1
 
       so.selector = objectifySelector(selector || conf.selector)
+      
+      //Quindi engine è quantum-engine(s, conf), dove conf è zenbot.conf da zenbot.js, quindi l'unione 
+      // di conf_file, conf.js e conf-sample.js e NON s.options
       var engine = engineFactory(s, conf)
       var collectionServiceInstance = collectionService(conf)
 
@@ -173,7 +191,9 @@ module.exports = function (program, conf) {
         exec('sudo service mongodb status', puts)
 
         //Se recupero i vecchi database, e non sono aggiornati, faccio un danno!!
+        //!!!!!!!!!!!!!!!!!!!!!!!!
         //Da verificare se con MongoDB riavviato, la conessione è ripristinata o meno.
+        //------------------------
         // setTimeout(function() {
         //   debug.msg('Recupero i vecchi database...')
         //   //Recupera tutti i vecchi database
@@ -404,15 +424,15 @@ module.exports = function (program, conf) {
         // var last_buy
         var losses = 0, sells = 0
         s.my_trades.forEach(function (trade) {
-          //								if (trade.type === 'buy') {
-          //								last_buy = trade.price
-          //								}
-          //								else {
-          //								if (last_buy && trade.price < last_buy) {
-          //								losses++
-          //								}
-          //								sells++
-          //								}
+  //		if (trade.type === 'buy') {
+  //			last_buy = trade.price
+  //		}
+  //		else {
+  //			if (last_buy && trade.price < last_buy) {
+  //			losses++
+  //			}
+  //			sells++
+  //		}
 
           if (trade.type === 'sell') {
             if (trade.profit > 0)
@@ -518,6 +538,7 @@ module.exports = function (program, conf) {
         }
       })
 
+      //Per caricare i dati dei trades, chiama zenbot.js backfill (so.selector.normalized) --days __ --conf __
       console.log('fetching pre-roll data:')
       var zenbot_cmd = process.platform === 'win32' ? 'zenbot.bat' : 'zenbot.sh' // Use 'win32' for 64 bit windows too
       var command_args = ['backfill', so.selector.normalized, '--days', days || 1]
@@ -589,19 +610,34 @@ module.exports = function (program, conf) {
                   started: new Date().getTime(),
                   mode: so.mode,
                   options: so
+                  //Spostati qui da forwardScan()
+                  start_capital = s.start_capital
+                  start_price = s.start_price
+                  orig_capital = s.start_capital
+                  orig_price = s.start_price
                 }
                 session._id = session.id
                 sessions.find({selector: so.selector.normalized}).limit(1).sort({started: -1}).toArray(function (err, prev_sessions) {
                   if (err) throw err
                   var prev_session = prev_sessions[0]
-                  if (prev_session && !cmd.reset) {
-                    if (prev_session.orig_capital && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
-                      s.orig_capital = session.orig_capital = so.currency_capital || prev_session.orig_capital
+//                  if (prev_session && !cmd.reset) {
+                  	if (prev_session && !cmd.reset && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
+                	  debug.msg('getNext() - prev_session')
+//                    if (prev_session.orig_capital && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {                	  
+//                      s.orig_capital = session.orig_capital = so.currency_capital || prev_session.orig_capital
+            		  s.orig_capital = session.orig_capital = prev_session.orig_capital
                       s.orig_price = session.orig_price = prev_session.orig_price
+                      debug.msg('getNext() - s.orig_capital = ' + s.orig_capital + ' - s.orig_price = ' + s.orig_price)
                       if (so.mode === 'paper') {
                         s.balance = prev_session.balance
                       }
                     }
+                  	else {
+                  		debug.msg('getNext() - no prev_session')
+                  		s.orig_capital = s.start_capital
+                        s.orig_price = s.start_price
+                        debug.msg('getNext() - s.orig_capital = ' + s.orig_capital + ' - s.orig_price = ' + s.orig_price)
+                  	} 
                   }
                   if(s.lookback.length > so.keep_lookback_periods){
                     s.lookback.splice(-1,1) //Toglie l'ultimo elemento
@@ -689,6 +725,8 @@ module.exports = function (program, conf) {
             })
           })
         }
+        /* End of getNext() */
+        
         engine.writeHeader()
         getNext()
       })
@@ -723,14 +761,20 @@ module.exports = function (program, conf) {
               engine.updateMessage()
             }
 
-            session.updated = new Date().getTime()
-            session.balance = s.balance
-            session.start_capital = s.start_capital
-            session.start_price = s.start_price
-            session.num_trades = s.my_trades.length
-            if (so.deposit) session.deposit = so.deposit
-            if (!session.orig_capital) session.orig_capital = s.start_capital
-            if (!session.orig_price) session.orig_price = s.start_price
+            //Sposto tutto sotto, prima del salvataggio si session nel database sessions
+//            session.updated = new Date().getTime()
+//            session.balance = s.balance
+//            //Meglio assegnarli durante la creazione di session, invece di assegnarli di nuovo ogni volta
+////            session.start_capital = s.start_capital
+////            session.start_price = s.start_price
+//            session.num_trades = s.my_trades.length
+////            if (so.deposit) session.deposit = so.deposit
+            
+          //Meglio assegnarli durante la creazione di session, invece di assegnarli di nuovo ogni volta
+//            if (!session.orig_capital) session.orig_capital = s.start_capital
+//            if (!session.orig_price) session.orig_price = s.start_price
+            
+            //Se esiste s.period, aggiorno il database balances
             if (s.period) {
               session.price = s.period.close
               var d = tb().resize(conf.balance_snapshot_period)
@@ -741,6 +785,7 @@ module.exports = function (program, conf) {
                 currency: s.balance.currency,
                 asset: s.balance.asset,
                 price: s.period.close,
+                //Questi due seguenti a cosa serve memorizzarli nel db dei balances?
                 start_capital: session.orig_capital,
                 start_price: session.orig_price,
               }
@@ -759,14 +804,20 @@ module.exports = function (program, conf) {
                   }
                 })
               }
-              session.balance = b
+              //Con questo, memorizzo valori inutili dentro session.balance.
+//              session.balance = b
             }
-            else {
-              session.balance = {
-                currency: s.balance.currency,
-                asset: s.balance.asset
-              }
-            }
+            //I valori di session.balance sono già aggiornati da s.balance di 759
+//            else {
+//              session.balance = {
+//                currency: s.balance.currency,
+//                asset: s.balance.asset
+//              }
+//            }
+              
+            session.updated = new Date().getTime()
+            session.balance = s.balance
+            session.num_trades = s.my_trades.length
             sessions.save(session, function (err) {
               if (err) {
                 console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
@@ -782,6 +833,8 @@ module.exports = function (program, conf) {
             })
           })
         }
+        /* End of saveSession()  */
+        
         var opts = {product_id: so.selector.product_id, from: trade_cursor}
         s.exchange.getTrades(opts, function (err, trades) {
           if (err) {
@@ -891,6 +944,7 @@ module.exports = function (program, conf) {
             saveSession()
           }
         })
+        
         function saveTrade (trade) {
           trade.id = so.selector.normalized + '-' + String(trade.trade_id)
           trade.selector = so.selector.normalized
@@ -909,6 +963,8 @@ module.exports = function (program, conf) {
             }
           })
         }
+        /* End of saveTrade() */
+        
       }
     })
 }

@@ -32,6 +32,8 @@ boot(function (err, zenbot) {
       return fs.statSync(file).isFile()
     })
 
+    //Quindi viene chiamato il comando giusto (e.g. quantum-trade) con le opzioni zenbot.conf
+    // ovvero con l'unione delle opzioni conf_file, conf.js e conf-sample.js (con questa priorità) 
     commands.forEach((file)=>{
       require(path.resolve(__dirname, file.replace('.js','')))(program, zenbot.conf)
     })
