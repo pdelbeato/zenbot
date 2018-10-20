@@ -120,7 +120,7 @@ module.exports = function (program, conf) {
 			//debug.msg('nextUpdateMsg=' + nextUpdateMsg)
 		}
 
-		if (!so.min_periods) so.min_periods = 1
+		if (!so.min_periods) so.min_periods = 301
 
 		so.selector = objectifySelector(selector || conf.selector)
 		var engine = engineFactory(s, conf)
