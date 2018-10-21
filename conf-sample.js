@@ -2,7 +2,7 @@ var c = module.exports = {}
 
 // mongo configuration
 c.mongo = {}
-c.mongo.db = 'zenbot4'
+c.mongo.db = 'zenbot4_sample'
 
 // Must provide EITHER c.mongo.connectionString OR c.mongo.host,port,username,password
 // c.mongo.connectionString = 'mongodb://u:p@host/db?params'
@@ -149,6 +149,8 @@ c.use_fee_asset = false
 
 // Misc options:
 
+//min periods to load for calculating strategies
+c.min_periods= 301
 // default # days for backfill and sim commands
 c.days = 14
 // defaults to a high number of lookback periods
