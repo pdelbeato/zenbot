@@ -137,7 +137,7 @@ module.exports = function (program, conf) {
         //debug.msg('nextUpdateMsg=' + nextUpdateMsg)
       }
 
-      if (!so.min_periods) so.min_periods = 1
+      if (!so.min_periods) so.min_periods = 301
 
       so.selector = objectifySelector(selector || conf.selector)
       
@@ -185,6 +185,7 @@ module.exports = function (program, conf) {
 
       /* Trying to recover MongoDB connection */
       function recoverMongoDB() {
+        s.db_valid = false
         exec('sudo rm /var/lib/mongodb/mongod.lock', puts)
         exec('sudo mongod --repair', puts)
         exec('sudo service mongodb start', puts)
@@ -194,18 +195,68 @@ module.exports = function (program, conf) {
         //!!!!!!!!!!!!!!!!!!!!!!!!
         //Da verificare se con MongoDB riavviato, la conessione è ripristinata o meno.
         //------------------------
-        // setTimeout(function() {
-        //   debug.msg('Recupero i vecchi database...')
-        //   //Recupera tutti i vecchi database
-        //   my_trades = collectionServiceInstance.getMyTrades()
-        //   my_positions = collectionServiceInstance.getMyPositions()
-        //   periods = collectionServiceInstance.getPeriods()
-        //   sessions = collectionServiceInstance.getSessions()
-        //   balances = collectionServiceInstance.getBalances()
-        //   trades = collectionServiceInstance.getTrades()
-        //   resume_markers = collectionServiceInstance.getResumeMarkers()
-        //   debug.msg(' fatto!', false)
-        // }, 5000)
+        setTimeout(function() {
+          debug.msg('Recupero la connessione...')
+	    var authStr = '', authMechanism, connectionString
+
+	  if(so.mongo.username){
+    		authStr = encodeURIComponent(so.mongo.username)
+
+    		if(so.mongo.password) authStr += ':' + encodeURIComponent(so.mongo.password)
+
+	    authStr += '@'
+
+	    // authMechanism could be a conf.js parameter to support more mongodb authentication methods
+	    authMechanism = so.mongo.authMechanism || 'DEFAULT'
+	  }
+
+	  if (so.mongo.connectionString) {
+    		connectionString = so.mongo.connectionString
+	  } else {
+    		connectionString = 'mongodb://' + authStr + so.mongo.host + ':' + so.mongo.port + '/' + so.mongo.db + '?' +
+		      (so.mongo.replicaSet ? '&replicaSet=' + so.mongo.replicaSet : '' ) +
+		      (authMechanism ? '&authMechanism=' + authMechanism : '' )
+  		}
+
+	  require('mongodb').MongoClient.connect(connectionString, function (err, client) {
+	    	if (err) {
+      			console.error('WARNING: MongoDB Connection Error: ', err)
+	      		console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')
+		        console.error('Attempted authentication string: ' + connectionString)
+              //	      		cb(null)
+              //      		return
+  	  	}
+    		var db = client.db(so.mongo.db)
+	    	//conf.db = {mongo: db}
+            conf.db.mongo = db
+            //console.log('\n' + cliff.inspect(so))
+            //    		cb(null)
+
+            //Recupera tutti i vecchi database
+            collectionServiceInstance = collectionService(conf)
+           	my_trades = collectionServiceInstance.getMyTrades()
+	           my_positions = collectionServiceInstance.getMyPositions()
+	           periods = collectionServiceInstance.getPeriods()
+	           sessions = collectionServiceInstance.getSessions()
+	           balances = collectionServiceInstance.getBalances()
+	           trades = collectionServiceInstance.getTrades()
+	           resume_markers = collectionServiceInstance.getResumeMarkers()
+	           debug.msg(' fatto! Ricreo my_positions...', false)
+
+            my_positions.remove({})
+            s.my_positions.forEach(function (position) {
+              my_positions.save(position, function (err) {
+                if (err) {
+                  console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
+                  console.error(err)
+                }
+              })
+            })
+            debug.msg(' fatto!', false)
+	  })
+
+        }, 10000)
+        s.db_valid = true
       }
 
       /* To list options*/
@@ -515,6 +566,7 @@ module.exports = function (program, conf) {
       var balances = collectionServiceInstance.getBalances()
       var trades = collectionServiceInstance.getTrades()
       var resume_markers = collectionServiceInstance.getResumeMarkers()
+      s.db_valid = true
 
       var marker = {
         id: crypto.randomBytes(4).toString('hex'),
@@ -806,7 +858,7 @@ module.exports = function (program, conf) {
               b.buy_hold_profit = (b.buy_hold - session.orig_capital) / session.orig_capital
               b.vs_buy_hold = (b.consolidated - b.buy_hold) / b.buy_hold
               conf.output.api.on && printTrade(false, false, true)
-              if (so.mode === 'live') {
+              if (so.mode === 'live' && s.db_valid) {
                 balances.save(b, function (err) {
                   if (err) {
                     console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving balance')
@@ -829,7 +881,7 @@ module.exports = function (program, conf) {
             session.balance = s.balance
             session.num_trades = s.my_trades.length
 	    session.day_count = s.day_count
-            sessions.save(session, function (err) {
+            if (s.db_valid) sessions.save(session, function (err) {
               if (err) {
                 console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
                 console.error(err)
@@ -884,7 +936,7 @@ module.exports = function (program, conf) {
                 console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
                 console.error(err)
               }
-              resume_markers.save(marker, function (err) {
+              if (s.db_valid) resume_markers.save(marker, function (err) {
                 if (err) {
                   console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
                   console.error(err)
@@ -897,7 +949,7 @@ module.exports = function (program, conf) {
                   my_trade.selector = so.selector.normalized
                   my_trade.session_id = session.id
                   my_trade.mode = so.mode
-                  my_trades.save(my_trade, function (err) {
+                  if (s.db_valid) my_trades.save(my_trade, function (err) {
                     if (err) {
                       console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
                       console.error(err)
@@ -909,7 +961,7 @@ module.exports = function (program, conf) {
                     my_position._id = my_position.id
                     my_position.session_id = session.id
                     my_position.mode = so.mode
-                    my_positions.save(my_position, function (err) {
+                    if (s.db_valid) my_positions.save(my_position, function (err) {
                       if (err) {
                         console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
                         console.error(err)
@@ -934,7 +986,7 @@ module.exports = function (program, conf) {
                   period.session_id = session.id
                 }
                 period._id = period.id
-                periods.save(period, function (err) {
+                if (s.db_valid) periods.save(period, function (err) {
                   if (err) {
                     console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
                     console.error(err)
@@ -966,7 +1018,7 @@ module.exports = function (program, conf) {
           }
           marker.to = marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor
           marker.newest_time = Math.max(marker.newest_time, trade.time)
-          trades.save(trade, function (err) {
+          if (s.db_valid) trades.save(trade, function (err) {
             // ignore duplicate key errors
             if (err && err.code !== 11000) {
               console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
