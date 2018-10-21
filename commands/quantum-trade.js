@@ -672,7 +672,8 @@ module.exports = function (program, conf) {
 								start_capital: s.start_capital,
 								start_price: s.start_price,
 								orig_capital: s.start_capital,
-								orig_price: s.start_price
+								orig_price: s.start_price,
+								day_count: 1
 							}
 							session._id = session.id
 							sessions.find({selector: so.selector.normalized}).limit(1).sort({started: -1}).toArray(function (err, prev_sessions) {
