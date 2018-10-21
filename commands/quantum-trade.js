@@ -673,7 +673,7 @@ module.exports = function (program, conf) {
 								start_price: s.start_price,
 								orig_capital: s.start_capital,
 								orig_price: s.start_price,
-								day_count: s.day_count
+								day_count: s.day_count,
 								num_trades: s.my_trades.length
 							}
 							session._id = session.id
