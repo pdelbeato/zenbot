@@ -673,7 +673,7 @@ module.exports = function (program, conf) {
 								start_price: s.start_price,
 								orig_capital: s.start_capital,
 								orig_price: s.start_price,
-								day_count: 1
+								day_count: s.day_count
 							}
 							session._id = session.id
 							sessions.find({selector: so.selector.normalized}).limit(1).sort({started: -1}).toArray(function (err, prev_sessions) {
@@ -687,7 +687,7 @@ module.exports = function (program, conf) {
 									s.orig_capital = session.orig_capital = prev_session.orig_capital
 									s.orig_price = session.orig_price = prev_session.orig_price
 									s.my_trades.lenght = session.num_trades = prev_session.num_trades
-									s.day_count = session.day_count = prev_session.day_count
+									s.day_count = session.day_count = prev_session.day_count ? prev_session.day_count : 1
 									debug.obj('getNext() - ', session)
 									if (so.mode === 'paper') {
 										debug.obj('getNext() - paper: ', prev_session.balance)
