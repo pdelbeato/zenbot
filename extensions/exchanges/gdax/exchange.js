@@ -370,7 +370,7 @@ module.exports = function gdax (conf) {
 			client.cancelOrder(opts.order_id, function (err, resp, body) {
 				if (err) {
 					debug.msg('err= ')
-					debug.msg(JSON.parse(JSON.stringify(err), false)
+					debug.msg(JSON.parse(JSON.stringify(err), false))
 				}
 
 				if (resp) {
@@ -427,7 +427,7 @@ module.exports = function gdax (conf) {
 				
 				if (err) {
 					debug.msg('err= ')
-					debug.msg(JSON.parse(JSON.stringify(err), false)
+					debug.msg(JSON.parse(JSON.stringify(err), false))
 				}
 
 				if (resp) {
@@ -486,7 +486,7 @@ module.exports = function gdax (conf) {
 				
 				if (err) {
 					debug.msg('err= ')
-					debug.msg(JSON.parse(JSON.stringify(err), false)
+					debug.msg(JSON.parse(JSON.stringify(err), false))
 				}
 				
 //				if (body && body.message === 'Insufficient funds') {
