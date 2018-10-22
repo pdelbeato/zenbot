@@ -370,7 +370,7 @@ module.exports = function gdax (conf) {
 			client.cancelOrder(opts.order_id, function (err, resp, body) {
 				if (err) {
 					debug.msg('err= ')
-					debug.msg(err, false)
+					debug.msg(JSON.parse(JSON.stringify(err, false)
 				}
 
 				if (resp) {
@@ -427,7 +427,7 @@ module.exports = function gdax (conf) {
 				
 				if (err) {
 					debug.msg('err= ')
-					debug.msg(err, false)
+					debug.msg(JSON.parse(JSON.stringify(err, false)
 				}
 
 				if (resp) {
@@ -440,7 +440,8 @@ module.exports = function gdax (conf) {
 					debug.msg(JSON.parse(JSON.stringify(body)), false)
 				}
 				
-				if (body && body.message === 'Insufficient funds') {
+//				if (body && body.message === 'Insufficient funds') {
+				if (err.data && err.data.message === 'Insufficient funds') {
 					return cb(null, {
 						status: 'rejected',
 						reject_reason: 'balance'
@@ -482,7 +483,14 @@ module.exports = function gdax (conf) {
 			debug.msg('sell - sell call')
 
 			client.sell(opts, function (err, resp, body) {
-				if (body && body.message === 'Insufficient funds') {
+				
+				if (err) {
+					debug.msg('err= ')
+					debug.msg(JSON.parse(JSON.stringify(err, false)
+				}
+				
+//				if (body && body.message === 'Insufficient funds') {
+				if (err.data && err.data.message === 'Insufficient funds') {
 					return cb(null, {
 						status: 'rejected',
 						reject_reason: 'balance'
