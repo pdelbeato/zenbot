@@ -424,6 +424,22 @@ module.exports = function gdax (conf) {
 			debug.msg('buy - buy call')
 
 			client.buy(opts, function (err, resp, body) {
+				
+				if (err) {
+					debug.msg('err= ')
+					debug.msg(err, false)
+				}
+
+				if (resp) {
+					debug.msg('Response= ')
+					debug.msg(resp, false)
+				}
+
+				if (body) {
+					debug.msg('Body= ')
+					debug.msg(JSON.parse(JSON.stringify(body)), false)
+				}
+				
 				if (body && body.message === 'Insufficient funds') {
 					return cb(null, {
 						status: 'rejected',
