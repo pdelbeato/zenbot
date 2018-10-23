@@ -441,7 +441,7 @@ module.exports = function gdax (conf) {
 				}
 				
 //				if (body && body.message === 'Insufficient funds') {
-				if (err.data && err.data.message === 'Insufficient funds') {
+				if (err && err.data && err.data.message === 'Insufficient funds') {
 					return cb(null, {
 						status: 'rejected',
 						reject_reason: 'balance'
@@ -490,7 +490,7 @@ module.exports = function gdax (conf) {
 				}
 				
 //				if (body && body.message === 'Insufficient funds') {
-				if (err.data && err.data.message === 'Insufficient funds') {
+				if (err && err.data && err.data.message === 'Insufficient funds') {
 					return cb(null, {
 						status: 'rejected',
 						reject_reason: 'balance'
