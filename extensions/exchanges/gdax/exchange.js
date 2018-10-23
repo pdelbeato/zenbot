@@ -163,7 +163,7 @@ module.exports = function gdax (conf) {
 
 	function handleOrderDone(update, product_id) {
 		let cached_order = websocket_cache[product_id].orders['~'+update.order_id]
-		if(cached_order){
+		if (cached_order) {
 			/*
 	      	order canceled by user or on platform: which must be retried see "reason":
 			  { type: 'done',
@@ -192,6 +192,23 @@ module.exports = function gdax (conf) {
 			    profile_id: 'xxx',
 			    time: '2018-03-09T16:56:39.352000Z'
 			  }
+			  
+			  { id: '92a24124-067b-4d3c-b79f-afdc1a13eaea',
+			    price: '5571.79000000',
+			    size: '0.04487500',
+			    product_id: 'BTC-EUR',
+			    side: 'buy',
+			    type: 'limit',
+			    time_in_force: 'GTT',
+			    expire_time: '2018-10-24T12:03:57',
+			    post_only: true,
+			    created_at: '2018-10-23T12:03:58.612863Z',
+			    reject_reason: 'post only',
+			    fill_fees: '0.0000000000000000',
+			    filled_size: '0.00000000',
+			    executed_value: '0.0000000000000000',
+			    status: 'rejected',
+			    settled: false }
 			 */
 
 			// get order "reason":
@@ -340,9 +357,9 @@ module.exports = function gdax (conf) {
 
 		getQuote: function (opts, cb) {
 			// check websocket cache first
-			if(websocket_cache[opts.product_id]) {
+			if (websocket_cache[opts.product_id]) {
 				var ticker = websocket_cache[opts.product_id].ticker
-				if(ticker.best_ask && ticker.best_bid){
+				if (ticker.best_ask && ticker.best_bid) {
 					debug.msg('getQuote - ticker from websocket_cache ask= ' + ticker.best_ask + ' bid= ' + ticker.best_bid)
 					cb(null, {bid: ticker.best_bid, ask: ticker.best_ask})
 					return
@@ -388,7 +405,7 @@ module.exports = function gdax (conf) {
 				}
 
 				if (err && err.data && err.data.message == 'Order already done') {
-					debug.msg('Exchange cancelOrder err.data.message: ' + err.data.message)
+					debug.msg('cancelOrder -  err.data.message: ' + err.data.message)
 					return cb()
 				}
 
@@ -441,6 +458,7 @@ module.exports = function gdax (conf) {
 				}
 				
 //				if (body && body.message === 'Insufficient funds') {
+				//Verificato con sandbox. La risposta è in err.data.message
 				if (err && err.data && err.data.message === 'Insufficient funds') {
 					return cb(null, {
 						status: 'rejected',
