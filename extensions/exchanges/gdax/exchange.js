@@ -139,9 +139,9 @@ module.exports = function gdax (conf) {
 
 	function retry (method, args, err) {
 		if (method !== 'getTrades') {
-			console.error(('\nGDAX API is down! unable to call ' + method + ', retrying in 10s').red)
-			if (err) console.error('***err= \n\n' + err)
-			console.error(args.slice(0, -1)) //slice prende l'ultimo valore di args
+			console.error(('\nretry - GDAX API is down! unable to call ' + method + ', retrying in 10s').red)
+			if (err) console.error('retry - err= \n\n' + err)
+			console.error('\nretry - args.slice' + args.slice(0, -1)) //slice prende l'ultimo valore di args
 		}
 		setTimeout(function () {
 			exchange[method].apply(exchange, args)
@@ -386,17 +386,17 @@ module.exports = function gdax (conf) {
 
 			client.cancelOrder(opts.order_id, function (err, resp, body) {
 				if (err) {
-					debug.msg('err= ')
+					debug.msg('cancelOrder: err= ')
 					debug.msg(JSON.parse(JSON.stringify(err), false))
 				}
 
 				if (resp) {
-					debug.msg('Response= ')
+					debug.msg('cancelOrder: Response= ')
 					debug.msg(resp, false)
 				}
 
 				if (body) {
-					debug.msg('Body= ')
+					debug.msg('cancelOrder: Body= ')
 					debug.msg(JSON.parse(JSON.stringify(body)), false)
 				}
 
@@ -443,17 +443,17 @@ module.exports = function gdax (conf) {
 			client.buy(opts, function (err, resp, body) {
 				
 				if (err) {
-					debug.msg('err= ')
+					debug.msg('buy: err= ')
 					debug.msg(JSON.parse(JSON.stringify(err), false))
 				}
 
 				if (resp) {
-					debug.msg('Response= ')
+					debug.msg('buy: Response= ')
 					debug.msg(resp, false)
 				}
 
 				if (body) {
-					debug.msg('Body= ')
+					debug.msg('buy: Body= ')
 					debug.msg(JSON.parse(JSON.stringify(body)), false)
 				}
 				
@@ -503,7 +503,7 @@ module.exports = function gdax (conf) {
 			client.sell(opts, function (err, resp, body) {
 				
 				if (err) {
-					debug.msg('err= ')
+					debug.msg('sell err= ')
 					debug.msg(JSON.parse(JSON.stringify(err), false))
 				}
 				
@@ -547,8 +547,20 @@ module.exports = function gdax (conf) {
 			client.getOrder(opts.order_id, function (err, resp, body) {
 				if (!err && resp.statusCode !== 404) {
 					err = statusErr(resp, body)
+					debug.msg('getOrder - !404: ')
+					debug.msg(JSON.parse(JSON.stringify(err), false))
 				}
 
+				if (resp) {
+					debug.msg('getOrder - resp: ')
+					debug.msg(JSON.parse(JSON.stringify(resp), false))
+				}
+				
+				if (body) {
+					debug.msg('getOrder - body: ')
+					debug.msg(JSON.parse(JSON.stringify(body), false))
+				}
+				
 				if (err) {
 					return retry('getOrder', func_args, err)
 				}
@@ -557,7 +569,7 @@ module.exports = function gdax (conf) {
 					// order was cancelled. recall from cache
 					body = orders['~' + opts.order_id]
 					body.status = 'done'
-						body.done_reason = 'canceled'
+					body.done_reason = 'canceled'
 				}
 
 				cb(null, body)
