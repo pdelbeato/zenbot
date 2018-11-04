@@ -15,6 +15,8 @@ c.mongo.password = null
 // when using mongodb replication, i.e. when running a mongodb cluster, you can define your replication set here; when you are not using replication (most of the users), just set it to `null` (default).
 c.mongo.replicaSet = null
 c.mongo.authMechanism = null
+// How many days of data must remain after a cleanMongoDB
+c.mongo.tot_days = 10
 
 // default selector. only used if omitting [selector] argument from a command.
 c.selector = 'gdax.BTC-USD'

@@ -265,7 +265,7 @@ module.exports = function (program, conf) {
 //			periods = collectionServiceInstance.getPeriods()
 //			trades = collectionServiceInstance.getTrades()
 			
-			fromTime = n(moment().subtract(30, 'd')).value()
+			fromTime = n(moment().subtract(so.mongo.tot_days, 'd')).value()
 			
 			debug.msg('cleanMongoBD - Pulisco i db più vecchi di ' + fromTime + ' (ora è ' + moment() + ')... ')
 			
