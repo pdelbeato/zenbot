@@ -284,8 +284,6 @@ module.exports = function (program, conf) {
 				}
 				debug.msg('cleanMongoDB - ' + obj.result.n + " trade(s) deleted");
 			})
-			
-			debug.msg(' fatto!', false)
 		}
 		
 		
