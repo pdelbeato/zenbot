@@ -165,7 +165,8 @@ module.exports = function (program, conf) {
 		keyMap.set('d', 'dump statistical output to HTML file'.grey)
 		keyMap.set('D', 'toggle automatic HTML dump to file'.grey)
 		keyMap.set('R', 'try to recover MongoDB connection'.grey)
-
+		keyMap.set('C', 'clean MongoDB databases (delete data older than 30 days)'.grey)
+		
 		function listKeys() {
 			console.log('\nAvailable command keys:')
 			keyMap.forEach((value, key) => {
@@ -258,6 +259,35 @@ module.exports = function (program, conf) {
 			s.db_valid = true
 		}
 
+		
+		/* To clean MongoDB databases */
+		funtcion cleanMongoDB () {
+//			periods = collectionServiceInstance.getPeriods()
+//			trades = collectionServiceInstance.getTrades()
+			
+			fromTime = moment().subtract(30, 'd')
+			
+			debug.msg('cleanMongoBD - Pulisco i db più vecchi di ' + fromTime + '(ora è ' + moment() + ')... ')
+			
+			periods.deleteMany({"time" : { $lt : fromTime }}, function (err) {
+				if (err) {
+					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error cleaning db.periods')
+					console.error(err)
+				}
+			})
+			
+			trades.deleteMany({"time" : { $lt : fromTime }}, function (err) {
+				if (err) {
+					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error cleaning db.trades')
+					console.error(err)
+				}
+			})
+			
+			debug.msg(' fatto!', false)
+		}
+		
+		
+		
 		/* To list options*/
 		function listOptions () {
 			console.log()
@@ -824,7 +854,7 @@ module.exports = function (program, conf) {
 						engine.updateMessage()
 					}
 
-					//Sposto tutto sotto, prima del salvataggio si session nel database sessions
+					//Sposto tutto sotto, prima del salvataggio di session nel database sessions
 					//            session.updated = new Date().getTime()
 					//            session.balance = s.balance
 					//            //Meglio assegnarli durante la creazione di session, invece di assegnarli di nuovo ogni volta

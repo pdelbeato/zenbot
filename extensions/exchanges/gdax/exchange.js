@@ -141,7 +141,8 @@ module.exports = function gdax (conf) {
 		if (method !== 'getTrades') {
 			console.error(('\nretry - GDAX API is down! unable to call ' + method + ', retrying in 10s').red)
 			if (err) console.error('retry - err= \n\n' + err)
-			console.error('\nretry - args.slice' + args.slice(0, -1)) //slice prende l'ultimo valore di args
+			console.error('\nretry - args.slice')
+			console.error(args.slice(0, -1)) //slice prende l'ultimo valore di args
 		}
 		setTimeout(function () {
 			exchange[method].apply(exchange, args)
