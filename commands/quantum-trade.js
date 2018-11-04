@@ -194,7 +194,7 @@ module.exports = function (program, conf) {
 
 			//Se recupero i vecchi database, e non sono aggiornati, faccio un danno!!
 			//!!!!!!!!!!!!!!!!!!!!!!!!
-			//Da verificare se con MongoDB riavviato, la conessione è ripristinata o meno.
+			//Da verificare se con MongoDB riavviato, la connessione è ripristinata o meno.
 			//------------------------
 			setTimeout(function() {
 				debug.msg('Recupero la connessione...')
@@ -265,22 +265,24 @@ module.exports = function (program, conf) {
 //			periods = collectionServiceInstance.getPeriods()
 //			trades = collectionServiceInstance.getTrades()
 			
-			fromTime = moment().subtract(30, 'd')
+			fromTime = n(moment().subtract(30, 'd')).value()
 			
-			debug.msg('cleanMongoBD - Pulisco i db più vecchi di ' + fromTime + '(ora è ' + moment() + ')... ')
+			debug.msg('cleanMongoBD - Pulisco i db più vecchi di ' + fromTime + ' (ora è ' + moment() + ')... ')
 			
-			periods.deleteMany({"time" : { $lt : fromTime }}, function (err) {
+			periods.deleteMany({"time" : { $lt : fromTime }}, function (err, obj) {
 				if (err) {
-					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error cleaning db.periods')
+					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanMongoDB - error cleaning db.periods')
 					console.error(err)
 				}
+				debug.msg('cleanMongoDB - ' + obj.result.n + " period(s) deleted")
 			})
 			
-			trades.deleteMany({"time" : { $lt : fromTime }}, function (err) {
+			trades.deleteMany({"time" : { $lt : fromTime }}, function (err, obj) {
 				if (err) {
-					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error cleaning db.trades')
+					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanMongoDB - error cleaning db.trades')
 					console.error(err)
 				}
+				debug.msg('cleanMongoDB - ' + obj.result.n + " trade(s) deleted");
 			})
 			
 			debug.msg(' fatto!', false)
