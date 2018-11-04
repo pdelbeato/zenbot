@@ -180,6 +180,10 @@ c.min_prev_trades = 0
 c.notifiers = {}
 c.notifier_lvl = 9
 
+//common
+
+c.notifiers.only_completed_trades = false // Filter to notifier's messages for getting Commpleted Trades info.
+
 // xmpp config
 c.notifiers.xmpp = {}
 c.notifiers.xmpp.on = false  // false xmpp disabled; true xmpp enabled (credentials should be correct)
