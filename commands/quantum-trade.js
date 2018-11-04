@@ -761,7 +761,7 @@ module.exports = function (program, conf) {
 										} else if (key === 'S' && !info.ctrl && interactiveBuySell) {
 											engine.executeSignal('sell', null, null, false, true)
 											console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command executed'.grey)
-										} else if ((key === 'c' || key === 'C') && !info.ctrl) {
+										} else if ((key === 'c') && !info.ctrl) {
 											delete s.buy_order
 											delete s.sell_order
 											console.log('\nmanual'.grey + ' order cancel' + ' command executed'.grey)
