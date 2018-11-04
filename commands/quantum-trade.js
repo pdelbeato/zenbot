@@ -261,7 +261,7 @@ module.exports = function (program, conf) {
 
 		
 		/* To clean MongoDB databases */
-		funtcion cleanMongoDB () {
+		function cleanMongoDB() {
 //			periods = collectionServiceInstance.getPeriods()
 //			trades = collectionServiceInstance.getTrades()
 			
@@ -803,6 +803,9 @@ module.exports = function (program, conf) {
 										} else if (key === 'R' && !info.ctrl) {
 											console.log('\nTrying to recover MongoDB connection...'.grey)
 											recoverMongoDB()
+										} else if (key === 'C' && !info.ctrl) {
+											console.log('\nCleaning MongoDB databases...'.grey)
+											cleanMongoDB()
 										}
 									})
 								}
