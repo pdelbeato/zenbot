@@ -220,7 +220,8 @@ module.exports = function (program, conf) {
 					(authMechanism ? '&authMechanism=' + authMechanism : '' )
 				}
 
-				require('mongodb').MongoClient.connect(connectionString, function (err, client) {
+				//Corretto per il Deprecation Warning
+				require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true }, function (err, client) {
 					if (err) {
 						console.error('WARNING: MongoDB Connection Error: ', err)
 						console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')
@@ -245,9 +246,11 @@ module.exports = function (program, conf) {
 					resume_markers = collectionServiceInstance.getResumeMarkers()
 					debug.msg(' fatto! Ricreo my_positions...', false)
 
-					my_positions.remove({})
+					//Corretto il Deprecation Warning
+					my_positions.deleteOne({})
 					s.my_positions.forEach(function (position) {
-						my_positions.save(position, function (err) {
+						//Corretto il Deprecation Warning
+						my_positions.insertOne(position, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
 								console.error(err)
@@ -612,14 +615,15 @@ module.exports = function (program, conf) {
 
 		//Se richiesto nel comando, esegue il reset dei database
 		if (cmd.reset) {
+			//Corretto il Deprecation Warning
 			console.log('\nDeleting my_positions collection...')
-			my_positions.remove({})
+			my_positions.drop()
 			console.log('\nDeleting my_trades collection...')
-			my_trades.remove({})
+			my_trades.drop()
 			console.log('\nDeleting sessions collection...')
-			sessions.remove({})
+			sessions.drop()
 			console.log('\nDeleting balances collection...')
-			balances.remove({})
+			balances.drop()
 		}
 
 		//Recupera tutte le vecchie posizioni aperte e le copia in s.my_positions
@@ -897,7 +901,9 @@ module.exports = function (program, conf) {
 						b.vs_buy_hold = (b.consolidated - b.buy_hold) / b.buy_hold
 						conf.output.api.on && printTrade(false, false, true)
 						if (so.mode === 'live' && s.db_valid) {
-							balances.save(b, function (err) {
+							//Corretto il deprecation warning
+//							balances.save(b, function (err) {
+							balances.insertOne(b, function (err) {
 								if (err) {
 									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving balance')
 									console.error(err)
@@ -919,7 +925,9 @@ module.exports = function (program, conf) {
 					session.balance = s.balance
 					session.num_trades = s.my_trades.length
 					session.day_count = s.day_count
-					if (s.db_valid) sessions.save(session, function (err) {
+					//Corretto il Deprecation Warning
+//					if (s.db_valid) sessions.save(session, function (err) {
+					if (s.db_valid) sessions.insertOne(session, function (err) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 							console.error(err)
@@ -974,7 +982,8 @@ module.exports = function (program, conf) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 							console.error(err)
 						}
-						if (s.db_valid) resume_markers.save(marker, function (err) {
+						//Corretto il Deprecation Warning
+						if (s.db_valid) resume_markers.insertOne(marker, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
 								console.error(err)
@@ -987,7 +996,8 @@ module.exports = function (program, conf) {
 								my_trade.selector = so.selector.normalized
 								my_trade.session_id = session.id
 								my_trade.mode = so.mode
-								if (s.db_valid) my_trades.save(my_trade, function (err) {
+								//Corretto il Deprecation Warning
+								if (s.db_valid) my_trades.insertOne(my_trade, function (err) {
 									if (err) {
 										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
 										console.error(err)
@@ -999,14 +1009,16 @@ module.exports = function (program, conf) {
 									my_position._id = my_position.id
 									my_position.session_id = session.id
 									my_position.mode = so.mode
-									if (s.db_valid) my_positions.save(my_position, function (err) {
+									//Corretto il Deprecation Warning
+									if (s.db_valid) my_positions.insertOne(my_position, function (err) {
 										if (err) {
 											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
 											console.error(err)
 										}
 									})
 								} else {
-									my_positions.remove({id: s.working_position_id}, function (err) {
+									//Corretto il Deprecation Warning
+									my_positions.deleteOne({id: s.working_position_id}, function (err) {
 										if (err) {
 											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error removing my_position')
 											console.error(err)
@@ -1024,7 +1036,8 @@ module.exports = function (program, conf) {
 								period.session_id = session.id
 							}
 							period._id = period.id
-							if (s.db_valid) periods.save(period, function (err) {
+							//Corretto il Deprecation Warning
+							if (s.db_valid) periods.insertOne(period, function (err) {
 								if (err) {
 									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
 									console.error(err)
@@ -1056,7 +1069,8 @@ module.exports = function (program, conf) {
 				}
 				marker.to = marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor
 				marker.newest_time = Math.max(marker.newest_time, trade.time)
-				if (s.db_valid) trades.save(trade, function (err) {
+				//Corretto il Deprecation Warning
+				if (s.db_valid) trades.insertOne(trade, function (err) {
 					// ignore duplicate key errors
 					if (err && err.code !== 11000) {
 						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
