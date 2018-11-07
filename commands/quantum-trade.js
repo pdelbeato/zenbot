@@ -17,6 +17,7 @@ var tb = require('timebucket')
 // , { formatAsset, formatPercent, formatCurrency } = require('../lib/format')
 , { formatCurrency } = require('../lib/format')
 , debug = require('../lib/debug')
+, sizeof = require('object-sizeof')
 
 //Per eseguire comandi da bash
 //var sys = require('util')
@@ -362,6 +363,9 @@ module.exports = function (program, conf) {
 				//output_lines.push((s.my_prev_trades.length ? s.my_trades.length + s.my_prev_trades.length : s.my_trades.length) + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 				output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 				output_lines.push(s.my_positions.length + ' positions opened.')
+				output_lines.push(sizeof(s) + ' size of s')
+				output_lines.push(sizeof(s.trades) + ' size of s.trades')
+				output_lines.push(sizeof(s.periods) + ' size of s.periods')
 			}
 			// Build stats for UI
 			s.stats = {
@@ -711,7 +715,7 @@ module.exports = function (program, conf) {
 								if (err) throw err
 								var prev_session = prev_sessions[0]
 								//                  if (prev_session && !cmd.reset) {
-								if (prev_session && !cmd.reset && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
+								if (prev_session && !cmd.reset && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency && !raw_opts.currency_capital && !raw_opts.asset_capital))) {
 									debug.msg('getNext() - prev_session')
 									//                    if (prev_session.orig_capital && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {                	  
 									//                      s.orig_capital = session.orig_capital = so.currency_capital || prev_session.orig_capital
