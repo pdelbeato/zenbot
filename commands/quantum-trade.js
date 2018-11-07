@@ -365,7 +365,7 @@ module.exports = function (program, conf) {
 				output_lines.push(s.my_positions.length + ' positions opened.')
 				output_lines.push(sizeof(s) + ' size of s')
 				output_lines.push(sizeof(s.trades) + ' size of s.trades')
-				output_lines.push(sizeof(s.periods) + ' size of s.periods')
+				output_lines.push(sizeof(s.period) + ' size of s.period')
 			}
 			// Build stats for UI
 			s.stats = {
