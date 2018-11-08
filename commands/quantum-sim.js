@@ -219,7 +219,8 @@ module.exports = function (program, conf) {
           console.log('wrote', out_target)
         }
 
-        simResults.save(options_output)
+        //Corretto per Deprecation Warning
+        simResults.insertOne(options_output)
           .then(() => {
             process.exit(0)
           })

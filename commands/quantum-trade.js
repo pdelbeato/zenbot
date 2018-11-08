@@ -247,7 +247,7 @@ module.exports = function (program, conf) {
 					debug.msg(' fatto! Ricreo my_positions...', false)
 
 					//Corretto il Deprecation Warning
-					my_positions.deleteOne({})
+					my_positions.drop()
 					s.my_positions.forEach(function (position) {
 						//Corretto il Deprecation Warning
 						my_positions.insertOne(position, function (err) {
@@ -369,6 +369,8 @@ module.exports = function (program, conf) {
 				output_lines.push(sizeof(s) + ' size of s')
 				output_lines.push(sizeof(s.trades) + ' size of s.trades')
 				output_lines.push(sizeof(s.period) + ' size of s.period')
+				output_lines.push(sizeof(s.lookback) + ' size of s.lookback')
+				output_lines.push(sizeof(s.calc_lookback) + ' size of s.calc_lookback')
 			}
 			// Build stats for UI
 			s.stats = {
@@ -927,7 +929,7 @@ module.exports = function (program, conf) {
 					session.day_count = s.day_count
 					//Corretto il Deprecation Warning
 //					if (s.db_valid) sessions.save(session, function (err) {
-					if (s.db_valid) sessions.insertOne(session, function (err) {
+					if (s.db_valid) sessions.updateOne({"_id" : session._id}, {$set : {session}}, {upsert : true}, function (err) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 							console.error(err)
@@ -983,7 +985,7 @@ module.exports = function (program, conf) {
 							console.error(err)
 						}
 						//Corretto il Deprecation Warning
-						if (s.db_valid) resume_markers.insertOne(marker, function (err) {
+						if (s.db_valid) resume_markers.updateOne({"_id" : marker._id}, {$set : {marker}}, {upsert : true}, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
 								console.error(err)
@@ -997,7 +999,7 @@ module.exports = function (program, conf) {
 								my_trade.session_id = session.id
 								my_trade.mode = so.mode
 								//Corretto il Deprecation Warning
-								if (s.db_valid) my_trades.insertOne(my_trade, function (err) {
+								if (s.db_valid) my_trades.updateOne({"_id" : my_trade._id}, {$set: {my_trade}}, {upsert: true}, function (err) {
 									if (err) {
 										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
 										console.error(err)
@@ -1037,9 +1039,9 @@ module.exports = function (program, conf) {
 							}
 							period._id = period.id
 							//Corretto il Deprecation Warning
-							if (s.db_valid) periods.insertOne(period, function (err) {
+							if (s.db_valid) periods.updateOne({"_id": period._id}, {$set: {period}}, {upsert: true}, function (err) {
 								if (err) {
-									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
+									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving periods')
 									console.error(err)
 								}
 							})
