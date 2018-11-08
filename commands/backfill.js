@@ -163,7 +163,7 @@ module.exports = function (program, conf) {
             console.log('\nskipping ' + diff + ' hrs of previously collected data')
           }
           //Corretto per Deprecation Warning
-          resume_markers.insertOne(marker)
+          resume_markers.updateOne({'_id' : marker._id}, {$set : {marker}}, {upsert : true})
             .then(setupNext)
             .catch(function(err){
               if (err) throw err
