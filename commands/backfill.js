@@ -224,7 +224,7 @@ module.exports = function (program, conf) {
           marker.newest_time = Math.max(marker.newest_time, trade.time)
         }
         //Corretto per Deprecation Warning
-        return tradesCollection.insertOne(trade)
+        return tradesCollection.updateOne({"_id" : trade._id}, {$set : {trade}}, {upsert : true})
       }
     })
 }
