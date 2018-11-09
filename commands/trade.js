@@ -30,19 +30,27 @@ module.exports = function (program, conf) {
     .option('--currency_capital <amount>', 'for paper trading, amount of start capital in currency', Number, conf.currency_capital)
     .option('--asset_capital <amount>', 'for paper trading, amount of start capital in asset', Number, conf.asset_capital)
     .option('--avg_slippage_pct <pct>', 'avg. amount of slippage to apply to paper trades', Number, conf.avg_slippage_pct)
-    .option('--buy_pct <pct>', 'buy with this % of currency balance', Number, conf.buy_pct)
+    .option('--buy_pct <pct>', 'buy with this % of currency balance', Number, conf.buy_pct)	//da togliere
     .option('--deposit <amt>', 'absolute initial capital (in currency) at the bots disposal (previously --buy_max_amt)', Number, conf.deposit)
-    .option('--sell_pct <pct>', 'sell with this % of asset balance', Number, conf.sell_pct)
+    .option('--sell_pct <pct>', 'sell with this % of asset balance', Number, conf.sell_pct)	//da togliere
+    .option('--quantum_size <amount>', 'buy up to this amount of currency every time', Number, conf.quantum_size)
+    .option('--max_nr_quantum <amount>', 'Max nr of quantum which could be traded', Number, conf.max_nr_quantum)
+    .option('--best_bid', 'mark up as little as possible the buy price to be the best bid', Boolean, false)
+    .option('--best_ask', 'mark down as little as possible the sell price to be the best ask', Boolean, false)
+    .option('--dump_watchdog', 'check for dumps. Strategy is in charge', Boolean, false)
+    .option('--pump_watchdog', 'check for pumps. Strategy is in charge', Boolean, false)
+    .option('--buy_calmdown <amount>', 'Minutes to wait before next buy', Number, conf.buy_calmdown)
+    .option('--sell_calmdown <amount>', 'Minutes to wait before next sell', Number, conf.sell_calmdown)
     .option('--markdown_buy_pct <pct>', '% to mark down buy price', Number, conf.markdown_buy_pct)
     .option('--markup_sell_pct <pct>', '% to mark up sell price', Number, conf.markup_sell_pct)
     .option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, conf.order_adjust_time)
     .option('--order_poll_time <ms>', 'poll order status on this interval', Number, conf.order_poll_time)
     .option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, conf.sell_stop_pct)
-    .option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct)
+    .option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct) //da togliere
     .option('--profit_stop_enable_pct <pct>', 'enable trailing sell stop when reaching this % profit', Number, conf.profit_stop_enable_pct)
     .option('--profit_stop_pct <pct>', 'maintain a trailing stop this % below the high-water mark of profit', Number, conf.profit_stop_pct)
-    .option('--max_sell_loss_pct <pct>', 'avoid selling at a loss pct under this float', conf.max_sell_loss_pct)
-    .option('--max_buy_loss_pct <pct>', 'avoid buying at a loss pct over this float', conf.max_buy_loss_pct)
+    .option('--max_sell_loss_pct <pct>', 'avoid selling at a loss pct under this float (could be used for min profit)', conf.max_sell_loss_pct)
+    .option('--max_buy_loss_pct <pct>', 'avoid buying at a loss pct over this float', conf.max_buy_loss_pct) //da togliere
     .option('--max_slippage_pct <pct>', 'avoid selling at a slippage pct above this float', conf.max_slippage_pct)
     .option('--rsi_periods <periods>', 'number of periods to calculate RSI at', Number, conf.rsi_periods)
     .option('--poll_trades <ms>', 'poll new trades at this interval in ms', Number, conf.poll_trades)
@@ -50,8 +58,8 @@ module.exports = function (program, conf) {
     .option('--keep_lookback_periods <amount>', 'Keep this many lookback periods max. ', Number, conf.keep_lookback_periods)
     .option('--exact_buy_orders', 'instead of only adjusting maker buy when the price goes up, adjust it if price has changed at all')
     .option('--exact_sell_orders', 'instead of only adjusting maker sell when the price goes down, adjust it if price has changed at all')
-    .option('--use_prev_trades', 'load and use previous trades for stop-order triggers and loss protection')
-    .option('--min_prev_trades <number>', 'minimum number of previous trades to load if use_prev_trades is enabled, set to 0 to disable and use trade time instead', Number, conf.min_prev_trades)
+    .option('--use_prev_trades', 'load and use previous trades for stop-order triggers and loss protection') //da togliere
+    .option('--min_prev_trades <number>', 'minimum number of previous trades to load if use_prev_trades is enabled, set to 0 to disable and use trade time instead', Number, conf.min_prev_trades) //da togliere
     .option('--disable_stats', 'disable printing order stats')
     .option('--reset_profit', 'start new profit calculation from 0')
     .option('--use_fee_asset', 'Using separated asset to pay for fees. Such as binance\'s BNB or Huobi\'s HT', Boolean, false)
@@ -89,7 +97,7 @@ module.exports = function (program, conf) {
       }
       if (!so.min_periods) so.min_periods = 1
 
-      so.selector = objectifySelector(selector || conf.selector)      
+      so.selector = objectifySelector(selector || conf.selector)
       var engine = engineFactory(s, conf)
       var collectionServiceInstance = collectionService(conf)
 
@@ -353,7 +361,7 @@ module.exports = function (program, conf) {
           out_target = so.filename || out_target_prefix + so.selector.normalized +'_' + today + '_UTC.html'
 
           fs.writeFileSync(out_target, out)
-          //console.log('\nwrote'.grey, out_target)
+        //console.log('\nwrote'.grey, out_target)
         }
 
       }
@@ -524,7 +532,7 @@ module.exports = function (program, conf) {
                         debug.flip()
                         console.log('\nDEBUG mode: ' + (debug.on ? 'ON'.green.inverse : 'OFF'.red.inverse))
                       } else if (info.name === 'c' && info.ctrl) {
-                        // @todo: cancel open orders before exit
+                      // @todo: cancel open orders before exit
                         console.log()
                         process.exit()
                       }
@@ -551,7 +559,7 @@ module.exports = function (program, conf) {
         function saveSession () {
           engine.syncBalance(function (err) {
             if (!err && s.balance.asset === undefined) {
-              // TODO not the nicest place to verify the state, but did not found a better one
+            // TODO not the nicest place to verify the state, but did not found a better one
               throw new Error('Error during syncing balance. Please check your API-Key')
             }
             if (err) {
@@ -561,7 +569,7 @@ module.exports = function (program, conf) {
               console.error(err)
             }
             if (botStartTime && botStartTime - moment() < 0 ) {
-              // Not sure if I should just handle exit code directly or thru printTrade.  Decided on printTrade being if code is added there for clean exits this can just take advantage of it.
+            // Not sure if I should just handle exit code directly or thru printTrade.  Decided on printTrade being if code is added there for clean exits this can just take advantage of it.
               engine.exit(() => {
                 printTrade(true)
               })
@@ -724,7 +732,7 @@ module.exports = function (program, conf) {
           marker.to = marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor
           marker.newest_time = Math.max(marker.newest_time, trade.time)
           trades.save(trade, function (err) {
-            // ignore duplicate key errors
+          // ignore duplicate key errors
             if (err && err.code !== 11000) {
               console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
               console.error(err)
@@ -734,4 +742,3 @@ module.exports = function (program, conf) {
       }
     })
 }
-

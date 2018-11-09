@@ -11,6 +11,8 @@ module.exports = function (cb) {
   var config = {}
   var overrides = {}
 
+  console.log('\n' + 'Zenbot - Quantum Feature version')
+
   module.exports.debug = args.debug
 
   // 1. load conf overrides file if present
@@ -58,7 +60,8 @@ module.exports = function (cb) {
       (authMechanism ? '&authMechanism=' + authMechanism : '' )
   }
 
-  require('mongodb').MongoClient.connect(connectionString, function (err, client) {
+  //Corretto per Deprecation Warning
+  require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true }, function (err, client) {
     if (err) {
       console.error('WARNING: MongoDB Connection Error: ', err)
       console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')

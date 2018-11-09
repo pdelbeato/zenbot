@@ -1,8 +1,8 @@
 const ccxt = require('ccxt')
-, path = require('path')
-// eslint-disable-next-line no-unused-vars
-, colors = require('colors')
-, _ = require('lodash')
+  , path = require('path')
+  // eslint-disable-next-line no-unused-vars
+  , colors = require('colors')
+  , _ = require('lodash')
 
 module.exports = function bittrex (conf) {
   var public_client, authed_client
@@ -61,8 +61,8 @@ module.exports = function bittrex (conf) {
 
     getTrades: function (opts, cb) {
       var func_args = [].slice.call(arguments)
-      , trades = []
-      , maxTime = 0
+        , trades = []
+        , maxTime = 0
       var client = publicClient()
       var args = {}
       if (opts.from) args.startTime = opts.from
@@ -139,10 +139,10 @@ module.exports = function bittrex (conf) {
         })
         cb(null, balance)
       })
-      .catch(function (error) {
-        console.error('An error occurred', error)
-        return retry('getBalance', func_args)
-      })
+        .catch(function (error) {
+          console.error('An error occurred', error)
+          return retry('getBalance', func_args)
+        })
     },
 
     getQuote: function (opts, cb) {
@@ -151,10 +151,10 @@ module.exports = function bittrex (conf) {
       client.fetchTicker(joinProduct(opts.product_id)).then(result => {
         cb(null, { bid: result.bid, ask: result.ask })
       })
-      .catch(function (error) {
-        console.error('An error occurred', error)
-        return retry('getQuote', func_args)
-      })
+        .catch(function (error) {
+          console.error('An error occurred', error)
+          return retry('getQuote', func_args)
+        })
     },
 
     getDepth: function (opts, cb) {
@@ -163,10 +163,10 @@ module.exports = function bittrex (conf) {
       client.fetchOrderBook(joinProduct(opts.product_id), {limit: opts.limit}).then(result => {
         cb(null, result)
       })
-      .catch(function(error) {
-        console.error('An error ocurred', error)
-        return retry('getDepth', func_args)
-      })
+        .catch(function(error) {
+          console.error('An error ocurred', error)
+          return retry('getDepth', func_args)
+        })
     },
 
     cancelOrder: function (opts, cb) {

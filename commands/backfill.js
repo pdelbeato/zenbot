@@ -162,7 +162,8 @@ module.exports = function (program, conf) {
             diff = tb(marker.newest_time - newest_time).resize('1h').value
             console.log('\nskipping ' + diff + ' hrs of previously collected data')
           }
-          resume_markers.save(marker)
+          //Corretto per Deprecation Warning
+          resume_markers.updateOne({"_id" : marker._id}, {$set : {marker}}, {upsert : true})
             .then(setupNext)
             .catch(function(err){
               if (err) throw err
@@ -222,7 +223,8 @@ module.exports = function (program, conf) {
           marker.to = marker.to ? Math.max(marker.to, cursor) : cursor
           marker.newest_time = Math.max(marker.newest_time, trade.time)
         }
-        return tradesCollection.save(trade)
+        //Corretto per Deprecation Warning
+        return tradesCollection.updateOne({"_id" : trade._id}, {$set : {trade}}, {upsert : true})
       }
     })
 }

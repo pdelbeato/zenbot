@@ -9,7 +9,8 @@ module.exports = function telegram (config) {
 
       bot.sendMessage(config.chat_id, title + ': ' + message).catch(function (error) {
         console.error('\nerror: telegram notification')
-        console.log(error.response.body) // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+//        console.log(error.response.body) // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+        console.log(error)
       })
     }
   }

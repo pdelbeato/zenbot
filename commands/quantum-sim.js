@@ -6,15 +6,15 @@ var tb = require('timebucket')
   , moment = require('moment')
   , colors = require('colors')
   , objectifySelector = require('../lib/objectify-selector')
-  , engineFactory = require('../lib/engine')
+  , engineFactory = require('../lib/quantum-engine')
   , collectionService = require('../lib/services/collection-service')
   , _ = require('lodash')
 
 module.exports = function (program, conf) {
   program
-    .command('sim [selector]')
+    .command('quantum-sim [selector]')
     .allowUnknownOption()
-    .description('run a simulation on backfilled data')
+    .description('run a simulation on backfilled data with Quantum feature')
     .option('--conf <path>', 'path to optional conf overrides file')
     .option('--strategy <name>', 'strategy to use', String, conf.strategy)
     .option('--order_type <type>', 'order type to use (maker/taker)', /^(maker|taker)$/i, conf.order_type)
@@ -25,8 +25,8 @@ module.exports = function (program, conf) {
     .option('--currency_capital <amount>', 'amount of start capital in currency', Number, conf.currency_capital)
     .option('--asset_capital <amount>', 'amount of start capital in asset', Number, conf.asset_capital)
     .option('--avg_slippage_pct <pct>', 'avg. amount of slippage to apply to trades', Number, conf.avg_slippage_pct)
-    .option('--buy_pct <pct>', 'buy with this % of currency balance', Number, conf.buy_pct)
-    .option('--sell_pct <pct>', 'sell with this % of asset balance', Number, conf.sell_pct)
+    // .option('--buy_pct <pct>', 'buy with this % of currency balance', Number, conf.buy_pct)
+    // .option('--sell_pct <pct>', 'sell with this % of asset balance', Number, conf.sell_pct)
     .option('--quantum_size <amount>', 'buy up to this amount of currency every time', Number, conf.quantum_size)
     .option('--max_nr_quantum <amount>', 'Max nr of quantum which could be traded', Number, conf.max_nr_quantum)
     .option('--best_bid', 'mark up as little as possible the buy price to be the best bid', Boolean, false)
@@ -40,11 +40,11 @@ module.exports = function (program, conf) {
     .option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, conf.order_adjust_time)
     .option('--order_poll_time <ms>', 'poll order status on this interval', Number, conf.order_poll_time)
     .option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, conf.sell_stop_pct)
-    .option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct)
+    // .option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct)
     .option('--profit_stop_enable_pct <pct>', 'enable trailing sell stop when reaching this % profit', Number, conf.profit_stop_enable_pct)
     .option('--profit_stop_pct <pct>', 'maintain a trailing stop this % below the high-water mark of profit', Number, conf.profit_stop_pct)
     .option('--max_sell_loss_pct <pct>', 'avoid selling at a loss pct under this float (could be used for min profit)', conf.max_sell_loss_pct)
-    .option('--max_buy_loss_pct <pct>', 'avoid buying at a loss pct over this float', conf.max_buy_loss_pct)
+    // .option('--max_buy_loss_pct <pct>', 'avoid buying at a loss pct over this float', conf.max_buy_loss_pct)
     .option('--max_slippage_pct <pct>', 'avoid selling at a slippage pct above this float', conf.max_slippage_pct)
     .option('--symmetrical', 'reverse time at the end of the graph, normalizing buy/hold to 0', conf.symmetrical)
     .option('--rsi_periods <periods>', 'number of periods to calculate RSI at', Number, conf.rsi_periods)
@@ -219,7 +219,8 @@ module.exports = function (program, conf) {
           console.log('wrote', out_target)
         }
 
-        simResults.save(options_output)
+        //Corretto per Deprecation Warning
+        simResults.insertOne(options_output)
           .then(() => {
             process.exit(0)
           })
