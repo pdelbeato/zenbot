@@ -905,7 +905,7 @@ module.exports = function (program, conf) {
 						if (so.mode === 'live' && s.db_valid) {
 							//Corretto il deprecation warning
 //							balances.save(b, function (err) {
-							balances.insertOne(b, function (err) {
+							balances.updateOne({"_id": b._id}, {$set: b}, {upsert: true}, function (err) {
 								if (err) {
 									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving balance')
 									console.error(err)
