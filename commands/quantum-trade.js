@@ -929,7 +929,7 @@ module.exports = function (program, conf) {
 					session.day_count = s.day_count
 					//Corretto il Deprecation Warning
 //					if (s.db_valid) sessions.save(session, function (err) {
-					if (s.db_valid) sessions.updateOne({"_id" : session._id}, {$set : {session}}, {upsert : true}, function (err) {
+					if (s.db_valid) sessions.updateOne({"_id" : session._id}, {$set : session}, {upsert : true}, function (err) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 							console.error(err)
@@ -985,7 +985,7 @@ module.exports = function (program, conf) {
 							console.error(err)
 						}
 						//Corretto il Deprecation Warning
-						if (s.db_valid) resume_markers.updateOne({"_id" : marker._id}, {$set : {marker}}, {upsert : true}, function (err) {
+						if (s.db_valid) resume_markers.updateOne({"_id" : marker._id}, {$set : marker}, {upsert : true}, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
 								console.error(err)
@@ -999,7 +999,7 @@ module.exports = function (program, conf) {
 								my_trade.session_id = session.id
 								my_trade.mode = so.mode
 								//Corretto il Deprecation Warning
-								if (s.db_valid) my_trades.updateOne({"_id" : my_trade._id}, {$set: {my_trade}}, {upsert: true}, function (err) {
+								if (s.db_valid) my_trades.updateOne({"_id" : my_trade._id}, {$set: my_trade}, {upsert: true}, function (err) {
 									if (err) {
 										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
 										console.error(err)
@@ -1039,7 +1039,7 @@ module.exports = function (program, conf) {
 							}
 							period._id = period.id
 							//Corretto il Deprecation Warning
-							if (s.db_valid) periods.updateOne({"_id": period._id}, {$set: {period}}, {upsert: true}, function (err) {
+							if (s.db_valid) periods.updateOne({"_id": period._id}, {$set: period}, {upsert: true}, function (err) {
 								if (err) {
 									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving periods')
 									console.error(err)
@@ -1073,7 +1073,7 @@ module.exports = function (program, conf) {
 				marker.to = marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor
 				marker.newest_time = Math.max(marker.newest_time, trade.time)
 				//Corretto il Deprecation Warning
-				if (s.db_valid) trades.updateOne({"_id" : trade._id}, {$set : {trade}}, {upsert : true}, function (err) {
+				if (s.db_valid) trades.updateOne({"_id" : trade._id}, {$set : trade}, {upsert : true}, function (err) {
 					// ignore duplicate key errors
 					if (err && err.code !== 11000) {
 						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')

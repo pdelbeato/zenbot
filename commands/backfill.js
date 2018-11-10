@@ -163,7 +163,7 @@ module.exports = function (program, conf) {
             console.log('\nskipping ' + diff + ' hrs of previously collected data')
           }
           //Corretto per Deprecation Warning
-          resume_markers.updateOne({"_id" : marker._id}, {$set : {marker}}, {upsert : true})
+          resume_markers.updateOne({"_id" : marker._id}, {$set : marker}, {upsert : true})
             .then(setupNext)
             .catch(function(err){
               if (err) throw err
@@ -224,7 +224,7 @@ module.exports = function (program, conf) {
           marker.newest_time = Math.max(marker.newest_time, trade.time)
         }
         //Corretto per Deprecation Warning
-        return tradesCollection.updateOne({"_id" : trade._id}, {$set : {trade}}, {upsert : true})
+        return tradesCollection.updateOne({"_id" : trade._id}, {$set : trade}, {upsert : true})
       }
     })
 }
