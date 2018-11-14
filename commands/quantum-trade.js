@@ -820,9 +820,11 @@ module.exports = function (program, conf) {
 											cleanMongoDB()
 										} else if (key === 'w' && !info.ctrl) {
 											so.dump_watchdog = !so.dump_watchdog
+											s.is_dump_watchdog = so.dump_watchdog
 											console.log('\nToggle Dump Watchdog: ' + (so.dump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
 										} else if (key === 'W' && !info.ctrl) {
 											so.pump_watchdog = !so.pump_watchdog
+											s.is_pump_watchdog = so.pump_watchdog
 											console.log('\nToggle Pump Watchdog: ' + (so.pump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
 										}
 									})
