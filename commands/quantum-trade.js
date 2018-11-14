@@ -167,6 +167,8 @@ module.exports = function (program, conf) {
 		keyMap.set('D', 'toggle automatic HTML dump to file'.grey)
 		keyMap.set('R', 'try to recover MongoDB connection'.grey)
 		keyMap.set('C', 'clean MongoDB databases (delete data older than 30 days)'.grey)
+		keyMap.set('w', 'toggle Dump Watchdog'.grey)
+		keyMap.set('W', 'toggle Pump Watchdog'.grey)
 		
 		function listKeys() {
 			console.log('\nAvailable command keys:')
@@ -722,14 +724,14 @@ module.exports = function (program, conf) {
 								var prev_session = prev_sessions[0]
 								//                  if (prev_session && !cmd.reset) {
 								if (prev_session && !cmd.reset && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency && !raw_opts.currency_capital && !raw_opts.asset_capital))) {
-									debug.msg('getNext() - prev_session')
+//									debug.msg('getNext() - prev_session')
 									//                    if (prev_session.orig_capital && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {                	  
 									//                      s.orig_capital = session.orig_capital = so.currency_capital || prev_session.orig_capital
 									s.orig_capital = session.orig_capital = prev_session.orig_capital
 									s.orig_price = session.orig_price = prev_session.orig_price
 									s.day_count = session.day_count = prev_session.day_count ? prev_session.day_count : 1
 									s.my_trades.length = session.num_trades = prev_session.num_trades
-									debug.obj('getNext() - ', session)
+									debug.obj('getNext() - prev_session', session)
 									if (so.mode === 'paper') {
 										debug.obj('getNext() - paper: ', prev_session.balance)
 										s.balance = prev_session.balance
@@ -816,6 +818,12 @@ module.exports = function (program, conf) {
 										} else if (key === 'C' && !info.ctrl) {
 											console.log('\nCleaning MongoDB databases...'.grey)
 											cleanMongoDB()
+										} else if (key === 'w' && !info.ctrl) {
+											so.dump_watchdog = !so.dump_watchdog
+											console.log('\nToggle Dump Watchdog: ' + (so.dump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
+										} else if (key === 'W' && !info.ctrl) {
+											so.pump_watchdog = !so.pump_watchdog
+											console.log('\nToggle Pump Watchdog: ' + (so.pump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
 										}
 									})
 								}
