@@ -309,28 +309,31 @@ module.exports = function (program, conf) {
 				z(25, 'SLIPPAGE'.grey, ' '),
 				z(30, 'EXCHANGE FEES'.grey, ' ')
 				].join('') + '\n')
-				process.stdout.write([
-					z(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
-					z(10, so.period_length, ' '),
-					z(17, so.period_calc, ' '),
-					z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
-					z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
-					z(17, (so.order_type === 'maker' ? so.order_type + ' ' + n(s.exchange.makerFee).format('0.0000%')  : so.order_type + ' ' + s.exchange.takerFee), ' ')
-					].join('') + '\n')
-				process.stdout.write('')
-				process.stdout.write([
-				//z(19, 'BUY %'.grey, ' '),
-				//z(20, 'SELL %'.grey, ' '),
-				z(30, 'TRAILING STOP %'.grey, ' '),
-				z(33, 'TRAILING DISTANCE %'.grey, ' ')
+			process.stdout.write([
+				z(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
+				z(10, so.period_length, ' '),
+				z(17, so.period_calc, ' '),
+				z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
+				z(26, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
+				z(19, (so.order_type === 'maker' ? so.order_type + ' ' + n(s.exchange.makerFee).format('0.0000%')  : so.order_type + ' ' + s.exchange.takerFee), ' ')
 				].join('') + '\n')
-				process.stdout.write([
-					//z(9, so.buy_pct + '%', ' '),
-					//z(9, so.sell_pct + '%', ' '),
-					z(12, so.profit_stop_enable_pct + '%', ' '),
-					z(21, so.profit_stop_pct + '%', ' ')
-					].join('') + '\n')
-				process.stdout.write('')
+			process.stdout.write('')
+			process.stdout.write([
+			//z(19, 'BUY %'.grey, ' '),
+			//z(20, 'SELL %'.grey, ' '),
+			z(30, 'TRAILING STOP %'.grey, ' '),
+			z(34, 'TRAILING DISTANCE %'.grey, ' '),
+			z(35, 'DUMP / PUMP WATCHDOG'.grey, ' ')
+			].join('') + '\n')
+			process.stdout.write([
+				//z(9, so.buy_pct + '%', ' '),
+				//z(9, so.sell_pct + '%', ' '),
+				z(12, so.profit_stop_enable_pct + '%', ' '),
+				z(21, so.profit_stop_pct + '%', ' '),
+				z(20, so.dump_watchdog, ' '),
+				z(5, so.pump_watchdog, ' ')
+				].join('') + '\n')
+			process.stdout.write('')
 		}
 		/* End listOptions() */
 
