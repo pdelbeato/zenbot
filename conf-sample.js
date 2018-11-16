@@ -177,6 +177,8 @@ c.cancel_after = 'day'
 c.use_prev_trades = false
 // minimum number of previous trades to load if use_prev_trades is enabled, set to 0 to disable and use trade time instead
 c.min_prev_trades = 0
+// pct for opening catch positions
+c.catch_position_pct = 2
 
 // Notifiers:
 c.notifiers = {}
