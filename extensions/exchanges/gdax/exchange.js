@@ -391,10 +391,10 @@ module.exports = function gdax (conf) {
 					debug.obj(err, false)
 				}
 
-				if (resp) {
-					debug.msg('cancelOrder: Response= ')
-					debug.msg(resp, false)
-				}
+//				if (resp) {
+//					debug.msg('cancelOrder: Response= ')
+//					debug.msg(resp, false)
+//				}
 
 				if (body) {
 					debug.msg('cancelOrder: Body= ')
@@ -448,10 +448,10 @@ module.exports = function gdax (conf) {
 					debug.obj(err, false)
 				}
 
-				if (resp) {
-					debug.msg('buy: Response= ')
-					debug.msg(resp, false)
-				}
+//				if (resp) {
+//					debug.msg('buy: Response= ')
+//					debug.msg(resp, false)
+//				}
 
 				if (body) {
 					debug.msg('buy: Body= ')
@@ -552,10 +552,10 @@ module.exports = function gdax (conf) {
 					debug.obj(err, false)
 				}
 
-				if (resp) {
-					debug.msg('getOrder - resp: ')
-					debug.obj(resp, false)
-				}
+//				if (resp) {
+//					debug.msg('getOrder - resp: ')
+//					debug.obj(resp, false)
+//				}
 				
 				if (body) {
 					debug.msg('getOrder - body: ')
