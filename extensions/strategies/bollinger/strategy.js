@@ -3,7 +3,7 @@ var z = require('zero-fill')
   , bollinger = require('../../../lib/bollinger')
   , Phenotypes = require('../../../lib/phenotype')
   , debug = require('../../../lib/debug')
-  , crypto = require('../../../lib/crypto')
+  , crypto = require('crypto')
 
 module.exports = {
   name: 'bollinger',
@@ -107,19 +107,23 @@ module.exports = {
   },
   
   orderExecuted: function (s, type, executeSignal) {
-	  switch(type) {
-	    case 'buy':
-	    	debug.msg('strategy - orderExecuted - buy - last position id = ' + s.my_positions[s.my_positions.length-1].id)
-	    	executeSignal('sell', undefined, undefined, undefined, undefined, s.my_positions[s.my_positions.length-1].id)
-	        break;
-	    case 'sell':
-	    	next_id = crypto.randomBytes(4).toString('hex')
-	    	debug.msg('strategy - orderExecuted - sell - next position id = ' + next_id)
-	    	executeSignal('buy', undefined, undefined, false, undefined, next_id)
-	        break;
-	    default:
-	        break
-	}
+	  if (so.catch_position_pct) {
+		  switch(type) {
+			  case 'buy':
+				  next_price = s.last_buy_price * (1 + so.catch_position_pct/100)
+				  debug.msg('strategy - orderExecuted - buy - last position id = ' + s.my_positions[s.my_positions.length-1].id + ' ; next price = ' + next_price)
+				  executeSignal('sell', undefined, undefined, next_price, undefined, undefined, s.my_positions[s.my_positions.length-1].id)
+				  break;
+			  case 'sell':
+				  next_id = crypto.randomBytes(4).toString('hex')
+				  next_price = s.last_sell_price * (1 - so.catch_position_pct/100)
+				  debug.msg('strategy - orderExecuted - sell - next position id = ' + next_id + ' ; next price = ' + next_price)
+				  executeSignal('buy', undefined, undefined, next_price, false, undefined, next_id)
+				  break;
+			  default:
+				  break
+		  }
+	  }
   },
 
   phenotypes: {
