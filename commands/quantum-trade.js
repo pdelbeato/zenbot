@@ -768,13 +768,13 @@ module.exports = function (program, conf) {
 											engine.executeSignal('buy')
 											console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command executed'.grey)
 										} else if (key === 'B' && !info.ctrl && interactiveBuySell) {
-											engine.executeSignal('buy', null, null, false, true)
+											engine.executeSignal('buy', null, null, null, false, true)
 											console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command executed'.grey)
 										} else if (key === 's' && !info.ctrl && interactiveBuySell) {
 											engine.executeSignal('sell')
 											console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command executed'.grey)
 										} else if (key === 'S' && !info.ctrl && interactiveBuySell) {
-											engine.executeSignal('sell', null, null, false, true)
+											engine.executeSignal('sell', null, null, null, false, true)
 											console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command executed'.grey)
 										} else if ((key === 'c') && !info.ctrl) {
 											delete s.buy_order
