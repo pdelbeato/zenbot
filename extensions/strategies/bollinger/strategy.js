@@ -103,6 +103,19 @@ module.exports = {
     }
     return cols
   },
+  
+  orderExecuted: function (s, type, executeSignal) {
+	  switch(type) {
+	    case 'buy':
+	    	debug.msg('strategy - orderExecuted - last position id = ' + s.my_positions[-1].id)
+	    	executeSignal('sell', undefined, undefined, undefined, undefined, s.my_positions[-1].id)
+	        break;
+	    case 'sell':
+	        break;
+	    default:
+	        break
+	}
+  },
 
   phenotypes: {
     // -- common
