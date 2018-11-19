@@ -742,7 +742,7 @@ module.exports = function (program, conf) {
 								}
 								else {
 									debug.msg('getNext() - no prev_session')
-									s.orig_capital = s.start_capital
+									s.orig_capital = s.start_capital = raw_opts.currency_capital
 									s.orig_price = s.start_price
 									debug.msg('getNext() - s.orig_capital = ' + s.orig_capital + ' - s.orig_price = ' + s.orig_price)
 								} 
