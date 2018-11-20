@@ -70,8 +70,8 @@ module.exports = function (program, conf) {
 	.option('--poll_trades <ms>', 'poll new trades at this interval in ms', Number, conf.poll_trades)
 	.option('--currency_increment <amount>', 'Currency increment, if different than the asset increment', String, null)
 	.option('--keep_lookback_periods <amount>', 'Keep this many lookback periods max. ', Number, conf.keep_lookback_periods)
-	.option('--exact_buy_orders', 'instead of only adjusting maker buy when the price goes up, adjust it if price has changed at all')
-	.option('--exact_sell_orders', 'instead of only adjusting maker sell when the price goes down, adjust it if price has changed at all')
+//	.option('--exact_buy_orders', 'instead of only adjusting maker buy when the price goes up, adjust it if price has changed at all')
+//	.option('--exact_sell_orders', 'instead of only adjusting maker sell when the price goes down, adjust it if price has changed at all')
 	.option('--use_prev_trades', 'load and use previous trades for stop-order triggers and loss protection') //da togliere
 	.option('--min_prev_trades <number>', 'minimum number of previous trades to load if use_prev_trades is enabled, set to 0 to disable and use trade time instead', Number, conf.min_prev_trades) //da togliere
 	.option('--disable_stats', 'disable printing order stats')
