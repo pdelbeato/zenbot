@@ -95,9 +95,9 @@ module.exports = {
           color = 'white'
         }
 
-        cols.push(z(8, n(s.period.close).format('+00.0000'), ' ')[color])
-        cols.push(z(8, n(lowerBound).format('0.000000').substring(0,7), ' ').cyan)
-        cols.push(z(8, n(upperBound).format('0.000000').substring(0,7), ' ').cyan)
+        cols.push(z(8, n(s.period.close).format('0.00'), ' ')[color])
+        cols.push(z(8, n(lowerBound).format('0.00').substring(0,7), ' ').cyan)
+        cols.push(z(8, n(upperBound).format('0.00').substring(0,7), ' ').cyan)
       }
     }
     else {

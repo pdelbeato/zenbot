@@ -314,8 +314,8 @@ module.exports = function (program, conf) {
 				z(10, so.period_length, ' '),
 				z(17, so.period_calc, ' '),
 				z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
-				z(26, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
-				z(19, (so.order_type === 'maker' ? so.order_type + ' ' + n(s.exchange.makerFee).format('0.0000%')  : so.order_type + ' ' + s.exchange.takerFee), ' ')
+				z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
+				z(17, (so.order_type === 'maker' ? so.order_type + ' ' + n(s.exchange.makerFee).format('0.0000%')  : so.order_type + ' ' + s.exchange.takerFee), ' ')
 				].join('') + '\n')
 			process.stdout.write('')
 			process.stdout.write([
@@ -329,9 +329,9 @@ module.exports = function (program, conf) {
 				//z(9, so.buy_pct + '%', ' '),
 				//z(9, so.sell_pct + '%', ' '),
 				z(12, so.profit_stop_enable_pct + '%', ' '),
-				z(21, so.profit_stop_pct + '%', ' '),
+				z(24, so.profit_stop_pct + '%', ' '),
 				z(20, so.dump_watchdog, ' '),
-				z(5, so.pump_watchdog, ' ')
+				z(8, so.pump_watchdog, ' ')
 				].join('') + '\n')
 			process.stdout.write('')
 		}
@@ -345,7 +345,7 @@ module.exports = function (program, conf) {
 					s.my_trades.push({
 						price: s.period.close,
 						size: s.balance.asset,
-						type: 'sell',
+						side: 'sell',
 						time: s.period.time
 					})
 				}
@@ -399,7 +399,7 @@ module.exports = function (program, conf) {
 				// }
 				// sells++
 				// }
-				if (trade.type === 'sell') {
+				if (trade.side === 'sell') {
 					if (trade.profit > 0)
 						sells++
 					else
@@ -409,7 +409,7 @@ module.exports = function (program, conf) {
 
 			if (s.my_prev_trades.length) {
 				s.my_prev_trades.forEach(function (trade) {
-					if (trade.type === 'sell') {
+					if (trade.side === 'sell') {
 						if (trade.profit > 0)
 							sells++
 						else
@@ -535,7 +535,7 @@ module.exports = function (program, conf) {
 				//			sells++
 				//		}
 
-				if (trade.type === 'sell') {
+				if (trade.side === 'sell') {
 					if (trade.profit > 0)
 						sells++
 					else
@@ -1019,7 +1019,7 @@ module.exports = function (program, conf) {
 									}
 								})
 								//Per registrare/rimuovere le posizioni nel database
-								if (my_trade.type == 'buy') {
+								if (my_trade.side == 'buy') {
 									let my_position = s.my_positions[s.my_positions.length-1]
 									my_position._id = my_position.id
 									my_position.session_id = session.id
