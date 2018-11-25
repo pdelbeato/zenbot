@@ -1042,6 +1042,7 @@ module.exports = function (program, conf) {
 //								}
 								if (s.update_position_id != null) {
 									position = s.my_positions.find(x => x.id == s.update_position_id)
+									position._id = position.id
 									if (s.db_valid) {
 										my_positions.updateOne({"_id" : position._id}, {$set: position}, {upsert: true}, function (err) {
 											if (err) {
