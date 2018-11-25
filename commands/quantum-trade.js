@@ -1006,8 +1006,8 @@ module.exports = function (program, conf) {
 						})
 						if (s.my_trades.length > my_trades_size) {
 							s.my_trades.slice(my_trades_size).forEach(function (my_trade) {
-								my_trade.id = crypto.randomBytes(4).toString('hex')
-								my_trade._id = my_trade.id
+//								my_trade.id = crypto.randomBytes(4).toString('hex')
+//								my_trade._id = my_trade.id
 								my_trade.selector = so.selector.normalized
 								my_trade.session_id = session.id
 								my_trade.mode = so.mode
@@ -1019,26 +1019,48 @@ module.exports = function (program, conf) {
 									}
 								})
 								//Per registrare/rimuovere le posizioni nel database
-								if (my_trade.side == 'buy') {
-									let my_position = s.my_positions[s.my_positions.length-1]
-									my_position._id = my_position.id
-									my_position.session_id = session.id
-									my_position.mode = so.mode
-									//Corretto il Deprecation Warning
-									if (s.db_valid) my_positions.insertOne(my_position, function (err) {
-										if (err) {
-											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
-											console.error(err)
-										}
-									})
-								} else {
-									//Corretto il Deprecation Warning
-									my_positions.deleteOne({id: s.working_position_id}, function (err) {
-										if (err) {
-											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error removing my_position')
-											console.error(err)
-										}
-									})
+//								if (my_trade.side == 'buy') {
+//									let my_position = s.my_positions[s.my_positions.length-1]
+//									my_position._id = my_position.id
+//									my_position.session_id = session.id
+//									my_position.mode = so.mode
+//									//Corretto il Deprecation Warning
+//									if (s.db_valid) my_positions.insertOne(my_position, function (err) {
+//										if (err) {
+//											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
+//											console.error(err)
+//										}
+//									})
+//								} else {
+//									//Corretto il Deprecation Warning
+//									my_positions.deleteOne({id: s.working_position_id}, function (err) {
+//										if (err) {
+//											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error removing my_position')
+//											console.error(err)
+//										}
+//									})
+//								}
+								if (s.update_position_id != null) {
+									position = s.my_positions.find(x => x.id == s.update_position_id)
+									if (s.db_valid) {
+										my_positions.updateOne({"_id" : position._id}, {$set: position}, {upsert: true}, function (err) {
+											if (err) {
+												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
+												console.error(err)
+											}
+										})
+									}
+								}
+								
+								if (s.delete_position_id != null) {
+									if (s.db_valid) {
+										my_positions.deleteOne({"_id" : s.delete_position_id}, function (err) {
+											if (err) {
+												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in my_positions')
+												console.error(err)
+											}
+										})
+									}
 								}
 							})
 							my_trades_size = s.my_trades.length
