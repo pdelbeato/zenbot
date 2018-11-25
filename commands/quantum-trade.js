@@ -730,8 +730,10 @@ module.exports = function (program, conf) {
 //									debug.msg('getNext() - prev_session')
 									//                    if (prev_session.orig_capital && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {                	  
 									//                      s.orig_capital = session.orig_capital = so.currency_capital || prev_session.orig_capital
-									s.orig_capital = session.orig_capital = prev_session.orig_capital
+									s.orig_currency = session.orig_currency = prev_session.orig_currency
+									s.orig_asset = session.orig_asset = prev_session.orig_asset
 									s.orig_price = session.orig_price = prev_session.orig_price
+									s.orig_capital = session.orig_capital = prev_session.orig_capital
 									s.day_count = session.day_count = prev_session.day_count ? prev_session.day_count : 1
 									s.my_trades.length = session.num_trades = prev_session.num_trades
 									debug.obj('getNext() - prev_session', session)
@@ -742,9 +744,11 @@ module.exports = function (program, conf) {
 								}
 								else {
 									debug.msg('getNext() - no prev_session')
-									s.orig_capital = s.start_capital = raw_opts.currency_capital
+									s.orig_currency = s.start_currency = raw_opts.currency_capital
+									s.orig_asset = s.start_asset = raw_opts.asset_capital
 									s.orig_price = s.start_price
-									debug.msg('getNext() - s.orig_capital = ' + s.orig_capital + ' - s.orig_price = ' + s.orig_price)
+									s.orig_capital = s.orig_currency + (s.orig_asset * s.orig_price)
+									debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital = ' + s.orig_capital + ' ; s.orig_price = ' + s.orig_price)
 								} 
 								//                  }
 								if(s.lookback.length > so.keep_lookback_periods){
@@ -911,7 +915,7 @@ module.exports = function (program, conf) {
 						b._id = b.id
 						b.consolidated = n(s.balance.asset).multiply(s.period.close).add(s.balance.currency).value()
 						b.profit = (b.consolidated - session.orig_capital) / session.orig_capital
-						b.buy_hold = s.period.close * (session.orig_capital / session.orig_price)
+						b.buy_hold = s.period.close * (session.orig_asset + session.orig_currency / session.orig_price)
 						b.buy_hold_profit = (b.buy_hold - session.orig_capital) / session.orig_capital
 						b.vs_buy_hold = (b.consolidated - b.buy_hold) / b.buy_hold
 						conf.output.api.on && printTrade(false, false, true)
