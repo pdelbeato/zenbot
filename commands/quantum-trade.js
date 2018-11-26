@@ -159,16 +159,18 @@ module.exports = function (program, conf) {
 		keyMap.set('M', 'switch to \'Maker\' order type'.grey)
 		keyMap.set('o', 'show current trade options'.grey)
 		keyMap.set('O', 'show current trade options in a dirty view (full list)'.grey)
-		keyMap.set('L', 'toggle DEBUG'.grey)
-		keyMap.set('P', 'print statistical output'.grey)
-		keyMap.set('p', 'list positions opened'.grey)
+		keyMap.set('D', 'toggle DEBUG'.grey)
+		keyMap.set('p', 'print statistical output'.grey)
+		keyMap.set('P', 'list positions opened'.grey)
 		keyMap.set('X', 'exit program with statistical output'.grey)
-		keyMap.set('d', 'dump statistical output to HTML file'.grey)
-		keyMap.set('D', 'toggle automatic HTML dump to file'.grey)
+		keyMap.set('h', 'dump statistical output to HTML file'.grey)
+		keyMap.set('H', 'toggle automatic HTML dump to file'.grey)
 		keyMap.set('R', 'try to recover MongoDB connection'.grey)
 		keyMap.set('C', 'clean MongoDB databases (delete data older than 30 days)'.grey)
 		keyMap.set('w', 'toggle Dump Watchdog'.grey)
 		keyMap.set('W', 'toggle Pump Watchdog'.grey)
+		keyMap.set('z', 'toggle Long Position'.grey)
+		keyMap.set('Z', 'toggle Short Position'.grey)
 		
 		function listKeys() {
 			console.log('\nAvailable command keys:')
@@ -323,7 +325,8 @@ module.exports = function (program, conf) {
 			//z(20, 'SELL %'.grey, ' '),
 			z(30, 'TRAILING STOP %'.grey, ' '),
 			z(34, 'TRAILING DISTANCE %'.grey, ' '),
-			z(35, 'DUMP / PUMP WATCHDOG'.grey, ' ')
+			z(35, 'DUMP / PUMP WATCHDOG'.grey, ' '),
+			z(36, 'LONG / SHORT POSITION'.grey, ' ')
 			].join('') + '\n')
 			process.stdout.write([
 				//z(9, so.buy_pct + '%', ' '),
@@ -331,7 +334,9 @@ module.exports = function (program, conf) {
 				z(12, so.profit_stop_enable_pct + '%', ' '),
 				z(24, so.profit_stop_pct + '%', ' '),
 				z(20, so.dump_watchdog, ' '),
-				z(8, so.pump_watchdog, ' ')
+				z(8, so.pump_watchdog, ' '),
+				z(20, so.active_long_position, ' '),
+				z(8, so.active_short_position, ' ')
 				].join('') + '\n')
 			process.stdout.write('')
 		}
@@ -797,22 +802,22 @@ module.exports = function (program, conf) {
 											listOptions()
 										} else if (key === 'O' && !info.ctrl) {
 											console.log('\n' + cliff.inspect(so))
-										} else if (key === 'P' && !info.ctrl) {
+										} else if (key === 'p' && !info.ctrl) {
 											console.log('\nWriting statistics...'.grey)
 											printTrade(false)
-										} else if (key === 'p' && !info.ctrl) {
+										} else if (key === 'P' && !info.ctrl) {
 											console.log('\nListing positions opened...'.grey)
 											debug.printPosition(s.my_positions, true)
 										} else if (key === 'X' && !info.ctrl) {
 											console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 											printTrade(true)
-										} else if (key === 'd' && !info.ctrl) {
+										} else if (key === 'h' && !info.ctrl) {
 											console.log('\nDumping statistics...'.grey)
 											printTrade(false, true)
-										} else if (key === 'D' && !info.ctrl) {
+										} else if (key === 'H' && !info.ctrl) {
 											console.log('\nDumping statistics...'.grey)
 											toggleStats()
-										} else if (key === 'L' && !info.ctrl) {
+										} else if (key === 'D' && !info.ctrl) {
 											debug.flip()
 											console.log('\nDEBUG mode: ' + (debug.on ? 'ON'.green.inverse : 'OFF'.red.inverse))
 										} else if (info.name === 'c' && info.ctrl) {
@@ -833,6 +838,12 @@ module.exports = function (program, conf) {
 											so.pump_watchdog = !so.pump_watchdog
 											s.is_pump_watchdog = so.pump_watchdog
 											console.log('\nToggle Pump Watchdog: ' + (so.pump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
+										} else if (key === 'z' && !info.ctrl) {
+											so.active_long_position = !so.active_long_position
+											console.log('\nToggle Long position: ' + (so.active_long_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
+										} else if (key === 'Z' && !info.ctrl) {
+											so.active_short_position = !so.active_short_position
+											console.log('\nToggle Short position: ' + (so.active_short_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
 										}
 									})
 								}
