@@ -335,7 +335,7 @@ module.exports = function (program, conf) {
 				z(24, so.profit_stop_pct + '%', ' '),
 				z(20, so.dump_watchdog, ' '),
 				z(8, so.pump_watchdog, ' '),
-				z(20, so.active_long_position, ' '),
+				z(16, so.active_long_position, ' '),
 				z(8, so.active_short_position, ' ')
 				].join('') + '\n')
 			process.stdout.write('')
