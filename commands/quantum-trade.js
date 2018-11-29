@@ -252,7 +252,7 @@ module.exports = function (program, conf) {
 
 					//Corretto il Deprecation Warning
 					my_positions.drop()
-					s.my_positions.forEach(function (position) {
+					s.positions.forEach(function (position) {
 						//Corretto il Deprecation Warning
 						my_positions.insertOne(position, function (err) {
 							if (err) {
@@ -375,7 +375,7 @@ module.exports = function (program, conf) {
 				output_lines.push('vs. BuyHold: ' + n(tmp_balance).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
 				//output_lines.push((s.my_prev_trades.length ? s.my_trades.length + s.my_prev_trades.length : s.my_trades.length) + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 				output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
-				output_lines.push(s.my_positions.length + ' positions opened.')
+				output_lines.push(s.positions.length + ' positions opened.')
 				output_lines.push(sizeof(s) + ' size of s')
 				output_lines.push(sizeof(s.trades) + ' size of s.trades')
 				output_lines.push(sizeof(s.period) + ' size of s.period')
@@ -638,11 +638,11 @@ module.exports = function (program, conf) {
 			balances.drop()
 		}
 
-		//Recupera tutte le vecchie posizioni aperte e le copia in s.my_positions
+		//Recupera tutte le vecchie posizioni aperte e le copia in s.positions
 		my_positions.find({selector: so.selector.normalized}).toArray(function (err, my_prev_positions) {
 			if (err) throw err
 			if (my_prev_positions.length) {
-				s.my_positions = my_prev_positions.slice(0)
+				s.positions = my_prev_positions.slice(0)
 			}
 		})
 
@@ -807,7 +807,7 @@ module.exports = function (program, conf) {
 											printTrade(false)
 										} else if (key === 'P' && !info.ctrl) {
 											console.log('\nListing positions opened...'.grey)
-											debug.printPosition(s.my_positions, true)
+											debug.printPosition(s.positions, true)
 										} else if (key === 'X' && !info.ctrl) {
 											console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 											printTrade(true)
@@ -1035,7 +1035,7 @@ module.exports = function (program, conf) {
 								})
 								//Per registrare/rimuovere le posizioni nel database
 //								if (my_trade.side == 'buy') {
-//									let my_position = s.my_positions[s.my_positions.length-1]
+//									let my_position = s.positions[s.positions.length-1]
 //									my_position._id = my_position.id
 //									my_position.session_id = session.id
 //									my_position.mode = so.mode
@@ -1056,10 +1056,10 @@ module.exports = function (program, conf) {
 //									})
 //								}
 								if (s.update_position_id != null) {
-									position = s.my_positions.find(x => x.id == s.update_position_id)
-									position._id = position.id
+									position = s.positions[s.update_position_id]
+									
 									if (s.db_valid) {
-										my_positions.updateOne({"_id" : position._id}, {$set: position}, {upsert: true}, function (err) {
+										my_positions.updateOne({"_id" : s.update_position_id}, {$set: position}, {upsert: true}, function (err) {
 											if (err) {
 												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
 												console.error(err)
