@@ -774,16 +774,16 @@ module.exports = function (program, conf) {
 											console.log('\nInteractive Buy/Sell...'.grey)
 											toggleInteractiveBuySell()
 										} else if (key === 'b' && !info.ctrl && interactiveBuySell) {
-											engine.emitSignal('buy')
+											engine.emitSignal('standard', 'buy')
 											console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command executed'.grey)
 										} else if (key === 'B' && !info.ctrl && interactiveBuySell) {
-											engine.executeSignal('buy', null, null, null, false, true)
+											engine.emitSignal('standard', 'buy', null, null, null, false, true)
 											console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command executed'.grey)
 										} else if (key === 's' && !info.ctrl && interactiveBuySell) {
-											engine.emitSignal('sell')
+											engine.emitSignal('standard', 'sell')
 											console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command executed'.grey)
 										} else if (key === 'S' && !info.ctrl && interactiveBuySell) {
-											engine.executeSignal('sell', null, null, null, false, true)
+											engine.emitSignal('stanard', 'sell', null, null, null, false, true)
 											console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command executed'.grey)
 										} else if ((key === 'c') && !info.ctrl) {
 											delete s.orders.buy.standard
