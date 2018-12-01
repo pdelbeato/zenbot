@@ -107,6 +107,7 @@ module.exports = function sim (conf, s) {
           remaining_size: opts.size,
           post_only: !!opts.post_only,
           filled_size: 0,
+          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'buy',
           orig_time: now,
@@ -142,6 +143,7 @@ module.exports = function sim (conf, s) {
           remaining_size: opts.size,
           post_only: !!opts.post_only,
           filled_size: 0,
+          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'sell',
           orig_time: now,
@@ -224,6 +226,7 @@ module.exports = function sim (conf, s) {
     let order = buy_order
     order.filled_size = order.filled_size + size
     order.remaining_size = order.size - order.filled_size
+    order.executed_value += order.filled_size * price
 
     if (order.remaining_size <= 0) {
       if (debug) console.log('full fill bought')
@@ -264,6 +267,7 @@ module.exports = function sim (conf, s) {
     let order = sell_order
     order.filled_size = order.filled_size + size
     order.remaining_size = order.size - order.filled_size
+    order.executed_value += order.filled_size * price
 
     if (order.remaining_size <= 0) {
       if (debug) console.log('full fill sold')
