@@ -786,7 +786,7 @@ module.exports = function (program, conf) {
 											engine.emitSignal('stanard', 'sell', null, null, null, false, true)
 											console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command executed'.grey)
 										} else if ((key === 'c') && !info.ctrl) {
-											engine.orderSetType(undefined, 'standard', undefined, 'canceled')
+											engine.orderSetStatus(undefined, 'standard', undefined, 'canceled')
 											console.log('\nmanual'.grey + ' standard orders cancel' + ' command executed'.grey)
 										} else if (key === 'm' && !info.ctrl && so.mode === 'live') {
 											so.manual = !so.manual
