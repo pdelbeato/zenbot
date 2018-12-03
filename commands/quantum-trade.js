@@ -1056,9 +1056,10 @@ module.exports = function (program, conf) {
 //								}
 								if (s.update_position_id != null) {
 									position = s.positions.find(x => x.id = s.update_position_id)
+									position._id = position.id
 									
 									if (s.db_valid) {
-										my_positions.updateOne({"id" : s.update_position_id}, {$set: position}, {upsert: true}, function (err) {
+										my_positions.updateOne({"_id" : s.update_position_id}, {$set: position}, {upsert: true}, function (err) {
 											if (err) {
 												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
 												console.error(err)
@@ -1069,7 +1070,7 @@ module.exports = function (program, conf) {
 								
 								if (s.delete_position_id != null) {
 									if (s.db_valid) {
-										my_positions.deleteOne({"id" : s.delete_position_id}, function (err) {
+										my_positions.deleteOne({"_id" : s.delete_position_id}, function (err) {
 											if (err) {
 												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in my_positions')
 												console.error(err)
