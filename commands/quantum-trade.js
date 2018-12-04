@@ -783,7 +783,7 @@ module.exports = function (program, conf) {
 											engine.emitSignal('standard', 'sell')
 											console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command executed'.grey)
 										} else if (key === 'S' && !info.ctrl && interactiveBuySell) {
-											engine.emitSignal('stanard', 'sell', null, null, null, false, true)
+											engine.emitSignal('standard', 'sell', null, null, null, false, true)
 											console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command executed'.grey)
 										} else if ((key === 'c') && !info.ctrl) {
 											engine.orderSetStatus(undefined, 'standard', undefined, 'canceled')
