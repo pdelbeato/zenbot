@@ -1055,7 +1055,7 @@ module.exports = function (program, conf) {
 //									})
 //								}
 								if (s.update_position_id != null) {
-									position = s.positions.find(x => x.id = s.update_position_id)
+									position = s.positions.find(x => x.id === s.update_position_id)
 									position._id = position.id
 									
 									if (s.db_valid) {
