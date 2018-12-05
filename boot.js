@@ -60,7 +60,6 @@ module.exports = function (cb) {
       (authMechanism ? '&authMechanism=' + authMechanism : '' )
   }
 
-  //Corretto per Deprecation Warning
   require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true }, function (err, client) {
     if (err) {
       console.error('WARNING: MongoDB Connection Error: ', err)
