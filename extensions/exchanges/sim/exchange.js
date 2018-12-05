@@ -224,9 +224,12 @@ module.exports = function sim (conf, s) {
 
     // Process existing order size changes
     let order = buy_order
-    order.filled_size = n(order.filled_size).add(size).format('0.00000000')
-    order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
-    order.executed_value += n(size).multiply(price).format(s.product.increment ? s.product.increment : '0.00000000')
+//    order.filled_size = n(order.filled_size).add(size).format('0.00000000')
+//    order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
+//    order.executed_value += n(size).multiply(price).format(s.product.increment ? s.product.increment : '0.00000000')
+    order.filled_size = order.filled_size + size
+    order.remaining_size = order.size - order.filled_size
+    order.executed_value += size * price  
 
     if (order.remaining_size <= 0) {
       if (debug) console.log('full fill bought')
