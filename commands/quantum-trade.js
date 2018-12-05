@@ -60,7 +60,7 @@ module.exports = function (program, conf) {
 	.option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, conf.order_adjust_time)
 	.option('--order_poll_time <ms>', 'poll order status on this interval', Number, conf.order_poll_time)
 	.option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, conf.sell_stop_pct)
-	//.option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct) //da togliere
+	.option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct) //da togliere
 	.option('--profit_stop_enable_pct <pct>', 'enable trailing sell stop when reaching this % profit', Number, conf.profit_stop_enable_pct)
 	.option('--profit_stop_pct <pct>', 'maintain a trailing stop this % below the high-water mark of profit', Number, conf.profit_stop_pct)
 	.option('--max_sell_loss_pct <pct>', 'avoid selling at a loss pct under this float (could be used for min profit)', conf.max_sell_loss_pct)
@@ -1057,13 +1057,14 @@ module.exports = function (program, conf) {
 								if (s.update_position_id != null) {
 									position = s.positions.find(x => x.id === s.update_position_id)
 									position._id = position.id
-									
+																		
 									if (s.db_valid) {
 										my_positions.updateOne({"_id" : s.update_position_id}, {$set: position}, {upsert: true}, function (err) {
 											if (err) {
 												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
 												console.error(err)
 											}
+											s.update_position_id = null
 										})
 									}
 								}
@@ -1075,6 +1076,7 @@ module.exports = function (program, conf) {
 												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in my_positions')
 												console.error(err)
 											}
+											s.delete_position_id = null
 										})
 									}
 								}
