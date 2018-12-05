@@ -2278,5 +2278,69 @@
     "max_size": "1000000",
     "increment": "0.00000001",
     "label": "BTC/SPC"
+  },
+  {
+    "asset": "MEDX",
+    "currency": "BTC",
+    "min_size": "375.00000000",
+    "max_size": "1000000",
+    "increment": "0.00000001",
+    "label": "BTC/MEDX"
+  },
+  {
+    "asset": "BSV",
+    "currency": "BTC",
+    "min_size": "0.03000000",
+    "max_size": "1000000",
+    "increment": "0.00000001",
+    "label": "BTC/BSV"
+  },
+  {
+    "asset": "IOST",
+    "currency": "BTC",
+    "min_size": "540.00000000",
+    "max_size": "1000000",
+    "increment": "0.00000001",
+    "label": "BTC/IOST"
+  },
+  {
+    "asset": "XNK",
+    "currency": "BTC",
+    "min_size": "185.00000000",
+    "max_size": "1000000",
+    "increment": "0.00000001",
+    "label": "BTC/XNK"
+  },
+  {
+    "asset": "BSV",
+    "currency": "USDT",
+    "min_size": "0.03000000",
+    "max_size": "1000000",
+    "increment": "0.00000001",
+    "label": "USDT/BSV"
+  },
+  {
+    "asset": "BSV",
+    "currency": "ETH",
+    "min_size": "0.03000000",
+    "max_size": "1000000",
+    "increment": "0.00000001",
+    "label": "ETH/BSV"
+  },
+  {
+    "asset": "NCASH",
+    "currency": "BTC",
+    "min_size": "1280.00000000",
+    "max_size": "1000000",
+    "increment": "0.00000001",
+    "label": "BTC/NCASH"
+  },
+  {
+    "asset": "SOLVE",
+    "currency": "BTC",
+    "min_size": "150.00000000",
+    "max_size": "1000000",
+    "increment": "0.00000001",
+    "label": "BTC/SOLVE"
   }
 ]
