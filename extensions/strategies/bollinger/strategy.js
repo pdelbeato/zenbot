@@ -25,17 +25,21 @@ module.exports = {
 
   calculate: function (s) {
     // calculate Bollinger Bands
-    bollinger(s, 'bollinger', s.options.bollinger_size, 'close', s.options.bollinger_time)
+    bollinger(s, 'bollinger', s.options.bollinger_size, 'close')
   },
 
   onPeriod: function (s, cb) {
     if (s.period.bollinger) {
-      if (s.period.bollinger.upper && s.period.bollinger.lower) {
-        let upperBound = s.period.bollinger.upper[s.period.bollinger.upper.length-1]
-        let lowerBound = s.period.bollinger.lower[s.period.bollinger.lower.length-1]
-        let upperBandWidth = (s.period.bollinger.upper[s.period.bollinger.upper.length-1] - s.period.bollinger.mid[s.period.bollinger.mid.length-1])
-        let lowerBandWidth = (s.period.bollinger.mid[s.period.bollinger.mid.length-1] - s.period.bollinger.lower[s.period.bollinger.lower.length-1])
-        let upperWatchdogBound = upperBound + (upperBandWidth * s.options.bollinger_upper_watchdog_pct/100)
+      if (s.period.bollinger.upperBound && s.period.bollinger.lowerBound) {
+//        let upperBound = s.period.bollinger.upper[s.period.bollinger.upper.length-1]
+//        let lowerBound = s.period.bollinger.lower[s.period.bollinger.lower.length-1]
+//        let upperBandWidth = (s.period.bollinger.upper[s.period.bollinger.upper.length-1] - s.period.bollinger.mid[s.period.bollinger.mid.length-1])
+//        let lowerBandWidth = (s.period.bollinger.mid[s.period.bollinger.mid.length-1] - s.period.bollinger.lower[s.period.bollinger.lower.length-1])
+		let upperBound = s.period.bollinger.upperBound
+		let lowerBound = s.period.bollinger.lowerBound
+		let upperBandWidth = (s.period.bollinger.upperBound - s.period.bollinger.midBound)
+		let lowerBandWidth = (s.period.bollinger.midBound - s.period.bollinger.lowerBound)
+		let upperWatchdogBound = upperBound + (upperBandWidth * s.options.bollinger_upper_watchdog_pct/100)
         let lowerWatchdogBound = lowerBound - (lowerBandWidth * s.options.bollinger_lower_watchdog_pct/100)
         let upperCalmdownWatchdogBound = upperBound - (upperBandWidth * s.options.bollinger_calmdown_watchdog_pct/100)
         let lowerCalmdownWatchdogBound = lowerBound + (lowerBandWidth * s.options.bollinger_calmdown_watchdog_pct/100)
@@ -76,10 +80,14 @@ module.exports = {
     var cols = []
     if (s.period.bollinger) {
       if (s.period.bollinger.upper && s.period.bollinger.lower) {
-        let upperBound = s.period.bollinger.upper[s.period.bollinger.upper.length-1]
-        let lowerBound = s.period.bollinger.lower[s.period.bollinger.lower.length-1]
-        let upperBandWidth = (s.period.bollinger.upper[s.period.bollinger.upper.length-1] - s.period.bollinger.mid[s.period.bollinger.mid.length-1])
-        let lowerBandWidth = (s.period.bollinger.mid[s.period.bollinger.mid.length-1] - s.period.bollinger.lower[s.period.bollinger.lower.length-1])
+//        let upperBound = s.period.bollinger.upper[s.period.bollinger.upper.length-1]
+//        let lowerBound = s.period.bollinger.lower[s.period.bollinger.lower.length-1]
+//        let upperBandWidth = (s.period.bollinger.upper[s.period.bollinger.upper.length-1] - s.period.bollinger.mid[s.period.bollinger.mid.length-1])
+//        let lowerBandWidth = (s.period.bollinger.mid[s.period.bollinger.mid.length-1] - s.period.bollinger.lower[s.period.bollinger.lower.length-1])
+        let upperBound = s.period.bollinger.upperBound
+        let lowerBound = s.period.bollinger.lowerBound
+        let upperBandWidth = (s.period.bollinger.upperBound - s.period.bollinger.midBound)
+        let lowerBandWidth = (s.period.bollinger.midBound-s.period.bollinger.lowerBound)
         let upperWatchdogBound = upperBound + (upperBandWidth * s.options.bollinger_upper_watchdog_pct/100)
         let lowerWatchdogBound = lowerBound - (lowerBandWidth * s.options.bollinger_lower_watchdog_pct/100)
 
@@ -107,23 +115,7 @@ module.exports = {
   },
   
   orderExecuted: function (s, type, executeSignal) {
-//	  if (s.options.catch_position_pct) {
-//		  switch(type) {
-//			  case 'buy':
-//				  next_price = s.last_buy_price * (1 + s.options.catch_position_pct/100)
-//				  debug.msg('strategy - orderExecuted - buy - last position id = ' + s.my_positions[s.my_positions.length-1].id + ' ; next price = ' + next_price)
-//				  executeSignal('sell', s.my_positions[s.my_positions.length-1].id, undefined, next_price)
-//				  break;
-//			  case 'sell':
-//				  next_id = crypto.randomBytes(4).toString('hex')
-//				  next_price = s.last_sell_price * (1 - s.options.catch_position_pct/100)
-//				  debug.msg('strategy - orderExecuted - sell - next position id = ' + next_id + ' ; next price = ' + next_price)
-//				  executeSignal('buy', undefined, undefined, next_price, false, undefined, next_id)
-//				  break;
-//			  default:
-//				  break
-//		  }
-//	  }
+	  
   },
 
   phenotypes: {

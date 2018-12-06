@@ -361,7 +361,7 @@ module.exports = function gdax (conf) {
 			if (websocket_cache[opts.product_id]) {
 				var ticker = websocket_cache[opts.product_id].ticker
 				if (ticker.best_ask && ticker.best_bid) {
-					debug.msg('getQuote - ticker from websocket_cache ask= ' + ticker.best_ask + ' bid= ' + ticker.best_bid)
+//					debug.msg('getQuote - ticker from websocket_cache ask= ' + ticker.best_ask + ' bid= ' + ticker.best_bid)
 					cb(null, {bid: ticker.best_bid, ask: ticker.best_ask})
 					return
 				}
