@@ -44,11 +44,7 @@ module.exports = function (program, conf) {
     .option('--currency_capital <amount>', 'for paper trading, amount of start capital in currency. For live trading, amount of new starting capital in currency.', Number, conf.currency_capital)
 	.option('--asset_capital <amount>', 'for paper trading, amount of start capital in asset', Number, conf.asset_capital)
 	.option('--avg_slippage_pct <pct>', 'avg. amount of slippage to apply to paper trades', Number, conf.avg_slippage_pct)
-	//.option('--buy_pct <pct>', 'buy with this % of currency balance', Number, conf.buy_pct)	//da togliere
-	//    .option('--deposit <amt>', 'absolute initial capital (in currency) at the bots disposal (previously --buy_max_amt)', Number, conf.deposit)
-	//.option('--sell_pct <pct>', 'sell with this % of asset balance', Number, conf.sell_pct)	//da togliere
 	.option('--quantum_size <amount>', 'buy up to this amount of currency every time', Number, conf.quantum_size)
-	.option('--max_nr_quantum <amount>', 'Max nr of quantum which could be traded', Number, conf.max_nr_quantum)
 	.option('--best_bid', 'mark up as little as possible the buy price to be the best bid', Boolean, false)
 	.option('--best_ask', 'mark down as little as possible the sell price to be the best ask', Boolean, false)
 	.option('--dump_watchdog', 'check for dumps. Strategy is in charge', Boolean, false)
@@ -58,21 +54,20 @@ module.exports = function (program, conf) {
 	.option('--markdown_buy_pct <pct>', '% to mark down buy price', Number, conf.markdown_buy_pct)
 	.option('--markup_sell_pct <pct>', '% to mark up sell price', Number, conf.markup_sell_pct)
 	.option('--buy_price_limit <amount>', 'Limit buy to be under <amount>', Number, conf.buy_price_limit)
+	.option('--sell_price_limit <amount>', 'Limit sell to be above <amount>', Number, conf.sell_price_limit)
 	.option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, conf.order_adjust_time)
 	.option('--order_poll_time <ms>', 'poll order status on this interval', Number, conf.order_poll_time)
 	.option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, conf.sell_stop_pct)
-	.option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct) //da togliere
+	.option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct)
 	.option('--profit_stop_enable_pct <pct>', 'enable trailing sell stop when reaching this % profit', Number, conf.profit_stop_enable_pct)
 	.option('--profit_stop_pct <pct>', 'maintain a trailing stop this % below the high-water mark of profit', Number, conf.profit_stop_pct)
-	.option('--max_sell_loss_pct <pct>', 'avoid selling at a loss pct under this float (could be used for min profit)', conf.max_sell_loss_pct)
-	//.option('--max_buy_loss_pct <pct>', 'avoid buying at a loss pct over this float', conf.max_buy_loss_pct) //da togliere
+	.option('--max_sell_loss_pct <pct>', 'avoid selling at a loss pct under this float (could be used for min profit in long positions))', conf.max_sell_loss_pct)
+	.option('--max_buy_loss_pct <pct>', 'avoid buying at a loss pct over this float (could be used for min profit in short positions)', conf.max_buy_loss_pct) //da togliere
 	.option('--max_slippage_pct <pct>', 'avoid selling at a slippage pct above this float', conf.max_slippage_pct)
 	.option('--rsi_periods <periods>', 'number of periods to calculate RSI at', Number, conf.rsi_periods)
 	.option('--poll_trades <ms>', 'poll new trades at this interval in ms', Number, conf.poll_trades)
 	.option('--currency_increment <amount>', 'Currency increment, if different than the asset increment', String, null)
 	.option('--keep_lookback_periods <amount>', 'Keep this many lookback periods max. ', Number, conf.keep_lookback_periods)
-//	.option('--exact_buy_orders', 'instead of only adjusting maker buy when the price goes up, adjust it if price has changed at all')
-//	.option('--exact_sell_orders', 'instead of only adjusting maker sell when the price goes down, adjust it if price has changed at all')
 	.option('--use_prev_trades', 'load and use previous trades for stop-order triggers and loss protection') //da togliere
 	.option('--min_prev_trades <number>', 'minimum number of previous trades to load if use_prev_trades is enabled, set to 0 to disable and use trade time instead', Number, conf.min_prev_trades) //da togliere
 	.option('--disable_stats', 'disable printing order stats')
@@ -128,11 +123,6 @@ module.exports = function (program, conf) {
 		so.stats = !cmd.disable_stats
 		so.mode = so.paper ? 'paper' : 'live'
 
-		//if (so.buy_max_amt) {
-		//  console.log(('--buy_max_amt is deprecated, use --deposit instead!\n').red)
-		//  so.deposit = so.buy_max_amt
-		//}
-
 		//debug.msg('updateMsg=' + so.update_msg)
 		if (so.update_msg) {
 			var nextUpdateMsg = moment().add(so.update_msg, 'h')
@@ -159,10 +149,11 @@ module.exports = function (program, conf) {
 		keyMap.set('T', 'switch to \'Taker\' order type'.grey)
 		keyMap.set('M', 'switch to \'Maker\' order type'.grey)
 		keyMap.set('o', 'show current trade options'.grey)
-		keyMap.set('O', 'show current trade options in a dirty view (full list)'.grey)
+		keyMap.set('d', 'show current trade options in a dirty view (full list)'.grey)
 		keyMap.set('D', 'toggle DEBUG'.grey)
 		keyMap.set('p', 'print statistical output'.grey)
 		keyMap.set('P', 'list positions opened'.grey)
+		keyMap.set('O', 'list orders opened'.grey)
 		keyMap.set('X', 'exit program with statistical output'.grey)
 		keyMap.set('h', 'dump statistical output to HTML file'.grey)
 		keyMap.set('H', 'toggle automatic HTML dump to file'.grey)
@@ -393,6 +384,7 @@ module.exports = function (program, conf) {
 				trade_per_day: n(s.my_trades.length / s.day_count).format('0.00')
 			}
 
+//Da sistemare tutta questa sezione in relazione alle novità introdotte con la versione quantum_parallel			
 			//var last_buy
 			var losses = 0, sells = 0
 			s.my_trades.forEach(function (trade) {
@@ -800,7 +792,7 @@ module.exports = function (program, conf) {
 												console.log('\n' + 'Maker fees activated'.black.bgGreen)
 										} else if (key === 'o' && !info.ctrl) {
 											listOptions()
-										} else if (key === 'O' && !info.ctrl) {
+										} else if (key === 'd' && !info.ctrl) {
 											console.log('\n' + cliff.inspect(so))
 										} else if (key === 'p' && !info.ctrl) {
 											console.log('\nWriting statistics...'.grey)
@@ -808,6 +800,9 @@ module.exports = function (program, conf) {
 										} else if (key === 'P' && !info.ctrl) {
 											console.log('\nListing positions opened...'.grey)
 											debug.printPosition(s.positions, true)
+										} else if (key === 'O' && !info.ctrl) {
+											console.log('\nListing orders opened...'.grey)
+											debug.printPosition(s.orders, true)
 										} else if (key === 'X' && !info.ctrl) {
 											console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 											printTrade(true)
