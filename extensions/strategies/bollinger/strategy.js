@@ -79,22 +79,20 @@ module.exports = {
   onReport: function (s) {
     var cols = []
     if (s.period.bollinger) {
-      if (s.period.bollinger.upper && s.period.bollinger.lower) {
+      if (s.period.bollinger.upperBound && s.period.bollinger.lowerBound) {
 //        let upperBound = s.period.bollinger.upper[s.period.bollinger.upper.length-1]
 //        let lowerBound = s.period.bollinger.lower[s.period.bollinger.lower.length-1]
 //        let upperBandWidth = (s.period.bollinger.upper[s.period.bollinger.upper.length-1] - s.period.bollinger.mid[s.period.bollinger.mid.length-1])
 //        let lowerBandWidth = (s.period.bollinger.mid[s.period.bollinger.mid.length-1] - s.period.bollinger.lower[s.period.bollinger.lower.length-1])
-        let upperBound = s.period.bollinger.upperBound
-        let lowerBound = s.period.bollinger.lowerBound
         let upperBandWidth = (s.period.bollinger.upperBound - s.period.bollinger.midBound)
-        let lowerBandWidth = (s.period.bollinger.midBound-s.period.bollinger.lowerBound)
+        let lowerBandWidth = (s.period.bollinger.midBound - s.period.bollinger.lowerBound)
         let upperWatchdogBound = upperBound + (upperBandWidth * s.options.bollinger_upper_watchdog_pct/100)
         let lowerWatchdogBound = lowerBound - (lowerBandWidth * s.options.bollinger_lower_watchdog_pct/100)
 
         var color = 'grey'
-        if (s.period.close > (upperBound - (upperBandWidth * s.options.bollinger_upper_bound_pct/100))) {
+        if (s.period.close > (s.period.bollinger.upperBound - (upperBandWidth * s.options.bollinger_upper_bound_pct/100))) {
           color = 'green'
-        } else if (s.period.close < (lowerBound + (lowerBandWidth * s.options.bollinger_lower_bound_pct/100))) {
+        } else if (s.period.close < (s.period.bollinger.lowerBound + (lowerBandWidth * s.options.bollinger_lower_bound_pct/100))) {
           color = 'red'
         }
 
@@ -104,8 +102,8 @@ module.exports = {
         }
 
         cols.push(z(8, n(s.period.close).format('0.00'), ' ')[color])
-        cols.push(z(8, n(lowerBound).format('0.00').substring(0,7), ' ').cyan)
-        cols.push(z(8, n(upperBound).format('0.00').substring(0,7), ' ').cyan)
+        cols.push(z(8, n(s.period.bollinger.lowerBound).format('0.00').substring(0,7), ' ').cyan)
+        cols.push(z(8, n(s.period.bollinger.upperBound).format('0.00').substring(0,7), ' ').cyan)
       }
     }
     else {
