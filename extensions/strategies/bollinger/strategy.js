@@ -86,8 +86,8 @@ module.exports = {
 //        let lowerBandWidth = (s.period.bollinger.mid[s.period.bollinger.mid.length-1] - s.period.bollinger.lower[s.period.bollinger.lower.length-1])
         let upperBandWidth = (s.period.bollinger.upperBound - s.period.bollinger.midBound)
         let lowerBandWidth = (s.period.bollinger.midBound - s.period.bollinger.lowerBound)
-        let upperWatchdogBound = upperBound + (upperBandWidth * s.options.bollinger_upper_watchdog_pct/100)
-        let lowerWatchdogBound = lowerBound - (lowerBandWidth * s.options.bollinger_lower_watchdog_pct/100)
+        let upperWatchdogBound = s.period.bollinger.upperBound + (upperBandWidth * s.options.bollinger_upper_watchdog_pct/100)
+        let lowerWatchdogBound = s.period.bollinger.lowerBound - (lowerBandWidth * s.options.bollinger_lower_watchdog_pct/100)
 
         var color = 'grey'
         if (s.period.close > (s.period.bollinger.upperBound - (upperBandWidth * s.options.bollinger_upper_bound_pct/100))) {
