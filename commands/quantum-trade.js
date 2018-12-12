@@ -145,6 +145,7 @@ module.exports = function (program, conf) {
 		keyMap.set('s', 'limit'.grey + ' SELL'.red)
 		keyMap.set('S', 'market'.grey + ' SELL'.red)
 		keyMap.set('c', 'cancel order'.grey)
+		keyMap.set('C', 'cancel ALL order'.grey)
 		keyMap.set('m', 'toggle MANUAL trade in LIVE mode ON / OFF'.grey)
 		keyMap.set('T', 'switch to \'Taker\' order type'.grey)
 		keyMap.set('M', 'switch to \'Maker\' order type'.grey)
@@ -158,7 +159,7 @@ module.exports = function (program, conf) {
 		keyMap.set('h', 'dump statistical output to HTML file'.grey)
 		keyMap.set('H', 'toggle automatic HTML dump to file'.grey)
 		keyMap.set('R', 'try to recover MongoDB connection'.grey)
-		keyMap.set('C', 'clean MongoDB databases (delete data older than 30 days)'.grey)
+		keyMap.set('K', 'clean MongoDB databases (delete data older than 30 days)'.grey)
 		keyMap.set('w', 'toggle Dump Watchdog'.grey)
 		keyMap.set('W', 'toggle Pump Watchdog'.grey)
 		keyMap.set('z', 'toggle Long Position'.grey)
@@ -189,10 +190,6 @@ module.exports = function (program, conf) {
 			exec('sudo service mongodb start', puts)
 			exec('sudo service mongodb status', puts)
 
-			//Se recupero i vecchi database, e non sono aggiornati, faccio un danno!!
-			//!!!!!!!!!!!!!!!!!!!!!!!!
-			//Da verificare se con MongoDB riavviato, la connessione è ripristinata o meno.
-			//------------------------
 			setTimeout(function() {
 				debug.msg('Recupero la connessione...')
 				var authStr = '', authMechanism, connectionString
@@ -781,6 +778,9 @@ module.exports = function (program, conf) {
 										} else if ((key === 'c') && !info.ctrl) {
 											engine.orderSetStatus(undefined, 'standard', undefined, 'canceled')
 											console.log('\nmanual'.grey + ' standard orders cancel' + ' command executed'.grey)
+										} else if ((key === 'C') && !info.ctrl) {
+											engine.orderSetStatus(undefined, undefined, undefined, 'canceled')
+											console.log('\nmanual'.grey + ' canceling ALL orders')
 										} else if (key === 'm' && !info.ctrl && so.mode === 'live') {
 											so.manual = !so.manual
 											console.log('\nMANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse))
@@ -804,8 +804,13 @@ module.exports = function (program, conf) {
 											console.log('\nListing orders opened...'.grey)
 											debug.printPosition(s.orders, true)
 										} else if (key === 'X' && !info.ctrl) {
-											console.log('\nExiting... ' + '\nWriting statistics...'.grey)
-											printTrade(true)
+											console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
+											engine.orderSetStatus(undefined, undefined, undefined, 'canceled')
+											console.log('\nWaiting for ' + ' ALL order canceling...'.grey)
+											setTimeout(function() { 
+												console.log('\nExiting... ' + '\nWriting statistics...'.grey)
+												printTrade(true)
+												}, 3*so.order_poll_time)											
 										} else if (key === 'h' && !info.ctrl) {
 											console.log('\nDumping statistics...'.grey)
 											printTrade(false, true)
@@ -822,7 +827,7 @@ module.exports = function (program, conf) {
 										} else if (key === 'R' && !info.ctrl) {
 											console.log('\nTrying to recover MongoDB connection...'.grey)
 											recoverMongoDB()
-										} else if (key === 'C' && !info.ctrl) {
+										} else if (key === 'K' && !info.ctrl) {
 											console.log('\nCleaning MongoDB databases...'.grey)
 											cleanMongoDB()
 										} else if (key === 'w' && !info.ctrl) {
@@ -890,19 +895,6 @@ module.exports = function (program, conf) {
 						engine.updateMessage()
 					}
 
-					//Sposto tutto sotto, prima del salvataggio di session nel database sessions
-					//            session.updated = new Date().getTime()
-					//            session.balance = s.balance
-					//            //Meglio assegnarli durante la creazione di session, invece di assegnarli di nuovo ogni volta
-					////            session.start_capital = s.start_capital
-					////            session.start_price = s.start_price
-					//            session.num_trades = s.my_trades.length
-					////            if (so.deposit) session.deposit = so.deposit
-
-					//Meglio assegnarli durante la creazione di session, invece di assegnarli di nuovo ogni volta
-					//            if (!session.orig_capital) session.orig_capital = s.start_capital
-					//            if (!session.orig_price) session.orig_price = s.start_price
-
 					//Se esiste s.period, aggiorno il database balances
 					if (s.period) {
 						session.price = s.period.close
@@ -938,13 +930,6 @@ module.exports = function (program, conf) {
 						//Con questo, memorizzo valori inutili dentro session.balance.
 						//              session.balance = b
 					}
-					//I valori di session.balance sono già aggiornati da s.balance di 759
-					//            else {
-					//              session.balance = {
-					//                currency: s.balance.currency,
-					//                asset: s.balance.asset
-					//              }
-					//            }
 
 					session.updated = new Date().getTime()
 					session.balance = s.balance
@@ -1036,28 +1021,7 @@ module.exports = function (program, conf) {
 										console.error(err)
 									}
 								})
-								//Per registrare/rimuovere le posizioni nel database
-//								if (my_trade.side == 'buy') {
-//									let my_position = s.positions[s.positions.length-1]
-//									my_position._id = my_position.id
-//									my_position.session_id = session.id
-//									my_position.mode = so.mode
-//									//Corretto il Deprecation Warning
-//									if (s.db_valid) my_positions.insertOne(my_position, function (err) {
-//										if (err) {
-//											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
-//											console.error(err)
-//										}
-//									})
-//								} else {
-//									//Corretto il Deprecation Warning
-//									my_positions.deleteOne({id: s.working_position_id}, function (err) {
-//										if (err) {
-//											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error removing my_position')
-//											console.error(err)
-//										}
-//									})
-//								}
+								
 								if (s.update_position_id != null) {
 									position = s.positions.find(x => x.id === s.update_position_id)
 									position._id = position.id
