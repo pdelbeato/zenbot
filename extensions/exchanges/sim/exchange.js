@@ -265,6 +265,7 @@ module.exports = function sim (conf, s) {
 
     // Process existing order size changes
     let order = sell_order
+    console.log('\n\nexchange.js - size= ' + size + '\n\n')
     order.filled_size = order.filled_size + size
     order.remaining_size = order.size - order.filled_size
     order.executed_value += Number(n(size).multiply(price).format(s.product.increment))
