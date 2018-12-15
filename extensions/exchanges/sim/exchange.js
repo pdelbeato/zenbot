@@ -224,10 +224,9 @@ module.exports = function sim (conf, s) {
 
     // Process existing order size changes
     let order = buy_order
-    console.log('\n\nexchange.js - size= ' + size + '\n\n')
-    order.filled_size = order.filled_size + size
-    order.remaining_size = order.size - order.filled_size
-    order.executed_value += Number(n(size).multiply(price).format(s.product.increment))
+    order.filled_size = n(order.filled_size).add(size)
+    order.remaining_size = n(order.size).subtract(order.filled_size)
+    order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
 
     if (order.remaining_size <= 0) {
       if (debug) console.log('full fill bought')
@@ -266,10 +265,9 @@ module.exports = function sim (conf, s) {
 
     // Process existing order size changes
     let order = sell_order
-    console.log('\n\nexchange.js - size= ' + size + '\n\n')
-    order.filled_size = order.filled_size + size
-    order.remaining_size = order.size - order.filled_size
-    order.executed_value += Number(n(size).multiply(price).format(s.product.increment))
+    order.filled_size = n(order.filled_size).add(size)
+    order.remaining_size = n(order.size).subtract(order.filled_size)
+    order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
 
     if (order.remaining_size <= 0) {
       if (debug) console.log('full fill sold')
