@@ -224,8 +224,8 @@ module.exports = function sim (conf, s) {
 
     // Process existing order size changes
     let order = buy_order
-    order.filled_size = n(order.filled_size).add(size)
-    order.remaining_size = n(order.size).subtract(order.filled_size)
+    order.filled_size = n(order.filled_size).add(size).format('0.00000000')
+    order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
     order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
 
     if (order.remaining_size <= 0) {
@@ -260,13 +260,13 @@ module.exports = function sim (conf, s) {
     }
 
     // Update balance
-    balance.asset = n(balance.asset).subtract(size).value()
+    balance.asset = n(balance.asset).subtract(size).format('0.00000000')
     balance.currency = n(balance.currency).add(total).subtract(fee).format('0.00000000')
 
     // Process existing order size changes
     let order = sell_order
-    order.filled_size = n(order.filled_size).add(size)
-    order.remaining_size = n(order.size).subtract(order.filled_size)
+    order.filled_size = n(order.filled_size).add(size).format('0.00000000')
+    order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
     order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
 
     if (order.remaining_size <= 0) {
