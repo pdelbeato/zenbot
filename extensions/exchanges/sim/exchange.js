@@ -267,7 +267,7 @@ module.exports = function sim (conf, s) {
     let order = sell_order
     order.filled_size = order.filled_size + size
     order.remaining_size = order.size - order.filled_size
-    order.executed_value += Number(n(size).multiply(price).format(s.product.increment, Math.floor))
+    order.executed_value += Number(n(size).multiply(price).format(s.product.increment))
 
     if (order.remaining_size <= 0) {
       if (debug) console.log('full fill sold')
