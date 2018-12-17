@@ -227,6 +227,7 @@ module.exports = function sim (conf, s) {
     order.filled_size = n(order.filled_size).add(size).format('0.00000000')
     order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
     order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
+    order.done_at = new Date(trade.done_at).getTime()
 
     if (order.remaining_size <= 0) {
       if (debug) console.log('full fill bought')
@@ -268,6 +269,7 @@ module.exports = function sim (conf, s) {
     order.filled_size = n(order.filled_size).add(size).format('0.00000000')
     order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
     order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
+    order.done_at = new Date(trade.done_at).getTime()
 
     if (order.remaining_size <= 0) {
       if (debug) console.log('full fill sold')
