@@ -435,7 +435,12 @@ module.exports = function gdax (conf) {
 				opts.type = 'market'
 			}
 			else {
-				opts.time_in_force = 'GTT'
+				if (opts.cancel_after) {
+					opts.time_in_force = 'GTT'
+				}
+				else {
+					opts.time_in_force = 'GTC'
+				}
 			}
 			delete opts.order_type
 
