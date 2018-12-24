@@ -790,7 +790,7 @@ module.exports = function (program, conf) {
 											console.log('\n' + 'Insert catch order for all free positions'.grey)
 											s.positions.forEach(function (position, index) {
 												emitSignal('orderExecuted', position.side, position.id)
-											}
+											})
 										} else if ((key === 'c') && !info.ctrl) {
 											engine.orderSetStatus(undefined, 'standard', undefined, 'canceled')
 											console.log('\nmanual'.grey + ' standard orders cancel' + ' command executed'.grey)
