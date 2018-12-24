@@ -145,7 +145,7 @@ module.exports = function (program, conf) {
 		keyMap.set('s', 'limit'.grey + ' SELL'.red)
 		keyMap.set('S', 'market'.grey + ' SELL'.red)
 		keyMap.set('t', 'catch'.grey + ' BUY'.green)
-		keyMap.set('T', 'catch'.grey + 'SELL'.red)
+		keyMap.set('T', 'catch'.grey + ' SELL'.red)
 		keyMap.set('A', 'insert catch order for all free position'.grey)
 		keyMap.set('c', 'cancel order'.grey)
 		keyMap.set('C', 'cancel ALL order'.grey)
