@@ -144,11 +144,13 @@ module.exports = function (program, conf) {
 		keyMap.set('B', 'market'.grey + ' BUY'.green)
 		keyMap.set('s', 'limit'.grey + ' SELL'.red)
 		keyMap.set('S', 'market'.grey + ' SELL'.red)
+		keyMap.set('t', 'catch'.grey + ' BUY'.green)
+		keyMap.set('T', 'catch'.grey + 'SELL'.red)
+		keyMap.set('A', 'insert catch order for all free position'.grey)
 		keyMap.set('c', 'cancel order'.grey)
 		keyMap.set('C', 'cancel ALL order'.grey)
 		keyMap.set('m', 'toggle MANUAL trade in LIVE mode ON / OFF'.grey)
-		keyMap.set('T', 'switch to \'Taker\' order type'.grey)
-		keyMap.set('M', 'switch to \'Maker\' order type'.grey)
+		keyMap.set('M', 'switch between \'Maker\' and \'Taker\' order type'.grey)
 		keyMap.set('o', 'show current trade options'.grey)
 		keyMap.set('d', 'show current trade options in a dirty view (full list)'.grey)
 		keyMap.set('D', 'toggle DEBUG'.grey)
@@ -632,6 +634,7 @@ module.exports = function (program, conf) {
 		my_positions.find({selector: so.selector.normalized}).toArray(function (err, my_prev_positions) {
 			if (err) throw err
 			if (my_prev_positions.length) {
+				my_prev_positions.status = 'free'
 				s.positions = my_prev_positions.slice(0)
 			}
 		})
@@ -775,6 +778,19 @@ module.exports = function (program, conf) {
 										} else if (key === 'S' && !info.ctrl && interactiveBuySell) {
 											engine.emitSignal('standard', 'sell', null, null, null, false, true)
 											console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command executed'.grey)
+										} else if (key === 't' && !info.ctrl && interactiveBuySell) {
+											console.log('\n' + 'Insert ' + 'buy catch order'.green)
+											var target_price = n(s.quote.bid).multiply(1 - so.catch_order_pct/100).format(s.product.increment, Math.floor)
+											engine.emitSignal('newCatch', 'buy', null, null, target_price)											
+										} else if (key === 'T' && !info.ctrl && interactiveBuySell) {
+											console.log('\n' + 'Insert ' + 'sell catch order'.red)
+											var target_price = n(s.quote.ask).multiply(1 + so.catch_order_pct/100).format(s.product.increment, Math.floor)
+											engine.emitSignal('newCatch', 'sell', null, null, target_price)	
+										} else if (key === 'A' && !info.ctrl && interactiveBuySell) {
+											console.log('\n' + 'Insert catch order for all free positions'.grey)
+											s.positions.forEach(function (position, index) {
+												emitSignal('orderExecuted', position.side, position.id)
+											}
 										} else if ((key === 'c') && !info.ctrl) {
 											engine.orderSetStatus(undefined, 'standard', undefined, 'canceled')
 											console.log('\nmanual'.grey + ' standard orders cancel' + ' command executed'.grey)
@@ -784,12 +800,9 @@ module.exports = function (program, conf) {
 										} else if (key === 'm' && !info.ctrl && so.mode === 'live') {
 											so.manual = !so.manual
 											console.log('\nMANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse))
-										} else if (key === 'T' && !info.ctrl) {
-											so.order_type = 'taker'
-												console.log('\n' + 'Taker fees activated'.bgRed)
 										} else if (key === 'M' && !info.ctrl) {
-											so.order_type = 'maker'
-												console.log('\n' + 'Maker fees activated'.black.bgGreen)
+											(so.order_type === 'maker' ? so.order_type = 'taker' : so.order_type = 'maker')
+											console.log('\n' + so.order_type.toUpperCase() + ' fees activated'.black.bgGreen)
 										} else if (key === 'o' && !info.ctrl) {
 											listOptions()
 										} else if (key === 'd' && !info.ctrl) {
