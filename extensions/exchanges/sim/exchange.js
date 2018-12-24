@@ -107,7 +107,7 @@ module.exports = function sim (conf, s) {
           remaining_size: opts.size,
           post_only: !!opts.post_only,
           filled_size: 0,
-          executed_value: 0,
+//          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'buy',
           orig_time: now,
@@ -143,7 +143,7 @@ module.exports = function sim (conf, s) {
           remaining_size: opts.size,
           post_only: !!opts.post_only,
           filled_size: 0,
-          executed_value: 0,
+//          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'sell',
           orig_time: now,
@@ -226,7 +226,7 @@ module.exports = function sim (conf, s) {
     let order = buy_order
     order.filled_size = n(order.filled_size).add(size).format('0.00000000')
     order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
-    order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
+//    order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
     order.done_at = new Date(trade.done_at).getTime()
 
     if (order.remaining_size <= 0) {
@@ -268,7 +268,7 @@ module.exports = function sim (conf, s) {
     let order = sell_order
     order.filled_size = n(order.filled_size).add(size).format('0.00000000')
     order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
-    order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
+//    order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
     order.done_at = new Date(trade.done_at).getTime()
 
     if (order.remaining_size <= 0) {
