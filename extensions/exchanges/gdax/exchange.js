@@ -543,8 +543,8 @@ module.exports = function gdax (conf) {
 			if(websocket_cache[opts.product_id] && websocket_cache[opts.product_id].orders['~' + opts.order_id]) {
 				let order_cache = websocket_cache[opts.product_id].orders['~' + opts.order_id]
 
-				debug.msg('getOrder - websocket cache:')
-				debug.msg(order_cache, false)
+//				debug.msg('getOrder - websocket cache:')
+//				debug.msg(order_cache, false)
 
 				cb(null, order_cache)
 				return
