@@ -634,7 +634,9 @@ module.exports = function (program, conf) {
 		my_positions.find({selector: so.selector.normalized}).toArray(function (err, my_prev_positions) {
 			if (err) throw err
 			if (my_prev_positions.length) {
-				my_prev_positions.status = 'free'
+				my_prev_positions.forEach(function (position) {
+					position.status = 'free'
+				})
 				s.positions = my_prev_positions.slice(0)
 			}
 		})
