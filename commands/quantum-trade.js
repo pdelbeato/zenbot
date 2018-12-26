@@ -789,7 +789,7 @@ module.exports = function (program, conf) {
 										} else if (key === 'A' && !info.ctrl && interactiveBuySell) {
 											console.log('\n' + 'Insert catch order for all free positions'.grey)
 											s.positions.forEach(function (position, index) {
-												emitSignal('orderExecuted', position.side, position.id)
+												engine.emitSignal('orderExecuted', position.side, position.id)
 											})
 										} else if ((key === 'c') && !info.ctrl) {
 											engine.orderSetStatus(undefined, 'standard', undefined, 'canceled')
