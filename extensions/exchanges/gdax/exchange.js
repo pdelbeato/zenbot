@@ -388,7 +388,7 @@ module.exports = function gdax (conf) {
 			client.cancelOrder(opts.order_id, function (err, resp, body) {
 				if (err) {
 					debug.msg('cancelOrder: err= ')
-					debug.obj(err, false)
+					debug.obj('err', err, false)
 				}
 
 //				if (resp) {
@@ -398,7 +398,7 @@ module.exports = function gdax (conf) {
 
 				if (body) {
 					debug.msg('cancelOrder: Body= ')
-					debug.obj(body, false)
+					debug.obj('body', body, false)
 				}
 
 				if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
@@ -450,7 +450,7 @@ module.exports = function gdax (conf) {
 				
 				if (err) {
 					debug.msg('buy: err= ')
-					debug.obj(err, false)
+					debug.obj('err', err, false)
 				}
 
 //				if (resp) {
@@ -460,7 +460,7 @@ module.exports = function gdax (conf) {
 
 				if (body) {
 					debug.msg('buy: Body= ')
-					debug.obj(body, false)
+					debug.obj('body', body, false)
 				}
 				
 //				if (body && body.message === 'Insufficient funds') {
@@ -515,7 +515,7 @@ module.exports = function gdax (conf) {
 				
 				if (err) {
 					debug.msg('sell err= ')
-					debug.obj(err, false)
+					debug.obj('err', err, false)
 				}
 				
 //				if (body && body.message === 'Insufficient funds') {
@@ -558,8 +558,8 @@ module.exports = function gdax (conf) {
 			client.getOrder(opts.order_id, function (err, resp, body) {
 				if (!err && resp.statusCode !== 404) {
 					err = statusErr(resp, body)
-					debug.msg('getOrder - !404: ')
-					debug.obj(err, false)
+					debug.msg('getOrder - !404 (' + resp.statusCode + '):')
+					debug.obj('err', err, false)
 				}
 
 //				if (resp) {
@@ -569,7 +569,7 @@ module.exports = function gdax (conf) {
 				
 				if (body) {
 					debug.msg('getOrder - body: ')
-					debug.obj(body, false)
+					debug.obj('body', body, false)
 				}
 				
 				if (err) {
