@@ -796,11 +796,11 @@ module.exports = function (program, conf) {
 												setTimeout(function() { engine.emitSignal('orderExecuted', position.side, position.id)}, (Math.random()*10000))
 											})
 										} else if ((key === 'c') && !info.ctrl) {
-											engine.orderSetStatus(undefined, 'standard', undefined, 'canceled')
+											engine.orderStatus(undefined, undefined, 'standard', undefined, 'Unset', 'standard')
 											console.log('\nmanual'.grey + ' standard orders cancel' + ' command executed'.grey)
 										} else if ((key === 'C') && !info.ctrl) {
 											console.log('\nmanual'.grey + ' canceling ALL orders')
-											engine.orderSetStatus(undefined, undefined, undefined, 'canceled')
+											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 										} else if (key === 'm' && !info.ctrl && so.mode === 'live') {
 											so.manual = !so.manual
 											console.log('\nMANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse))
@@ -822,7 +822,7 @@ module.exports = function (program, conf) {
 											debug.printPosition(s.orders, true)
 										} else if (key === 'X' && !info.ctrl) {
 											console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
-											engine.orderSetStatus(undefined, undefined, undefined, 'canceled')
+											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 											console.log('\nWaiting for ' + ' ALL order canceling...'.grey)
 											setTimeout(function() { 
 												console.log('\nExiting... ' + '\nWriting statistics...'.grey)
