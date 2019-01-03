@@ -635,7 +635,7 @@ module.exports = function (program, conf) {
 			if (err) throw err
 			if (my_prev_positions.length) {
 				my_prev_positions.forEach(function (position) {
-					position.status = 'free'
+					position.status = 0
 				})
 				s.positions = my_prev_positions.slice(0)
 			}
