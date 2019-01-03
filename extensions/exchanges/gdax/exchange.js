@@ -428,7 +428,8 @@ module.exports = function gdax (conf) {
 
 			debug.msg('cancelAllOrders - cancelAllOrders call')
 
-			client.cancelAllOrders(opts.product_id, function (err, resp, body) {
+//			client.cancelAllOrders(opts.product_id, function (err, resp, body) {
+			client.cancelOrders(opts.product_id, function (err, resp, body) {
 				if (err) {
 					debug.msg('cancelAllOrders: err= ')
 					debug.obj('err', err, false)

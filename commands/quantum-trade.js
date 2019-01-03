@@ -781,6 +781,7 @@ module.exports = function (program, conf) {
 											engine.emitSignal('standard', 'sell', null, null, null, false, true)
 											console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command executed'.grey)
 										} else if (key === 't' && !info.ctrl && interactiveBuySell) {
+// Il tipo di ordine newCatch non fa scattare nulla. Sistemare.											
 											console.log('\n' + 'Insert ' + 'buy catch order'.green)
 											var target_price = n(s.quote.bid).multiply(1 - so.catch_order_pct/100).format(s.product.increment, Math.floor)
 											engine.emitSignal('newCatch', 'buy', null, null, target_price)											
