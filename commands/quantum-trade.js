@@ -800,7 +800,8 @@ module.exports = function (program, conf) {
 											console.log('\nmanual'.grey + ' standard orders cancel' + ' command executed'.grey)
 										} else if ((key === 'C') && !info.ctrl) {
 											console.log('\nmanual'.grey + ' canceling ALL orders')
-											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
+//											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
+											s.exchange.cancelAllOrders({product_id: s.product_id})
 										} else if (key === 'm' && !info.ctrl && so.mode === 'live') {
 											so.manual = !so.manual
 											console.log('\nMANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse))
