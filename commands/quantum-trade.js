@@ -802,8 +802,7 @@ module.exports = function (program, conf) {
 										} else if ((key === 'C') && !info.ctrl) {
 											console.log('\nmanual'.grey + ' canceling ALL orders')
 //											s.exchange.cancelAllOrders({product_id: s.product_id})
-//											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
-											engine.positionStatus(undefined, 'Set', 'Free')
+											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 										} else if (key === 'm' && !info.ctrl && so.mode === 'live') {
 											so.manual = !so.manual
 											console.log('\nMANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse))
@@ -825,7 +824,7 @@ module.exports = function (program, conf) {
 											debug.printPosition(s.orders, true)
 										} else if (key === 'X' && !info.ctrl) {
 											console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
-											engine.positionStatus(undefined, 'Set', 'Free')
+											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 // cancelAllOrders non mi piace perchè potrebbe non registrare ordini eseguiti parzialmente. Sarebbe meglio cancellarli uno ad uno
 //   tramite la funzione engine.positionStatus											
 //											s.exchange.cancelAllOrders({product_id: s.product_id}, function () {
