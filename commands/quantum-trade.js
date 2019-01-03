@@ -823,10 +823,10 @@ module.exports = function (program, conf) {
 										} else if (key === 'X' && !info.ctrl) {
 											console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
 //											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
-											s.exchange.cancelOrder({product_id: s.product_id}, function () {
+											s.exchange.cancelAllOrders({product_id: s.product_id}, function () {
 												console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 												printTrade(true)
-											})											
+											})								
 										} else if (key === 'h' && !info.ctrl) {
 											console.log('\nDumping statistics...'.grey)
 											printTrade(false, true)

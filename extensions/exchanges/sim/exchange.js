@@ -85,6 +85,20 @@ module.exports = function sim (conf, s) {
         cb(null)
       }, latency)
     },
+    
+    cancelAllOrders: function (opts, cb) {
+    	setTimeout(function() {
+    		orders.forEach(function(order, index) {
+    			if (order.status === 'open') {
+    				order.status = 'cancelled'
+    				delete openOrders[order.order_id]
+    				recalcHold()
+    			}
+    		})
+    		
+    		cb(null)
+    	}, latency)
+    },
 
     buy: function (opts, cb) {
       setTimeout(function() {

@@ -422,6 +422,49 @@ module.exports = function gdax (conf) {
 			})
 		},
 
+		cancelAllOrders: function (opts, cb) {
+			var func_args = [].slice.call(arguments)
+			var client = authedClient()
+
+			debug.msg('cancelAllOrders - cancelAllOrders call')
+
+			client.cancelAllOrders(opts.product_id, function (err, resp, body) {
+				if (err) {
+					debug.msg('cancelAllOrders: err= ')
+					debug.obj('err', err, false)
+				}
+
+//				if (resp) {
+//					debug.msg('cancelOrder: Response= ')
+//					debug.msg(resp, false)
+//				}
+
+				if (body) {
+					debug.msg('cancelAllOrders: Body= ')
+					debug.obj('body', body, false)
+				}
+
+				if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
+					return cb()
+				}
+
+				if (err && err.data && err.data.message == 'Order already done') {
+					debug.msg('cancelAllOrders -  err.data.message: ' + err.data.message)
+					return cb()
+				}
+
+				if (!err) {
+					err = statusErr(resp, body)
+				}
+
+				if (err) {
+					return retry('cancelAllOrders', func_args, err)
+				}
+
+				cb()
+			})
+		},
+
 		buy: function (opts, cb) {
 			var func_args = [].slice.call(arguments)
 			var client = authedClient()
