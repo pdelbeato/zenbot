@@ -744,8 +744,8 @@ module.exports = function (program, conf) {
 								}
 								else {
 									debug.msg('getNext() - no prev_session')
-									s.orig_currency = s.start_currency = raw_opts.currency_capital
-									s.orig_asset = s.start_asset = raw_opts.asset_capital
+									s.orig_currency = s.start_currency = raw_opts.currency_capital | 0
+									s.orig_asset = s.start_asset = raw_opts.asset_capital | 0
 									s.orig_price = s.start_price
 									s.orig_capital = s.orig_currency + (s.orig_asset * s.orig_price)
 									debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital = ' + s.orig_capital + ' ; s.orig_price = ' + s.orig_price)
