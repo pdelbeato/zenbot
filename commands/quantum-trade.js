@@ -794,7 +794,8 @@ module.exports = function (program, conf) {
 											s.positions.forEach(function (position, index) {
 // Da sistemare. Tutti gli ordini insieme mandano in protezione l'exchange. Vanno distribuiti in un arco di tempo.
 // Stessa cosa per la cancellazione degli ordini in uscita dal programma
-												setTimeout(function() { engine.emitSignal('orderExecuted', position.side, position.id)}, (Math.random()*10000))
+//												setTimeout(function() { engine.emitSignal('orderExecuted', position.side, position.id)}, (Math.random()*10000))
+												engine.emitSignal('orderExecuted', position.side, position.id)
 											})
 										} else if ((key === 'c') && !info.ctrl) {
 											engine.orderStatus(undefined, undefined, 'standard', undefined, 'Unset', 'standard')
@@ -827,10 +828,10 @@ module.exports = function (program, conf) {
 											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 // cancelAllOrders non mi piace perchè potrebbe non registrare ordini eseguiti parzialmente. Sarebbe meglio cancellarli uno ad uno
 //   tramite la funzione engine.positionStatus											
-//											s.exchange.cancelAllOrders({product_id: s.product_id}, function () {
+											setTimeout(function() { 
 												console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 												printTrade(true)
-//											})								
+											}, so.order_poll_time*3)								
 										} else if (key === 'h' && !info.ctrl) {
 											console.log('\nDumping statistics...'.grey)
 											printTrade(false, true)
