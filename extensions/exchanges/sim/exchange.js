@@ -88,7 +88,7 @@ module.exports = function sim (conf, s) {
     
     cancelAllOrders: function (opts, cb) {
     	setTimeout(function() {
-    		orders.forEach(function(order, index) {
+    		_.each(orders, function(order) {
     			if (order.status === 'open') {
     				order.status = 'cancelled'
     				delete openOrders[order.order_id]
