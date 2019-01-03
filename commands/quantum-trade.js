@@ -822,12 +822,11 @@ module.exports = function (program, conf) {
 											debug.printPosition(s.orders, true)
 										} else if (key === 'X' && !info.ctrl) {
 											console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
-											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
-											console.log('\nWaiting for ' + ' ALL order canceling...'.grey)
-											setTimeout(function() { 
+//											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
+											s.exchange.cancelOrder({product_id: s.product_id}, function () {
 												console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 												printTrade(true)
-												}, 3*so.order_poll_time)											
+											})											
 										} else if (key === 'h' && !info.ctrl) {
 											console.log('\nDumping statistics...'.grey)
 											printTrade(false, true)
