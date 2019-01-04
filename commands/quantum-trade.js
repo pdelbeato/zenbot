@@ -362,6 +362,7 @@ module.exports = function (program, conf) {
 				output_lines.push('Original capital: ' + formatCurrency(s.orig_capital, s.currency).yellow)
 				output_lines.push('Original price: ' + formatCurrency(s.orig_price, s.currency).yellow)
 				output_lines.push('Last balance: ' + n(tmp_balance).format('0.00').yellow + ' (' + profit.format('0.00%') + ')')
+				output_lines.push('Balance: ' + formatCurrency(s.balance.currency, s.currency).yellow + ' ; ' +  formatAsset(s.balance.asset, s.asset).yellow)
 				output_lines.push('BuyHold: ' + buy_hold.format('0.00').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
 				output_lines.push('vs. BuyHold: ' + n(tmp_balance).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
 				//output_lines.push((s.my_prev_trades.length ? s.my_trades.length + s.my_prev_trades.length : s.my_trades.length) + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
