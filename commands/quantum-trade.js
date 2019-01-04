@@ -15,7 +15,7 @@ var tb = require('timebucket')
 , engineFactory = require('../lib/quantum-engine')
 , collectionService = require('../lib/services/collection-service')
 // , { formatAsset, formatPercent, formatCurrency } = require('../lib/format')
-, { formatCurrency } = require('../lib/format')
+, { formatAsset, formatPercent, formatCurrency } = require('../lib/format')
 , debug = require('../lib/debug')
 , sizeof = require('object-sizeof')
 
