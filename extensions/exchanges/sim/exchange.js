@@ -9,7 +9,6 @@ module.exports = function sim (conf, s) {
   let exchange_id = so.selector.exchange_id
   let real_exchange = require(path.resolve(__dirname, `../${exchange_id}/exchange`))(conf)
 
-//  var now
   var balance = {
 	  asset: so.asset_capital,
 	  currency: so.currency_capital,
@@ -21,6 +20,10 @@ module.exports = function sim (conf, s) {
   var orders = {}
   var openOrders = {}
   let debug = false // debug output specific to the sim exchange
+
+  function now() {
+	  return new Date().getTime()
+  }
 
   // When orders change in any way, it's likely our "_hold" values have changed. Recalculate them
   function recalcHold() {
