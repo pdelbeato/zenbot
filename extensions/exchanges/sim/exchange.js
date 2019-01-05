@@ -9,8 +9,13 @@ module.exports = function sim (conf, s) {
   let exchange_id = so.selector.exchange_id
   let real_exchange = require(path.resolve(__dirname, `../${exchange_id}/exchange`))(conf)
 
-  var now
-  var balance = { asset: so.asset_capital, currency: so.currency_capital, asset_hold: 0, currency_hold: 0 }
+//  var now
+  var balance = {
+	  asset: so.asset_capital,
+	  currency: so.currency_capital,
+	  asset_hold: 0,
+	  currency_hold: 0
+  }
 
   var last_order_id = 1001
   var orders = {}
@@ -124,9 +129,9 @@ module.exports = function sim (conf, s) {
 //          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'buy',
-          orig_time: now,
-          time: now,
-          created_at: now
+          orig_time: now(),
+          time: now(),
+          created_at: now()
         }
 
         orders['~' + result.id] = order
@@ -160,9 +165,9 @@ module.exports = function sim (conf, s) {
 //          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'sell',
-          orig_time: now,
-          time: now,
-          created_at: now
+          orig_time: now(),
+          time: now(),
+          created_at: now()
         }
         orders['~' + result.id] = order
         openOrders['~' + result.id] = order
@@ -187,7 +192,7 @@ module.exports = function sim (conf, s) {
     getCursor: real_exchange.getCursor,
 
     getTime: function() {
-      return now
+      return now()
     },
 
     processTrade: function(trade) {
