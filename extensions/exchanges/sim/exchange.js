@@ -9,13 +9,21 @@ module.exports = function sim (conf, s) {
   let exchange_id = so.selector.exchange_id
   let real_exchange = require(path.resolve(__dirname, `../${exchange_id}/exchange`))(conf)
 
-  var now
-  var balance = { asset: so.asset_capital, currency: so.currency_capital, asset_hold: 0, currency_hold: 0 }
+  var balance = {
+	  asset: so.asset_capital,
+	  currency: so.currency_capital,
+	  asset_hold: 0,
+	  currency_hold: 0
+  }
 
   var last_order_id = 1001
   var orders = {}
   var openOrders = {}
   let debug = false // debug output specific to the sim exchange
+
+  function now() {
+	  return new Date().getTime()
+  }
 
   // When orders change in any way, it's likely our "_hold" values have changed. Recalculate them
   function recalcHold() {
@@ -85,6 +93,20 @@ module.exports = function sim (conf, s) {
         cb(null)
       }, latency)
     },
+    
+    cancelAllOrders: function (opts, cb) {
+    	setTimeout(function() {
+    		_.each(orders, function(order) {
+    			if (order.status === 'open') {
+    				order.status = 'cancelled'
+    				delete openOrders[order.order_id]
+    				recalcHold()
+    			}
+    		})
+    		
+    		cb(null)
+    	}, latency)
+    },
 
     buy: function (opts, cb) {
       setTimeout(function() {
@@ -107,12 +129,12 @@ module.exports = function sim (conf, s) {
           remaining_size: opts.size,
           post_only: !!opts.post_only,
           filled_size: 0,
-          executed_value: 0,
+//          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'buy',
-          orig_time: now,
-          time: now,
-          created_at: now
+          orig_time: now(),
+          time: now(),
+          created_at: now()
         }
 
         orders['~' + result.id] = order
@@ -143,12 +165,12 @@ module.exports = function sim (conf, s) {
           remaining_size: opts.size,
           post_only: !!opts.post_only,
           filled_size: 0,
-          executed_value: 0,
+//          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'sell',
-          orig_time: now,
-          time: now,
-          created_at: now
+          orig_time: now(),
+          time: now(),
+          created_at: now()
         }
         orders['~' + result.id] = order
         openOrders['~' + result.id] = order
@@ -173,7 +195,7 @@ module.exports = function sim (conf, s) {
     getCursor: real_exchange.getCursor,
 
     getTime: function() {
-      return now
+      return now()
     },
 
     processTrade: function(trade) {
@@ -224,9 +246,10 @@ module.exports = function sim (conf, s) {
 
     // Process existing order size changes
     let order = buy_order
-    order.filled_size = order.filled_size + size
-    order.remaining_size = order.size - order.filled_size
-    order.executed_value += size * price  
+    order.filled_size = n(order.filled_size).add(size).format('0.00000000')
+    order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
+//    order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
+    order.done_at = new Date(trade.done_at).getTime()
 
     if (order.remaining_size <= 0) {
       if (debug) console.log('full fill bought')
@@ -260,14 +283,15 @@ module.exports = function sim (conf, s) {
     }
 
     // Update balance
-    balance.asset = n(balance.asset).subtract(size).value()
+    balance.asset = n(balance.asset).subtract(size).format('0.00000000')
     balance.currency = n(balance.currency).add(total).subtract(fee).format('0.00000000')
 
     // Process existing order size changes
     let order = sell_order
-    order.filled_size = order.filled_size + size
-    order.remaining_size = order.size - order.filled_size
-    order.executed_value += size * price
+    order.filled_size = n(order.filled_size).add(size).format('0.00000000')
+    order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
+//    order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
+    order.done_at = new Date(trade.done_at).getTime()
 
     if (order.remaining_size <= 0) {
       if (debug) console.log('full fill sold')

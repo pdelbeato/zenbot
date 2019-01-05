@@ -388,7 +388,7 @@ module.exports = function gdax (conf) {
 			client.cancelOrder(opts.order_id, function (err, resp, body) {
 				if (err) {
 					debug.msg('cancelOrder: err= ')
-					debug.obj(err, false)
+					debug.obj('err', err, false)
 				}
 
 //				if (resp) {
@@ -398,7 +398,7 @@ module.exports = function gdax (conf) {
 
 				if (body) {
 					debug.msg('cancelOrder: Body= ')
-					debug.obj(body, false)
+					debug.obj('body', body, false)
 				}
 
 				if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
@@ -422,6 +422,51 @@ module.exports = function gdax (conf) {
 			})
 		},
 
+		cancelAllOrders: function (opts, cb) {
+			var func_args = [].slice.call(arguments)
+			var client = authedClient()
+
+			debug.msg('cancelAllOrders - cancelAllOrders call')
+
+//			client.cancelAllOrders(opts.product_id, function (err, resp, body) {
+//			client.cancelOrders(function (err, resp, body) {
+			client.cancelAllOrders(function (err, resp, body) {
+				if (err) {
+					debug.msg('cancelAllOrders: err= ')
+					debug.obj('err', err, false)
+				}
+
+//				if (resp) {
+//					debug.msg('cancelOrder: Response= ')
+//					debug.msg(resp, false)
+//				}
+
+				if (body) {
+					debug.msg('cancelAllOrders: Body= ')
+					debug.obj('body', body, false)
+				}
+
+				if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
+					return cb()
+				}
+
+				if (err && err.data && err.data.message == 'Order already done') {
+					debug.msg('cancelAllOrders -  err.data.message: ' + err.data.message)
+					return cb()
+				}
+
+				if (!err) {
+					err = statusErr(resp, body)
+				}
+
+				if (err) {
+					return retry('cancelAllOrders', func_args, err)
+				}
+
+				cb()
+			})
+		},
+
 		buy: function (opts, cb) {
 			var func_args = [].slice.call(arguments)
 			var client = authedClient()
@@ -435,7 +480,12 @@ module.exports = function gdax (conf) {
 				opts.type = 'market'
 			}
 			else {
-				opts.time_in_force = 'GTT'
+				if (opts.cancel_after) {
+					opts.time_in_force = 'GTT'
+				}
+				else {
+					opts.time_in_force = 'GTC'
+				}
 			}
 			delete opts.order_type
 
@@ -445,7 +495,7 @@ module.exports = function gdax (conf) {
 				
 				if (err) {
 					debug.msg('buy: err= ')
-					debug.obj(err, false)
+					debug.obj('err', err, false)
 				}
 
 //				if (resp) {
@@ -455,7 +505,7 @@ module.exports = function gdax (conf) {
 
 				if (body) {
 					debug.msg('buy: Body= ')
-					debug.obj(body, false)
+					debug.obj('body', body, false)
 				}
 				
 //				if (body && body.message === 'Insufficient funds') {
@@ -495,7 +545,12 @@ module.exports = function gdax (conf) {
 				opts.type = 'market'
 			}
 			else {
-				opts.time_in_force = 'GTT'
+				if (opts.cancel_after) {
+					opts.time_in_force = 'GTT'
+				}
+				else {
+					opts.time_in_force = 'GTC'
+				}
 			}
 			delete opts.order_type
 
@@ -505,7 +560,7 @@ module.exports = function gdax (conf) {
 				
 				if (err) {
 					debug.msg('sell err= ')
-					debug.obj(err, false)
+					debug.obj('err', err, false)
 				}
 				
 //				if (body && body.message === 'Insufficient funds') {
@@ -533,8 +588,8 @@ module.exports = function gdax (conf) {
 			if(websocket_cache[opts.product_id] && websocket_cache[opts.product_id].orders['~' + opts.order_id]) {
 				let order_cache = websocket_cache[opts.product_id].orders['~' + opts.order_id]
 
-				debug.msg('getOrder - websocket cache:')
-				debug.msg(order_cache, false)
+//				debug.msg('getOrder - websocket cache:')
+//				debug.msg(order_cache, false)
 
 				cb(null, order_cache)
 				return
@@ -548,8 +603,8 @@ module.exports = function gdax (conf) {
 			client.getOrder(opts.order_id, function (err, resp, body) {
 				if (!err && resp.statusCode !== 404) {
 					err = statusErr(resp, body)
-					debug.msg('getOrder - !404: ')
-					debug.obj(err, false)
+					debug.msg('getOrder - !404 (' + resp.statusCode + '):')
+					debug.obj('err', err, false)
 				}
 
 //				if (resp) {
@@ -559,19 +614,19 @@ module.exports = function gdax (conf) {
 				
 				if (body) {
 					debug.msg('getOrder - body: ')
-					debug.obj(body, false)
+					debug.obj('body', body, false)
 				}
 				
-				if (err) {
-					return retry('getOrder', func_args, err)
-				}
-
 				if (resp.statusCode === 404) {
 					// order was cancelled. recall from cache
 					body = orders['~' + opts.order_id]
 					body.status = 'done'
 					body.done_reason = 'canceled'
 				}
+
+        if (err) {
+          return retry('getOrder', func_args, err)
+        }
 
 				cb(null, body)
 			})
