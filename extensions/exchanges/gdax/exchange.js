@@ -400,13 +400,18 @@ module.exports = function gdax (conf) {
 					debug.msg('cancelOrder: Body= ')
 					debug.obj('body', body, false)
 				}
+				
+				if (resp && !body) {
+					body = response.body
+				}
 
 				if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
+					debug.msg('cancelOrder -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
 					return cb()
 				}
 
 				if (err && err.data && err.data.message == 'Order already done') {
-					debug.msg('cancelOrder -  err.data.message: ' + err.data.message)
+					debug.msg('cancelOrder -  Hai fatto male a correggere!!! err.data.message: ' + err.data.message)
 					return cb()
 				}
 
@@ -508,9 +513,19 @@ module.exports = function gdax (conf) {
 					debug.obj('body', body, false)
 				}
 				
+				if (resp && !body) {
+					body = response.body
+				}
+				
+				if (body && (body.message === 'Insufficient funds')) {
+					debug.msg('buy -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
+					return cb()
+				}
+				
 //				if (body && body.message === 'Insufficient funds') {
 				//Verificato con sandbox. La risposta è in err.data.message
 				if (err && err.data && err.data.message === 'Insufficient funds') {
+					debug.msg('buy -  Hai fatto male a correggere!!! err.data.message: ' + err.data.message)
 					return cb(null, {
 						status: 'rejected',
 						reject_reason: 'balance'
@@ -563,8 +578,23 @@ module.exports = function gdax (conf) {
 					debug.obj('err', err, false)
 				}
 				
+				if (body) {
+					debug.msg('buy: Body= ')
+					debug.obj('body', body, false)
+				}
+				
+				if (resp && !body) {
+					body = response.body
+				}
+				
+				if (body && (body.message === 'Insufficient funds')) {
+					debug.msg('sell -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
+					return cb()
+				}
+				
 //				if (body && body.message === 'Insufficient funds') {
 				if (err && err.data && err.data.message === 'Insufficient funds') {
+					debug.msg('sell -  Hai fatto male a correggere!!! err.data.message: ' + err.data.message)
 					return cb(null, {
 						status: 'rejected',
 						reject_reason: 'balance'
@@ -608,25 +638,25 @@ module.exports = function gdax (conf) {
 				}
 
 //				if (resp) {
-//					debug.msg('getOrder - resp: ')
-//					debug.obj(resp, false)
+//				debug.msg('getOrder - resp: ')
+//				debug.obj(resp, false)
 //				}
-				
+
 				if (body) {
 					debug.msg('getOrder - body: ')
 					debug.obj('body', body, false)
 				}
-				
+
 				if (resp.statusCode === 404) {
 					// order was cancelled. recall from cache
 					body = orders['~' + opts.order_id]
 					body.status = 'done'
-					body.done_reason = 'canceled'
+						body.done_reason = 'canceled'
 				}
 
-        if (err) {
-          return retry('getOrder', func_args, err)
-        }
+				if (err) {
+					return retry('getOrder', func_args, err)
+				}
 
 				cb(null, body)
 			})
