@@ -634,7 +634,8 @@ module.exports = function gdax (conf) {
 				if (!err && resp.statusCode !== 404) {
 					err = statusErr(resp, body)
 					debug.msg('getOrder - !404 (' + resp.statusCode + '):')
-					debug.obj('err', err, false)
+					if (err)
+						debug.obj('err', err, false)
 				}
 
 //				if (resp) {
@@ -647,7 +648,7 @@ module.exports = function gdax (conf) {
 					debug.obj('body', body, false)
 				}
 
-				if (resp.statusCode === 404) {
+				if (resp && resp.statusCode === 404) {
 					// order was cancelled. recall from cache
 					body = orders['~' + opts.order_id]
 					body.status = 'done'
