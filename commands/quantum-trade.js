@@ -284,9 +284,7 @@ module.exports = function (program, conf) {
 				debug.msg('cleanMongoDB - ' + obj.result.n + " trade(s) deleted");
 			})
 		}
-		
-		
-		
+				
 		/* To list options*/
 		function listOptions () {
 			console.log()
@@ -478,7 +476,7 @@ module.exports = function (program, conf) {
 
 		/* Implementing statistical status dump every 10 secs */
 		var shouldSaveStats = false
-		function toggleStats(){
+		function toggleStats() {
 			shouldSaveStats = !shouldSaveStats
 			if(shouldSaveStats)
 				console.log('Auto stats dump enabled')
@@ -486,7 +484,7 @@ module.exports = function (program, conf) {
 				console.log('Auto stats dump disabled')
 		}
 
-		function saveStatsLoop(){
+		function saveStatsLoop() {
 			saveStats()
 			setTimeout(function () {
 				saveStatsLoop()
@@ -494,7 +492,7 @@ module.exports = function (program, conf) {
 		}
 		saveStatsLoop()
 
-		function saveStats () {
+		function saveStats() {
 			if(!shouldSaveStats) return
 
 			var output_lines = []
@@ -656,12 +654,15 @@ module.exports = function (program, conf) {
 			if (code) {
 				process.exit(code)
 			}
+			
 			function getNext () {
 				var opts = {
 					query: {
 						selector: so.selector.normalized
 					},
-					sort: {time: 1},
+					sort: {
+						time: 1
+					},
 					limit: 1000
 				}
 				if (db_cursor) {
@@ -694,13 +695,13 @@ module.exports = function (program, conf) {
 					}
 					if (!trades.length) {
 						var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------'
-							console.log(head)
-							output(conf).initializeOutput(s)
-							var minuses = Math.floor((head.length - so.mode.length - 19) / 2)
-							console.log('-'.repeat(minuses) + ' STARTING ' + so.mode.toUpperCase() + ' TRADING ' + '-'.repeat(minuses + (minuses % 2 == 0 ? 0 : 1)))
-							if (so.mode === 'paper') {
-								console.log('!!! Paper mode enabled. No real trades are performed until you remove --paper from the startup command.')
-							}
+						console.log(head)
+						output(conf).initializeOutput(s)
+						var minuses = Math.floor((head.length - so.mode.length - 19) / 2)
+						console.log('-'.repeat(minuses) + ' STARTING ' + so.mode.toUpperCase() + ' TRADING ' + '-'.repeat(minuses + (minuses % 2 == 0 ? 0 : 1)))
+						if (so.mode === 'paper') {
+							console.log('!!! Paper mode enabled. No real trades are performed until you remove --paper from the startup command.')
+						}
 						console.log('Press ' + ' l '.inverse + ' to list available commands.')
 						engine.syncBalance(function (err) {
 							if (err) {
@@ -756,9 +757,12 @@ module.exports = function (program, conf) {
 									s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 								}
 
-								//Chiamata alla funzione forwardScan()
+								//Chiamata alla funzione forwardScan() ogni so.poll_trades
 								forwardScan()
 								setInterval(forwardScan, so.poll_trades)
+								
+								//Chiamata alla funzione syncBalance ogni so.poll_trades
+								setInterval(engine.syncBalance, so.poll_balance)
 
 								readline.emitKeypressEvents(process.stdin)
 								if (!so.non_interactive && process.stdin.setRawMode) {
@@ -890,17 +894,17 @@ module.exports = function (program, conf) {
 		var prev_timeout = null
 		function forwardScan () {
 			function saveSession () {
-				engine.syncBalance(function (err) {
-					if (!err && s.balance.asset === undefined) {
-						// TODO not the nicest place to verify the state, but did not found a better one
-						throw new Error('Error during syncing balance. Please check your API-Key')
-					}
-					if (err) {
-						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error syncing balance')
-						if (err.desc) console.error(err.desc)
-						if (err.body) console.error(err.body)
-						console.error(err)
-					}
+//				engine.syncBalance(function (err) {
+//					if (!err && s.balance.asset === undefined) {
+//						// TODO not the nicest place to verify the state, but did not found a better one
+//						throw new Error('Error during syncing balance. Please check your API-Key')
+//					}
+//					if (err) {
+//						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error syncing balance')
+//						if (err.desc) console.error(err.desc)
+//						if (err.body) console.error(err.body)
+//						console.error(err)
+//					}
 
 					//Check sul run_for
 					if (botStartTime && botStartTime - moment() < 0 ) {
@@ -972,7 +976,7 @@ module.exports = function (program, conf) {
 							process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
 						}
 					})
-				})
+//				})
 			}
 			/* End of saveSession()  */
 
