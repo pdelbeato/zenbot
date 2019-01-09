@@ -405,12 +405,12 @@ module.exports = function gdax (conf) {
 					body = response.body
 				}
 
-				if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
-					debug.msg('cancelOrder -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
-					return cb()
-				}
+//				if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
+//					debug.msg('cancelOrder -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
+//					return cb()
+//				}
 
-				if (err && err.data && err.data.message == 'Order already done') {
+				if (err && err.data && (err.data.message == 'Order already done' || err.data.message === 'order not found')) {
 					debug.msg('cancelOrder -  Hai fatto male a correggere!!! err.data.message: ' + err.data.message)
 					return cb()
 				}
