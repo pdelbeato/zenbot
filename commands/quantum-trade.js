@@ -125,8 +125,13 @@ module.exports = function (program, conf) {
 
 		//debug.msg('updateMsg=' + so.update_msg)
 		if (so.update_msg) {
-			var nextUpdateMsg = moment().add(so.update_msg, 'h')
-			//debug.msg('nextUpdateMsg=' + nextUpdateMsg)
+//			var nextUpdateMsg = moment().add(so.update_msg, 'h')
+			var nextUpdateMsg = moment().startOf('day')
+			
+			while (nextUpdateMsg < moment()) {
+				nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
+				debug.msg('nextUpdateMsg=' + nextUpdateMsg)
+			}
 		}
 
 		if (!so.min_periods) so.min_periods = 301
@@ -916,7 +921,8 @@ module.exports = function (program, conf) {
 
 					//Check per invio messaggi di status
 					if (nextUpdateMsg && nextUpdateMsg - moment() < 0) {
-						nextUpdateMsg = moment().add(so.update_msg, 'h')
+//						nextUpdateMsg = moment().add(so.update_msg, 'h')
+						nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
 						//debug.msg('nextUpdateMsg=' + nextUpdateMsg)
 						engine.updateMessage()
 					}
