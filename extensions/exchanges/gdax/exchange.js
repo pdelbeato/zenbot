@@ -647,6 +647,20 @@ module.exports = function gdax (conf) {
 					debug.msg('getOrder - body: ')
 					debug.obj('body', body, false)
 				}
+				
+				if (resp && !body) {
+					body = response.body
+				}
+
+				if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
+					debug.msg('getOrder -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
+					return cb()
+				}
+
+				if (err && err.data && err.data.message == 'Order already done') {
+					debug.msg('getOrder -  Hai fatto male a correggere!!! err.data.message: ' + err.data.message)
+					return cb()
+				}				
 
 				if (resp && resp.statusCode === 404) {
 					// order was cancelled. recall from cache
