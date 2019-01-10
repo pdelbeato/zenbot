@@ -25,6 +25,6 @@ module.exports = function telegram (config) {
 				})
 			}
 		}
-		return telegram
 	}
+	return telegram
 }
