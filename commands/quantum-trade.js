@@ -76,6 +76,7 @@ module.exports = function (program, conf) {
 	.option('--run_for <minutes>', 'Execute for a period of minutes then exit with status 0', String, conf.run_for)
 	.option('--update_msg <hours>', 'Send an update message every <hours>', String, conf.update_msg)
 	.option('--debug', 'output detailed debug info')
+	.option('--no_first_message', 'no first update message', Boolean, false)
 	.action(function (selector, cmd) {
 		var raw_opts = minimist(process.argv)
 		var s = {options: JSON.parse(JSON.stringify(raw_opts))}
@@ -131,6 +132,11 @@ module.exports = function (program, conf) {
 			while (nextUpdateMsg < moment()) {
 				nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
 				debug.msg('nextUpdateMsg=' + nextUpdateMsg)
+			}
+			
+			if (!so.no_first_message) {
+				nextUpdateMsg = nextUpdateMsg.subtract(so.update_msg, 'h')
+				debug.msg('First message on. nextUpdateMsg=' + nextUpdateMsg)
 			}
 		}
 
@@ -842,7 +848,7 @@ module.exports = function (program, conf) {
 											setTimeout(function() { 
 												console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 												printTrade(true)
-											}, so.catch_order_poll_time)								
+											}, so.order_poll_time*4)								
 										} else if (key === 'h' && !info.ctrl) {
 											console.log('\nDumping statistics...'.grey)
 											printTrade(false, true)
