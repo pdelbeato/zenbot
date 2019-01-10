@@ -12,7 +12,7 @@ module.exports = function telegram (config) {
 //					console.log(error.response.body) // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
 				console.log(error)
 			})
-		}
+		},
 
 		pushMessageMaster: function(title, message) {
 			var bot = new TelegramBot(config.bot_token)
