@@ -842,7 +842,7 @@ module.exports = function (program, conf) {
 											setTimeout(function() { 
 												console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 												printTrade(true)
-											}, so.order_poll_time*3)								
+											}, so.catch_order_poll_time)								
 										} else if (key === 'h' && !info.ctrl) {
 											console.log('\nDumping statistics...'.grey)
 											printTrade(false, true)
