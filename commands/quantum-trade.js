@@ -371,6 +371,7 @@ module.exports = function (program, conf) {
 				//output_lines.push((s.my_prev_trades.length ? s.my_trades.length + s.my_prev_trades.length : s.my_trades.length) + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 				output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 				output_lines.push(s.positions.length + ' positions opened.')
+				output_lines.push(s.orders.length + ' orders opened.')
 				output_lines.push(sizeof(s) + ' size of s')
 				output_lines.push(sizeof(s.trades) + ' size of s.trades')
 				output_lines.push(sizeof(s.period) + ' size of s.period')
