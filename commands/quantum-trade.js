@@ -127,7 +127,7 @@ module.exports = function (program, conf) {
 		//debug.msg('updateMsg=' + so.update_msg)
 		if (so.update_msg) {
 //			var nextUpdateMsg = moment().add(so.update_msg, 'h')
-			var nextUpdateMsg = moment().startOf('day')
+			var nextUpdateMsg = moment().startOf('day').add(8, 'h')
 			
 			while (nextUpdateMsg < moment()) {
 				nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
