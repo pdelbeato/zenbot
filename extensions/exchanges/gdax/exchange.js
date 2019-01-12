@@ -579,7 +579,7 @@ module.exports = function gdax (conf) {
 				}
 				
 				if (body) {
-					debug.msg('buy: Body= ')
+					debug.msg('sell: Body= ')
 					debug.obj('body', body, false)
 				}
 				
