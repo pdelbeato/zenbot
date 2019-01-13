@@ -44,7 +44,7 @@ module.exports = function (program, conf) {
     .option('--currency_capital <amount>', 'for paper trading, amount of start capital in currency. For live trading, amount of new starting capital in currency.', Number, conf.currency_capital)
 	.option('--asset_capital <amount>', 'for paper trading, amount of start capital in asset', Number, conf.asset_capital)
 	.option('--avg_slippage_pct <pct>', 'avg. amount of slippage to apply to paper trades', Number, conf.avg_slippage_pct)
-	.option('--quantum_size <amount>', 'buy up to this amount of currency every time', Number, conf.quantum_size)
+	.option('--quantum_value <amount>', 'buy up to this amount of currency every time', Number, conf.quantum_value)
 	.option('--best_bid', 'mark up as little as possible the buy price to be the best bid', Boolean, false)
 	.option('--best_ask', 'mark down as little as possible the sell price to be the best ask', Boolean, false)
 	.option('--dump_watchdog', 'check for dumps. Strategy is in charge', Boolean, false)
@@ -55,6 +55,9 @@ module.exports = function (program, conf) {
 	.option('--markup_sell_pct <pct>', '% to mark up sell price', Number, conf.markup_sell_pct)
 	.option('--buy_price_limit <amount>', 'Limit buy to be under <amount>', Number, conf.buy_price_limit)
 	.option('--sell_price_limit <amount>', 'Limit sell to be above <amount>', Number, conf.sell_price_limit)
+	.option('--catch_order_pct <pct>', '% for catch orders', Number, conf.catch_order_pct)
+	.option('--catch_manual_pct <pct>', '% for manual catch orders', Number, conf.catch_manual_pct)
+	.option('--catch_fixed_value <amount>', 'value for manual catch orders', Number, conf.catch_fixed_value)
 	.option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, conf.order_adjust_time)
 	.option('--order_poll_time <ms>', 'poll order status on this interval', Number, conf.order_poll_time)
 	.option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, conf.sell_stop_pct)
@@ -123,7 +126,7 @@ module.exports = function (program, conf) {
 		so.debug = cmd.debug
 		so.stats = !cmd.disable_stats
 		so.mode = so.paper ? 'paper' : 'live'
-
+		
 		//debug.msg('updateMsg=' + so.update_msg)
 		if (so.update_msg) {
 //			var nextUpdateMsg = moment().add(so.update_msg, 'h')
@@ -155,8 +158,12 @@ module.exports = function (program, conf) {
 		keyMap.set('B', 'market'.grey + ' BUY'.green)
 		keyMap.set('s', 'limit'.grey + ' SELL'.red)
 		keyMap.set('S', 'market'.grey + ' SELL'.red)
-		keyMap.set('t', 'catch'.grey + ' BUY'.green)
-		keyMap.set('T', 'catch'.grey + ' SELL'.red)
+		keyMap.set('t', 'manual catch order'.grey + ' BUY'.green)
+		keyMap.set('T', 'manual catch order'.grey + ' SELL'.red)
+		keyMap.set('+', 'manual catch pct'.grey + ' INCREASE'.green)
+		keyMap.set('-', 'manual catch pct'.grey + ' DECREASE'.red)
+		keyMap.set('*', 'manual catch value'.grey + ' INCREASE'.green)
+		keyMap.set('_', 'manual catch value'.grey + ' DECREASE'.red)
 		keyMap.set('A', 'insert catch order for all free position'.grey)
 		keyMap.set('c', 'cancel order'.grey)
 		keyMap.set('C', 'cancel ALL order'.grey)
@@ -337,6 +344,22 @@ module.exports = function (program, conf) {
 				z(8, so.pump_watchdog, ' '),
 				z(16, so.active_long_position, ' '),
 				z(8, so.active_short_position, ' ')
+				].join('') + '\n')
+			process.stdout.write('')
+			process.stdout.write([
+			z(42, 'BUY / SELL STOP LOSS %'.grey, ' '),
+			z(30, 'CATCH ORDER DEFAULT %'.grey, ' '),
+			z(34, 'CATCH ORDER MANUAL %'.grey, ' '),
+//			z(35, 'DUMP / PUMP WATCHDOG'.grey, ' '),
+//			z(36, 'LONG / SHORT POSITION'.grey, ' ')
+			].join('') + '\n')
+			process.stdout.write([
+				z(18, so.buy_stop_pct + '%', ' '),
+				z(18, so.sell_stop_pct + '%', ' '),
+				z(20, so.cacth_order_pct + '%', ' '),
+				z(20, so.cacth_manual_pct + '%', ' '),
+//				z(16, so.active_long_position, ' '),
+//				z(8, so.active_short_position, ' ')
 				].join('') + '\n')
 			process.stdout.write('')
 		}
@@ -800,12 +823,27 @@ module.exports = function (program, conf) {
 										} else if (key === 't' && !info.ctrl && interactiveBuySell) {
 // Il tipo di ordine newCatch non fa scattare nulla. Sistemare.											
 											console.log('\n' + 'Insert ' + 'buy catch order'.green)
-											var target_price = n(s.quote.bid).multiply(1 - so.catch_order_pct/100).format(s.product.increment, Math.floor)
-											engine.emitSignal('newCatch', 'buy', null, null, target_price)											
+											var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+											engine.emitSignal('catching', 'buy', null, so.catch_fixed_value, target_price)											
 										} else if (key === 'T' && !info.ctrl && interactiveBuySell) {
 											console.log('\n' + 'Insert ' + 'sell catch order'.red)
-											var target_price = n(s.quote.ask).multiply(1 + so.catch_order_pct/100).format(s.product.increment, Math.floor)
-											engine.emitSignal('newCatch', 'sell', null, null, target_price)	
+											var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+											engine.emitSignal('catching', 'sell', null, so.catch_fixed_value, target_price)	
+										} else if (key === '+' && !info.ctrl && interactiveBuySell) {
+											so.catch_manual_pct++
+											console.log('\n' + 'Manual catch order pct ' + 'INCREASE'.green + ' -> ' so.catch_manual_pct)	
+										} else if (key === '-' && !info.ctrl && interactiveBuySell) {
+											so.catch_manual_pct--
+											console.log('\n' + 'Manual catch order pct ' + 'DECREASE'.red + ' -> ' so.catch_manual_pct)
+										} else if (key === '*' && !info.ctrl && interactiveBuySell) {
+											so.catch_fixed_value += so.quantum_value
+											console.log('\n' + 'Manual catch order value ' + 'INCREASE'.green + ' -> ' so.catch_manual_pct)	
+										} else if (key === '_' && !info.ctrl && interactiveBuySell) {
+											so.catch_fixed_value -= so.quantum_value
+											if (so.catch_fixed_value < so.quantum_value) {
+												so.catch_fixed_value = so.quantum_value
+											}
+											console.log('\n' + 'Manual catch order value ' + 'DECREASE'.red + ' -> ' so.catch_manual_pct)
 										} else if (key === 'A' && !info.ctrl && interactiveBuySell) {
 											console.log('\n' + 'Insert catch order for all free positions'.grey)
 											s.positions.forEach(function (position, index) {
@@ -848,7 +886,7 @@ module.exports = function (program, conf) {
 											setTimeout(function() { 
 												console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 												printTrade(true)
-											}, so.order_poll_time*4)								
+											}, so.order_poll_time*5)								
 										} else if (key === 'h' && !info.ctrl) {
 											console.log('\nDumping statistics...'.grey)
 											printTrade(false, true)
