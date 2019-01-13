@@ -824,11 +824,13 @@ module.exports = function (program, conf) {
 // Il tipo di ordine newCatch non fa scattare nulla. Sistemare.											
 											console.log('\n' + 'Insert ' + 'buy catch order'.green)
 											var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-											engine.emitSignal('catching', 'buy', null, so.catch_fixed_value, target_price)											
+											var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+											engine.emitSignal('catching', 'buy', null, target_size, target_price)											
 										} else if (key === 'T' && !info.ctrl && interactiveBuySell) {
 											console.log('\n' + 'Insert ' + 'sell catch order'.red)
 											var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-											engine.emitSignal('catching', 'sell', null, so.catch_fixed_value, target_price)	
+											var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+											engine.emitSignal('catching', 'sell', null, target_size, target_price)	
 										} else if (key === '+' && !info.ctrl && interactiveBuySell) {
 											so.catch_manual_pct++
 											console.log('\n' + 'Manual catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_manual_pct)	
