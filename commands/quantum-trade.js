@@ -831,19 +831,19 @@ module.exports = function (program, conf) {
 											engine.emitSignal('catching', 'sell', null, so.catch_fixed_value, target_price)	
 										} else if (key === '+' && !info.ctrl && interactiveBuySell) {
 											so.catch_manual_pct++
-											console.log('\n' + 'Manual catch order pct ' + 'INCREASE'.green + ' -> ' so.catch_manual_pct)	
+											console.log('\n' + 'Manual catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_manual_pct)	
 										} else if (key === '-' && !info.ctrl && interactiveBuySell) {
 											so.catch_manual_pct--
-											console.log('\n' + 'Manual catch order pct ' + 'DECREASE'.red + ' -> ' so.catch_manual_pct)
+											console.log('\n' + 'Manual catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_manual_pct)
 										} else if (key === '*' && !info.ctrl && interactiveBuySell) {
 											so.catch_fixed_value += so.quantum_value
-											console.log('\n' + 'Manual catch order value ' + 'INCREASE'.green + ' -> ' so.catch_manual_pct)	
+											console.log('\n' + 'Manual catch order value ' + 'INCREASE'.green + ' -> ' + so.catch_fixed_value)	
 										} else if (key === '_' && !info.ctrl && interactiveBuySell) {
 											so.catch_fixed_value -= so.quantum_value
 											if (so.catch_fixed_value < so.quantum_value) {
 												so.catch_fixed_value = so.quantum_value
 											}
-											console.log('\n' + 'Manual catch order value ' + 'DECREASE'.red + ' -> ' so.catch_manual_pct)
+											console.log('\n' + 'Manual catch order value ' + 'DECREASE'.red + ' -> ' + so.catch_fixed_value)
 										} else if (key === 'A' && !info.ctrl && interactiveBuySell) {
 											console.log('\n' + 'Insert catch order for all free positions'.grey)
 											s.positions.forEach(function (position, index) {
