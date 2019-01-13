@@ -325,7 +325,7 @@ module.exports = function (program, conf) {
 				z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
 				z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
 				z(17, (so.order_type === 'maker' ? so.order_type + ' ' + n(s.exchange.makerFee).format('0.0000%')  : so.order_type + ' ' + s.exchange.takerFee), ' ')
-				].join('') + '\n')
+				].join('') + '\n\n')
 			process.stdout.write('')
 			process.stdout.write([
 			//z(19, 'BUY %'.grey, ' '),
@@ -344,23 +344,23 @@ module.exports = function (program, conf) {
 				z(8, so.pump_watchdog, ' '),
 				z(16, so.active_long_position, ' '),
 				z(8, so.active_short_position, ' ')
-				].join('') + '\n')
+				].join('') + '\n\n')
 			process.stdout.write('')
 			process.stdout.write([
 			z(42, 'BUY / SELL STOP LOSS %'.grey, ' '),
-			z(30, 'CATCH ORDER DEFAULT %'.grey, ' '),
-			z(34, 'CATCH ORDER MANUAL %'.grey, ' '),
-//			z(35, 'DUMP / PUMP WATCHDOG'.grey, ' '),
+			z(40, 'CATCH ORDER DEFAULT %'.grey, ' '),
+			z(40, 'CATCH ORDER MANUAL %'.grey, ' '),
+			z(40, 'CATCH FIXED VALUE'.grey, ' '),
 //			z(36, 'LONG / SHORT POSITION'.grey, ' ')
 			].join('') + '\n')
 			process.stdout.write([
-				z(18, so.buy_stop_pct + '%', ' '),
-				z(18, so.sell_stop_pct + '%', ' '),
-				z(20, so.cacth_order_pct + '%', ' '),
-				z(20, so.cacth_manual_pct + '%', ' '),
-//				z(16, so.active_long_position, ' '),
+				z(13, (so.buy_stop_pct || '--') + '%', ' '),
+				z(6, (so.sell_stop_pct || '--') + '%', ' '),
+				z(37, so.catch_order_pct + '%', ' '),
+				z(30, so.catch_manual_pct + '%', ' '),
+				z(35, formatCurrency(so.catch_fixed_value, s.currency), ' '),
 //				z(8, so.active_short_position, ' ')
-				].join('') + '\n')
+				].join('') + '\n\n')
 			process.stdout.write('')
 		}
 		/* End listOptions() */
