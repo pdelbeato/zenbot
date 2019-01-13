@@ -348,17 +348,17 @@ module.exports = function (program, conf) {
 			process.stdout.write('')
 			process.stdout.write([
 			z(42, 'BUY / SELL STOP LOSS %'.grey, ' '),
-			z(40, 'CATCH ORDER DEFAULT %'.grey, ' '),
-			z(40, 'CATCH ORDER MANUAL %'.grey, ' '),
-			z(40, 'CATCH FIXED VALUE'.grey, ' '),
+			z(35, 'CATCH ORDER DEFAULT %'.grey, ' '),
+			z(33, 'CATCH ORDER MANUAL %'.grey, ' '),
+			z(30, 'CATCH FIXED VALUE'.grey, ' '),
 //			z(36, 'LONG / SHORT POSITION'.grey, ' ')
 			].join('') + '\n')
 			process.stdout.write([
 				z(13, (so.buy_stop_pct || '--') + '%', ' '),
 				z(6, (so.sell_stop_pct || '--') + '%', ' '),
-				z(37, so.catch_order_pct + '%', ' '),
-				z(30, so.catch_manual_pct + '%', ' '),
-				z(35, formatCurrency(so.catch_fixed_value, s.currency), ' '),
+				z(28, so.catch_order_pct + '%', ' '),
+				z(23, so.catch_manual_pct + '%', ' '),
+				z(25, formatCurrency(so.catch_fixed_value, s.currency), ' '),
 //				z(8, so.active_short_position, ' ')
 				].join('') + '\n\n')
 			process.stdout.write('')
