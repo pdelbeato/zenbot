@@ -826,12 +826,12 @@ module.exports = function (program, conf) {
 											console.log('\n' + 'Insert ' + 'buy catch order'.green)
 											var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
 											var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-											engine.emitSignal('catching', 'buy', null, target_size, target_price)											
+											engine.emitSignal('manualcatch', 'buy', null, target_size, target_price)											
 										} else if (key === 'T' && !info.ctrl && interactiveBuySell) {
 											console.log('\n' + 'Insert ' + 'sell catch order'.red)
 											var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
 											var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-											engine.emitSignal('catching', 'sell', null, target_size, target_price)	
+											engine.emitSignal('manualcatch', 'sell', null, target_size, target_price)	
 										} else if (key === '+' && !info.ctrl && interactiveBuySell) {
 											so.catch_manual_pct++
 											console.log('\n' + 'Manual catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_manual_pct)	
@@ -855,10 +855,10 @@ module.exports = function (program, conf) {
 											s.positions.forEach(function (position, index) {
 												engine.emitSignal('orderExecuted', position.side, position.id)
 											})
-										} else if ((key === 'c') && !info.ctrl) {
+										} else if ((key === 'c') && !info.ctrl && interactiveBuySell) {
 											engine.orderStatus(undefined, undefined, 'standard', undefined, 'Unset', 'standard')
 											console.log('\nmanual'.grey + ' standard orders cancel' + ' command executed'.grey)
-										} else if ((key === 'C') && !info.ctrl) {
+										} else if ((key === 'C') && !info.ctrl && interactiveBuySell) {
 											console.log('\nmanual'.grey + ' canceling ALL orders')
 											// cancelAllOrders non registrerebbe ordini eseguiti parzialmente.
 											// Quindi meglio cancellarli uno ad uno tramite la funzione engine.positionStatus
