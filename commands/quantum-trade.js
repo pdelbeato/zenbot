@@ -355,9 +355,9 @@ module.exports = function (program, conf) {
 //			z(36, 'LONG / SHORT POSITION'.grey, ' ')
 			].join('') + '\n')
 			process.stdout.write([
-				z(13, (so.buy_stop_pct || '--') + '%', ' '),
+				z(9, (so.buy_stop_pct || '--') + '%', ' '),
 				z(6, (so.sell_stop_pct || '--') + '%', ' '),
-				z(20, so.catch_order_pct + '%', ' '),
+				z(25, so.catch_order_pct + '%', ' '),
 				z(23, so.catch_manual_pct + '%', ' '),
 				z(25, formatCurrency(so.catch_fixed_value, s.currency), ' '),
 //				z(8, so.active_short_position, ' ')
@@ -810,25 +810,24 @@ module.exports = function (program, conf) {
 											console.log('\nInteractive Buy/Sell...'.grey)
 											toggleInteractiveBuySell()
 										} else if (key === 'b' && !info.ctrl && interactiveBuySell) {
-											engine.emitSignal('standard', 'buy')
-											console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command executed'.grey)
+											console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command inserted'.grey)
+											engine.emitSignal('standard', 'buy')											
 										} else if (key === 'B' && !info.ctrl && interactiveBuySell) {
+											console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command inserted'.grey)
 											engine.emitSignal('standard', 'buy', null, null, null, false, true)
-											console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command executed'.grey)
 										} else if (key === 's' && !info.ctrl && interactiveBuySell) {
-											engine.emitSignal('standard', 'sell')
-											console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command executed'.grey)
+											console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command inserted'.grey)
+											engine.emitSignal('standard', 'sell')											
 										} else if (key === 'S' && !info.ctrl && interactiveBuySell) {
-											engine.emitSignal('standard', 'sell', null, null, null, false, true)
-											console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command executed'.grey)
+											console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command inserted'.grey)
+											engine.emitSignal('standard', 'sell', null, null, null, false, true)											
 										} else if (key === 't' && !info.ctrl && interactiveBuySell) {
-// Il tipo di ordine newCatch non fa scattare nulla. Sistemare.											
-											console.log('\n' + 'Insert ' + 'buy catch order'.green)
+											console.log('\nmanual'.grey + ' catch ' + 'BUY'.green + ' command inserted'.grey)
 											var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
 											var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
 											engine.emitSignal('manualcatch', 'buy', null, target_size, target_price)											
 										} else if (key === 'T' && !info.ctrl && interactiveBuySell) {
-											console.log('\n' + 'Insert ' + 'sell catch order'.red)
+											console.log('\nmanual'.grey + ' catch ' + 'SELL'.red + ' command inserted'.grey)
 											var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
 											var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
 											engine.emitSignal('manualcatch', 'sell', null, target_size, target_price)	
