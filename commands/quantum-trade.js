@@ -1104,35 +1104,51 @@ module.exports = function (program, conf) {
 								})
 								
 								if (s.update_position_id != null) {
-									position = s.positions.find(x => x.id === s.update_position_id)
-									position._id = position.id
-																		
-									if (s.db_valid) {
-										my_positions.updateOne({"_id" : s.update_position_id}, {$set: position}, {upsert: true}, function (err) {
-											if (err) {
-												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
-												console.error(err)
-											}
-											s.update_position_id = null
-										})
-									}
+									managePositionCollection('update', s.update_position_id)
 								}
 								
 								if (s.delete_position_id != null) {
-									if (s.db_valid) {
-										my_positions.deleteOne({"_id" : s.delete_position_id}, function (err) {
-											if (err) {
-												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in my_positions')
-												console.error(err)
-											}
-											s.delete_position_id = null
-										})
-									}
+									managePositionCollection('delete', s.delete_position_id)
 								}
 							})
 							my_trades_size = s.my_trades.length
 						}
 
+						function managePositionCollection (mode, position_id, cb = function () {}) {
+							switch (mode) {
+							case 'update': {
+								position = s.positions.find(x => x.id === position_id)
+								position._id = position.id
+
+								if (s.db_valid) {
+									my_positions.updateOne({"_id" : position_id}, {$set: position}, {upsert: true}, function (err) {
+										s.update_position_id = null
+										if (err) {
+											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
+											console.error(err)
+											return cb(err)
+										}
+									})
+								}
+								break
+							}
+							case 'delete': {
+								if (s.db_valid) {
+									my_positions.deleteOne({"_id" : position_id}, function (err) {
+										s.delete_position_id = null
+										if (err) {
+											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in my_positions')
+											console.error(err)
+											return cb(err)
+										}
+									})
+								}
+								break
+							}
+							}
+							return cb(null)
+						}
+						
 						function savePeriod (period) {
 							if (!period.id) {
 								period.id = crypto.randomBytes(4).toString('hex')
