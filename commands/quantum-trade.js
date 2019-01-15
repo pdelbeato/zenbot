@@ -789,7 +789,7 @@ module.exports = function (program, conf) {
 									debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital = ' + s.orig_capital + ' ; s.orig_price = ' + s.orig_price)
 								} 
 								//                  }
-								if(s.lookback.length > so.keep_lookback_periods){
+								if(s.lookback.length > so.keep_lookback_periods) {
 									s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 								}
 
@@ -797,7 +797,7 @@ module.exports = function (program, conf) {
 								forwardScan()
 								setInterval(forwardScan, so.poll_trades)
 								
-								//Chiamata alla funzione syncBalance ogni so.poll_trades
+								//Chiamata alla funzione syncBalance ogni so.poll_balance
 								setInterval(engine.syncBalance, so.poll_balance)
 
 								readline.emitKeypressEvents(process.stdin)
@@ -943,6 +943,7 @@ module.exports = function (program, conf) {
 			engine.writeHeader()
 			getNext()
 		})
+		/* End of backfiller.on(exit) */
 
 		var prev_timeout = null
 		function forwardScan () {
@@ -1184,5 +1185,6 @@ module.exports = function (program, conf) {
 			}
 			/* End of saveTrade() */
 		}
+		/* End of forwardScan() */
 	})
 }
