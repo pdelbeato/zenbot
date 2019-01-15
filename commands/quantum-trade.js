@@ -306,8 +306,8 @@ module.exports = function (program, conf) {
 		}
 		
 		/* Funzioni per le operazioni sul databse Mongo DB delle posizioni */
-		s.positionProcessingQueue = async.queue(function({mode, position_id}, callback){
-			managePositionCollection(mode, position_id, callback)
+		s.positionProcessingQueue = async.queue(function(task, callback) {
+			managePositionCollection(task.mode, task.position_id, callback)
 		})
 		
 		function managePositionCollection (mode, position_id, cb = function () {}) {
