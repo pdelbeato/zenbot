@@ -164,6 +164,7 @@ module.exports = function (program, conf) {
 		keyMap.set('-', 'manual catch pct'.grey + ' DECREASE'.red)
 		keyMap.set('*', 'manual catch value'.grey + ' INCREASE'.green)
 		keyMap.set('_', 'manual catch value'.grey + ' DECREASE'.red)
+		keyMap.set('0', 'cancel all manual catch orders'.grey)
 		keyMap.set('A', 'insert catch order for all free position'.grey)
 		keyMap.set('c', 'cancel order'.grey)
 		keyMap.set('C', 'cancel ALL order'.grey)
@@ -846,12 +847,12 @@ module.exports = function (program, conf) {
 												so.catch_fixed_value = so.quantum_value
 											}
 											console.log('\n' + 'Manual catch order value ' + 'DECREASE'.red + ' -> ' + so.catch_fixed_value)
+										} else if (key === '0' && !info.ctrl && interactiveBuySell) {
+											console.log('\nmanual'.grey + ' canceling ALL catch orders')
+											engine.orderStatus(undefined, undefined, 'manualcatch', undefined, 'Unset', 'manualcatch')
 										} else if (key === 'A' && !info.ctrl && interactiveBuySell) {
 											console.log('\n' + 'Insert catch order for all free positions'.grey)
 											s.positions.forEach(function (position, index) {
-// Da sistemare. Tutti gli ordini insieme mandano in protezione l'exchange. Vanno distribuiti in un arco di tempo.
-// Stessa cosa per la cancellazione degli ordini in uscita dal programma
-//												setTimeout(function() { engine.emitSignal('orderExecuted', position.side, position.id)}, (Math.random()*10000))
 												engine.emitSignal('orderExecuted', position.side, position.id)
 											})
 										} else if ((key === 'c') && !info.ctrl) {
@@ -859,7 +860,8 @@ module.exports = function (program, conf) {
 											console.log('\nmanual'.grey + ' standard orders cancel' + ' command executed'.grey)
 										} else if ((key === 'C') && !info.ctrl) {
 											console.log('\nmanual'.grey + ' canceling ALL orders')
-//											s.exchange.cancelAllOrders({product_id: s.product_id})
+											// cancelAllOrders non registrerebbe ordini eseguiti parzialmente.
+											// Quindi meglio cancellarli uno ad uno tramite la funzione engine.positionStatus
 											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 										} else if (key === 'm' && !info.ctrl && so.mode === 'live') {
 											so.manual = !so.manual
@@ -882,9 +884,9 @@ module.exports = function (program, conf) {
 											debug.printPosition(s.orders, true)
 										} else if (key === 'X' && !info.ctrl) {
 											console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
-											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
-// cancelAllOrders non mi piace perchè potrebbe non registrare ordini eseguiti parzialmente. Sarebbe meglio cancellarli uno ad uno
-//   tramite la funzione engine.positionStatus											
+											// cancelAllOrders non registrerebbe ordini eseguiti parzialmente.
+											// Quindi meglio cancellarli uno ad uno tramite la funzione engine.positionStatus	
+											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')								
 											setTimeout(function() { 
 												console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 												printTrade(true)
