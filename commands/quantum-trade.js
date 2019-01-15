@@ -18,6 +18,7 @@ var tb = require('timebucket')
 , { formatAsset, formatPercent, formatCurrency } = require('../lib/format')
 , debug = require('../lib/debug')
 , sizeof = require('object-sizeof')
+, async = require('async')
 
 //Per eseguire comandi da bash
 //var sys = require('util')
