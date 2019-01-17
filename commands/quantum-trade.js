@@ -1022,15 +1022,15 @@ module.exports = function (program, conf) {
 									})
 								}
 							})
-							return
 						})
-						db_cursor = trades[trades.length - 1].time
-						trade_cursor = s.exchange.getCursor(trades[trades.length - 1])
-						engine.update(trades, true, function (err) {
-							if (err) throw err
-							setImmediate(getNext)
-						})
+						return
 					}
+					db_cursor = trades[trades.length - 1].time
+					trade_cursor = s.exchange.getCursor(trades[trades.length - 1])
+					engine.update(trades, true, function (err) {
+						if (err) throw err
+						setImmediate(getNext)
+					})
 				})
 			}
 			/* End of getNext() */
