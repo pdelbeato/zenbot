@@ -356,7 +356,6 @@ module.exports = function (program, conf) {
 		/* List of available commands */
 		function listKeys() {
 			console.log('\nAvailable command keys:')
-			console.log('\n')
 			keyMap.forEach((value, key) => {
 				console.log(' ' + key + ' - ' + value.desc)
 			})
@@ -1015,6 +1014,7 @@ module.exports = function (program, conf) {
 										if (!info.ctrl) {
 											debug.msg('Pressed ' + key)
 											if (keyMap.has(key)) {
+												debug.msg('keyMap esiste')
 												keyMap.get(key).action
 											}
 										}
