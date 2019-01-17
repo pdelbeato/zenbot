@@ -33,6 +33,7 @@ module.exports = function gdax (conf) {
 				channels.push('user')
 			}
 
+			// Apro un websocket autenticato, quindi riceverò anche tutti i messaggi che riguardano il mio user_ida
 			websocket_client[product_id] = new Gdax.WebsocketClient([product_id], conf.gdax.websocketURI, auth, {channels})
 
 			// initialize a cache for the websocket connection
@@ -223,12 +224,45 @@ module.exports = function gdax (conf) {
 			// force zenbot a order retry; see "engine.js" for possible retry conditions
 			if (reason && reason == 'canceled') {
 				cached_order.status = 'rejected'
-					cached_order.reject_reason = 'post only'
+				cached_order.reject_reason = 'post only'
 			}
 
 			cached_order.done_at = update.time
 			cached_order.done_reason = reason
 			cached_order.settled = true
+		}
+		//Non è presente nella cache, ma dovrebbe, visto che se siamo in questa funzione allora lo user_id corrispondeva al mio
+		else {
+			debug.msg('**** handleOrderDone - Creo ordine e lo inserisco in websocket_cache')
+			
+			cached_order = websocket_cache[product_id].orders['~'+update.order_id] = {
+					id: update.order_id,
+					price: update.price,
+					size: update.remaining_size,
+					product_id: update.product_id,
+					side: update.side,
+					status: 'rejected',
+					settled: true,
+					filled_size: 0
+			}
+
+			// get order "reason":
+			//  - "canceled" by user or platform
+			//  - "filled" order successfully placed and filled
+			let reason = update.reason
+
+			cached_order.status = 'done'
+
+			// "canceled" is not a success order instead it must be retried
+			// force zenbot a order retry; see "engine.js" for possible retry conditions
+			if (reason && reason == 'canceled') {
+				cached_order.status = 'rejected'
+					cached_order.reject_reason = 'post only'
+			}
+
+			cached_order.done_at = update.time
+			cached_order.done_reason = reason
+			cached_order.settled = true			
 		}
 	}
 
@@ -260,6 +294,21 @@ module.exports = function gdax (conf) {
 	}
 
 	function handleTicker(ticker, product_id) {
+		/*
+		  	{
+			    "type": "ticker",
+			    "trade_id": 20153558,
+			    "sequence": 3262786978,
+			    "time": "2017-09-02T17:05:49.250000Z",
+			    "product_id": "BTC-USD",
+			    "price": "4388.01000000",
+			    "side": "buy", // Taker side
+			    "last_size": "0.03000000",
+			    "best_bid": "4388",
+			    "best_ask": "4388.01"
+			}
+		 */
+		
 		websocket_cache[product_id].ticker = ticker
 	}
 
@@ -356,12 +405,11 @@ module.exports = function gdax (conf) {
 			})
 		},
 
-		getQuote: function (opts, cb) {
-			// check websocket cache first
-			if (websocket_cache[opts.product_id]) {
+		getQuote: function (opts, cb, forced = false) {
+			// check websocket cache first, if it is not forced
+			if (!forced && websocket_cache[opts.product_id]) {
 				var ticker = websocket_cache[opts.product_id].ticker
 				if (ticker.best_ask && ticker.best_bid) {
-//					debug.msg('getQuote - ticker from websocket_cache ask= ' + ticker.best_ask + ' bid= ' + ticker.best_bid)
 					cb(null, {bid: ticker.best_bid, ask: ticker.best_ask})
 					return
 				}
@@ -631,6 +679,20 @@ module.exports = function gdax (conf) {
 			debug.msg('getOrder - getOrder call')
 
 			client.getOrder(opts.order_id, function (err, resp, body) {
+				if (!err && resp.statusCode === 200) {
+					debug.msg('**** getOrder - Ordine trovato. Lo inserisco in websocket_cache.')
+					websocket_cache[opts.product_id].orders['~' + opts.order_id] = {
+							id: body.order_id,
+							price: body.price,
+							size: body.size, //Dovrebbe essere remaining_size, ma non ce l'ho tramite getOrder e calcolarlo senza Numbro è pericoloso
+							product_id: body.product_id,
+							side: body.side,
+							status: body.status,
+							settled: body.settled,
+							filled_size: body.filled_size
+					}
+				}
+				
 				if (!err && resp.statusCode !== 404) {
 					err = statusErr(resp, body)
 					debug.msg('getOrder - !404 (' + resp.statusCode + '):')
