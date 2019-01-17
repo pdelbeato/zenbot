@@ -164,6 +164,7 @@ module.exports = function (program, conf) {
 		const keyMap = new Map()
 		
 		function changeModeCommand(mode = 0) {
+			debug.msg('changeModeCommand')
 			keyMap.clear()
 
 			keyMap.set('0', {desc: ('Modo '.grey + 'NULL'.yellow),		action: function() { changeModeCommand(0)}})
@@ -346,9 +347,9 @@ module.exports = function (program, conf) {
 					console.log('\nToggle Short position: ' + (so.active_short_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
 				}})
 				break
+			}			
 			}
 			listKeys()
-			}
 		}
 		/* End of changeModeCommand() */
 
@@ -1012,7 +1013,10 @@ module.exports = function (program, conf) {
 									process.stdin.setRawMode(true)
 									process.stdin.on('keypress', function (key, info) {
 										if (!info.ctrl) {
-											keyMap.get(key).action
+											debug.msg('Pressed ' + key)
+											if (keyMap.has(key)) {
+												keyMap.get(key).action
+											}
 										}
 										else if (info.name === 'c') {
 											// @todo: cancel open orders before exit
