@@ -893,7 +893,7 @@ module.exports = function (program, conf) {
 				process.exit(code)
 			}
 			
-			function getNext () {
+			function getNext() {
 				var opts = {
 					query: {
 						selector: so.selector.normalized
@@ -965,11 +965,11 @@ module.exports = function (program, conf) {
 							sessions.find({selector: so.selector.normalized}).limit(1).sort({started: -1}).toArray(function (err, prev_sessions) {
 								if (err) throw err
 								var prev_session = prev_sessions[0]
-								//                  if (prev_session && !cmd.reset) {
+			//                  if (prev_session && !cmd.reset) {
 								if (prev_session && !cmd.reset && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency && !raw_opts.currency_capital && !raw_opts.asset_capital))) {
 //									debug.msg('getNext() - prev_session')
-									//                    if (prev_session.orig_capital && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {                	  
-									//                      s.orig_capital = session.orig_capital = so.currency_capital || prev_session.orig_capital
+//                    if (prev_session.orig_capital && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {                	  
+//                      s.orig_capital = session.orig_capital = so.currency_capital || prev_session.orig_capital
 									s.orig_currency = session.orig_currency = prev_session.orig_currency
 									s.orig_asset = session.orig_asset = prev_session.orig_asset
 									s.orig_price = session.orig_price = prev_session.orig_price
@@ -991,14 +991,14 @@ module.exports = function (program, conf) {
 									debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital = ' + s.orig_capital + ' ; s.orig_price = ' + s.orig_price)
 								} 
 								//                  }
-								if(s.lookback.length > so.keep_lookback_periods) {
+								if (s.lookback.length > so.keep_lookback_periods) {
 									s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 								}
 
 								//Chiamata alla funzione forwardScan() ogni so.poll_trades
 								forwardScan()
 								setInterval(forwardScan, so.poll_trades)
-								
+
 								//Chiamata alla funzione syncBalance ogni so.poll_balance
 								setInterval(engine.syncBalance, so.poll_balance)
 
@@ -1018,13 +1018,14 @@ module.exports = function (program, conf) {
 								}
 							})
 							return
+						})
+						db_cursor = trades[trades.length - 1].time
+						trade_cursor = s.exchange.getCursor(trades[trades.length - 1])
+						engine.update(trades, true, function (err) {
+							if (err) throw err
+							setImmediate(getNext)
+						})
 					}
-					db_cursor = trades[trades.length - 1].time
-					trade_cursor = s.exchange.getCursor(trades[trades.length - 1])
-					engine.update(trades, true, function (err) {
-						if (err) throw err
-						setImmediate(getNext)
-					})
 				})
 			}
 			/* End of getNext() */
