@@ -164,7 +164,7 @@ module.exports = function (program, conf) {
 		const keyMap = new Map()
 		
 		function changeModeCommand(mode = 0) {
-			debug.msg('changeModeCommand')
+//			debug.msg('changeModeCommand')
 			keyMap.clear()
 
 			keyMap.set('0', {desc: ('Modo '.grey + 'NULL'.yellow),		action: function() { changeModeCommand(0)}})
@@ -855,9 +855,6 @@ module.exports = function (program, conf) {
 			oldest_time: null
 		}
 		marker._id = marker.id
-
-		//Inizializzo i comandi dell'interfaccia
-		changeModeCommand()
 		
 		//Se richiesto nel comando, esegue il reset dei database
 		if (cmd.reset) {
@@ -945,7 +942,11 @@ module.exports = function (program, conf) {
 						if (so.mode === 'paper') {
 							console.log('!!! Paper mode enabled. No real trades are performed until you remove --paper from the startup command.')
 						}
-						console.log('Press ' + ' l '.inverse + ' to list available commands.')
+//						console.log('Press ' + ' l '.inverse + ' to list available commands.')
+						
+						//Inizializzo i comandi dell'interfaccia
+						changeModeCommand()
+						
 						engine.syncBalance(function (err) {
 							if (err) {
 								if (err.desc) console.error(err.desc)
@@ -1012,10 +1013,10 @@ module.exports = function (program, conf) {
 									process.stdin.setRawMode(true)
 									process.stdin.on('keypress', function (key, info) {
 										if (!info.ctrl) {
-											debug.msg('Pressed ' + key)
+											//debug.msg('Pressed ' + key)
 											if (keyMap.has(key)) {
-												debug.msg('keyMap esiste')
-												keyMap.get(key).action
+												//debug.msg('keyMap esiste')
+												keyMap.get(key).action()
 											}
 										}
 										else if (info.name === 'c') {
