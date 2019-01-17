@@ -348,7 +348,9 @@ module.exports = function (program, conf) {
 				break
 			}
 			listKeys()
+			}
 		}
+		/* End of changeModeCommand() */
 
 		/* List of available commands */
 		function listKeys() {
