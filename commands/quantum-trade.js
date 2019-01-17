@@ -856,6 +856,9 @@ module.exports = function (program, conf) {
 		}
 		marker._id = marker.id
 
+		//Inizializzo i comandi dell'interfaccia
+		changeModeCommand()
+		
 		//Se richiesto nel comando, esegue il reset dei database
 		if (cmd.reset) {
 			//Corretto il Deprecation Warning
