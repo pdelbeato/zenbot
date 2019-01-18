@@ -302,9 +302,9 @@ module.exports = function (program, conf) {
 					})
 				}})
 				keyMap.set('+', {desc: ('set order'.grey + ' NEXT'.yellow), action: function() {
-					if (s.exchange_orders.lenght) {
+					if (s.exchange_orders.length) {
 						s.exchange_orders_index++
-						if (s.exchange_orders_index > (s.exchange_orders.lenght - 1)) {
+						if (s.exchange_orders_index > (s.exchange_orders.length - 1)) {
 							s.exchange_orders_index = 0
 						}
 						console.log(s.exchange_orders[s.exchange_orders_index].id)
@@ -314,10 +314,10 @@ module.exports = function (program, conf) {
 					}
 				}})
 				keyMap.set('-', {desc: ('set order'.grey + ' PREVIOUS'.yellow), action: function() {
-					if (s.exchange_orders.lenght) {
+					if (s.exchange_orders.length) {
 						s.exchange_orders_index--
 						if (s.exchange_orders_index < 0) {
-							s.exchange_orders_index = (s.exchange_orders.lenght - 1)
+							s.exchange_orders_index = (s.exchange_orders.length - 1)
 						}
 						console.log(s.exchange_orders[s.exchange_orders_index].id)
 					}
@@ -326,7 +326,7 @@ module.exports = function (program, conf) {
 					}
 				}})
 				keyMap.set('i', {desc: ('get information on order'.grey), action: function() {
-					if (s.exchange_orders.lenght) {
+					if (s.exchange_orders.length) {
 						console.log(s.exchange_orders[s.exchange_orders_index])
 					}
 					else {
@@ -334,7 +334,7 @@ module.exports = function (program, conf) {
 					}
 				}})
 				keyMap.set('c', {desc: ('cancel order'.grey), action: function() {
-					if (s.exchange_orders.lenght) {
+					if (s.exchange_orders.length) {
 						opts.order_id = s.exchange_orders[s.exchange_orders_index].order_id
 						s.exchange.cancelOrder(s.exchange_orders[s.exchange_orders_index], function() {
 							debug.msg('Cancel order ')
