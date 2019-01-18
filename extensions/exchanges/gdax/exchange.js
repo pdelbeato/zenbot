@@ -745,7 +745,7 @@ module.exports = function gdax (conf) {
 
 			debug.msg('getAllOrders - getAllOrders call')
 
-			client.getOrders(opts.product_id, function (err, resp, body) {
+			client.getOrders(opts, function (err, resp, body) {
 				if (!err && resp.statusCode !== 404) {
 					err = statusErr(resp, body)
 					debug.msg('getOrder - !404 (' + resp.statusCode + '):')
@@ -758,10 +758,10 @@ module.exports = function gdax (conf) {
 					console.log(body)
 				}
 				
-				if (resp) {
-					debug.msg('getAllOrders - resp: ')
-					console.log(resp)
-				}
+//				if (resp) {
+//					debug.msg('getAllOrders - resp: ')
+//					console.log(resp)
+//				}
 
 				if (err) {
 					debug.msg('getAllOrders -  err: ')
