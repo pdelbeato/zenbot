@@ -181,7 +181,7 @@ module.exports = function (program, conf) {
 					console.log('\nMANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse))
 				}
 			}})
-			keyMap.set('p', {desc: ('print statistical output'.grey), action: function() { printTrade(false)}})
+			keyMap.set('x', {desc: ('print statistical output'.grey), action: function() { printTrade(false)}})
 			keyMap.set('P', {desc: ('list positions opened'.grey), action: function() {
 				console.log('\nListing positions opened...'.grey)
 				debug.printPosition(s.positions, true)
@@ -190,21 +190,13 @@ module.exports = function (program, conf) {
 				console.log('\nListing orders opened...'.grey)
 				debug.printPosition(s.orders, true)
 			}})
-			keyMap.set('X', {desc: ('exit program with statistical output'.grey), action: function() {
+			keyMap.set('Q', {desc: ('exit program with statistical output'.grey), action: function() {
 				console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
 				engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')								
 				setTimeout(function() { 
 					console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 					printTrade(true)
 				}, so.order_poll_time*5)		
-			}})
-			keyMap.set('h', {desc: ('dump statistical output to HTML file'.grey), action: function() {
-				console.log('\nDumping statistics...'.grey)
-				printTrade(false, true)
-			}})
-			keyMap.set('H', {desc: ('toggle automatic HTML dump to file'.grey), action: function() {
-				console.log('\nDumping statistics...'.grey)
-				toggleStats()
 			}})
 			keyMap.set('R', {desc: ('try to recover MongoDB connection'.grey), 	action: function() { 
 				console.log('\nTrying to recover MongoDB connection...'.grey)
@@ -299,20 +291,59 @@ module.exports = function (program, conf) {
 			case 3: {
 				//Modo EXCHANGE
 				keyMap.set('o', {desc: ('list orders on exchange'.grey), action: function() {
-				}
-				})
+					s.exchange_orders_index = null
+					s.exchange_orders = []
+					s.exchange.getAllOrders(opts, function (err, orders) {
+						s.exchange_orders = orders
+						if (orders.length) {
+							s.exchange_orders_index = 0
+						}
+						console.log(s.exchange_orders)
+					})
+				}})
 				keyMap.set('+', {desc: ('set order'.grey + ' NEXT'.yellow), action: function() {
-				}
-				})
+					if (s.exchange_orders.lenght) {
+						s.exchange_orders_index++
+						if (s.exchange_orders_index > (s.exchange_orders.lenght - 1)) {
+							s.exchange_orders_index = 0
+						}
+						console.log(s.exchange_orders[s.exchange_orders_index].id)
+					}
+					else {
+						debug.msg('No exchange_orders in memory. Try to get the list by pressing "o".')
+					}
+				}})
 				keyMap.set('-', {desc: ('set order'.grey + ' PREVIOUS'.yellow), action: function() {
-				}
-				})
-				keyMap.set('O', {desc: ('get information on order'.grey), action: function() {
-				}
-				})
+					if (s.exchange_orders.lenght) {
+						s.exchange_orders_index--
+						if (s.exchange_orders_index < 0) {
+							s.exchange_orders_index = (s.exchange_orders.lenght - 1)
+						}
+						console.log(s.exchange_orders[s.exchange_orders_index].id)
+					}
+					else {
+						debug.msg('No exchange_orders in memory. Try to get the list by pressing "o".')
+					}
+				}})
+				keyMap.set('i', {desc: ('get information on order'.grey), action: function() {
+					if (s.exchange_orders.lenght) {
+						console.log(s.exchange_orders[s.exchange_orders_index])
+					}
+					else {
+						debug.msg('No exchange_orders in memory. Try to get the list by pressing "o".')
+					}
+				}})
 				keyMap.set('c', {desc: ('cancel order'.grey), action: function() {
-				}
-				})
+					if (s.exchange_orders.lenght) {
+						opts.order_id = s.exchange_orders[s.exchange_orders_index].order_id
+						s.exchange.cancelOrder(opts, function() {
+							debug.msg('Cancel order ')
+						})
+					}
+					else {
+						debug.msg('No exchange_orders in memory. Try to get the list by pressing "o".')
+					}
+				}})
 				keyMap.set('C', {desc: ('cancel ALL order'.grey), action: function() {
 				}
 				})
@@ -321,7 +352,7 @@ module.exports = function (program, conf) {
 			case 4: {
 				//Modo OPTIONS
 				keyMap.set('o', {desc: ('show current trade options'.grey), action: function() { listOptions ()}})
-				keyMap.set('O', {desc: ('show current trade options in a dirty view (full list)'.grey), action: function() {
+				keyMap.set('a', {desc: ('show current trade options in a dirty view (full list)'.grey), action: function() {
 					console.log('\n' + cliff.inspect(so))
 				}})
 				keyMap.set('D', {desc: ('toggle DEBUG'.grey), action: function() {
@@ -345,6 +376,14 @@ module.exports = function (program, conf) {
 				keyMap.set('Z', {desc: ('toggle Short Position'.grey), action: function() {
 					so.active_short_position = !so.active_short_position
 					console.log('\nToggle Short position: ' + (so.active_short_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
+				}})
+				keyMap.set('h', {desc: ('dump statistical output to HTML file'.grey), action: function() {
+					console.log('\nDumping statistics...'.grey)
+					printTrade(false, true)
+				}})
+				keyMap.set('H', {desc: ('toggle automatic HTML dump to file'.grey), action: function() {
+					console.log('\nDumping statistics...'.grey)
+					toggleStats()
 				}})
 				break
 			}			
@@ -883,7 +922,7 @@ module.exports = function (program, conf) {
 		//Per caricare i dati dei trades, chiama zenbot.js backfill (so.selector.normalized) --days __ --conf __
 		console.log('fetching pre-roll data:')
 		var zenbot_cmd = process.platform === 'win32' ? 'zenbot.bat' : 'zenbot.sh' // Use 'win32' for 64 bit windows too
-			var command_args = ['backfill', so.selector.normalized, '--days', days || 1]
+		var command_args = ['backfill', so.selector.normalized, '--days', days || 1]
 		if (cmd.conf) {
 			command_args.push('--conf', cmd.conf)
 		}
