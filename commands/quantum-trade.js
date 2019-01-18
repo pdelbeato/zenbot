@@ -348,7 +348,7 @@ module.exports = function (program, conf) {
 							product_id: so.selector.product_id
 						}
 						console.log('\nCancelling order on Exchange in control:'.yellow)
-						s.exchange.cancelOrder(opts, function() {
+						s.exchange.cancelOrder(opts_tmp, function() {
 							debug.msg('Order ' + s.exchange_orders[s.exchange_orders_index].id + ' canceled')
 							
 							s.exchange.getAllOrders(opts_tmp, function (err, orders) {
