@@ -343,13 +343,14 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('c', {desc: ('cancel order'.grey), action: function() {
 					if (s.exchange_orders.length) {
+						let opts_tmp = {
+							order_id: s.exchange_orders[s.exchange_orders_index].id,
+							product_id: so.selector.product_id
+						}
 						console.log('\nCancelling order on Exchange in control:'.yellow)
-						s.exchange.cancelOrder(s.exchange_orders[s.exchange_orders_index], function() {
+						s.exchange.cancelOrder(opts, function() {
 							debug.msg('Order ' + s.exchange_orders[s.exchange_orders_index].id + ' canceled')
-							let opts_tmp = {
-								product_id: so.selector.product_id
-							}
-
+							
 							s.exchange.getAllOrders(opts_tmp, function (err, orders) {
 								s.exchange_orders = orders
 								if (orders && orders.length) {
