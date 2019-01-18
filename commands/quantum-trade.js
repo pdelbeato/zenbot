@@ -293,9 +293,13 @@ module.exports = function (program, conf) {
 				keyMap.set('o', {desc: ('list orders on exchange'.grey), action: function() {
 					s.exchange_orders_index = null
 					s.exchange_orders = []
-					s.exchange.getAllOrders(s, function (err, orders) {
+					let opts_tmp = {
+						product_id: so.selector.product_id
+					}
+					
+					s.exchange.getAllOrders(opts_tmp, function (err, orders) {
 						s.exchange_orders = orders
-						if (orders.length) {
+						if (orders && orders.length) {
 							s.exchange_orders_index = 0
 						}
 						console.log(s.exchange_orders)
