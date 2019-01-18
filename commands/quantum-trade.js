@@ -135,12 +135,12 @@ module.exports = function (program, conf) {
 			
 			while (nextUpdateMsg < moment()) {
 				nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
-				debug.msg('nextUpdateMsg=' + nextUpdateMsg)
+//				debug.msg('nextUpdateMsg=' + nextUpdateMsg)
 			}
 			
 			if (!so.no_first_message) {
 				nextUpdateMsg = nextUpdateMsg.subtract(so.update_msg, 'h')
-				debug.msg('First message on. nextUpdateMsg=' + nextUpdateMsg)
+//				debug.msg('First message on. nextUpdateMsg=' + nextUpdateMsg)
 			}
 		}
 
@@ -407,6 +407,7 @@ module.exports = function (program, conf) {
 				break
 			}			
 			}
+			console.log('Command Menu ' + modeMap.get(modeCommand).yellow)
 			listKeys()
 		}
 		/* End of changeModeCommand() */
