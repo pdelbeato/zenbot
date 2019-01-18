@@ -293,7 +293,7 @@ module.exports = function (program, conf) {
 				keyMap.set('o', {desc: ('list orders on exchange'.grey), action: function() {
 					s.exchange_orders_index = null
 					s.exchange_orders = []
-					s.exchange.getAllOrders(opts, function (err, orders) {
+					s.exchange.getAllOrders(s, function (err, orders) {
 						s.exchange_orders = orders
 						if (orders.length) {
 							s.exchange_orders_index = 0
@@ -336,7 +336,7 @@ module.exports = function (program, conf) {
 				keyMap.set('c', {desc: ('cancel order'.grey), action: function() {
 					if (s.exchange_orders.lenght) {
 						opts.order_id = s.exchange_orders[s.exchange_orders_index].order_id
-						s.exchange.cancelOrder(opts, function() {
+						s.exchange.cancelOrder(s.exchange_orders[s.exchange_orders_index], function() {
 							debug.msg('Cancel order ')
 						})
 					}
@@ -345,8 +345,8 @@ module.exports = function (program, conf) {
 					}
 				}})
 				keyMap.set('C', {desc: ('cancel ALL order'.grey), action: function() {
-				}
-				})
+				
+				}})
 				break
 			}
 			case 4: {
