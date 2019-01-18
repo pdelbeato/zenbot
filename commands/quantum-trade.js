@@ -302,6 +302,7 @@ module.exports = function (program, conf) {
 						if (orders && orders.length) {
 							s.exchange_orders_index = 0
 						}
+						console.log('\nOrders on Exchange:\n'.yellow)
 						console.log(s.exchange_orders)
 					})
 				}})
@@ -311,6 +312,7 @@ module.exports = function (program, conf) {
 						if (s.exchange_orders_index > (s.exchange_orders.length - 1)) {
 							s.exchange_orders_index = 0
 						}
+						console.log('\nOrder on Exchange in control:'.yellow)
 						console.log(s.exchange_orders[s.exchange_orders_index].id)
 					}
 					else {
@@ -323,6 +325,7 @@ module.exports = function (program, conf) {
 						if (s.exchange_orders_index < 0) {
 							s.exchange_orders_index = (s.exchange_orders.length - 1)
 						}
+						console.log('\nOrder on Exchange in control:'.yellow)
 						console.log(s.exchange_orders[s.exchange_orders_index].id)
 					}
 					else {
@@ -331,6 +334,7 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('i', {desc: ('get information on order'.grey), action: function() {
 					if (s.exchange_orders.length) {
+						console.log('\nInformation on order on Exchange in control:'.yellow)
 						console.log(s.exchange_orders[s.exchange_orders_index])
 					}
 					else {
@@ -339,9 +343,19 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('c', {desc: ('cancel order'.grey), action: function() {
 					if (s.exchange_orders.length) {
-						opts.order_id = s.exchange_orders[s.exchange_orders_index].order_id
+						console.log('\nCancelling order on Exchange in control:'.yellow)
 						s.exchange.cancelOrder(s.exchange_orders[s.exchange_orders_index], function() {
-							debug.msg('Cancel order ')
+							debug.msg('Order ' + s.exchange_orders[s.exchange_orders_index].id + ' canceled')
+							let opts_tmp = {
+								product_id: so.selector.product_id
+							}
+
+							s.exchange.getAllOrders(opts_tmp, function (err, orders) {
+								s.exchange_orders = orders
+								if (orders && orders.length) {
+									s.exchange_orders_index = 0
+								}
+							})
 						})
 					}
 					else {

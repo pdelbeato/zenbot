@@ -753,10 +753,10 @@ module.exports = function gdax (conf) {
 						debug.obj('err', err, false)
 				}
 
-				if (body) {
-					debug.msg('getAllOrders - body: ')
-					console.log(body)
-				}
+//				if (body) {
+//					debug.msg('getAllOrders - body: ')
+//					console.log(body)
+//				}
 				
 //				if (resp) {
 //					debug.msg('getAllOrders - resp: ')
