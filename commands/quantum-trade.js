@@ -302,7 +302,7 @@ module.exports = function (program, conf) {
 						if (orders && orders.length) {
 							s.exchange_orders_index = 0
 						}
-						console.log('\nOrders on Exchange:\n'.yellow)
+						console.log('\nOrders on Exchange: '.yellow + orders.length + '\n')
 						console.log(s.exchange_orders)
 					})
 				}})
@@ -364,7 +364,20 @@ module.exports = function (program, conf) {
 					}
 				}})
 				keyMap.set('C', {desc: ('cancel ALL order'.grey), action: function() {
-				
+					console.log('\nCancelling ALL orders on Exchange:'.yellow)
+					let opts_tmp = {
+							product_id: so.selector.product_id
+						}
+					s.exchange.cancelAllOrders(opts_tmp, function() {
+						debug.msg('Orders canceled')
+						
+						s.exchange.getAllOrders(opts_tmp, function (err, orders) {
+							s.exchange_orders = orders
+							if (orders && orders.length) {
+								s.exchange_orders_index = 0
+							}
+						})
+					})
 				}})
 				break
 			}

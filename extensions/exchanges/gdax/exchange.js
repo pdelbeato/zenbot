@@ -481,45 +481,32 @@ module.exports = function gdax (conf) {
 
 			debug.msg('cancelAllOrders - cancelAllOrders call')
 
-//			client.cancelAllOrders(opts.product_id, function (err, resp, body) {
-//			client.cancelOrders(function (err, resp, body) {
-			client.cancelAllOrders(function (err, resp, body) {
+			client.cancelAllOrders(opts, function (err, resp, body) {
 				if (err) {
 					debug.msg('cancelAllOrders: err= ')
 					debug.obj('err', err, false)
 				}
 
+//				if (body) {
+//					debug.msg('cancelAllOrders - body: ')
+//					console.log(body)
+//				}
+				
 //				if (resp) {
-//					debug.msg('cancelOrder: Response= ')
-//					debug.msg(resp, false)
+//					debug.msg('cancelAllOrders - resp: ')
+//					console.log(resp)
 //				}
 
-				if (body) {
-					debug.msg('cancelAllOrders: Body= ')
-					debug.obj('body', body, false)
-				}
-
-				if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
-					return cb()
-				}
-
-				if (err && err.data && err.data.message == 'Order already done') {
-					debug.msg('cancelAllOrders -  err.data.message: ' + err.data.message)
-					return cb()
-				}
-
-				if (!err) {
-					err = statusErr(resp, body)
-				}
-
 				if (err) {
-					return retry('cancelAllOrders', func_args, err)
-				}
+					debug.msg('cancelAllOrders -  err: ')
+					console.log(err)
+					return cb(err)
+				}			
 
-				cb()
+				cb(null, body)
 			})
 		},
-
+			
 		buy: function (opts, cb) {
 			var func_args = [].slice.call(arguments)
 			var client = authedClient()
