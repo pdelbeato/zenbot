@@ -1084,7 +1084,7 @@ module.exports = function (program, conf) {
 
 			//To avoid fetching last trade twice on exchange.getTrades() call.
 			// exchange.getTrades()'s "from" argument is inclusive. This modification add a
-			// millisecond to it, in order to avoid fetching a second time the last.
+			// millisecond to it, in order to avoid fetching a second time the last
 			// trade of the previous batch.
 			var opts = {
 			          product_id: so.selector.product_id,
