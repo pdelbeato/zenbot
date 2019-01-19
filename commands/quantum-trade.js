@@ -135,12 +135,12 @@ module.exports = function (program, conf) {
 			
 			while (nextUpdateMsg < moment()) {
 				nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
-				debug.msg('nextUpdateMsg=' + nextUpdateMsg)
+//				debug.msg('nextUpdateMsg=' + nextUpdateMsg)
 			}
 			
 			if (!so.no_first_message) {
 				nextUpdateMsg = nextUpdateMsg.subtract(so.update_msg, 'h')
-				debug.msg('First message on. nextUpdateMsg=' + nextUpdateMsg)
+//				debug.msg('First message on. nextUpdateMsg=' + nextUpdateMsg)
 			}
 		}
 
@@ -153,55 +153,284 @@ module.exports = function (program, conf) {
 		var engine = engineFactory(s, conf)
 		var collectionServiceInstance = collectionService(conf)
 
-		const keyMap = new Map()
-		keyMap.set('I', 'toggle interactive buy/sell'.grey)
-		keyMap.set('b', 'limit'.grey + ' BUY'.green)
-		keyMap.set('B', 'market'.grey + ' BUY'.green)
-		keyMap.set('s', 'limit'.grey + ' SELL'.red)
-		keyMap.set('S', 'market'.grey + ' SELL'.red)
-		keyMap.set('t', 'manual catch order'.grey + ' BUY'.green)
-		keyMap.set('T', 'manual catch order'.grey + ' SELL'.red)
-		keyMap.set('+', 'manual catch pct'.grey + ' INCREASE'.green)
-		keyMap.set('-', 'manual catch pct'.grey + ' DECREASE'.red)
-		keyMap.set('*', 'manual catch value'.grey + ' INCREASE'.green)
-		keyMap.set('_', 'manual catch value'.grey + ' DECREASE'.red)
-		keyMap.set('0', 'cancel all manual catch orders'.grey)
-		keyMap.set('A', 'insert catch order for all free position'.grey)
-		keyMap.set('c', 'cancel order'.grey)
-		keyMap.set('C', 'cancel ALL order'.grey)
-		keyMap.set('m', 'toggle MANUAL trade in LIVE mode ON / OFF'.grey)
-		keyMap.set('M', 'switch between \'Maker\' and \'Taker\' order type'.grey)
-		keyMap.set('o', 'show current trade options'.grey)
-		keyMap.set('d', 'show current trade options in a dirty view (full list)'.grey)
-		keyMap.set('D', 'toggle DEBUG'.grey)
-		keyMap.set('p', 'print statistical output'.grey)
-		keyMap.set('P', 'list positions opened'.grey)
-		keyMap.set('O', 'list orders opened'.grey)
-		keyMap.set('X', 'exit program with statistical output'.grey)
-		keyMap.set('h', 'dump statistical output to HTML file'.grey)
-		keyMap.set('H', 'toggle automatic HTML dump to file'.grey)
-		keyMap.set('R', 'try to recover MongoDB connection'.grey)
-		keyMap.set('K', 'clean MongoDB databases (delete data older than 30 days)'.grey)
-		keyMap.set('w', 'toggle Dump Watchdog'.grey)
-		keyMap.set('W', 'toggle Pump Watchdog'.grey)
-		keyMap.set('z', 'toggle Long Position'.grey)
-		keyMap.set('Z', 'toggle Short Position'.grey)
+		var modeCommand = 0
+		const modeMap = new Map()
+		modeMap.set(0, 'NULL')
+		modeMap.set(1, 'MARKET')
+		modeMap.set(2, 'CATCH')
+		modeMap.set(3, 'EXCHANGE')
+		modeMap.set(4, 'OPTIONS')
 		
+		const keyMap = new Map()
+		
+		function changeModeCommand(mode = 0) {
+//			debug.msg('changeModeCommand')
+			keyMap.clear()
+
+			keyMap.set('0', {desc: ('Modo '.grey + 'NULL'.yellow),		action: function() { changeModeCommand(0)}})
+			keyMap.set('1', {desc: ('Modo '.grey + 'MARKET'.yellow),	action: function() { changeModeCommand(1)}})
+			keyMap.set('2', {desc: ('Modo '.grey + 'CATCH'.yellow), 	action: function() { changeModeCommand(2)}})
+			keyMap.set('3', {desc: ('Modo '.grey + 'EXCHANGE'.yellow), 	action:	function() { changeModeCommand(3)}})
+			keyMap.set('4', {desc: ('Modo '.grey + 'OPTIONS'.yellow), 	action: function() { changeModeCommand(4)}})
+
+			keyMap.set('l', {desc: ('list available commands'.grey), 	action: function() { listKeys()}})
+
+			keyMap.set('m', {desc: ('toggle MANUAL trade in LIVE mode ON / OFF'.grey), action: function() {
+				if (so.mode === 'live') {
+					so.manual = !so.manual
+					console.log('\nMANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse))
+				}
+			}})
+			keyMap.set('x', {desc: ('print statistical output'.grey), action: function() { printTrade(false)}})
+			keyMap.set('P', {desc: ('list positions opened'.grey), action: function() {
+				console.log('\nListing positions opened...'.grey)
+				debug.printPosition(s.positions, true)
+			}})
+			keyMap.set('O', {desc: ('list orders opened'.grey), action: function() {
+				console.log('\nListing orders opened...'.grey)
+				debug.printPosition(s.orders, true)
+			}})
+			keyMap.set('Q', {desc: ('exit program with statistical output'.grey), action: function() {
+				console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
+				engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')								
+				setTimeout(function() { 
+					console.log('\nExiting... ' + '\nWriting statistics...'.grey)
+					printTrade(true)
+				}, so.order_poll_time*5)		
+			}})
+			keyMap.set('R', {desc: ('try to recover MongoDB connection'.grey), 	action: function() { 
+				console.log('\nTrying to recover MongoDB connection...'.grey)
+				recoverMongoDB()
+			}})
+			keyMap.set('K', {desc: ('clean MongoDB databases (delete data older than 30 days)'.grey), action: function() { 
+				console.log('\nCleaning MongoDB databases...'.grey)
+				cleanMongoDB()
+			}})
+
+			switch (mode) {
+			case 0: {
+				break
+			}
+			case 1: {
+				//Modo MARKET		
+				keyMap.set('b', {desc: ('limit'.grey + ' BUY'.green), action: function() {
+					console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command inserted'.grey)
+					engine.emitSignal('standard', 'buy')						
+				}})
+				keyMap.set('B', {desc: ('market'.grey + ' BUY'.green), action: function() {
+					console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command inserted'.grey)
+					engine.emitSignal('standard', 'buy', null, null, null, false, true)
+				}})
+				keyMap.set('s', {desc: ('limit'.grey + ' SELL'.red), action: function() {
+					console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command inserted'.grey)
+					engine.emitSignal('standard', 'sell')												 
+				}})
+				keyMap.set('S', {desc: ('market'.grey + ' SELL'.red), action: function() {
+					console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command inserted'.grey)
+					engine.emitSignal('standard', 'sell', null, null, null, false, true)		
+				}})
+				keyMap.set('c', {desc: ('cancel order'.grey), action: function() {
+					engine.orderStatus(undefined, undefined, 'standard', undefined, 'Unset', 'standard')
+					console.log('\nmanual'.grey + ' standard orders cancel' + ' command executed'.grey)
+				}})
+				keyMap.set('C', {desc: ('cancel ALL order'.grey), action: function() {
+					console.log('\nmanual'.grey + ' canceling ALL orders')
+					engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
+				}})
+				keyMap.set('M', {desc: ('switch between \'Maker\' and \'Taker\' order type'.grey), action: function() {
+					(so.order_type === 'maker' ? so.order_type = 'taker' : so.order_type = 'maker')
+					console.log('\n' + so.order_type.toUpperCase() + ' fees activated'.black.bgGreen)
+				}})
+				break
+			}
+			case 2: {
+				//Modo CATCH
+				keyMap.set('b', {desc: ('manual catch order'.grey + ' BUY'.green), action: function() {
+					console.log('\nmanual'.grey + ' catch ' + 'BUY'.green + ' command inserted'.grey)
+					var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+					engine.emitSignal('manualcatch', 'buy', null, target_size, target_price)
+				}})
+				keyMap.set('s', {desc: ('manual catch order'.grey + ' SELL'.red), action: function() {
+					console.log('\nmanual'.grey + ' catch ' + 'SELL'.red + ' command inserted'.grey)
+					var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+					engine.emitSignal('manualcatch', 'sell', null, target_size, target_price)	
+				}})
+				keyMap.set('+', {desc: ('manual catch pct'.grey + ' INCREASE'.green), action: function() {
+					so.catch_manual_pct++
+					console.log('\n' + 'Manual catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_manual_pct)	
+				}})
+				keyMap.set('-', {desc: ('manual catch pct'.grey + ' DECREASE'.red), action: function() {
+					so.catch_manual_pct--
+					console.log('\n' + 'Manual catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_manual_pct)
+				}})
+				keyMap.set('*', {desc: ('manual catch value'.grey + ' INCREASE'.green), action: function() {
+					so.catch_fixed_value += so.quantum_value
+					console.log('\n' + 'Manual catch order value ' + 'INCREASE'.green + ' -> ' + so.catch_fixed_value)	
+				}})
+				keyMap.set('_', {desc: ('manual catch value'.grey + ' DECREASE'.red), action: function() {
+					so.catch_fixed_value -= so.quantum_value
+					if (so.catch_fixed_value < so.quantum_value) {
+						so.catch_fixed_value = so.quantum_value
+					}
+					console.log('\n' + 'Manual catch order value ' + 'DECREASE'.red + ' -> ' + so.catch_fixed_value)
+				}})
+				keyMap.set('C', {desc: ('cancel all manual catch orders'.grey), action: function() {
+					console.log('\nmanual'.grey + ' canceling ALL catch orders')
+					engine.orderStatus(undefined, undefined, 'manualcatch', undefined, 'Unset', 'manualcatch')
+				}})
+				keyMap.set('A', {desc: ('insert catch order for all free position'.grey), action: function() {
+					console.log('\n' + 'Insert catch order for all free positions'.grey)
+					s.positions.forEach(function (position, index) {
+						engine.emitSignal('orderExecuted', position.side, position.id)
+					})	
+				}})
+				break
+			}
+			case 3: {
+				//Modo EXCHANGE
+				keyMap.set('o', {desc: ('list orders on exchange'.grey), action: function() {
+					s.exchange_orders_index = null
+					s.exchange_orders = []
+					let opts_tmp = {
+						product_id: so.selector.product_id
+					}
+					
+					s.exchange.getAllOrders(opts_tmp, function (err, orders) {
+						s.exchange_orders = orders
+						if (orders && orders.length) {
+							s.exchange_orders_index = 0
+						}
+						console.log('\nOrders on Exchange: '.yellow + orders.length + '\n')
+						console.log(s.exchange_orders)
+					})
+				}})
+				keyMap.set('+', {desc: ('set order'.grey + ' NEXT'.yellow), action: function() {
+					if (s.exchange_orders.length) {
+						s.exchange_orders_index++
+						if (s.exchange_orders_index > (s.exchange_orders.length - 1)) {
+							s.exchange_orders_index = 0
+						}
+						console.log('\nOrder on Exchange in control:'.yellow)
+						console.log(s.exchange_orders[s.exchange_orders_index].id)
+					}
+					else {
+						debug.msg('No exchange_orders in memory. Try to get the list by pressing "o".')
+					}
+				}})
+				keyMap.set('-', {desc: ('set order'.grey + ' PREVIOUS'.yellow), action: function() {
+					if (s.exchange_orders.length) {
+						s.exchange_orders_index--
+						if (s.exchange_orders_index < 0) {
+							s.exchange_orders_index = (s.exchange_orders.length - 1)
+						}
+						console.log('\nOrder on Exchange in control:'.yellow)
+						console.log(s.exchange_orders[s.exchange_orders_index].id)
+					}
+					else {
+						debug.msg('No exchange_orders in memory. Try to get the list by pressing "o".')
+					}
+				}})
+				keyMap.set('i', {desc: ('get information on order'.grey), action: function() {
+					if (s.exchange_orders.length) {
+						console.log('\nInformation on order on Exchange in control:'.yellow)
+						console.log(s.exchange_orders[s.exchange_orders_index])
+					}
+					else {
+						debug.msg('No exchange_orders in memory. Try to get the list by pressing "o".')
+					}
+				}})
+				keyMap.set('c', {desc: ('cancel order'.grey), action: function() {
+					if (s.exchange_orders.length) {
+						let opts_tmp = {
+							order_id: s.exchange_orders[s.exchange_orders_index].id,
+							product_id: so.selector.product_id
+						}
+						console.log('\nCancelling order on Exchange in control:'.yellow)
+						s.exchange.cancelOrder(opts_tmp, function() {
+							debug.msg('Order ' + s.exchange_orders[s.exchange_orders_index].id + ' canceled')
+							
+							s.exchange.getAllOrders(opts_tmp, function (err, orders) {
+								s.exchange_orders = orders
+								if (orders && orders.length) {
+									s.exchange_orders_index = 0
+								}
+							})
+						})
+					}
+					else {
+						debug.msg('No exchange_orders in memory. Try to get the list by pressing "o".')
+					}
+				}})
+				keyMap.set('C', {desc: ('cancel ALL order'.grey), action: function() {
+					console.log('\nCancelling ALL orders on Exchange:'.yellow)
+					let opts_tmp = {
+							product_id: so.selector.product_id
+						}
+					s.exchange.cancelAllOrders(opts_tmp, function() {
+						debug.msg('Orders canceled')
+						
+						s.exchange.getAllOrders(opts_tmp, function (err, orders) {
+							s.exchange_orders = orders
+							if (orders && orders.length) {
+								s.exchange_orders_index = 0
+							}
+						})
+					})
+				}})
+				break
+			}
+			case 4: {
+				//Modo OPTIONS
+				keyMap.set('o', {desc: ('show current trade options'.grey), action: function() { listOptions ()}})
+				keyMap.set('a', {desc: ('show current trade options in a dirty view (full list)'.grey), action: function() {
+					console.log('\n' + cliff.inspect(so))
+				}})
+				keyMap.set('D', {desc: ('toggle DEBUG'.grey), action: function() {
+					debug.flip()
+					console.log('\nDEBUG mode: ' + (debug.on ? 'ON'.green.inverse : 'OFF'.red.inverse))
+				}})
+				keyMap.set('w', {desc: ('toggle Dump Watchdog'.grey), action: function() {
+					so.dump_watchdog = !so.dump_watchdog
+					s.is_dump_watchdog = so.dump_watchdog
+					console.log('\nToggle Dump Watchdog: ' + (so.dump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
+				}})
+				keyMap.set('W', {desc: ('toggle Pump Watchdog'.grey), action: function() {
+					so.pump_watchdog = !so.pump_watchdog
+					s.is_pump_watchdog = so.pump_watchdog
+					console.log('\nToggle Pump Watchdog: ' + (so.pump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
+				}})
+				keyMap.set('z', {desc: ('toggle Long Position'.grey), action: function() {
+					so.active_long_position = !so.active_long_position
+					console.log('\nToggle Long position: ' + (so.active_long_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
+				}})
+				keyMap.set('Z', {desc: ('toggle Short Position'.grey), action: function() {
+					so.active_short_position = !so.active_short_position
+					console.log('\nToggle Short position: ' + (so.active_short_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
+				}})
+				keyMap.set('h', {desc: ('dump statistical output to HTML file'.grey), action: function() {
+					console.log('\nDumping statistics...'.grey)
+					printTrade(false, true)
+				}})
+				keyMap.set('H', {desc: ('toggle automatic HTML dump to file'.grey), action: function() {
+					console.log('\nDumping statistics...'.grey)
+					toggleStats()
+				}})
+				break
+			}			
+			}
+			console.log('Command Menu ' + modeMap.get(modeCommand).yellow)
+			listKeys()
+		}
+		/* End of changeModeCommand() */
+
+		/* List of available commands */
 		function listKeys() {
 			console.log('\nAvailable command keys:')
 			keyMap.forEach((value, key) => {
-				console.log(' ' + key + ' - ' + value)
+				console.log(' ' + key + ' - ' + value.desc)
 			})
-		}
-
-		/* Toggle for interactive buy/sell */
-		var interactiveBuySell = false
-		function toggleInteractiveBuySell() {
-			interactiveBuySell = !interactiveBuySell
-			if(interactiveBuySell)
-				console.log('Interactive Buy/Sell enabled')
-			else
-				console.log('Interactive Buy/Sell disabled')
 		}
 
 		/* Trying to recover MongoDB connection */
@@ -698,7 +927,7 @@ module.exports = function (program, conf) {
 			oldest_time: null
 		}
 		marker._id = marker.id
-
+		
 		//Se richiesto nel comando, esegue il reset dei database
 		if (cmd.reset) {
 			//Corretto il Deprecation Warning
@@ -726,7 +955,7 @@ module.exports = function (program, conf) {
 		//Per caricare i dati dei trades, chiama zenbot.js backfill (so.selector.normalized) --days __ --conf __
 		console.log('fetching pre-roll data:')
 		var zenbot_cmd = process.platform === 'win32' ? 'zenbot.bat' : 'zenbot.sh' // Use 'win32' for 64 bit windows too
-			var command_args = ['backfill', so.selector.normalized, '--days', days || 1]
+		var command_args = ['backfill', so.selector.normalized, '--days', days || 1]
 		if (cmd.conf) {
 			command_args.push('--conf', cmd.conf)
 		}
@@ -738,7 +967,7 @@ module.exports = function (program, conf) {
 				process.exit(code)
 			}
 			
-			function getNext () {
+			function getNext() {
 				var opts = {
 					query: {
 						selector: so.selector.normalized
@@ -785,7 +1014,11 @@ module.exports = function (program, conf) {
 						if (so.mode === 'paper') {
 							console.log('!!! Paper mode enabled. No real trades are performed until you remove --paper from the startup command.')
 						}
-						console.log('Press ' + ' l '.inverse + ' to list available commands.')
+//						console.log('Press ' + ' l '.inverse + ' to list available commands.')
+						
+						//Inizializzo i comandi dell'interfaccia
+						changeModeCommand()
+						
 						engine.syncBalance(function (err) {
 							if (err) {
 								if (err.desc) console.error(err.desc)
@@ -810,11 +1043,11 @@ module.exports = function (program, conf) {
 							sessions.find({selector: so.selector.normalized}).limit(1).sort({started: -1}).toArray(function (err, prev_sessions) {
 								if (err) throw err
 								var prev_session = prev_sessions[0]
-								//                  if (prev_session && !cmd.reset) {
+			//                  if (prev_session && !cmd.reset) {
 								if (prev_session && !cmd.reset && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency && !raw_opts.currency_capital && !raw_opts.asset_capital))) {
 //									debug.msg('getNext() - prev_session')
-									//                    if (prev_session.orig_capital && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {                	  
-									//                      s.orig_capital = session.orig_capital = so.currency_capital || prev_session.orig_capital
+//                    if (prev_session.orig_capital && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {                	  
+//                      s.orig_capital = session.orig_capital = so.currency_capital || prev_session.orig_capital
 									s.orig_currency = session.orig_currency = prev_session.orig_currency
 									s.orig_asset = session.orig_asset = prev_session.orig_asset
 									s.orig_price = session.orig_price = prev_session.orig_price
@@ -836,14 +1069,14 @@ module.exports = function (program, conf) {
 									debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital = ' + s.orig_capital + ' ; s.orig_price = ' + s.orig_price)
 								} 
 								//                  }
-								if(s.lookback.length > so.keep_lookback_periods) {
+								if (s.lookback.length > so.keep_lookback_periods) {
 									s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 								}
 
 								//Chiamata alla funzione forwardScan() ogni so.poll_trades
 								forwardScan()
 								setInterval(forwardScan, so.poll_trades)
-								
+
 								//Chiamata alla funzione syncBalance ogni so.poll_balance
 								setInterval(engine.syncBalance, so.poll_balance)
 
@@ -851,125 +1084,17 @@ module.exports = function (program, conf) {
 								if (!so.non_interactive && process.stdin.setRawMode) {
 									process.stdin.setRawMode(true)
 									process.stdin.on('keypress', function (key, info) {
-										if (key === 'l') {
-											listKeys()
-										} else if (key === 'I' && !info.ctrl) {
-											console.log('\nInteractive Buy/Sell...'.grey)
-											toggleInteractiveBuySell()
-										} else if (key === 'b' && !info.ctrl && interactiveBuySell) {
-											console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command inserted'.grey)
-											engine.emitSignal('standard', 'buy')											
-										} else if (key === 'B' && !info.ctrl && interactiveBuySell) {
-											console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command inserted'.grey)
-											engine.emitSignal('standard', 'buy', null, null, null, false, true)
-										} else if (key === 's' && !info.ctrl && interactiveBuySell) {
-											console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command inserted'.grey)
-											engine.emitSignal('standard', 'sell')											
-										} else if (key === 'S' && !info.ctrl && interactiveBuySell) {
-											console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command inserted'.grey)
-											engine.emitSignal('standard', 'sell', null, null, null, false, true)											
-										} else if (key === 't' && !info.ctrl && interactiveBuySell) {
-											console.log('\nmanual'.grey + ' catch ' + 'BUY'.green + ' command inserted'.grey)
-											var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-											var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-											engine.emitSignal('manualcatch', 'buy', null, target_size, target_price)											
-										} else if (key === 'T' && !info.ctrl && interactiveBuySell) {
-											console.log('\nmanual'.grey + ' catch ' + 'SELL'.red + ' command inserted'.grey)
-											var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-											var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-											engine.emitSignal('manualcatch', 'sell', null, target_size, target_price)	
-										} else if (key === '+' && !info.ctrl && interactiveBuySell) {
-											so.catch_manual_pct++
-											console.log('\n' + 'Manual catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_manual_pct)	
-										} else if (key === '-' && !info.ctrl && interactiveBuySell) {
-											so.catch_manual_pct--
-											console.log('\n' + 'Manual catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_manual_pct)
-										} else if (key === '*' && !info.ctrl && interactiveBuySell) {
-											so.catch_fixed_value += so.quantum_value
-											console.log('\n' + 'Manual catch order value ' + 'INCREASE'.green + ' -> ' + so.catch_fixed_value)	
-										} else if (key === '_' && !info.ctrl && interactiveBuySell) {
-											so.catch_fixed_value -= so.quantum_value
-											if (so.catch_fixed_value < so.quantum_value) {
-												so.catch_fixed_value = so.quantum_value
+										if (!info.ctrl) {
+											//debug.msg('Pressed ' + key)
+											if (keyMap.has(key)) {
+												//debug.msg('keyMap esiste')
+												keyMap.get(key).action()
 											}
-											console.log('\n' + 'Manual catch order value ' + 'DECREASE'.red + ' -> ' + so.catch_fixed_value)
-										} else if (key === '0' && !info.ctrl && interactiveBuySell) {
-											console.log('\nmanual'.grey + ' canceling ALL catch orders')
-											engine.orderStatus(undefined, undefined, 'manualcatch', undefined, 'Unset', 'manualcatch')
-										} else if (key === 'A' && !info.ctrl && interactiveBuySell) {
-											console.log('\n' + 'Insert catch order for all free positions'.grey)
-											s.positions.forEach(function (position, index) {
-												engine.emitSignal('orderExecuted', position.side, position.id)
-											})
-										} else if ((key === 'c') && !info.ctrl && interactiveBuySell) {
-											engine.orderStatus(undefined, undefined, 'standard', undefined, 'Unset', 'standard')
-											console.log('\nmanual'.grey + ' standard orders cancel' + ' command executed'.grey)
-										} else if ((key === 'C') && !info.ctrl && interactiveBuySell) {
-											console.log('\nmanual'.grey + ' canceling ALL orders')
-											// cancelAllOrders non registrerebbe ordini eseguiti parzialmente.
-											// Quindi meglio cancellarli uno ad uno tramite la funzione engine.positionStatus
-											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
-										} else if (key === 'm' && !info.ctrl && so.mode === 'live') {
-											so.manual = !so.manual
-											console.log('\nMANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse))
-										} else if (key === 'M' && !info.ctrl) {
-											(so.order_type === 'maker' ? so.order_type = 'taker' : so.order_type = 'maker')
-											console.log('\n' + so.order_type.toUpperCase() + ' fees activated'.black.bgGreen)
-										} else if (key === 'o' && !info.ctrl) {
-											listOptions()
-										} else if (key === 'd' && !info.ctrl) {
-											console.log('\n' + cliff.inspect(so))
-										} else if (key === 'p' && !info.ctrl) {
-											console.log('\nWriting statistics...'.grey)
-											printTrade(false)
-										} else if (key === 'P' && !info.ctrl) {
-											console.log('\nListing positions opened...'.grey)
-											debug.printPosition(s.positions, true)
-										} else if (key === 'O' && !info.ctrl) {
-											console.log('\nListing orders opened...'.grey)
-											debug.printPosition(s.orders, true)
-										} else if (key === 'X' && !info.ctrl) {
-											console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
-											// cancelAllOrders non registrerebbe ordini eseguiti parzialmente.
-											// Quindi meglio cancellarli uno ad uno tramite la funzione engine.positionStatus	
-											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')								
-											setTimeout(function() { 
-												console.log('\nExiting... ' + '\nWriting statistics...'.grey)
-												printTrade(true)
-											}, so.order_poll_time*5)								
-										} else if (key === 'h' && !info.ctrl) {
-											console.log('\nDumping statistics...'.grey)
-											printTrade(false, true)
-										} else if (key === 'H' && !info.ctrl) {
-											console.log('\nDumping statistics...'.grey)
-											toggleStats()
-										} else if (key === 'D' && !info.ctrl) {
-											debug.flip()
-											console.log('\nDEBUG mode: ' + (debug.on ? 'ON'.green.inverse : 'OFF'.red.inverse))
-										} else if (info.name === 'c' && info.ctrl) {
+										}
+										else if (info.name === 'c') {
 											// @todo: cancel open orders before exit
 											console.log()
 											process.exit()
-										} else if (key === 'R' && !info.ctrl) {
-											console.log('\nTrying to recover MongoDB connection...'.grey)
-											recoverMongoDB()
-										} else if (key === 'K' && !info.ctrl) {
-											console.log('\nCleaning MongoDB databases...'.grey)
-											cleanMongoDB()
-										} else if (key === 'w' && !info.ctrl) {
-											so.dump_watchdog = !so.dump_watchdog
-											s.is_dump_watchdog = so.dump_watchdog
-											console.log('\nToggle Dump Watchdog: ' + (so.dump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
-										} else if (key === 'W' && !info.ctrl) {
-											so.pump_watchdog = !so.pump_watchdog
-											s.is_pump_watchdog = so.pump_watchdog
-											console.log('\nToggle Pump Watchdog: ' + (so.pump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
-										} else if (key === 'z' && !info.ctrl) {
-											so.active_long_position = !so.active_long_position
-											console.log('\nToggle Long position: ' + (so.active_long_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
-										} else if (key === 'Z' && !info.ctrl) {
-											so.active_short_position = !so.active_short_position
-											console.log('\nToggle Short position: ' + (so.active_short_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
 										}
 									})
 								}
