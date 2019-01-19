@@ -18,6 +18,7 @@ var tb = require('timebucket')
 , { formatAsset, formatPercent, formatCurrency } = require('../lib/format')
 , debug = require('../lib/debug')
 , sizeof = require('object-sizeof')
+, async = require('async')
 
 //Per eseguire comandi da bash
 //var sys = require('util')
@@ -44,7 +45,7 @@ module.exports = function (program, conf) {
     .option('--currency_capital <amount>', 'for paper trading, amount of start capital in currency. For live trading, amount of new starting capital in currency.', Number, conf.currency_capital)
 	.option('--asset_capital <amount>', 'for paper trading, amount of start capital in asset', Number, conf.asset_capital)
 	.option('--avg_slippage_pct <pct>', 'avg. amount of slippage to apply to paper trades', Number, conf.avg_slippage_pct)
-	.option('--quantum_size <amount>', 'buy up to this amount of currency every time', Number, conf.quantum_size)
+	.option('--quantum_value <amount>', 'buy up to this amount of currency every time', Number, conf.quantum_value)
 	.option('--best_bid', 'mark up as little as possible the buy price to be the best bid', Boolean, false)
 	.option('--best_ask', 'mark down as little as possible the sell price to be the best ask', Boolean, false)
 	.option('--dump_watchdog', 'check for dumps. Strategy is in charge', Boolean, false)
@@ -55,6 +56,9 @@ module.exports = function (program, conf) {
 	.option('--markup_sell_pct <pct>', '% to mark up sell price', Number, conf.markup_sell_pct)
 	.option('--buy_price_limit <amount>', 'Limit buy to be under <amount>', Number, conf.buy_price_limit)
 	.option('--sell_price_limit <amount>', 'Limit sell to be above <amount>', Number, conf.sell_price_limit)
+	.option('--catch_order_pct <pct>', '% for catch orders', Number, conf.catch_order_pct)
+	.option('--catch_manual_pct <pct>', '% for manual catch orders', Number, conf.catch_manual_pct)
+	.option('--catch_fixed_value <amount>', 'value for manual catch orders', Number, conf.catch_fixed_value)
 	.option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, conf.order_adjust_time)
 	.option('--order_poll_time <ms>', 'poll order status on this interval', Number, conf.order_poll_time)
 	.option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, conf.sell_stop_pct)
@@ -76,6 +80,7 @@ module.exports = function (program, conf) {
 	.option('--run_for <minutes>', 'Execute for a period of minutes then exit with status 0', String, conf.run_for)
 	.option('--update_msg <hours>', 'Send an update message every <hours>', String, conf.update_msg)
 	.option('--debug', 'output detailed debug info')
+	.option('--no_first_message', 'no first update message', Boolean, false)
 	.action(function (selector, cmd) {
 		var raw_opts = minimist(process.argv)
 		var s = {options: JSON.parse(JSON.stringify(raw_opts))}
@@ -122,11 +127,21 @@ module.exports = function (program, conf) {
 		so.debug = cmd.debug
 		so.stats = !cmd.disable_stats
 		so.mode = so.paper ? 'paper' : 'live'
-
+		
 		//debug.msg('updateMsg=' + so.update_msg)
 		if (so.update_msg) {
-			var nextUpdateMsg = moment().add(so.update_msg, 'h')
-			//debug.msg('nextUpdateMsg=' + nextUpdateMsg)
+//			var nextUpdateMsg = moment().add(so.update_msg, 'h')
+			var nextUpdateMsg = moment().startOf('day').add(8, 'h')
+			
+			while (nextUpdateMsg < moment()) {
+				nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
+				debug.msg('nextUpdateMsg=' + nextUpdateMsg)
+			}
+			
+			if (!so.no_first_message) {
+				nextUpdateMsg = nextUpdateMsg.subtract(so.update_msg, 'h')
+				debug.msg('First message on. nextUpdateMsg=' + nextUpdateMsg)
+			}
 		}
 
 		if (!so.min_periods) so.min_periods = 301
@@ -144,8 +159,13 @@ module.exports = function (program, conf) {
 		keyMap.set('B', 'market'.grey + ' BUY'.green)
 		keyMap.set('s', 'limit'.grey + ' SELL'.red)
 		keyMap.set('S', 'market'.grey + ' SELL'.red)
-		keyMap.set('t', 'catch'.grey + ' BUY'.green)
-		keyMap.set('T', 'catch'.grey + ' SELL'.red)
+		keyMap.set('t', 'manual catch order'.grey + ' BUY'.green)
+		keyMap.set('T', 'manual catch order'.grey + ' SELL'.red)
+		keyMap.set('+', 'manual catch pct'.grey + ' INCREASE'.green)
+		keyMap.set('-', 'manual catch pct'.grey + ' DECREASE'.red)
+		keyMap.set('*', 'manual catch value'.grey + ' INCREASE'.green)
+		keyMap.set('_', 'manual catch value'.grey + ' DECREASE'.red)
+		keyMap.set('0', 'cancel all manual catch orders'.grey)
 		keyMap.set('A', 'insert catch order for all free position'.grey)
 		keyMap.set('c', 'cancel order'.grey)
 		keyMap.set('C', 'cancel ALL order'.grey)
@@ -285,7 +305,51 @@ module.exports = function (program, conf) {
 			})
 		}
 		
+		/* Funzioni per le operazioni sul databse Mongo DB delle posizioni */
+		s.positionProcessingQueue = async.queue(function(task, callback) {
+			managePositionCollection(task.mode, task.id, callback)
+		})
 		
+		// Assegna una funzione di uscita
+		s.positionProcessingQueue.drain = function() {
+			debug.msg('s.positionProcessingQueue - All items have been processed')
+		};
+		
+		function managePositionCollection (mode, position_id, cb = function () {}) {
+			switch (mode) {
+			case 'update': {
+				position = s.positions.find(x => x.id === position_id)
+				position._id = position.id
+
+				if (s.db_valid) {
+					my_positions.updateOne({"_id" : position_id}, {$set: position}, {upsert: true}, function (err) {
+//						s.update_position_id = null
+						if (err) {
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
+							console.error(err)
+							return cb(err)
+						}
+					})
+				}
+				break
+			}
+			case 'delete': {
+				if (s.db_valid) {
+					my_positions.deleteOne({"_id" : position_id}, function (err) {
+//						s.delete_position_id = null
+						if (err) {
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in my_positions')
+							console.error(err)
+							return cb(err)
+						}
+					})
+				}
+				break
+			}
+			}
+			return cb(null)
+		}
+		/* End funzioni per le operazioni sul databse Mongo DB delle posizioni */ 
 		
 		/* To list options*/
 		function listOptions () {
@@ -309,7 +373,7 @@ module.exports = function (program, conf) {
 				z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
 				z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
 				z(17, (so.order_type === 'maker' ? so.order_type + ' ' + n(s.exchange.makerFee).format('0.0000%')  : so.order_type + ' ' + s.exchange.takerFee), ' ')
-				].join('') + '\n')
+				].join('') + '\n\n')
 			process.stdout.write('')
 			process.stdout.write([
 			//z(19, 'BUY %'.grey, ' '),
@@ -328,7 +392,23 @@ module.exports = function (program, conf) {
 				z(8, so.pump_watchdog, ' '),
 				z(16, so.active_long_position, ' '),
 				z(8, so.active_short_position, ' ')
-				].join('') + '\n')
+				].join('') + '\n\n')
+			process.stdout.write('')
+			process.stdout.write([
+			z(37, 'BUY / SELL STOP LOSS %'.grey, ' '),
+			z(35, 'CATCH ORDER DEFAULT %'.grey, ' '),
+			z(33, 'CATCH ORDER MANUAL %'.grey, ' '),
+			z(30, 'CATCH FIXED VALUE'.grey, ' '),
+//			z(36, 'LONG / SHORT POSITION'.grey, ' ')
+			].join('') + '\n')
+			process.stdout.write([
+				z(9, (so.buy_stop_pct || '--') + '%', ' '),
+				z(6, (so.sell_stop_pct || '--') + '%', ' '),
+				z(25, so.catch_order_pct + '%', ' '),
+				z(23, so.catch_manual_pct + '%', ' '),
+				z(25, formatCurrency(so.catch_fixed_value, s.currency), ' '),
+//				z(8, so.active_short_position, ' ')
+				].join('') + '\n\n')
 			process.stdout.write('')
 		}
 		/* End listOptions() */
@@ -368,6 +448,7 @@ module.exports = function (program, conf) {
 				//output_lines.push((s.my_prev_trades.length ? s.my_trades.length + s.my_prev_trades.length : s.my_trades.length) + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 				output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 				output_lines.push(s.positions.length + ' positions opened.')
+				output_lines.push(s.orders.length + ' orders opened.')
 				output_lines.push(sizeof(s) + ' size of s')
 				output_lines.push(sizeof(s.trades) + ' size of s.trades')
 				output_lines.push(sizeof(s.period) + ' size of s.period')
@@ -478,7 +559,7 @@ module.exports = function (program, conf) {
 
 		/* Implementing statistical status dump every 10 secs */
 		var shouldSaveStats = false
-		function toggleStats(){
+		function toggleStats() {
 			shouldSaveStats = !shouldSaveStats
 			if(shouldSaveStats)
 				console.log('Auto stats dump enabled')
@@ -486,7 +567,7 @@ module.exports = function (program, conf) {
 				console.log('Auto stats dump disabled')
 		}
 
-		function saveStatsLoop(){
+		function saveStatsLoop() {
 			saveStats()
 			setTimeout(function () {
 				saveStatsLoop()
@@ -494,7 +575,7 @@ module.exports = function (program, conf) {
 		}
 		saveStatsLoop()
 
-		function saveStats () {
+		function saveStats() {
 			if(!shouldSaveStats) return
 
 			var output_lines = []
@@ -656,12 +737,15 @@ module.exports = function (program, conf) {
 			if (code) {
 				process.exit(code)
 			}
+			
 			function getNext () {
 				var opts = {
 					query: {
 						selector: so.selector.normalized
 					},
-					sort: {time: 1},
+					sort: {
+						time: 1
+					},
 					limit: 1000
 				}
 				if (db_cursor) {
@@ -694,13 +778,13 @@ module.exports = function (program, conf) {
 					}
 					if (!trades.length) {
 						var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------'
-							console.log(head)
-							output(conf).initializeOutput(s)
-							var minuses = Math.floor((head.length - so.mode.length - 19) / 2)
-							console.log('-'.repeat(minuses) + ' STARTING ' + so.mode.toUpperCase() + ' TRADING ' + '-'.repeat(minuses + (minuses % 2 == 0 ? 0 : 1)))
-							if (so.mode === 'paper') {
-								console.log('!!! Paper mode enabled. No real trades are performed until you remove --paper from the startup command.')
-							}
+						console.log(head)
+						output(conf).initializeOutput(s)
+						var minuses = Math.floor((head.length - so.mode.length - 19) / 2)
+						console.log('-'.repeat(minuses) + ' STARTING ' + so.mode.toUpperCase() + ' TRADING ' + '-'.repeat(minuses + (minuses % 2 == 0 ? 0 : 1)))
+						if (so.mode === 'paper') {
+							console.log('!!! Paper mode enabled. No real trades are performed until you remove --paper from the startup command.')
+						}
 						console.log('Press ' + ' l '.inverse + ' to list available commands.')
 						engine.syncBalance(function (err) {
 							if (err) {
@@ -752,13 +836,16 @@ module.exports = function (program, conf) {
 									debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital = ' + s.orig_capital + ' ; s.orig_price = ' + s.orig_price)
 								} 
 								//                  }
-								if(s.lookback.length > so.keep_lookback_periods){
+								if(s.lookback.length > so.keep_lookback_periods) {
 									s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 								}
 
-								//Chiamata alla funzione forwardScan()
+								//Chiamata alla funzione forwardScan() ogni so.poll_trades
 								forwardScan()
 								setInterval(forwardScan, so.poll_trades)
+								
+								//Chiamata alla funzione syncBalance ogni so.poll_balance
+								setInterval(engine.syncBalance, so.poll_balance)
 
 								readline.emitKeypressEvents(process.stdin)
 								if (!so.non_interactive && process.stdin.setRawMode) {
@@ -770,40 +857,57 @@ module.exports = function (program, conf) {
 											console.log('\nInteractive Buy/Sell...'.grey)
 											toggleInteractiveBuySell()
 										} else if (key === 'b' && !info.ctrl && interactiveBuySell) {
-											engine.emitSignal('standard', 'buy')
-											console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command executed'.grey)
+											console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command inserted'.grey)
+											engine.emitSignal('standard', 'buy')											
 										} else if (key === 'B' && !info.ctrl && interactiveBuySell) {
+											console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command inserted'.grey)
 											engine.emitSignal('standard', 'buy', null, null, null, false, true)
-											console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command executed'.grey)
 										} else if (key === 's' && !info.ctrl && interactiveBuySell) {
-											engine.emitSignal('standard', 'sell')
-											console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command executed'.grey)
+											console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command inserted'.grey)
+											engine.emitSignal('standard', 'sell')											
 										} else if (key === 'S' && !info.ctrl && interactiveBuySell) {
-											engine.emitSignal('standard', 'sell', null, null, null, false, true)
-											console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command executed'.grey)
+											console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command inserted'.grey)
+											engine.emitSignal('standard', 'sell', null, null, null, false, true)											
 										} else if (key === 't' && !info.ctrl && interactiveBuySell) {
-// Il tipo di ordine newCatch non fa scattare nulla. Sistemare.											
-											console.log('\n' + 'Insert ' + 'buy catch order'.green)
-											var target_price = n(s.quote.bid).multiply(1 - so.catch_order_pct/100).format(s.product.increment, Math.floor)
-											engine.emitSignal('newCatch', 'buy', null, null, target_price)											
+											console.log('\nmanual'.grey + ' catch ' + 'BUY'.green + ' command inserted'.grey)
+											var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+											var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+											engine.emitSignal('manualcatch', 'buy', null, target_size, target_price)											
 										} else if (key === 'T' && !info.ctrl && interactiveBuySell) {
-											console.log('\n' + 'Insert ' + 'sell catch order'.red)
-											var target_price = n(s.quote.ask).multiply(1 + so.catch_order_pct/100).format(s.product.increment, Math.floor)
-											engine.emitSignal('newCatch', 'sell', null, null, target_price)	
+											console.log('\nmanual'.grey + ' catch ' + 'SELL'.red + ' command inserted'.grey)
+											var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+											var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+											engine.emitSignal('manualcatch', 'sell', null, target_size, target_price)	
+										} else if (key === '+' && !info.ctrl && interactiveBuySell) {
+											so.catch_manual_pct++
+											console.log('\n' + 'Manual catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_manual_pct)	
+										} else if (key === '-' && !info.ctrl && interactiveBuySell) {
+											so.catch_manual_pct--
+											console.log('\n' + 'Manual catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_manual_pct)
+										} else if (key === '*' && !info.ctrl && interactiveBuySell) {
+											so.catch_fixed_value += so.quantum_value
+											console.log('\n' + 'Manual catch order value ' + 'INCREASE'.green + ' -> ' + so.catch_fixed_value)	
+										} else if (key === '_' && !info.ctrl && interactiveBuySell) {
+											so.catch_fixed_value -= so.quantum_value
+											if (so.catch_fixed_value < so.quantum_value) {
+												so.catch_fixed_value = so.quantum_value
+											}
+											console.log('\n' + 'Manual catch order value ' + 'DECREASE'.red + ' -> ' + so.catch_fixed_value)
+										} else if (key === '0' && !info.ctrl && interactiveBuySell) {
+											console.log('\nmanual'.grey + ' canceling ALL catch orders')
+											engine.orderStatus(undefined, undefined, 'manualcatch', undefined, 'Unset', 'manualcatch')
 										} else if (key === 'A' && !info.ctrl && interactiveBuySell) {
 											console.log('\n' + 'Insert catch order for all free positions'.grey)
 											s.positions.forEach(function (position, index) {
-// Da sistemare. Tutti gli ordini insieme mandano in protezione l'exchange. Vanno distribuiti in un arco di tempo.
-// Stessa cosa per la cancellazione degli ordini in uscita dal programma
-//												setTimeout(function() { engine.emitSignal('orderExecuted', position.side, position.id)}, (Math.random()*10000))
 												engine.emitSignal('orderExecuted', position.side, position.id)
 											})
-										} else if ((key === 'c') && !info.ctrl) {
+										} else if ((key === 'c') && !info.ctrl && interactiveBuySell) {
 											engine.orderStatus(undefined, undefined, 'standard', undefined, 'Unset', 'standard')
 											console.log('\nmanual'.grey + ' standard orders cancel' + ' command executed'.grey)
-										} else if ((key === 'C') && !info.ctrl) {
+										} else if ((key === 'C') && !info.ctrl && interactiveBuySell) {
 											console.log('\nmanual'.grey + ' canceling ALL orders')
-//											s.exchange.cancelAllOrders({product_id: s.product_id})
+											// cancelAllOrders non registrerebbe ordini eseguiti parzialmente.
+											// Quindi meglio cancellarli uno ad uno tramite la funzione engine.positionStatus
 											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 										} else if (key === 'm' && !info.ctrl && so.mode === 'live') {
 											so.manual = !so.manual
@@ -826,13 +930,13 @@ module.exports = function (program, conf) {
 											debug.printPosition(s.orders, true)
 										} else if (key === 'X' && !info.ctrl) {
 											console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
-											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
-// cancelAllOrders non mi piace perchè potrebbe non registrare ordini eseguiti parzialmente. Sarebbe meglio cancellarli uno ad uno
-//   tramite la funzione engine.positionStatus											
+											// cancelAllOrders non registrerebbe ordini eseguiti parzialmente.
+											// Quindi meglio cancellarli uno ad uno tramite la funzione engine.positionStatus	
+											engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')								
 											setTimeout(function() { 
 												console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 												printTrade(true)
-											}, so.order_poll_time*3)								
+											}, so.order_poll_time*5)								
 										} else if (key === 'h' && !info.ctrl) {
 											console.log('\nDumping statistics...'.grey)
 											printTrade(false, true)
@@ -886,21 +990,22 @@ module.exports = function (program, conf) {
 			engine.writeHeader()
 			getNext()
 		})
+		/* End of backfiller.on(exit) */
 
 		var prev_timeout = null
 		function forwardScan () {
 			function saveSession () {
-				engine.syncBalance(function (err) {
-					if (!err && s.balance.asset === undefined) {
-						// TODO not the nicest place to verify the state, but did not found a better one
-						throw new Error('Error during syncing balance. Please check your API-Key')
-					}
-					if (err) {
-						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error syncing balance')
-						if (err.desc) console.error(err.desc)
-						if (err.body) console.error(err.body)
-						console.error(err)
-					}
+//				engine.syncBalance(function (err) {
+//					if (!err && s.balance.asset === undefined) {
+//						// TODO not the nicest place to verify the state, but did not found a better one
+//						throw new Error('Error during syncing balance. Please check your API-Key')
+//					}
+//					if (err) {
+//						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error syncing balance')
+//						if (err.desc) console.error(err.desc)
+//						if (err.body) console.error(err.body)
+//						console.error(err)
+//					}
 
 					//Check sul run_for
 					if (botStartTime && botStartTime - moment() < 0 ) {
@@ -912,7 +1017,8 @@ module.exports = function (program, conf) {
 
 					//Check per invio messaggi di status
 					if (nextUpdateMsg && nextUpdateMsg - moment() < 0) {
-						nextUpdateMsg = moment().add(so.update_msg, 'h')
+//						nextUpdateMsg = moment().add(so.update_msg, 'h')
+						nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
 						//debug.msg('nextUpdateMsg=' + nextUpdateMsg)
 						engine.updateMessage()
 					}
@@ -972,7 +1078,7 @@ module.exports = function (program, conf) {
 							process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
 						}
 					})
-				})
+//				})
 			}
 			/* End of saveSession()  */
 
@@ -1044,36 +1150,17 @@ module.exports = function (program, conf) {
 									}
 								})
 								
-								if (s.update_position_id != null) {
-									position = s.positions.find(x => x.id === s.update_position_id)
-									position._id = position.id
-																		
-									if (s.db_valid) {
-										my_positions.updateOne({"_id" : s.update_position_id}, {$set: position}, {upsert: true}, function (err) {
-											if (err) {
-												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
-												console.error(err)
-											}
-											s.update_position_id = null
-										})
-									}
-								}
-								
-								if (s.delete_position_id != null) {
-									if (s.db_valid) {
-										my_positions.deleteOne({"_id" : s.delete_position_id}, function (err) {
-											if (err) {
-												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in my_positions')
-												console.error(err)
-											}
-											s.delete_position_id = null
-										})
-									}
-								}
+//								if (s.update_position_id != null) {
+//									managePositionCollection('update', s.update_position_id)
+//								}
+//								
+//								if (s.delete_position_id != null) {
+//									managePositionCollection('delete', s.delete_position_id)
+//								}
 							})
 							my_trades_size = s.my_trades.length
 						}
-
+						
 						function savePeriod (period) {
 							if (!period.id) {
 								period.id = crypto.randomBytes(4).toString('hex')
@@ -1126,5 +1213,6 @@ module.exports = function (program, conf) {
 			}
 			/* End of saveTrade() */
 		}
+		/* End of forwardScan() */
 	})
 }

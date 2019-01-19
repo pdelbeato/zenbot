@@ -336,7 +336,7 @@ module.exports = function gdax (conf) {
 			var func_args = [].slice.call(arguments)
 			var client = authedClient()
 
-			debug.msg('getBalance - getaccounts call')
+//			debug.msg('getBalance - getaccounts call')
 
 			client.getAccounts(function (err, resp, body) {
 				if (!err) err = statusErr(resp, body)
@@ -579,7 +579,7 @@ module.exports = function gdax (conf) {
 				}
 				
 				if (body) {
-					debug.msg('buy: Body= ')
+					debug.msg('sell: Body= ')
 					debug.obj('body', body, false)
 				}
 				
