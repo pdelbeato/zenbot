@@ -165,6 +165,8 @@ module.exports = function (program, conf) {
 		
 		function changeModeCommand(mode = 0) {
 //			debug.msg('changeModeCommand')
+			modeCommand = mode
+			
 			keyMap.clear()
 
 			keyMap.set('0', {desc: ('Modo '.grey + 'NULL'.yellow),		action: function() { changeModeCommand(0)}})
@@ -420,13 +422,14 @@ module.exports = function (program, conf) {
 				break
 			}			
 			}
-			console.log('Command Menu ' + modeMap.get(modeCommand).yellow)
+			
 			listKeys()
 		}
 		/* End of changeModeCommand() */
 
 		/* List of available commands */
 		function listKeys() {
+			console.log('Command Menu ' + modeMap.get(modeCommand).yellow)
 			console.log('\nAvailable command keys:')
 			keyMap.forEach((value, key) => {
 				console.log(' ' + key + ' - ' + value.desc)
