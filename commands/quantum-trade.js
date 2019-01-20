@@ -429,7 +429,7 @@ module.exports = function (program, conf) {
 
 		/* List of available commands */
 		function listKeys() {
-			console.log('Command Menu ' + modeMap.get(modeCommand).yellow)
+			console.log('\n------------------------------\nCommand Menu ' + modeMap.get(modeCommand).yellow)
 			console.log('\nAvailable command keys:')
 			keyMap.forEach((value, key) => {
 				console.log(' ' + key + ' - ' + value.desc)
