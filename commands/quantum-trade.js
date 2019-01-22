@@ -686,6 +686,7 @@ module.exports = function (program, conf) {
 				output_lines.push(sizeof(s.period) + ' size of s.period')
 				output_lines.push(sizeof(s.lookback) + ' size of s.lookback')
 				output_lines.push(sizeof(s.calc_lookback) + ' size of s.calc_lookback')
+				output_lines.push(s.exchange.getMemory() + ' size of websocket_cache in exchange')
 			}
 			// Build stats for UI
 			s.stats = {

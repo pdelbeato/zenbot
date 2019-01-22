@@ -1,6 +1,8 @@
 let debug = require('../../../lib/debug')
-var Gdax = require('gdax'),
-minimist = require('minimist')
+var Gdax = require('gdax')
+, minimist = require('minimist')
+//Se funziona la gestione della memoria, si può cancellare insieme alla funzione getMemory()
+, sizeof = require('object-sizeof')
 
 module.exports = function gdax (conf) {
 	var so = minimist(process.argv)
@@ -777,6 +779,10 @@ module.exports = function gdax (conf) {
 		// return the property used for range querying.
 		getCursor: function (trade) {
 			return trade.trade_id
+		}
+		
+		getMemory: function() {
+			return sizeof(websocket_cache)
 		}
 	}
 	return exchange
