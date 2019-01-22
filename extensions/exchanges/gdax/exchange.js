@@ -420,13 +420,27 @@ module.exports = function gdax (conf) {
 			client.getProductTicker(opts.product_id, function (err, resp, body) {
 				if (!err) err = statusErr(resp, body)
 				if (err) return retry('getQuote', func_args, err)
-				if (body.bid || body.ask)
+				if (body.bid || body.ask) {
+					debug.msg('getQuote - bid= ' + body.bid + '; ask= ' + body.ask)
+					websocket_cache[opts.product_id].ticker = {
+						best_ask: body.ask,
+						best_bid: body.bid
+					}
 					cb(null, {bid: body.bid, ask: body.ask})
+				}
 				else
 					cb({code: 'ENOTFOUND', body: opts.product_id + ' has no liquidity to quote'})
 			})
 		},
 
+		//Cancella l'ordine dalla websocket_cache, in modo da non aumentarla a dismisura
+		cancelOrderCache: function (opts, cb) {
+			if(websocket_cache[opts.product_id]) {
+				delete websocket_cache[opts.product_id].orders['~' + opts.order_id])
+			}
+			cb()
+		}
+		
 		cancelOrder: function (opts, cb) {
 			var func_args = [].slice.call(arguments)
 			var client = authedClient()
