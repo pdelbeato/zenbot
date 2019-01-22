@@ -436,11 +436,10 @@ module.exports = function gdax (conf) {
 		},
 
 		//Cancella l'ordine dalla websocket_cache, in modo da non aumentarla a dismisura
-		cancelOrderCache: function (opts, cb) {
+		cancelOrderCache: function (opts) {
 			if(websocket_cache[opts.product_id]) {
 				delete websocket_cache[opts.product_id].orders['~' + opts.order_id]
 			}
-			cb()
 		},
 		
 		cancelOrder: function (opts, cb) {
