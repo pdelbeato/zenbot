@@ -441,7 +441,7 @@ module.exports = function gdax (conf) {
 				delete websocket_cache[opts.product_id].orders['~' + opts.order_id]
 			}
 			cb()
-		}
+		},
 		
 		cancelOrder: function (opts, cb) {
 			var func_args = [].slice.call(arguments)
@@ -779,7 +779,7 @@ module.exports = function gdax (conf) {
 		// return the property used for range querying.
 		getCursor: function (trade) {
 			return trade.trade_id
-		}
+		},
 		
 		getMemory: function() {
 			return sizeof(websocket_cache)
