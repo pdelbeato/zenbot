@@ -38,12 +38,14 @@ module.exports = function gdax (conf) {
 			// Apro un websocket autenticato, quindi riceverò anche tutti i messaggi che riguardano il mio user_ida
 			websocket_client[product_id] = new Gdax.WebsocketClient([product_id], conf.gdax.websocketURI, auth, {channels})
 
-			// initialize a cache for the websocket connection
-			websocket_cache[product_id] = {
-				trades: [],
-				trade_ids: [],
-				orders: {},
-				ticker: {}
+			// initialize a cache for the websocket connection (if it does not exist)
+			if (!websocket_cache[product_id]) {
+				websocket_cache[product_id] = {
+					trades: [],
+					trade_ids: [],
+					orders: {},
+					ticker: {}
+				}
 			}
 
 			websocket_client[product_id].on('open', () => {
@@ -197,22 +199,6 @@ module.exports = function gdax (conf) {
 			    time: '2018-03-09T16:56:39.352000Z'
 			  }
 			  
-			  { id: '92a24124-067b-4d3c-b79f-afdc1a13eaea',
-			    price: '5571.79000000',
-			    size: '0.04487500',
-			    product_id: 'BTC-EUR',
-			    side: 'buy',
-			    type: 'limit',
-			    time_in_force: 'GTT',
-			    expire_time: '2018-10-24T12:03:57',
-			    post_only: true,
-			    created_at: '2018-10-23T12:03:58.612863Z',
-			    reject_reason: 'post only',
-			    fill_fees: '0.0000000000000000',
-			    filled_size: '0.00000000',
-			    executed_value: '0.0000000000000000',
-			    status: 'rejected',
-			    settled: false }
 			 */
 
 			// get order "reason":
@@ -670,7 +656,7 @@ module.exports = function gdax (conf) {
 
 //				debug.msg('getOrder - websocket cache:')
 //				debug.msg(order_cache, false)
-
+				
 				cb(null, order_cache)
 				return
 			}
@@ -680,11 +666,42 @@ module.exports = function gdax (conf) {
 
 			debug.msg('getOrder - getOrder call')
 
+			/*
+			 	getOrder
+			    { id: '92a24124-067b-4d3c-b79f-afdc1a13eaea',
+			    price: '5571.79000000',
+			    size: '0.04487500',
+			    product_id: 'BTC-EUR',
+			    side: 'buy',
+			    type: 'limit',
+			    time_in_force: 'GTT',
+			    expire_time: '2018-10-24T12:03:57',
+			    post_only: true,
+			    created_at: '2018-10-23T12:03:58.612863Z',
+			    reject_reason: 'post only',
+			    fill_fees: '0.0000000000000000',
+			    filled_size: '0.00000000',
+			    executed_value: '0.0000000000000000',
+			    status: 'rejected',
+			    settled: false }
+			    
+			    websocket
+			    { 	id: update.order_id,
+					price: update.price,
+					size: update.remaining_size,
+					product_id: update.product_id,
+					side: update.side,
+					status: 'open',
+					settled: false,
+					filled_size: 0 }
+			
+			 */
+			
 			client.getOrder(opts.order_id, function (err, resp, body) {
 				if (!err && resp.statusCode === 200) {
 					debug.msg('**** getOrder - Ordine trovato. Lo inserisco in websocket_cache.')
 					websocket_cache[opts.product_id].orders['~' + opts.order_id] = {
-							id: body.order_id,
+							id: body.id,
 							price: body.price,
 							size: body.size, //Dovrebbe essere remaining_size, ma non ce l'ho tramite getOrder e calcolarlo senza Numbro è pericoloso
 							product_id: body.product_id,
