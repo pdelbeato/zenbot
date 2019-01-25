@@ -479,7 +479,7 @@ module.exports = function (program, conf) {
 				}})	
 				keyMap.set('o', {desc: ('Actual values for limits'.grey), action: function() {
 					actual_values = '/nActual values for limits:'
-					actual values += '/n-------------------------' 
+					actual_values += '/n-------------------------' 
 					actual_values += '/nBuy price limit= ' + so.buy_price_limit
 					actual_values += '/nSell price limit= ' + so.sell_price_limit
 					actual_values += '/nProfit stop enable pct= ' + so.profit_stop_enable_pct
