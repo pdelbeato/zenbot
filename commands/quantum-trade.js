@@ -478,14 +478,14 @@ module.exports = function (program, conf) {
 					console.log('\n' + 'Max buy loss pct' + ' DECREASE'.red + ' -> ' + so.max_buy_loss_pct)	
 				}})	
 				keyMap.set('o', {desc: ('Actual values for limits'.grey), action: function() {
-					actual_values = '/nActual values for limits:'
-					actual_values += '/n-------------------------' 
-					actual_values += '/nBuy price limit= ' + so.buy_price_limit
-					actual_values += '/nSell price limit= ' + so.sell_price_limit
-					actual_values += '/nProfit stop enable pct= ' + so.profit_stop_enable_pct
-					actual_values += '/nProfit stop pct= ' + so.profit_stop_pct
-					actual_values += '/nMax sell loss pct= ' + so.max_sell_loss_pct
-					actual_values += '/nMax buy loss pct= ' + so.max_buy_loss_pct
+					actual_values = '\nActual values for limits:'
+					actual_values += '\n-------------------------' 
+					actual_values += '\nBuy price limit= ' + so.buy_price_limit
+					actual_values += '\nSell price limit= ' + so.sell_price_limit
+					actual_values += '\nProfit stop enable pct= ' + so.profit_stop_enable_pct
+					actual_values += '\nProfit stop pct= ' + so.profit_stop_pct
+					actual_values += '\nMax sell loss pct= ' + so.max_sell_loss_pct
+					actual_values += '\nMax buy loss pct= ' + so.max_buy_loss_pct
 					
 					console.log(actual_values)	
 				}})
