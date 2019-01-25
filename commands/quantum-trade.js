@@ -175,7 +175,7 @@ module.exports = function (program, conf) {
 			keyMap.set('2', {desc: ('Modo '.grey + 'CATCH'.yellow), 	action: function() { changeModeCommand(2)}})
 			keyMap.set('3', {desc: ('Modo '.grey + 'EXCHANGE'.yellow), 	action:	function() { changeModeCommand(3)}})
 			keyMap.set('4', {desc: ('Modo '.grey + 'LIMITS'.yellow), 	action: function() { changeModeCommand(4)}})
-			keyMap.set('5', {desc: ('Modo '.grey + 'OPTIONS'.yellow), 	action: function() { changeModeCommand(4)}})
+			keyMap.set('5', {desc: ('Modo '.grey + 'OPTIONS'.yellow), 	action: function() { changeModeCommand(5)}})
 
 			keyMap.set('l', {desc: ('list available commands'.grey), 	action: function() { listKeys()}})
 
