@@ -439,41 +439,56 @@ module.exports = function (program, conf) {
 //					so.sell_stop_pct--
 //					console.log('\n' + 'Sell stop pct ' + 'DECREASE'.red + ' -> ' + so.sell_price_limit)	
 //				}})
-				keyMap.set('t', {desc: ('Profit stop enable pct ('.grey + so.profit_stop_enable_pct + ')'.grey + ' INCREASE'.green), action: function() {
+				keyMap.set('t', {desc: ('Profit stop enable pct'.grey + ' INCREASE'.green), action: function() {
 					so.profit_stop_enable_pct = Number((so.profit_stop_enable_pct + 0.1).toFixed(2))
 					console.log('\n' + 'Profit stop enable pct' + ' INCREASE'.green + ' -> ' + so.profit_stop_enable_pct)	
 				}})
-				keyMap.set('g', {desc: ('Profit stop enable pct ('.grey + so.profit_stop_enable_pct + ')'.grey + ' DECREASE'.red), action: function() {
+				keyMap.set('g', {desc: ('Profit stop enable pct'.grey + ' DECREASE'.red), action: function() {
 					so.profit_stop_enable_pct = Number((so.profit_stop_enable_pct - 0.1).toFixed(2))
 					if (so.profit_stop_enable_pct <= 0) {
 						so.profit_stop_enable_pct= null
 					}
 					console.log('\n' + 'Profit stop enable pct' + ' DECREASE'.red + ' -> ' + so.profit_stop_enable_pct)	
 				}})
-				keyMap.set('y', {desc: ('Profit stop pct ('.grey + so.profit_stop_pct + ')'.grey + ' INCREASE'.green), action: function() {
+				keyMap.set('y', {desc: ('Profit stop pct'.grey + ' INCREASE'.green), action: function() {
 					so.profit_stop_pct = Number((so.profit_stop_pct + 0.05).toFixed(2))
 					console.log('\n' + 'Profit stop pct' + ' INCREASE'.green + ' -> ' + so.profit_stop_pct)	
 				}})
-				keyMap.set('h', {desc: ('Profit stop pct ('.grey + so.profit_stop_pct + ')'.grey + ' DECREASE'.red), action: function() {
+				keyMap.set('h', {desc: ('Profit stop pct'.grey + ' DECREASE'.red), action: function() {
 					so.profit_stop_pct = Number((so.profit_stop_pct - 0.05).toFixed(2))
+					if (so.profit_stop_pct <= 0) {
+						so.profit_stop_pct= 0
+					}
 					console.log('\n' + 'Profit stop pct' + ' DECREASE'.red + ' -> ' + so.profit_stop_pct)	
 				}})
-				keyMap.set('u', {desc: ('Max sell loss pct (min profit in long position too) ('.grey + so.max_sell_loss_pct + ')'.grey + ' INCREASE'.green), action: function() {
+				keyMap.set('u', {desc: ('Max sell loss pct (min profit in long position too)'.grey + ' INCREASE'.green), action: function() {
 					so.max_sell_loss_pct = Number((so.max_sell_loss_pct + 0.05).toFixed(2))
 					console.log('\n' + 'Max sell loss pct' + ' INCREASE'.green + ' -> ' + so.max_sell_loss_pct)	
 				}})
-				keyMap.set('j', {desc: ('Max sell loss pct (min profit in long position too) ('.grey + so.max_sell_loss_pct + ')'.grey + ' DECREASE'.red), action: function() {
+				keyMap.set('j', {desc: ('Max sell loss pct (min profit in long position too)'.grey + ' DECREASE'.red), action: function() {
 					so.max_sell_loss_pct = Number((so.max_sell_loss_pct - 0.05).toFixed(2))
 					console.log('\n' + 'Max sell loss pct' + ' DECREASE'.red + ' -> ' + so.max_sell_loss_pct)	
 				}})
-				keyMap.set('i', {desc: ('Max buy loss pct (min profit in short position too) ('.grey + so.max_buy_loss_pct + ')'.grey + ' INCREASE'.green), action: function() {
+				keyMap.set('i', {desc: ('Max buy loss pct (min profit in short position too)'.grey + ' INCREASE'.green), action: function() {
 					so.max_buy_loss_pct = Number((so.max_buy_loss_pct + 0.05).toFixed(2))
 					console.log('\n' + 'Max buy loss pct' + ' INCREASE'.green + ' -> ' + so.max_buy_loss_pct)	
 				}})
-				keyMap.set('k', {desc: ('Max buy loss pct (min profit in short position too) ('.grey + so.max_buy_loss_pct + ')'.grey + ' DECREASE'.red), action: function() {
+				keyMap.set('k', {desc: ('Max buy loss pct (min profit in short position too)'.grey + ' DECREASE'.red), action: function() {
 					so.max_buy_loss_pct = Number((so.max_buy_loss_pct - 0.05).toFixed(2))
 					console.log('\n' + 'Max buy loss pct' + ' DECREASE'.red + ' -> ' + so.max_buy_loss_pct)	
-				}})				
+				}})	
+				keyMap.set('o', {desc: ('Actual values for limits'.grey), action: function() {
+					actual_values = '/nActual values for limits:'
+					actual values += '/n-------------------------' 
+					actual_values += '/nBuy price limit= ' + so.buy_price_limit
+					actual_values += '/nSell price limit= ' + so.sell_price_limit
+					actual_values += '/nProfit stop enable pct= ' + so.profit_stop_enable_pct
+					actual_values += '/nProfit stop pct= ' + so.profit_stop_pct
+					actual_values += '/nMax sell loss pct= ' + so.max_sell_loss_pct
+					actual_values += '/nMax buy loss pct= ' + so.max_buy_loss_pct
+					
+					console.log(actual_values)	
+				}})
 				break
 			}
 			case 5: {
