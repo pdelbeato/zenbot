@@ -708,7 +708,7 @@ module.exports = function gdax (conf) {
 							side: body.side,
 							status: body.status,
 							settled: body.settled,
-							filled_size: body.filled_size
+							filled_size: Number(body.filled_size)
 					}
 				}
 				
