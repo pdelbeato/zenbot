@@ -396,19 +396,31 @@ module.exports = function (program, conf) {
 			case 4: {
 				//Modo LIMITS
 				keyMap.set('q', {desc: ('Buy price limit'.grey + ' INCREASE'.green), action: function() {
+					if (!so.buy_price_limit) {
+						so.buy_price_limit = s.quote.bid
+					}
 					so.buy_price_limit += 25
 					console.log('\n' + 'Buy price limit ' + 'INCREASE'.green + ' -> ' + so.buy_price_limit)	
 				}})
 				keyMap.set('a', {desc: ('Buy price limit'.grey + ' DECREASE'.red), action: function() {
+					if (!so.buy_price_limit) {
+						so.buy_price_limit = s.quote.bid
+					}
 					so.buy_price_limit -= 25
 					console.log('\n' + 'Buy price limit ' + 'DECREASE'.red + ' -> ' + so.buy_price_limit)	
 				}})
 				keyMap.set('w', {desc: ('Sell price limit'.grey + ' INCREASE'.green), action: function() {
+					if (!so.sell_price_limit) {
+						so.sell_price_limit = s.quote.ask
+					}
 					so.sell_price_limit += 25
 					console.log('\n' + 'Sell price limit ' + 'INCREASE'.green + ' -> ' + so.sell_price_limit)	
 				}})
 				keyMap.set('s', {desc: ('Sell price limit'.grey + ' DECREASE'.red), action: function() {
-					so.sell_price_limit += 25
+					if (!so.sell_price_limit) {
+						so.sell_price_limit = s.quote.ask
+					}
+					so.sell_price_limit -= 25
 					console.log('\n' + 'Sell price limit ' + 'DECREAE'.red + ' -> ' + so.sell_price_limit)	
 				}})
 //				keyMap.set('e', {desc: ('Buy stop pct (buy if price go over)'.grey + ' INCREASE'.green), action: function() {
@@ -428,38 +440,38 @@ module.exports = function (program, conf) {
 //					console.log('\n' + 'Sell stop pct ' + 'DECREASE'.red + ' -> ' + so.sell_price_limit)	
 //				}})
 				keyMap.set('t', {desc: ('Profit stop enable pct ('.grey + so.profit_stop_enable_pct + ')'.grey + ' INCREASE'.green), action: function() {
-					so.profit_stop_enable_pct++
+					so.profit_stop_enable_pct = ((so.profit_stop_enable_pct * 100) + 10) / 100
 					console.log('\n' + 'Profit stop enable pct' + 'INCREASE'.green + ' -> ' + so.profit_stop_enable_pct)	
 				}})
 				keyMap.set('g', {desc: ('Profit stop enable pct ('.grey + so.profit_stop_enable_pct + ')'.grey + ' DECREASE'.red), action: function() {
-					so.profit_stop_enable_pct--
-					if (so.profit_stop_enable_pct == 0) {
+					so.profit_stop_enable_pct = ((so.profit_stop_enable_pct * 100) - 10) / 100
+					if (so.profit_stop_enable_pct <= 0) {
 						so.profit_stop_enable_pct= null
 					}
 					console.log('\n' + 'Profit stop enable pct' + 'INCREASE'.green + ' -> ' + so.profit_stop_enable_pct)	
 				}})
 				keyMap.set('y', {desc: ('Profit stop pct ('.grey + so.profit_stop_pct + ')'.grey + ' INCREASE'.green), action: function() {
-					so.profit_stop_pct++
+					so.profit_stop_pct = ((so.profit_stop_pct * 100) + 5) / 100
 					console.log('\n' + 'Profit stop pct' + 'INCREASE'.green + ' -> ' + so.profit_stop_pct)	
 				}})
 				keyMap.set('h', {desc: ('Profit stop pct ('.grey + so.profit_stop_pct + ')'.grey + ' DECREASE'.red), action: function() {
-					so.profit_stop_pct--
+					so.profit_stop_pct = ((so.profit_stop_pct * 100) - 5) / 100
 					console.log('\n' + 'Profit stop pct' + 'DECREASE'.red + ' -> ' + so.profit_stop_pct)	
 				}})
 				keyMap.set('u', {desc: ('Max sell loss pct (min profit in long position too) ('.grey + so.max_sell_loss_pct + ')'.grey + ' INCREASE'.green), action: function() {
-					so.max_sell_loss_pct = n(so.max_sell_loss_pct).add(0.05)
+					so.max_sell_loss_pct = ((so.max_sell_loss_pct * 100) + 5) / 100
 					console.log('\n' + 'Max sell loss pct' + 'INCREASE'.green + ' -> ' + so.max_sell_loss_pct)	
 				}})
 				keyMap.set('j', {desc: ('Max sell loss pct (min profit in long position too) ('.grey + so.max_sell_loss_pct + ')'.grey + ' DECREASE'.red), action: function() {
-					so.max_sell_loss_pct = n(so.max_sell_loss_pct).subtract(0.05)
+					so.max_sell_loss_pct = ((so.max_sell_loss_pct * 100) - 5) / 100
 					console.log('\n' + 'Max sell loss pct' + 'DECREASE'.red + ' -> ' + so.max_sell_loss_pct)	
 				}})
 				keyMap.set('i', {desc: ('Max buy loss pct (min profit in short position too) ('.grey + so.max_buy_loss_pct + ')'.grey + ' INCREASE'.green), action: function() {
-					so.max_buy_loss_pct = n(so.max_buy_loss_pct).add(0.05)
+					so.max_buy_loss_pct = ((so.max_buy_loss_pct * 100) + 5) / 100
 					console.log('\n' + 'Max buy loss pct' + 'INCREASE'.green + ' -> ' + so.max_buy_loss_pct)	
 				}})
 				keyMap.set('k', {desc: ('Max buy loss pct (min profit in short position too) ('.grey + so.max_buy_loss_pct + ')'.grey + ' DECREASE'.red), action: function() {
-					so.max_buy_loss_pct = n(so.max_buy_loss_pct).subtract(0.05)
+					so.max_buy_loss_pct = ((so.max_buy_loss_pct * 100) - 5) / 100
 					console.log('\n' + 'Max buy loss pct' + 'DECREASE'.red + ' -> ' + so.max_buy_loss_pct)	
 				}})				
 				break
