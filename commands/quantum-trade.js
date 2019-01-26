@@ -164,8 +164,8 @@ module.exports = function (program, conf) {
 		modeMap.set(6, 'OPTIONS')
 		
 		const keyMap = new Map()
-		var s.exchange_orders_index = null
-		var s.positions_index = null
+		s.exchange_orders_index = null
+		s.positions_index = null
 		
 		function changeModeCommand(mode = 0) {
 //			debug.msg('changeModeCommand')
