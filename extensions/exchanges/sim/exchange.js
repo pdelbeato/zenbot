@@ -206,7 +206,7 @@ module.exports = function sim (conf, s) {
     
     getMemory: function() {
 		return 'sim'
-	}
+	},
 
     processTrade: function(trade) {
       var orders_changed = false
