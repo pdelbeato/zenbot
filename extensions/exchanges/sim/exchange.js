@@ -107,6 +107,10 @@ module.exports = function sim (conf, s) {
     		cb(null)
     	}, latency)
     },
+    
+    cancelOrderCache: function (opts) {
+		return
+	},
 
     buy: function (opts, cb) {
       setTimeout(function() {
