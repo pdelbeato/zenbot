@@ -159,10 +159,13 @@ module.exports = function (program, conf) {
 		modeMap.set(1, 'MARKET')
 		modeMap.set(2, 'CATCH')
 		modeMap.set(3, 'EXCHANGE')
-		modeMap.set(4, 'LIMITS')
-		modeMap.set(5, 'OPTIONS')
+		modeMap.set(4, 'POSITIONS')
+		modeMap.set(5, 'LIMITS')
+		modeMap.set(6, 'OPTIONS')
 		
 		const keyMap = new Map()
+		var s.exchange_orders_index = null
+		var s.positions_index = null
 		
 		function changeModeCommand(mode = 0) {
 //			debug.msg('changeModeCommand')
@@ -174,8 +177,9 @@ module.exports = function (program, conf) {
 			keyMap.set('1', {desc: ('Modo '.grey + 'MARKET'.yellow),	action: function() { changeModeCommand(1)}})
 			keyMap.set('2', {desc: ('Modo '.grey + 'CATCH'.yellow), 	action: function() { changeModeCommand(2)}})
 			keyMap.set('3', {desc: ('Modo '.grey + 'EXCHANGE'.yellow), 	action:	function() { changeModeCommand(3)}})
-			keyMap.set('4', {desc: ('Modo '.grey + 'LIMITS'.yellow), 	action: function() { changeModeCommand(4)}})
-			keyMap.set('5', {desc: ('Modo '.grey + 'OPTIONS'.yellow), 	action: function() { changeModeCommand(5)}})
+			keyMap.set('4', {desc: ('Modo '.grey + 'POSITIONS'.yellow),	action:	function() { changeModeCommand(4)}})
+			keyMap.set('5', {desc: ('Modo '.grey + 'LIMITS'.yellow), 	action: function() { changeModeCommand(5)}})
+			keyMap.set('6', {desc: ('Modo '.grey + 'OPTIONS'.yellow), 	action: function() { changeModeCommand(6)}})
 
 			keyMap.set('l', {desc: ('list available commands'.grey), 	action: function() { listKeys()}})
 
@@ -328,7 +332,7 @@ module.exports = function (program, conf) {
 						console.log(s.exchange_orders[s.exchange_orders_index].id)
 					}
 					else {
-						debug.msg('No exchange_orders in memory. Try to get the list by pressing "o".')
+						console.log('No exchange_orders in memory. Try to get the list by pressing "o".')
 					}
 				}})
 				keyMap.set('-', {desc: ('set order'.grey + ' PREVIOUS'.yellow), action: function() {
@@ -341,7 +345,7 @@ module.exports = function (program, conf) {
 						console.log(s.exchange_orders[s.exchange_orders_index].id)
 					}
 					else {
-						debug.msg('No exchange_orders in memory. Try to get the list by pressing "o".')
+						console.log('No exchange_orders in memory. Try to get the list by pressing "o".')
 					}
 				}})
 				keyMap.set('i', {desc: ('get information on order'.grey), action: function() {
@@ -350,7 +354,7 @@ module.exports = function (program, conf) {
 						console.log(s.exchange_orders[s.exchange_orders_index])
 					}
 					else {
-						debug.msg('No exchange_orders in memory. Try to get the list by pressing "o".')
+						console.log('No exchange_orders in memory. Try to get the list by pressing "o".')
 					}
 				}})
 				keyMap.set('c', {desc: ('cancel order'.grey), action: function() {
@@ -372,7 +376,7 @@ module.exports = function (program, conf) {
 						})
 					}
 					else {
-						debug.msg('No exchange_orders in memory. Try to get the list by pressing "o".')
+						console.log('No exchange_orders in memory. Try to get the list by pressing "o".')
 					}
 				}})
 				keyMap.set('C', {desc: ('cancel ALL order'.grey), action: function() {
@@ -394,6 +398,71 @@ module.exports = function (program, conf) {
 				break
 			}
 			case 4: {
+				//Modo POSITIONS
+				if (s.positions.length) {
+					s.positions_index = 0
+				}
+				else {
+					s.positions_index = null
+					console.log('No position opened.')
+					break
+				}
+				
+				keyMap.set('+', {desc: ('set position'.grey + ' NEXT'.yellow), action: function() {
+					if (s.positions.length) {
+						s.positions_index++
+						if (s.positions_index > (s.positions.length - 1)) {
+							s.positions_index = 0
+						}
+						console.log('\nPosition in control:'.yellow)
+						console.log(s.positions[s.positions_index].id)
+					}
+					else {
+						console.log('No position opened.')
+					}
+				}})
+				keyMap.set('-', {desc: ('set position'.grey + ' PREVIOUS'.yellow), action: function() {
+					if (s.positions.length) {
+						s.positions_index--
+						if (s.positions_index < 0) {
+							s.positions_index = (s.positions.length - 1)
+						}
+						console.log('\nPosition in control:'.yellow)
+						console.log(s.positions[s.positions_index].id)
+					}
+					else {
+						console.log('No position opened.')
+					}
+				}})
+				keyMap.set('i', {desc: ('get information on position'.grey), action: function() {
+					if (s.positions.length) {
+						console.log('\nInformation on position:'.yellow)
+						console.log(s.positions[s.positions_index])
+					}
+					else {
+						console.log('No position opened.')
+					}
+				}})
+				keyMap.set('c', {desc: ('cancel all orders connected with the position'.grey), action: function() {
+					if (s.positions_index) {
+						console.log('\nCancelling all orders connected with the position '.yellow + s.positions[s.positions_index])
+						s.engine.positionStatus(s.positions[s.positions_index], 'Free')
+					}
+					else {
+						console.log('No position in control.')
+					}
+				}})
+				keyMap.set('C', {desc: ('cancel the position'.grey), action: function() {
+					console.log('\nCancelling the position '.yellow + s.positions[s.positions_index])
+					s.engine.positionStatus(s.positions[s.positions_index], 'Free')
+					setTimeout(function() {
+						s.positionProcessingQueue.push({mode: 'delete', id: s.positions[s.positions_index].id})
+						s.positions.splice(s.positions_index,1)
+					}, so.order_poll_time)
+				}})
+				break
+			}
+			case 5: {
 				//Modo LIMITS
 				keyMap.set('q', {desc: ('Buy price limit'.grey + ' INCREASE'.green), action: function() {
 					if (!so.buy_price_limit) {
@@ -491,7 +560,7 @@ module.exports = function (program, conf) {
 				}})
 				break
 			}
-			case 5: {
+			case 6: {
 				//Modo OPTIONS
 				keyMap.set('o', {desc: ('show current trade options'.grey), action: function() { listOptions ()}})
 				keyMap.set('a', {desc: ('show current trade options in a dirty view (full list)'.grey), action: function() {
