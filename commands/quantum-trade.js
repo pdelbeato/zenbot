@@ -436,6 +436,7 @@ module.exports = function (program, conf) {
 				keyMap.set('i', {desc: ('get information on position'.grey), action: function() {
 					if (s.positions.length) {
 						console.log('\nInformation on position: '.yellow + s.positions[s.positions_index].id)
+						console.log(s.positions[s.positions_index])
 					}
 					else {
 						console.log('No position opened.')
