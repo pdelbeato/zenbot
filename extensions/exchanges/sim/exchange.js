@@ -186,17 +186,27 @@ module.exports = function sim (conf, s) {
       }, latency)
     },
 
+    getAllOrders: function (opts, cb) {
+    	setTimeout(function() {
+    		cb(null, orders)
+    	}, latency)
+    }
+
     setFees: function(opts) {
       if (so.mode === 'paper') {
         return real_exchange.setFees(opts)
       }
     },
-
+    
     getCursor: real_exchange.getCursor,
 
     getTime: function() {
       return now()
     },
+    
+    getMemory: function() {
+		return 'sim'
+	}
 
     processTrade: function(trade) {
       var orders_changed = false

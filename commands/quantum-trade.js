@@ -446,7 +446,7 @@ module.exports = function (program, conf) {
 				keyMap.set('c', {desc: ('cancel all orders connected with the position'.grey), action: function() {
 					if (s.positions_index) {
 						console.log('\nCancelling all orders connected with the position '.yellow + s.positions[s.positions_index])
-						s.engine.positionStatus(s.positions[s.positions_index], 'Free')
+						engine.positionStatus(s.positions[s.positions_index], 'Free')
 					}
 					else {
 						console.log('No position in control.')
@@ -454,7 +454,7 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('C', {desc: ('cancel the position'.grey), action: function() {
 					console.log('\nCancelling the position '.yellow + s.positions[s.positions_index])
-					s.engine.positionStatus(s.positions[s.positions_index], 'Free')
+					engine.positionStatus(s.positions[s.positions_index], 'Free')
 					setTimeout(function() {
 						s.positionProcessingQueue.push({mode: 'delete', id: s.positions[s.positions_index].id})
 						s.positions.splice(s.positions_index,1)
