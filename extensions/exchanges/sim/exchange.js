@@ -190,7 +190,7 @@ module.exports = function sim (conf, s) {
     	setTimeout(function() {
     		cb(null, orders)
     	}, latency)
-    }
+    },
 
     setFees: function(opts) {
       if (so.mode === 'paper') {
