@@ -63,10 +63,10 @@ module.exports = function (program, conf) {
 	.option('--order_poll_time <ms>', 'poll order status on this interval', Number, conf.order_poll_time)
 	.option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, conf.sell_stop_pct)
 	.option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct)
+	.option('--sell_gain_pct <pct>', 'sell with this gain (min profit in long positions))', conf.sell_gain_pct)
+	.option('--buy_gain_pct <pct>', 'buy with this gain (min profit in short positions)', conf.buy_gain_pct)
 	.option('--profit_stop_enable_pct <pct>', 'enable trailing sell stop when reaching this % profit', Number, conf.profit_stop_enable_pct)
 	.option('--profit_stop_pct <pct>', 'maintain a trailing stop this % below the high-water mark of profit', Number, conf.profit_stop_pct)
-	.option('--max_sell_loss_pct <pct>', 'avoid selling at a loss pct under this float (could be used for min profit in long positions))', conf.max_sell_loss_pct)
-	.option('--max_buy_loss_pct <pct>', 'avoid buying at a loss pct over this float (could be used for min profit in short positions)', conf.max_buy_loss_pct) //da togliere
 	.option('--max_slippage_pct <pct>', 'avoid selling at a slippage pct above this float', conf.max_slippage_pct)
 	.option('--rsi_periods <periods>', 'number of periods to calculate RSI at', Number, conf.rsi_periods)
 	.option('--poll_trades <ms>', 'poll new trades at this interval in ms', Number, conf.poll_trades)
@@ -534,21 +534,21 @@ module.exports = function (program, conf) {
 					}
 					console.log('\n' + 'Profit stop pct' + ' DECREASE'.red + ' -> ' + so.profit_stop_pct)	
 				}})
-				keyMap.set('u', {desc: ('Max sell loss pct (min profit in long position too)'.grey + ' INCREASE'.green), action: function() {
-					so.max_sell_loss_pct = Number((so.max_sell_loss_pct + 0.05).toFixed(2))
-					console.log('\n' + 'Max sell loss pct' + ' INCREASE'.green + ' -> ' + so.max_sell_loss_pct)	
+				keyMap.set('u', {desc: ('Sell gain pct (min profit in long position)'.grey + ' INCREASE'.green), action: function() {
+					so.sell_gain_pct = Number((so.sell_gain_pct + 0.05).toFixed(2))
+					console.log('\n' + 'Sell gain pct' + ' INCREASE'.green + ' -> ' + so.sell_gain_pct)	
 				}})
-				keyMap.set('j', {desc: ('Max sell loss pct (min profit in long position too)'.grey + ' DECREASE'.red), action: function() {
-					so.max_sell_loss_pct = Number((so.max_sell_loss_pct - 0.05).toFixed(2))
-					console.log('\n' + 'Max sell loss pct' + ' DECREASE'.red + ' -> ' + so.max_sell_loss_pct)	
+				keyMap.set('j', {desc: ('Sell gain pct (min profit in long position)'.grey + ' DECREASE'.red), action: function() {
+					so.sell_gain_pct = Number((so.sell_gain_pct - 0.05).toFixed(2))
+					console.log('\n' + 'Max sell loss pct' + ' DECREASE'.red + ' -> ' + so.sell_gain_pct)	
 				}})
-				keyMap.set('i', {desc: ('Max buy loss pct (min profit in short position too)'.grey + ' INCREASE'.green), action: function() {
-					so.max_buy_loss_pct = Number((so.max_buy_loss_pct + 0.05).toFixed(2))
-					console.log('\n' + 'Max buy loss pct' + ' INCREASE'.green + ' -> ' + so.max_buy_loss_pct)	
+				keyMap.set('i', {desc: ('Buy gain pct (min profit in short position)'.grey + ' INCREASE'.green), action: function() {
+					so.buy_gain_pct = Number((so.buy_gain_pct + 0.05).toFixed(2))
+					console.log('\n' + 'Buy gain pct' + ' INCREASE'.green + ' -> ' + so.buy_gain_pct)	
 				}})
-				keyMap.set('k', {desc: ('Max buy loss pct (min profit in short position too)'.grey + ' DECREASE'.red), action: function() {
-					so.max_buy_loss_pct = Number((so.max_buy_loss_pct - 0.05).toFixed(2))
-					console.log('\n' + 'Max buy loss pct' + ' DECREASE'.red + ' -> ' + so.max_buy_loss_pct)	
+				keyMap.set('k', {desc: ('Buy gain pct (min profit in short position)'.grey + ' DECREASE'.red), action: function() {
+					so.buy_gain_pct = Number((so.buy_gain_pct - 0.05).toFixed(2))
+					console.log('\n' + 'Buy gain pct' + ' DECREASE'.red + ' -> ' + so.buy_gain_pct)	
 				}})	
 				keyMap.set('o', {desc: ('Actual values for limits'.grey), action: function() {
 					actual_values = '\nActual values for limits:'
@@ -557,8 +557,8 @@ module.exports = function (program, conf) {
 					actual_values += '\nSell price limit= ' + so.sell_price_limit
 					actual_values += '\nProfit stop enable pct= ' + so.profit_stop_enable_pct
 					actual_values += '\nProfit stop pct= ' + so.profit_stop_pct
-					actual_values += '\nMax sell loss pct= ' + so.max_sell_loss_pct
-					actual_values += '\nMax buy loss pct= ' + so.max_buy_loss_pct
+					actual_values += '\nSell gain pct= ' + so.sell_gain_pct
+					actual_values += '\nBuy gain pct= ' + so.buy_gain_pct
 					
 					console.log(actual_values)	
 				}})
