@@ -427,8 +427,7 @@ module.exports = function (program, conf) {
 						if (s.positions_index < 0) {
 							s.positions_index = (s.positions.length - 1)
 						}
-						console.log('\nPosition in control:'.yellow)
-						console.log(s.positions[s.positions_index].id)
+						console.log('\nPosition in control: '.yellow + s.positions[s.positions_index].id)
 					}
 					else {
 						console.log('No position opened.')
@@ -436,16 +435,15 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('i', {desc: ('get information on position'.grey), action: function() {
 					if (s.positions.length) {
-						console.log('\nInformation on position:'.yellow)
-						console.log(s.positions[s.positions_index])
+						console.log('\nInformation on position: '.yellow + s.positions[s.positions_index].id)
 					}
 					else {
 						console.log('No position opened.')
 					}
 				}})
 				keyMap.set('c', {desc: ('cancel all orders connected with the position'.grey), action: function() {
-					if (s.positions_index) {
-						console.log('\nCancelling all orders connected with the position '.yellow + s.positions[s.positions_index])
+					if (s.positions_index != null) {
+						console.log('\nCancelling all orders connected with the position '.yellow + s.positions[s.positions_index].id)
 						engine.positionStatus(s.positions[s.positions_index], 'Free')
 					}
 					else {
@@ -453,12 +451,18 @@ module.exports = function (program, conf) {
 					}
 				}})
 				keyMap.set('C', {desc: ('cancel the position'.grey), action: function() {
-					console.log('\nCancelling the position '.yellow + s.positions[s.positions_index])
-					engine.positionStatus(s.positions[s.positions_index], 'Free')
-					setTimeout(function() {
-						s.positionProcessingQueue.push({mode: 'delete', id: s.positions[s.positions_index].id})
-						s.positions.splice(s.positions_index,1)
-					}, so.order_poll_time)
+					if (s.positions_index != null) {
+						console.log('\nCancelling the position '.yellow + s.positions[s.positions_index].id)
+
+						engine.positionStatus(s.positions[s.positions_index], 'Free')
+						setTimeout(function() {
+							s.positionProcessingQueue.push({mode: 'delete', id: s.positions[s.positions_index].id})
+							s.positions.splice(s.positions_index,1)
+						}, so.order_poll_time)
+					}
+					else {
+						console.log('No position in control.')
+					}
 				}})
 				break
 			}
