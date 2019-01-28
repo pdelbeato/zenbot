@@ -2,7 +2,7 @@ var c = module.exports = {}
 
 // mongo configuration
 c.mongo = {}
-c.mongo.db = 'zenbot4'
+c.mongo.db = 'zenbot4_sample'
 
 // Must provide EITHER c.mongo.connectionString OR c.mongo.host,port,username,password
 // c.mongo.connectionString = 'mongodb://u:p@host/db?params'
@@ -15,6 +15,8 @@ c.mongo.password = null
 // when using mongodb replication, i.e. when running a mongodb cluster, you can define your replication set here; when you are not using replication (most of the users), just set it to `null` (default).
 c.mongo.replicaSet = null
 c.mongo.authMechanism = null
+// How many days of data must remain after a cleanMongoDB
+c.mongo.tot_days = 10
 
 // default selector. only used if omitting [selector] argument from a command.
 c.selector = 'gdax.BTC-USD'
@@ -149,6 +151,8 @@ c.use_fee_asset = false
 
 // Misc options:
 
+//min periods to load for calculating strategies
+c.min_periods= 301
 // default # days for backfill and sim commands
 c.days = 14
 // defaults to a high number of lookback periods
@@ -173,9 +177,16 @@ c.cancel_after = 'day'
 c.use_prev_trades = false
 // minimum number of previous trades to load if use_prev_trades is enabled, set to 0 to disable and use trade time instead
 c.min_prev_trades = 0
+// pct for opening catch positions
+c.catch_position_pct = 2
 
 // Notifiers:
 c.notifiers = {}
+c.notifier_lvl = 9
+
+//common
+
+c.notifiers.only_completed_trades = false // Filter to notifier's messages for getting Commpleted Trades info.
 
 // xmpp config
 c.notifiers.xmpp = {}

@@ -56,6 +56,27 @@
     "label": "BCH/XBT"
   },
   {
+    "asset": "BSV",
+    "currency": "ZEUR",
+    "min_size": "0.01",
+    "increment": "0.01",
+    "label": "BSV/EUR"
+  },
+  {
+    "asset": "BSV",
+    "currency": "ZUSD",
+    "min_size": "0.01",
+    "increment": "0.01",
+    "label": "BSV/USD"
+  },
+  {
+    "asset": "BSV",
+    "currency": "XXBT",
+    "min_size": "0.01",
+    "increment": "0.01",
+    "label": "BSV/XBT"
+  },
+  {
     "asset": "DASH",
     "currency": "ZEUR",
     "min_size": "0.03",
@@ -245,20 +266,6 @@
     "label": "ETH/USD"
   },
   {
-    "asset": "XICN",
-    "currency": "XETH",
-    "min_size": "2.0",
-    "increment": "0.01",
-    "label": "ICN/ETH"
-  },
-  {
-    "asset": "XICN",
-    "currency": "XXBT",
-    "min_size": "2.0",
-    "increment": "0.01",
-    "label": "ICN/XBT"
-  },
-  {
     "asset": "XLTC",
     "currency": "XXBT",
     "min_size": "0.1",
@@ -320,6 +327,41 @@
     "min_size": "0.3",
     "increment": "0.01",
     "label": "REP/USD"
+  },
+  {
+    "asset": "XTZ",
+    "currency": "ZCAD",
+    "min_size": "0.01",
+    "increment": "0.01",
+    "label": "XTZ/CAD"
+  },
+  {
+    "asset": "XTZ",
+    "currency": "XETH",
+    "min_size": "0.01",
+    "increment": "0.01",
+    "label": "XTZ/ETH"
+  },
+  {
+    "asset": "XTZ",
+    "currency": "ZEUR",
+    "min_size": "0.01",
+    "increment": "0.01",
+    "label": "XTZ/EUR"
+  },
+  {
+    "asset": "XTZ",
+    "currency": "ZUSD",
+    "min_size": "0.01",
+    "increment": "0.01",
+    "label": "XTZ/USD"
+  },
+  {
+    "asset": "XTZ",
+    "currency": "XXBT",
+    "min_size": "0.01",
+    "increment": "0.01",
+    "label": "XTZ/XBT"
   },
   {
     "asset": "XXBT",

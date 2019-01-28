@@ -6,15 +6,15 @@ var tb = require('timebucket')
   , moment = require('moment')
   , colors = require('colors')
   , objectifySelector = require('../lib/objectify-selector')
-  , engineFactory = require('../lib/engine')
+  , engineFactory = require('../lib/quantum-engine')
   , collectionService = require('../lib/services/collection-service')
   , _ = require('lodash')
 
 module.exports = function (program, conf) {
   program
-    .command('sim [selector]')
+    .command('quantum-sim [selector]')
     .allowUnknownOption()
-    .description('run a simulation on backfilled data')
+    .description('run a simulation on backfilled data with Quantum feature')
     .option('--conf <path>', 'path to optional conf overrides file')
     .option('--strategy <name>', 'strategy to use', String, conf.strategy)
     .option('--order_type <type>', 'order type to use (maker/taker)', /^(maker|taker)$/i, conf.order_type)
@@ -25,8 +25,8 @@ module.exports = function (program, conf) {
     .option('--currency_capital <amount>', 'amount of start capital in currency', Number, conf.currency_capital)
     .option('--asset_capital <amount>', 'amount of start capital in asset', Number, conf.asset_capital)
     .option('--avg_slippage_pct <pct>', 'avg. amount of slippage to apply to trades', Number, conf.avg_slippage_pct)
-    .option('--buy_pct <pct>', 'buy with this % of currency balance', Number, conf.buy_pct)
-    .option('--sell_pct <pct>', 'sell with this % of asset balance', Number, conf.sell_pct)
+    // .option('--buy_pct <pct>', 'buy with this % of currency balance', Number, conf.buy_pct)
+    // .option('--sell_pct <pct>', 'sell with this % of asset balance', Number, conf.sell_pct)
     .option('--quantum_size <amount>', 'buy up to this amount of currency every time', Number, conf.quantum_size)
     .option('--max_nr_quantum <amount>', 'Max nr of quantum which could be traded', Number, conf.max_nr_quantum)
     .option('--best_bid', 'mark up as little as possible the buy price to be the best bid', Boolean, false)
@@ -40,11 +40,11 @@ module.exports = function (program, conf) {
     .option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, conf.order_adjust_time)
     .option('--order_poll_time <ms>', 'poll order status on this interval', Number, conf.order_poll_time)
     .option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, conf.sell_stop_pct)
-    .option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct)
+    // .option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct)
     .option('--profit_stop_enable_pct <pct>', 'enable trailing sell stop when reaching this % profit', Number, conf.profit_stop_enable_pct)
     .option('--profit_stop_pct <pct>', 'maintain a trailing stop this % below the high-water mark of profit', Number, conf.profit_stop_pct)
     .option('--max_sell_loss_pct <pct>', 'avoid selling at a loss pct under this float (could be used for min profit)', conf.max_sell_loss_pct)
-    .option('--max_buy_loss_pct <pct>', 'avoid buying at a loss pct over this float', conf.max_buy_loss_pct)
+    // .option('--max_buy_loss_pct <pct>', 'avoid buying at a loss pct over this float', conf.max_buy_loss_pct)
     .option('--max_slippage_pct <pct>', 'avoid selling at a slippage pct above this float', conf.max_slippage_pct)
     .option('--symmetrical', 'reverse time at the end of the graph, normalizing buy/hold to 0', conf.symmetrical)
     .option('--rsi_periods <periods>', 'number of periods to calculate RSI at', Number, conf.rsi_periods)
@@ -57,8 +57,10 @@ module.exports = function (program, conf) {
     .option('--silent', 'only output on completion (can speed up sim)')
     .action(function (selector, cmd) {
       var s = { options: minimist(process.argv) }
+      // copia su so le opzioni messe a comando
       var so = s.options
       delete so._
+      // se viene passato file di conf sovrascrive le opzioni
       if (cmd.conf) {
         var overrides = require(path.resolve(process.cwd(), cmd.conf))
         Object.keys(overrides).forEach(function (k) {
@@ -70,11 +72,13 @@ module.exports = function (program, conf) {
           so[k] = cmd[k]
         }
       })
+      //  restituisce Collection di mongodb - trades e simResults
       var tradesCollection = collectionService(conf).getTrades()
+
       var simResults = collectionService(conf).getSimResults()
-
+      
       var eventBus = conf.eventBus
-
+// chiama la funzione timebucket - riporta in ms
       if (so.start) {
         so.start = moment(so.start, 'YYYYMMDDhhmm').valueOf()
         if (so.days && !so.end) {
@@ -94,19 +98,22 @@ module.exports = function (program, conf) {
 
       so.days = moment(so.end).diff(moment(so.start), 'days')
 
+
+
       so.stats = !!cmd.enable_stats
       so.show_options = !cmd.disable_options
       so.verbose = !!cmd.verbose
       so.selector = objectifySelector(selector || conf.selector)
       so.mode = 'sim'
 
+// richiama quantum-engine
       var engine = engineFactory(s, conf)
       if (!so.min_periods) so.min_periods = 1
       var cursor, reversing, reverse_point
       var query_start = so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null
 
       function exitSim () {
-        console.log()
+        // console.log()
         if (!s.period) {
           console.error('no trades found! try running `zenbot backfill ' + so.selector.normalized + '` first')
           process.exit(1)
@@ -133,12 +140,15 @@ module.exports = function (program, conf) {
             time: s.period.time
           })
         }
-        s.balance.currency = n(s.net_currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00000000')
+        //s.balance.currency = n(s.net_currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00000000')
 
         s.balance.asset = 0
         s.lookback.unshift(s.period)
-        var profit = s.start_capital ? n(s.balance.currency).subtract(s.start_capital).divide(s.start_capital) : n(0)
-        output_lines.push('end balance: ' + n(s.balance.currency).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
+        //var profit = s.start_capital ? n(s.balance.currency).subtract(s.start_capital).divide(s.start_capital) : n(0)
+
+        var profit = s.start_capital ? n(s.real_capital).subtract(s.start_capital).divide(s.start_capital) : n(0)
+
+        output_lines.push('end balance: ' + n(s.real_capital).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
         console.log('start_capital', s.start_capital)
         console.log('start_price', n(s.start_price).format('0.00000000'))
         console.log('close', n(s.period.close).format('0.00000000'))
@@ -146,48 +156,53 @@ module.exports = function (program, conf) {
         //console.log('buy hold', buy_hold.format('0.00000000'))
         var buy_hold_profit = s.start_capital ? n(buy_hold).subtract(s.start_capital).divide(s.start_capital) : n(0)
         output_lines.push('buy hold: ' + buy_hold.format('0.00000000').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
-        output_lines.push('vs. buy hold: ' + n(s.balance.currency).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
+        output_lines.push('vs. buy hold: ' + n(s.real_capital).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
         output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
+
         var last_buy
         var losses = 0, sells = 0
+        var wins = 0
+        //console.log(s.my_trades)
         s.my_trades.forEach(function (trade) {
-          if (trade.type === 'buy') {
-            last_buy = trade.price
+
+          if (trade.profit > 0) {
+             wins++
+          } else if (trade.profit < 0){
+            losses++
           }
-          else {
-            if (last_buy && trade.price < last_buy) {
-              losses++
-            }
-            sells++
-          }
+
+
         })
         if (s.my_trades.length) {
-          output_lines.push('win/loss: ' + (sells - losses) + '/' + losses)
-          output_lines.push('error rate: ' + (sells ? n(losses).divide(sells).format('0.00%') : '0.00%').yellow)
+          //output_lines.push('win/loss: ' + (sells - losses) + '/' + losses)
+          output_lines.push('win/loss for each quantum: ' + wins + '/' + losses )
+          output_lines.push('error rate: ' + (wins ? n(losses).divide(wins).format('0.00%') : '0.00%').yellow)
         }
         options_output.simresults.start_capital = s.start_capital
         options_output.simresults.last_buy_price = s.last_buy_price
         options_output.simresults.last_assest_value = s.trades[s.trades.length-1].price
         options_output.net_currency = s.net_currency
-        options_output.simresults.asset_capital = s.asset_capital
-        options_output.simresults.currency = n(s.balance.currency).value()
+        options_output.simresults.asset_in_currency = s.asset_in_currency
+        options_output.simresults.currency = n(s.real_capital).value()
         options_output.simresults.profit = profit.value()
         options_output.simresults.buy_hold = buy_hold.value()
         options_output.simresults.buy_hold_profit = buy_hold_profit.value()
         options_output.simresults.total_trades = s.my_trades.length
         options_output.simresults.length_days = s.day_count
-        options_output.simresults.total_sells = sells
+        options_output.simresults.total_wins = wins
         options_output.simresults.total_losses = losses
-        options_output.simresults.vs_buy_hold = n(s.balance.currency).subtract(buy_hold).divide(buy_hold).value() * 100.00
+        options_output.simresults.vs_buy_hold = n(s.real_capital).subtract(buy_hold).divide(buy_hold).value() * 100.00
 
         let options_json = JSON.stringify(options_output, null, 2)
         if (so.show_options) {
           output_lines.push(options_json)
         }
 
-        output_lines.forEach(function (line) {
-          console.log(line)
-        })
+
+
+        for (i = 0; i < 6; i++) {
+          console.log(output_lines[i])
+        }
 
         if (so.backtester_generation >= 0)
         {
@@ -195,10 +210,14 @@ module.exports = function (program, conf) {
         }
 
         if (so.filename !== 'none') {
+
           var html_output = output_lines.map(function (line) {
             return colors.stripColors(line)
           }).join('\n')
-          var data = s.lookback.slice(0, s.lookback.length - so.min_periods).map(function (period) {
+          //console.log(s.calc_lookback.slice(0, s.calc_lookback.length ))
+          console.log(s.calc_lookback.length)
+          console.log(so.min_periods)
+          var data = s.calc_lookback.map(function (period) {
             var data = {}
             var keys = Object.keys(period)
             for(var i = 0;i < keys.length;i++){
@@ -206,9 +225,11 @@ module.exports = function (program, conf) {
             }
             return data
           })
+
           var code = 'var data = ' + JSON.stringify(data) + ';\n'
           code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
           var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'sim_result.html.tpl'), {encoding: 'utf8'})
+
           var out = tpl
             .replace('{{code}}', code)
             .replace('{{trend_ema_period}}', so.trend_ema || 36)
@@ -219,7 +240,8 @@ module.exports = function (program, conf) {
           console.log('wrote', out_target)
         }
 
-        simResults.save(options_output)
+        //Corretto per Deprecation Warning
+        simResults.insertOne(options_output)
           .then(() => {
             process.exit(0)
           })
@@ -258,6 +280,8 @@ module.exports = function (program, conf) {
           if (!opts.query.time) opts.query.time = {}
           opts.query.time['$gte'] = query_start
         }
+
+        //riordino di tradeCollection
         var collectionCursor = tradesCollection.find(opts.query).sort(opts.sort).stream()
         var numTrades = 0
         var lastTrade
@@ -269,10 +293,15 @@ module.exports = function (program, conf) {
             trade.orig_time = trade.time
             trade.time = reverse_point + (reverse_point - trade.time)
           }
+
+          // emit per ogni trade -> va alla funzione   queueTrade che mette in coda il tradeProcessing e quindi onTrade
           eventBus.emit('trade', trade)
+          engine.syncBalance()       
         })
 
         collectionCursor.on('end', function(){
+
+    // se numTrades === 0 chiama engine.exit(exitSim) - se presente esegue onExit della strategia e poi exit di quantum-sim
           if(numTrades === 0){
             if (so.symmetrical && !reversing) {
               reversing = true

@@ -3,7 +3,7 @@
 const path = require('path')
 
 const webpack = require('webpack')
-const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 module.exports = {
   entry: {
@@ -53,8 +53,8 @@ module.exports = {
       {
         test: /\.css$/,
         use: ExtractTextPlugin.extract({
-          fallback: "style-loader",
-          use: "css-loader"
+          fallback: 'style-loader',
+          use: 'css-loader'
         })
       },
       { test: /\.eot(\?v=\d+\.\d+\.\d+)?$/, loader: 'file' },

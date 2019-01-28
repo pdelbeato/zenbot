@@ -9,13 +9,21 @@ module.exports = function sim (conf, s) {
   let exchange_id = so.selector.exchange_id
   let real_exchange = require(path.resolve(__dirname, `../${exchange_id}/exchange`))(conf)
 
-  var now
-  var balance = { asset: so.asset_capital, currency: so.currency_capital, asset_hold: 0, currency_hold: 0 }
+  var balance = {
+	  asset: so.asset_capital,
+	  currency: so.currency_capital,
+	  asset_hold: 0,
+	  currency_hold: 0
+  }
 
   var last_order_id = 1001
   var orders = {}
   var openOrders = {}
   let debug = false // debug output specific to the sim exchange
+
+  function now() {
+	  return new Date().getTime()
+  }
 
   // When orders change in any way, it's likely our "_hold" values have changed. Recalculate them
   function recalcHold() {
@@ -85,6 +93,24 @@ module.exports = function sim (conf, s) {
         cb(null)
       }, latency)
     },
+    
+    cancelAllOrders: function (opts, cb) {
+    	setTimeout(function() {
+    		_.each(orders, function(order) {
+    			if (order.status === 'open') {
+    				order.status = 'cancelled'
+    				delete openOrders[order.order_id]
+    				recalcHold()
+    			}
+    		})
+    		
+    		cb(null)
+    	}, latency)
+    },
+    
+    cancelOrderCache: function (opts) {
+		return
+	},
 
     buy: function (opts, cb) {
       setTimeout(function() {
@@ -107,11 +133,12 @@ module.exports = function sim (conf, s) {
           remaining_size: opts.size,
           post_only: !!opts.post_only,
           filled_size: 0,
+//          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'buy',
-          orig_time: now,
-          time: now,
-          created_at: now
+          orig_time: now(),
+          time: now(),
+          created_at: now()
         }
 
         orders['~' + result.id] = order
@@ -142,11 +169,12 @@ module.exports = function sim (conf, s) {
           remaining_size: opts.size,
           post_only: !!opts.post_only,
           filled_size: 0,
+//          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'sell',
-          orig_time: now,
-          time: now,
-          created_at: now
+          orig_time: now(),
+          time: now(),
+          created_at: now()
         }
         orders['~' + result.id] = order
         openOrders['~' + result.id] = order
@@ -162,39 +190,42 @@ module.exports = function sim (conf, s) {
       }, latency)
     },
 
+    getAllOrders: function (opts, cb) {
+    	setTimeout(function() {
+    		cb(null, orders)
+    	}, latency)
+    },
+
     setFees: function(opts) {
       if (so.mode === 'paper') {
         return real_exchange.setFees(opts)
       }
     },
-
+    
     getCursor: real_exchange.getCursor,
 
     getTime: function() {
-      return now
+      return now()
     },
+    
+    getMemory: function() {
+		return 'sim'
+	},
 
     processTrade: function(trade) {
       var orders_changed = false
 
       _.each(openOrders, function(order) {
-        if (order.tradetype === 'buy') {
-          if (trade.time - order.time < so.order_adjust_time) {
-            // Not time yet
-          }
-          else if (trade.price <= Number(order.price)) {
-            processBuy(order, trade)
-            orders_changed = true
-          }
+        if (trade.time - order.time < so.order_adjust_time) {
+          return // Not time yet
         }
-        else if (order.tradetype === 'sell') {
-          if (trade.time - order.time < so.order_adjust_time) {
-            // Not time yet
-          }
-          else if (trade.price >= order.price) {
-            processSell(order, trade)
-            orders_changed = true
-          }
+        if (order.tradetype === 'buy' && trade.price <= order.price) {
+          processBuy(order, trade)
+          orders_changed = true
+        }
+        else if (order.tradetype === 'sell' && trade.price >= order.price) {
+          processSell(order, trade)
+          orders_changed = true
         }
       })
 
@@ -208,39 +239,31 @@ module.exports = function sim (conf, s) {
     let size = Math.min(buy_order.remaining_size, trade.size)
     let price = buy_order.price
 
-    // Buying, so add asset
-    balance.asset = n(balance.asset).add(size).format('0.00000000')
-
-    // Process balance changes
-    if (so.order_type === 'maker') {
-      if (exchange.makerFee) {
-        fee = n(size).multiply(exchange.makerFee / 100).value()
-      }
-    }
-    else if (so.order_type === 'taker') {
-      if (s.exchange.takerFee) {
-        fee = n(size).multiply(exchange.takerFee / 100).value()
-      }
-    }
+    // Add estimated slippage to price
     if (so.order_type === 'maker') {
       price = n(price).add(n(price).multiply(so.avg_slippage_pct / 100)).format('0.00000000')
-      if (exchange.makerFee) {
-        balance.asset = n(balance.asset).subtract(fee).format('0.00000000')
-      }
-    }
-    else if (so.order_type === 'taker') {
-      if (exchange.takerFee) {
-        balance.asset = n(balance.asset).subtract(fee).format('0.00000000')
-      }
     }
 
     let total = n(price).multiply(size)
+
+    // Compute fees
+    if (so.order_type === 'maker' && exchange.makerFee) {
+      fee = n(size).multiply(exchange.makerFee / 100).value()
+    }
+    else if (so.order_type === 'taker' && s.exchange.takerFee) {
+      fee = n(size).multiply(exchange.takerFee / 100).value()
+    }
+
+    // Update balance
+    balance.asset = n(balance.asset).add(size).subtract(fee).format('0.00000000')
     balance.currency = n(balance.currency).subtract(total).format('0.00000000')
 
     // Process existing order size changes
     let order = buy_order
-    order.filled_size = order.filled_size + size
-    order.remaining_size = order.size - order.filled_size
+    order.filled_size = n(order.filled_size).add(size).format('0.00000000')
+    order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
+//    order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
+    order.done_at = new Date(trade.done_at).getTime()
 
     if (order.remaining_size <= 0) {
       if (debug) console.log('full fill bought')
@@ -258,40 +281,31 @@ module.exports = function sim (conf, s) {
     let size = Math.min(sell_order.remaining_size, trade.size)
     let price = sell_order.price
 
-    // Selling, so subtract asset
-    balance.asset = n(balance.asset).subtract(size).value()
-
-    // Process balance changes
-    if (so.order_type === 'maker') {
-      if (exchange.makerFee) {
-        fee = n(size).multiply(exchange.makerFee / 100).value()
-      }
-    }
-    else if (so.order_type === 'taker') {
-      if (exchange.takerFee) {
-        fee = n(size).multiply(exchange.takerFee / 100).value()
-      }
-    }
+    // Add estimated slippage to price
     if (so.order_type === 'maker') {
       price = n(price).subtract(n(price).multiply(so.avg_slippage_pct / 100)).format('0.00000000')
-      if (exchange.makerFee) {
-        fee = n(size).multiply(exchange.makerFee / 100).multiply(price).value()
-        balance.currency = n(balance.currency).subtract(fee).format('0.00000000')
-      }
-    }
-    else if (so.order_type === 'taker') {
-      if (exchange.takerFee) {
-        balance.currency = n(balance.currency).subtract(fee).format('0.00000000')
-      }
     }
 
     let total = n(price).multiply(size)
-    balance.currency = n(balance.currency).add(total).format('0.00000000')
+
+    // Compute fees
+    if (so.order_type === 'maker' && exchange.makerFee) {
+      fee = n(total).multiply(exchange.makerFee / 100).value()
+    }
+    else if (so.order_type === 'taker' && exchange.takerFee) {
+      fee = n(total).multiply(exchange.takerFee / 100).value()
+    }
+
+    // Update balance
+    balance.asset = n(balance.asset).subtract(size).format('0.00000000')
+    balance.currency = n(balance.currency).add(total).subtract(fee).format('0.00000000')
 
     // Process existing order size changes
     let order = sell_order
-    order.filled_size = order.filled_size + size
-    order.remaining_size = order.size - order.filled_size
+    order.filled_size = n(order.filled_size).add(size).format('0.00000000')
+    order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
+//    order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
+    order.done_at = new Date(trade.done_at).getTime()
 
     if (order.remaining_size <= 0) {
       if (debug) console.log('full fill sold')
