@@ -293,9 +293,11 @@ module.exports = function (program, conf) {
             trade.orig_time = trade.time
             trade.time = reverse_point + (reverse_point - trade.time)
           }
-
-    // emit per ogni trade -> va alla funzione   queueTrade che mette in coda il tradeProcessing e quindi onTrade
-          eventBus.emit('trade', trade)
+          
+          engine.syncBalance(function() {
+        	  // emit per ogni trade -> va alla funzione   queueTrade che mette in coda il tradeProcessing e quindi onTrade
+        	  eventBus.emit('trade', trade)
+          })
         })
 
         collectionCursor.on('end', function(){
