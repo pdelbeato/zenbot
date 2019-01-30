@@ -200,6 +200,7 @@ module.exports = function (program, conf) {
 			}})
 			keyMap.set('Q', {desc: ('exit program with statistical output'.grey), action: function() {
 				console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
+				so.manual = true
 				engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')								
 				setTimeout(function() { 
 					console.log('\nExiting... ' + '\nWriting statistics...'.grey)

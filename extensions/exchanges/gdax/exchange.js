@@ -320,7 +320,7 @@ module.exports = function gdax (conf) {
 				return require('./products.json')
 			},
 
-			getTrades: function (opts, cb) {
+			getTrades: function getTrades (opts, cb) {
 				var func_args = [].slice.call(arguments)
 				var client = publicClient(opts.product_id)
 				var args = {}
@@ -384,7 +384,7 @@ module.exports = function gdax (conf) {
 				}
 			},
 
-			getBalance: function (opts, cb) {
+			getBalance: function getBalance(opts, cb) {
 				var func_args = [].slice.call(arguments)
 				var client = authedClient()
 
@@ -414,7 +414,7 @@ module.exports = function gdax (conf) {
 				}
 			},
 
-			getQuote: function (opts, cb, forced = false) {
+			getQuote: function getQuote(opts, cb, forced = false) {
 				// check websocket cache first, if it is not forced
 				if (!forced && websocket_cache[opts.product_id]) {
 					var ticker = websocket_cache[opts.product_id].ticker
@@ -457,7 +457,7 @@ module.exports = function gdax (conf) {
 				}
 			},
 
-			cancelOrder: function (opts, cb) {
+			cancelOrder: function cancelOrder(opts, cb) {
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
@@ -513,7 +513,7 @@ module.exports = function gdax (conf) {
 				}
 			},
 
-			cancelAllOrders: function (opts, cb) {
+			cancelAllOrders: function cancelAllOrders(opts, cb) {
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
@@ -553,7 +553,7 @@ module.exports = function gdax (conf) {
 				}
 			},
 
-			buy: function (opts, cb) {
+			buy: function buy(opts, cb) {
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
@@ -634,7 +634,7 @@ module.exports = function gdax (conf) {
 				}
 			},
 
-			sell: function (opts, cb) {
+			sell: function sell(opts, cb) {
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
@@ -711,7 +711,7 @@ module.exports = function gdax (conf) {
 				}
 			},
 
-			getOrder: function (opts, cb) {
+			getOrder: function getOrder(opts, cb) {
 				if(websocket_cache[opts.product_id] && websocket_cache[opts.product_id].orders['~' + opts.order_id]) {
 					let order_cache = websocket_cache[opts.product_id].orders['~' + opts.order_id]
 
@@ -827,7 +827,7 @@ module.exports = function gdax (conf) {
 				}
 			},
 
-			getAllOrders: function (opts, cb) {
+			getAllOrders: function getAllOrders(opts, cb) {
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
