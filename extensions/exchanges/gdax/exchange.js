@@ -7,6 +7,12 @@ var Gdax = require('gdax')
 module.exports = function gdax (conf) {
 	var so = minimist(process.argv)
 	var public_client = {}, authed_client, websocket_client = {}, websocket_cache = {}
+	var max_requests_per_second = 5
+	var next_request = 0
+
+	function now() {
+		return new Date().getTime()
+	}
 
 	function publicClient (product_id) {
 		if (!public_client[product_id]) {
@@ -35,16 +41,16 @@ module.exports = function gdax (conf) {
 				channels.push('user')
 			}
 
-			// Apro un websocket autenticato, quindi riceverò anche tutti i messaggi che riguardano il mio user_ida
+			// Apro un websocket autenticato, quindi riceverò anche tutti i messaggi che riguardano il mio user_id
 			websocket_client[product_id] = new Gdax.WebsocketClient([product_id], conf.gdax.websocketURI, auth, {channels})
 
 			// initialize a cache for the websocket connection (if it does not exist)
 			if (!websocket_cache[product_id]) {
 				websocket_cache[product_id] = {
-					trades: [],
-					trade_ids: [],
-					orders: {},
-					ticker: {}
+						trades: [],
+						trade_ids: [],
+						orders: {},
+						ticker: {}
 				}
 			}
 
@@ -54,8 +60,8 @@ module.exports = function gdax (conf) {
 
 			websocket_client[product_id].on('message', (message) => {
 				// all messages with user_id are related to trades for current authenticated user
-				if(message.user_id){
-					debug.msg('websocket user channel income: \n')
+				if (message.user_id) {
+					debug.msg('websocket USER channel income: \n')
 					debug.msg(message, false)
 
 					switch (message.type) {
@@ -98,13 +104,14 @@ module.exports = function gdax (conf) {
 			websocket_client[product_id].on('error', (err) => {
 				client_state.errored = true
 
-				debug.msg('websocket error: \n')
+				debug.msg('Websocket error: \n')
 				debug.msg(err, false)
-				debug.msg('\nrestarting websocket connection', false)
+				debug.msg('\nRestarting websocket connection', false)
 
 				websocket_client[product_id].disconnect()
 				websocket_client[product_id] = null
-				websocket_cache[product_id] = null
+				//Non azzero la cache. Verrà inizializzata dalla chiamata a websocketClient se non dovesse esistere 
+//				websocket_cache[product_id] = null
 				websocketClient(product_id)
 			})
 
@@ -137,8 +144,8 @@ module.exports = function gdax (conf) {
 		if (resp.statusCode !== 200) {
 			var err = new Error('non-200 status: ' + resp.statusCode)
 			err.code = 'HTTP_STATUS'
-			err.body = body
-			return err
+				err.body = body
+				return err
 		}
 	}
 
@@ -156,14 +163,14 @@ module.exports = function gdax (conf) {
 
 	function handleOrderOpen(update, product_id) {
 		websocket_cache[product_id].orders['~'+update.order_id] = {
-			id: update.order_id,
-			price: update.price,
-			size: update.remaining_size,
-			product_id: update.product_id,
-			side: update.side,
-			status: 'open',
-			settled: false,
-			filled_size: 0
+				id: update.order_id,
+				price: update.price,
+				size: update.remaining_size,
+				product_id: update.product_id,
+				side: update.side,
+				status: 'open',
+				settled: false,
+				filled_size: 0
 		}
 	}
 
@@ -184,7 +191,7 @@ module.exports = function gdax (conf) {
 			    profile_id: 'xxx',
 			    time: '2018-03-09T16:28:49.293000Z'
 			  }
-			
+
 			  complete order response; no further action:
 			  { type: 'done',
 			    side: 'sell',
@@ -198,7 +205,7 @@ module.exports = function gdax (conf) {
 			    profile_id: 'xxx',
 			    time: '2018-03-09T16:56:39.352000Z'
 			  }
-			  
+
 			 */
 
 			// get order "reason":
@@ -208,12 +215,12 @@ module.exports = function gdax (conf) {
 
 			cached_order.status = 'done'
 
-			// "canceled" is not a success order instead it must be retried
-			// force zenbot a order retry; see "engine.js" for possible retry conditions
-			if (reason && reason == 'canceled') {
-				cached_order.status = 'rejected'
-				cached_order.reject_reason = 'post only'
-			}
+				// "canceled" is not a success order instead it must be retried
+				// force zenbot a order retry; see "engine.js" for possible retry conditions
+				if (reason && reason == 'canceled') {
+					cached_order.status = 'rejected'
+						cached_order.reject_reason = 'post only'
+				}
 
 			cached_order.done_at = update.time
 			cached_order.done_reason = reason
@@ -222,16 +229,16 @@ module.exports = function gdax (conf) {
 		//Non è presente nella cache, ma dovrebbe, visto che se siamo in questa funzione allora lo user_id corrispondeva al mio
 		else {
 			debug.msg('**** handleOrderDone - Creo ordine e lo inserisco in websocket_cache')
-			
+
 			cached_order = websocket_cache[product_id].orders['~'+update.order_id] = {
-					id: update.order_id,
-					price: update.price,
-					size: update.remaining_size,
-					product_id: update.product_id,
-					side: update.side,
-					status: 'rejected',
-					settled: true,
-					filled_size: 0
+				id: update.order_id,
+				price: update.price,
+				size: update.remaining_size,
+				product_id: update.product_id,
+				side: update.side,
+				status: 'rejected',
+				settled: true,
+				filled_size: 0
 			}
 
 			// get order "reason":
@@ -241,12 +248,12 @@ module.exports = function gdax (conf) {
 
 			cached_order.status = 'done'
 
-			// "canceled" is not a success order instead it must be retried
-			// force zenbot a order retry; see "engine.js" for possible retry conditions
-			if (reason && reason == 'canceled') {
-				cached_order.status = 'rejected'
-					cached_order.reject_reason = 'post only'
-			}
+				// "canceled" is not a success order instead it must be retried
+				// force zenbot a order retry; see "engine.js" for possible retry conditions
+				if (reason && reason == 'canceled') {
+					cached_order.status = 'rejected'
+						cached_order.reject_reason = 'post only'
+				}
 
 			cached_order.done_at = update.time
 			cached_order.done_reason = reason
@@ -256,14 +263,14 @@ module.exports = function gdax (conf) {
 
 	function handleOrderChange(update, product_id) {
 		var cached_order = websocket_cache[product_id].orders['~'+update.order_id]
-		if(cached_order && update.new_size){
+		if (cached_order && update.new_size) {
 			cached_order.size = update.new_size
 		}
 	}
 
 	function handleOrderMatch(update, product_id) {
 		var cached_order = websocket_cache[product_id].orders['~'+update.maker_order_id] || websocket_cache[product_id].orders['~'+update.taker_order_id]
-		if(cached_order){
+		if (cached_order) {
 			cached_order.price = update.price
 			//cached_order.filled_size = (parseFloat(cached_order.filled_size) + update.size).toString()
 			cached_order.filled_size = (parseFloat(cached_order.filled_size) + parseFloat(update.size)).toString()
@@ -296,377 +303,434 @@ module.exports = function gdax (conf) {
 			    "best_ask": "4388.01"
 			}
 		 */
-		
+
 		websocket_cache[product_id].ticker = ticker
 	}
 
 	var orders = {}
 
 	var exchange = {
-		name: 'gdax',
-		historyScan: 'backward',
-		makerFee: 0,
-		takerFee: 0.3,
-		backfillRateLimit: 335,
+			name: 'gdax',
+			historyScan: 'backward',
+			makerFee: 0,
+			takerFee: 0.3,
+			backfillRateLimit: 335,
 
-		getProducts: function () {
-			return require('./products.json')
-		},
+			getProducts: function () {
+				return require('./products.json')
+			},
 
-		getTrades: function (opts, cb) {
-			var func_args = [].slice.call(arguments)
-			var client = publicClient(opts.product_id)
-			var args = {}
-			if (opts.from) {
-				// move cursor into the future
-				args.before = opts.from
-			}
-			else if (opts.to) {
-				// move cursor into the past
-				args.after = opts.to
-			}
-			// check for locally cached trades from the websocket feed
-			var cache = websocket_cache[opts.product_id]
-			var max_trade_id = cache.trade_ids.reduce(function(a, b) {
-				return Math.max(a, b)
-			}, -1)
-			if (opts.from && max_trade_id >= opts.from) {
-				var fromIndex = cache.trades.findIndex((value)=> {return value.trade_id == opts.from})
-				var newTrades = cache.trades.slice(fromIndex + 1)
-				newTrades = newTrades.map(function (trade) {
-					return {
-						trade_id: trade.trade_id,
-						time: new Date(trade.time).getTime(),
-						size: Number(trade.size),
-						price: Number(trade.price),
-						side: trade.side
-					}
-				})
-				newTrades.reverse()
-				cb(null, newTrades)
-				// trim cache
-				cache.trades = cache.trades.slice(fromIndex)
-				cache.trade_ids = cache.trade_ids.slice(fromIndex)
-				return
-			}
-
-			debug.msg('getTrades - getproducttrades call')
-
-			client.getProductTrades(opts.product_id, args, function (err, resp, body) {
-				if (!err) err = statusErr(resp, body)
-				if (err) return retry('getTrades', func_args, err)
-				var trades = body.map(function (trade) {
-					return {
-						trade_id: trade.trade_id,
-						time: new Date(trade.time).getTime(),
-						size: Number(trade.size),
-						price: Number(trade.price),
-						side: trade.side
-					}
-				})
-				trades.reverse()
-				cb(null, trades)
-			})
-		},
-
-		getBalance: function (opts, cb) {
-			var func_args = [].slice.call(arguments)
-			var client = authedClient()
-
-//			debug.msg('getBalance - getaccounts call')
-
-			client.getAccounts(function (err, resp, body) {
-				if (!err) err = statusErr(resp, body)
-				if (err) return retry('getBalance', func_args, err)
-				var balance = {asset: 0, currency: 0}
-				body.forEach(function (account) {
-					if (account.currency === opts.currency) {
-						balance.currency = account.balance
-						balance.currency_hold = account.hold
-					}
-					else if (account.currency === opts.asset) {
-						balance.asset = account.balance
-						balance.asset_hold = account.hold
-					}
-				})
-				cb(null, balance)
-			})
-		},
-
-		getQuote: function (opts, cb, forced = false) {
-			// check websocket cache first, if it is not forced
-			if (!forced && websocket_cache[opts.product_id]) {
-				var ticker = websocket_cache[opts.product_id].ticker
-				if (ticker.best_ask && ticker.best_bid) {
-					cb(null, {bid: ticker.best_bid, ask: ticker.best_ask})
+			getTrades: function (opts, cb) {
+				var func_args = [].slice.call(arguments)
+				var client = publicClient(opts.product_id)
+				var args = {}
+				if (opts.from) {
+					// move cursor into the future
+					args.before = opts.from
+				}
+				else if (opts.to) {
+					// move cursor into the past
+					args.after = opts.to
+				}
+				// check for locally cached trades from the websocket feed
+				var cache = websocket_cache[opts.product_id]
+				var max_trade_id = cache.trade_ids.reduce(function(a, b) {
+					return Math.max(a, b)
+				}, -1)
+				
+				if (opts.from && max_trade_id >= opts.from) {
+					var fromIndex = cache.trades.findIndex((value)=> {return value.trade_id == opts.from})
+					var newTrades = cache.trades.slice(fromIndex + 1)
+					newTrades = newTrades.map(function (trade) {
+						return {
+							trade_id: trade.trade_id,
+							time: new Date(trade.time).getTime(),
+							size: Number(trade.size),
+							price: Number(trade.price),
+							side: trade.side
+						}
+					})
+					newTrades.reverse()
+					cb(null, newTrades)
+					// trim cache
+					cache.trades = cache.trades.slice(fromIndex)
+					cache.trade_ids = cache.trade_ids.slice(fromIndex)
 					return
 				}
-			}
-			var func_args = [].slice.call(arguments)
-			var client = publicClient(opts.product_id)
-			debug.msg('getQuote - getproductticker call')
-			client.getProductTicker(opts.product_id, function (err, resp, body) {
-				if (!err) err = statusErr(resp, body)
-				if (err) return retry('getQuote', func_args, err)
-				if (body.bid || body.ask) {
-					debug.msg('getQuote - bid= ' + body.bid + '; ask= ' + body.ask)
-					websocket_cache[opts.product_id].ticker = {
-						best_ask: body.ask,
-						best_bid: body.bid
+
+				debug.msg('getTrades - getproducttrades call')
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
+
+					client.getProductTrades(opts.product_id, args, function (err, resp, body) {
+						if (!err) err = statusErr(resp, body)
+						if (err) return retry('getTrades', func_args, err)
+						var trades = body.map(function (trade) {
+							return {
+								trade_id: trade.trade_id,
+								time: new Date(trade.time).getTime(),
+								size: Number(trade.size),
+								price: Number(trade.price),
+								side: trade.side
+							}
+						})
+						trades.reverse()
+						cb(null, trades)
+					})
+				}
+				else {
+					debug.msg('getTrades - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { getTrades(opts, cb) }, (next_request - now() + 1))
+				}
+			},
+
+			getBalance: function (opts, cb) {
+				var func_args = [].slice.call(arguments)
+				var client = authedClient()
+
+//				debug.msg('getBalance - getaccounts call')
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
+
+					client.getAccounts(function (err, resp, body) {
+						if (!err) err = statusErr(resp, body)
+						if (err) return retry('getBalance', func_args, err)
+						var balance = {asset: 0, currency: 0}
+						body.forEach(function (account) {
+							if (account.currency === opts.currency) {
+								balance.currency = account.balance
+								balance.currency_hold = account.hold
+							}
+							else if (account.currency === opts.asset) {
+								balance.asset = account.balance
+								balance.asset_hold = account.hold
+							}
+						})
+						cb(null, balance)
+					})}
+				else {
+					debug.msg('getBalance - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { getBalance(opts, cb) }, (next_request - now() + 1))
+				}
+			},
+
+			getQuote: function (opts, cb, forced = false) {
+				// check websocket cache first, if it is not forced
+				if (!forced && websocket_cache[opts.product_id]) {
+					var ticker = websocket_cache[opts.product_id].ticker
+					if (ticker.best_ask && ticker.best_bid) {
+						cb(null, {bid: ticker.best_bid, ask: ticker.best_ask})
+						return
 					}
-					cb(null, {bid: body.bid, ask: body.ask})
 				}
-				else
-					cb({code: 'ENOTFOUND', body: opts.product_id + ' has no liquidity to quote'})
-			})
-		},
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
 
-		//Cancella l'ordine dalla websocket_cache, in modo da non aumentarla a dismisura
-		cancelOrderCache: function (opts) {
-			if(websocket_cache[opts.product_id]) {
-				delete websocket_cache[opts.product_id].orders['~' + opts.order_id]
-			}
-		},
-		
-		cancelOrder: function (opts, cb) {
-			var func_args = [].slice.call(arguments)
-			var client = authedClient()
-
-			debug.msg('cancelOrder - cancelorder call')
-
-			client.cancelOrder(opts.order_id, function (err, resp, body) {
-				if (err) {
-					debug.msg('cancelOrder: err= ')
-					debug.obj('err', err, false)
-				}
-
-//				if (resp) {
-//					debug.msg('cancelOrder: Response= ')
-//					debug.msg(resp, false)
-//				}
-
-				if (body) {
-					debug.msg('cancelOrder: Body= ')
-					debug.obj('body', body, false)
-				}
-				
-				if (resp && !body) {
-					body = response.body
-				}
-
-//				if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
-//					debug.msg('cancelOrder -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
-//					return cb()
-//				}
-
-				if (err && err.data && (err.data.message == 'Order already done' || err.data.message === 'order not found')) {
-					debug.msg('cancelOrder -  Hai fatto male a correggere!!! err.data.message: ' + err.data.message)
-					return cb()
-				}
-
-				if (!err) {
-					err = statusErr(resp, body)
-				}
-
-				if (err) {
-					return retry('cancelOrder', func_args, err)
-				}
-
-				cb()
-			})
-		},
-
-		cancelAllOrders: function (opts, cb) {
-			var func_args = [].slice.call(arguments)
-			var client = authedClient()
-
-			debug.msg('cancelAllOrders - cancelAllOrders call')
-
-			client.cancelAllOrders(opts, function (err, resp, body) {
-				if (err) {
-					debug.msg('cancelAllOrders: err= ')
-					debug.obj('err', err, false)
-				}
-
-//				if (body) {
-//					debug.msg('cancelAllOrders - body: ')
-//					console.log(body)
-//				}
-				
-//				if (resp) {
-//					debug.msg('cancelAllOrders - resp: ')
-//					console.log(resp)
-//				}
-
-				if (err) {
-					debug.msg('cancelAllOrders -  err: ')
-					console.log(err)
-					return cb(err)
-				}			
-
-				cb(null, body)
-			})
-		},
-			
-		buy: function (opts, cb) {
-			var func_args = [].slice.call(arguments)
-			var client = authedClient()
-			if (typeof opts.post_only === 'undefined') {
-				opts.post_only = true
-			}
-			if (opts.order_type === 'taker') {
-				delete opts.price
-				delete opts.post_only
-				delete opts.cancel_after
-				opts.type = 'market'
-			}
-			else {
-				if (opts.cancel_after) {
-					opts.time_in_force = 'GTT'
-				}
-				else {
-					opts.time_in_force = 'GTC'
-				}
-			}
-			delete opts.order_type
-
-			debug.msg('buy - buy call')
-
-			client.buy(opts, function (err, resp, body) {
-				
-				if (err) {
-					debug.msg('buy: err= ')
-					debug.obj('err', err, false)
-				}
-
-//				if (resp) {
-//					debug.msg('buy: Response= ')
-//					debug.msg(resp, false)
-//				}
-
-				if (body) {
-					debug.msg('buy: Body= ')
-					debug.obj('body', body, false)
-				}
-				
-				if (resp && !body) {
-					body = response.body
-				}
-				
-				if (body && (body.message === 'Insufficient funds')) {
-					debug.msg('buy -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
-					return cb()
-				}
-				
-//				if (body && body.message === 'Insufficient funds') {
-				//Verificato con sandbox. La risposta è in err.data.message
-				if (err && err.data && err.data.message === 'Insufficient funds') {
-					debug.msg('buy -  Hai fatto male a correggere!!! err.data.message: ' + err.data.message)
-					return cb(null, {
-						status: 'rejected',
-						reject_reason: 'balance'
+					var func_args = [].slice.call(arguments)
+					var client = publicClient(opts.product_id)
+					debug.msg('getQuote - forced getProductTicker call')
+					client.getProductTicker(opts.product_id, function (err, resp, body) {
+						if (!err) err = statusErr(resp, body)
+						if (err) return retry('getQuote', func_args, err)
+						if (body.bid || body.ask) {
+							debug.msg('getQuote - bid= ' + body.bid + '; ask= ' + body.ask)
+							websocket_cache[opts.product_id].ticker = {
+								best_ask: body.ask,
+								best_bid: body.bid
+							}
+							cb(null, {bid: body.bid, ask: body.ask})
+						}
+						else
+							cb({code: 'ENOTFOUND', body: opts.product_id + ' has no liquidity to quote'})
 					})
 				}
-
-				if (!err) {
-					err = statusErr(resp, body)
-				}
-
-				if (err) {
-					return retry('buy', func_args, err)
-				}
-
-				orders['~' + body.id] = body
-				cb(null, body)
-			})
-		},
-
-		sell: function (opts, cb) {
-			var func_args = [].slice.call(arguments)
-			var client = authedClient()
-
-			if (typeof opts.post_only === 'undefined') {
-				opts.post_only = true
-			}
-
-			if (opts.order_type === 'taker') {
-				delete opts.price
-				delete opts.post_only
-				delete opts.cancel_after
-				opts.type = 'market'
-			}
-			else {
-				if (opts.cancel_after) {
-					opts.time_in_force = 'GTT'
-				}
 				else {
-					opts.time_in_force = 'GTC'
+					debug.msg('getQuote forced - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { getQuote(opts, cb, forced) }, (next_request - now() + 1))
 				}
-			}
-			delete opts.order_type
+			},
 
-			debug.msg('sell - sell call')
+			//Cancella l'ordine dalla websocket_cache, in modo da non aumentarla a dismisura
+			cancelOrderCache: function (opts) {
+				if(websocket_cache[opts.product_id]) {
+					delete websocket_cache[opts.product_id].orders['~' + opts.order_id]
+				}
+			},
 
-			client.sell(opts, function (err, resp, body) {
-				
-				if (err) {
-					debug.msg('sell err= ')
-					debug.obj('err', err, false)
-				}
-				
-				if (body) {
-					debug.msg('sell: Body= ')
-					debug.obj('body', body, false)
-				}
-				
-				if (resp && !body) {
-					body = response.body
-				}
-				
-				if (body && (body.message === 'Insufficient funds')) {
-					debug.msg('sell -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
-					return cb()
-				}
-				
-//				if (body && body.message === 'Insufficient funds') {
-				if (err && err.data && err.data.message === 'Insufficient funds') {
-					debug.msg('sell -  Hai fatto male a correggere!!! err.data.message: ' + err.data.message)
-					return cb(null, {
-						status: 'rejected',
-						reject_reason: 'balance'
+			cancelOrder: function (opts, cb) {
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
+
+					var func_args = [].slice.call(arguments)
+					var client = authedClient()
+
+					debug.msg('cancelOrder - cancelorder call')
+
+					client.cancelOrder(opts.order_id, function (err, resp, body) {
+						if (err) {
+							debug.msg('cancelOrder: err= ')
+							debug.obj('err', err, false)
+						}
+
+//						if (resp) {
+//						debug.msg('cancelOrder: Response= ')
+//						debug.msg(resp, false)
+//						}
+
+						if (body) {
+							debug.msg('cancelOrder: Body= ')
+							debug.obj('body', body, false)
+						}
+
+						if (resp && !body) {
+							body = response.body
+						}
+
+//						if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
+//						debug.msg('cancelOrder -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
+//						return cb()
+//						}
+
+						if (err && err.data && (err.data.message == 'Order already done' || err.data.message === 'order not found')) {
+							debug.msg('cancelOrder -  Hai fatto male a correggere!!! err.data.message: ' + err.data.message)
+							return cb()
+						}
+
+						if (!err) {
+							err = statusErr(resp, body)
+						}
+
+						if (err) {
+							return retry('cancelOrder', func_args, err)
+						}
+
+						cb()
 					})
 				}
+				else {
+					debug.msg('cancelOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { cancelOrder(opts, cb) }, (next_request - now() + 1))
+				}
+			},
 
-				if (!err) {
-					err = statusErr(resp, body)
+			cancelAllOrders: function (opts, cb) {
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
+
+					var func_args = [].slice.call(arguments)
+					var client = authedClient()
+
+					debug.msg('cancelAllOrders - cancelAllOrders call')
+
+					client.cancelAllOrders(opts, function (err, resp, body) {
+						if (err) {
+							debug.msg('cancelAllOrders: err= ')
+							debug.obj('err', err, false)
+						}
+
+//						if (body) {
+//						debug.msg('cancelAllOrders - body: ')
+//						console.log(body)
+//						}
+
+//						if (resp) {
+//						debug.msg('cancelAllOrders - resp: ')
+//						console.log(resp)
+//						}
+
+						if (err) {
+							debug.msg('cancelAllOrders -  err: ')
+							console.log(err)
+							return cb(err)
+						}			
+
+						cb(null, body)
+					})
+				}
+				else {
+					debug.msg('cancelAllOrders - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { cancelAllOrders(opts, cb) }, (next_request - now() + 1))
+				}
+			},
+
+			buy: function (opts, cb) {
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
+
+					var func_args = [].slice.call(arguments)
+					var client = authedClient()
+					if (typeof opts.post_only === 'undefined') {
+						opts.post_only = true
+					}
+					if (opts.order_type === 'taker') {
+						delete opts.price
+						delete opts.post_only
+						delete opts.cancel_after
+						opts.type = 'market'
+					}
+					else {
+						if (opts.cancel_after) {
+							opts.time_in_force = 'GTT'
+						}
+						else {
+							opts.time_in_force = 'GTC'
+						}
+					}
+					delete opts.order_type
+
+					debug.msg('buy - buy call')
+
+					client.buy(opts, function (err, resp, body) {
+
+						if (err) {
+							debug.msg('buy: err= ')
+							debug.obj('err', err, false)
+						}
+
+//						if (resp) {
+//						debug.msg('buy: Response= ')
+//						debug.msg(resp, false)
+//						}
+
+						if (body) {
+							debug.msg('buy: Body= ')
+							debug.obj('body', body, false)
+						}
+
+						if (resp && !body) {
+							body = response.body
+						}
+
+						if (body && (body.message === 'Insufficient funds')) {
+							debug.msg('buy -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
+							return cb()
+						}
+
+//						if (body && body.message === 'Insufficient funds') {
+						//Verificato con sandbox. La risposta è in err.data.message
+						if (err && err.data && err.data.message === 'Insufficient funds') {
+							debug.msg('buy -  Hai fatto male a correggere!!! err.data.message: ' + err.data.message)
+							return cb(null, {
+								status: 'rejected',
+								reject_reason: 'balance'
+							})
+						}
+
+						if (!err) {
+							err = statusErr(resp, body)
+						}
+
+						if (err) {
+							return retry('buy', func_args, err)
+						}
+
+						orders['~' + body.id] = body
+						cb(null, body)
+					})
+				}
+				else {
+					debug.msg('buy - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { buy(opts, cb) }, (next_request - now() + 1))
+				}
+			},
+
+			sell: function (opts, cb) {
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
+
+					var func_args = [].slice.call(arguments)
+					var client = authedClient()
+
+					if (typeof opts.post_only === 'undefined') {
+						opts.post_only = true
+					}
+
+					if (opts.order_type === 'taker') {
+						delete opts.price
+						delete opts.post_only
+						delete opts.cancel_after
+						opts.type = 'market'
+					}
+					else {
+						if (opts.cancel_after) {
+							opts.time_in_force = 'GTT'
+						}
+						else {
+							opts.time_in_force = 'GTC'
+						}
+					}
+					delete opts.order_type
+
+					debug.msg('sell - sell call')
+
+					client.sell(opts, function (err, resp, body) {
+
+						if (err) {
+							debug.msg('sell err= ')
+							debug.obj('err', err, false)
+						}
+
+						if (body) {
+							debug.msg('sell: Body= ')
+							debug.obj('body', body, false)
+						}
+
+						if (resp && !body) {
+							body = response.body
+						}
+
+						if (body && (body.message === 'Insufficient funds')) {
+							debug.msg('sell -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
+							return cb()
+						}
+
+//						if (body && body.message === 'Insufficient funds') {
+						if (err && err.data && err.data.message === 'Insufficient funds') {
+							debug.msg('sell -  Hai fatto male a correggere!!! err.data.message: ' + err.data.message)
+							return cb(null, {
+								status: 'rejected',
+								reject_reason: 'balance'
+							})
+						}
+
+						if (!err) {
+							err = statusErr(resp, body)
+						}
+
+						if (err) {
+							return retry('sell', func_args, err)
+						}
+
+						orders['~' + body.id] = body
+						cb(null, body)
+					})
+				}
+				else {
+					debug.msg('sell - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { sell(opts, cb) }, (next_request - now() + 1))
+				}
+			},
+
+			getOrder: function (opts, cb) {
+				if(websocket_cache[opts.product_id] && websocket_cache[opts.product_id].orders['~' + opts.order_id]) {
+					let order_cache = websocket_cache[opts.product_id].orders['~' + opts.order_id]
+
+//					debug.msg('getOrder - websocket cache:')
+//					debug.msg(order_cache, false)
+
+					cb(null, order_cache)
+					return
 				}
 
-				if (err) {
-					return retry('sell', func_args, err)
-				}
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
 
-				orders['~' + body.id] = body
-				cb(null, body)
-			})
-		},
+					var func_args = [].slice.call(arguments)
+					var client = authedClient()
 
-		getOrder: function (opts, cb) {
-			if(websocket_cache[opts.product_id] && websocket_cache[opts.product_id].orders['~' + opts.order_id]) {
-				let order_cache = websocket_cache[opts.product_id].orders['~' + opts.order_id]
+					debug.msg('getOrder - getOrder call')
 
-//				debug.msg('getOrder - websocket cache:')
-//				debug.msg(order_cache, false)
-				
-				cb(null, order_cache)
-				return
-			}
-
-			var func_args = [].slice.call(arguments)
-			var client = authedClient()
-
-			debug.msg('getOrder - getOrder call')
-
-			/*
+					/*
 			 	getOrder
 			    { id: '92a24124-067b-4d3c-b79f-afdc1a13eaea',
 			    price: '5571.79000000',
@@ -684,7 +748,7 @@ module.exports = function gdax (conf) {
 			    executed_value: '0.0000000000000000',
 			    status: 'rejected',
 			    settled: false }
-			    
+
 			    websocket
 			    { 	id: update.order_id,
 					price: update.price,
@@ -694,112 +758,125 @@ module.exports = function gdax (conf) {
 					status: 'open',
 					settled: false,
 					filled_size: 0 }
-			
-			 */
-			
-			client.getOrder(opts.order_id, function (err, resp, body) {
-				if (!err && resp.statusCode === 200) {
-					debug.msg('**** getOrder - Ordine trovato. Lo inserisco in websocket_cache.')
-					websocket_cache[opts.product_id].orders['~' + opts.order_id] = {
-							id: body.id,
-							price: body.price,
-							size: body.size, //Dovrebbe essere remaining_size, ma non ce l'ho tramite getOrder e calcolarlo senza Numbro è pericoloso
-							product_id: body.product_id,
-							side: body.side,
-							status: body.status,
-							settled: body.settled,
-							filled_size: Number(body.filled_size)
-					}
+
+					 */
+
+					client.getOrder(opts.order_id, function (err, resp, body) {
+						if (!err && resp.statusCode === 200) {
+							debug.msg('**** getOrder - Ordine trovato. Lo inserisco in websocket_cache.')
+							websocket_cache[opts.product_id].orders['~' + opts.order_id] = {
+								id: body.id,
+								price: body.price,
+								size: body.size, //Dovrebbe essere remaining_size, ma non ce l'ho tramite getOrder e calcolarlo senza Numbro è pericoloso
+								product_id: body.product_id,
+								side: body.side,
+								status: body.status,
+								settled: body.settled,
+								filled_size: Number(body.filled_size)
+							}
+						}
+
+						if (!err && resp.statusCode !== 404) {
+							err = statusErr(resp, body)
+							debug.msg('getOrder - !404 (' + resp.statusCode + '):')
+							if (err)
+								debug.obj('err', err, false)
+						}
+
+//						if (resp) {
+//						debug.msg('getOrder - resp: ')
+//						debug.obj(resp, false)
+//						}
+
+						if (body) {
+							debug.msg('getOrder - body: ')
+							debug.obj('body', body, false)
+						}
+
+						if (resp && !body) {
+							body = response.body
+						}
+
+						if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
+							debug.msg('getOrder -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
+							return cb()
+						}
+
+						if (err && err.data && (err.data.message == 'Order already done' || err.data.message === 'order not found')) {
+							debug.msg('getOrder -  Hai fatto male a correggere!!! err.data.message: ' + err.data.message)
+							return cb()
+						}				
+
+						if (resp && resp.statusCode === 404) {
+							// order was cancelled. recall from cache
+							body = orders['~' + opts.order_id]
+							body.status = 'done'
+								body.done_reason = 'canceled'
+						}
+
+						if (err) {
+							return retry('getOrder', func_args, err)
+						}
+
+						cb(null, body)
+					})
 				}
-				
-				if (!err && resp.statusCode !== 404) {
-					err = statusErr(resp, body)
-					debug.msg('getOrder - !404 (' + resp.statusCode + '):')
-					if (err)
-						debug.obj('err', err, false)
+				else {
+					debug.msg('getOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { getOrder(opts, cb) }, (next_request - now() + 1))
 				}
+			},
 
-//				if (resp) {
-//				debug.msg('getOrder - resp: ')
-//				debug.obj(resp, false)
-//				}
+			getAllOrders: function (opts, cb) {
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
 
-				if (body) {
-					debug.msg('getOrder - body: ')
-					debug.obj('body', body, false)
+					var func_args = [].slice.call(arguments)
+					var client = authedClient()
+
+					debug.msg('getAllOrders - getAllOrders call')
+
+					client.getOrders(opts, function (err, resp, body) {
+						if (!err && resp.statusCode !== 404) {
+							err = statusErr(resp, body)
+							debug.msg('getOrder - !404 (' + resp.statusCode + '):')
+							if (err)
+								debug.obj('err', err, false)
+						}
+
+//						if (body) {
+//						debug.msg('getAllOrders - body: ')
+//						console.log(body)
+//						}
+
+//						if (resp) {
+//						debug.msg('getAllOrders - resp: ')
+//						console.log(resp)
+//						}
+
+						if (err) {
+							debug.msg('getAllOrders -  err: ')
+							console.log(err)
+							return cb(err)
+						}			
+
+						cb(null, body)
+					})
 				}
-				
-				if (resp && !body) {
-					body = response.body
+				else {
+					debug.msg('getAllOrders - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { getAllOrders(opts, cb) }, (next_request - now() + 1))
 				}
+			},
 
-				if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
-					debug.msg('getOrder -  Hai fatto bene a correggere!!! resp.body.message = body.message: ' + body.message)
-					return cb()
-				}
+			// return the property used for range querying.
+			getCursor: function (trade) {
+				return trade.trade_id
+			},
 
-				if (err && err.data && (err.data.message == 'Order already done' || err.data.message === 'order not found')) {
-					debug.msg('getOrder -  Hai fatto male a correggere!!! err.data.message: ' + err.data.message)
-					return cb()
-				}				
-
-				if (resp && resp.statusCode === 404) {
-					// order was cancelled. recall from cache
-					body = orders['~' + opts.order_id]
-					body.status = 'done'
-						body.done_reason = 'canceled'
-				}
-
-				if (err) {
-					return retry('getOrder', func_args, err)
-				}
-
-				cb(null, body)
-			})
-		},
-		
-		getAllOrders: function (opts, cb) {
-			var func_args = [].slice.call(arguments)
-			var client = authedClient()
-
-			debug.msg('getAllOrders - getAllOrders call')
-
-			client.getOrders(opts, function (err, resp, body) {
-				if (!err && resp.statusCode !== 404) {
-					err = statusErr(resp, body)
-					debug.msg('getOrder - !404 (' + resp.statusCode + '):')
-					if (err)
-						debug.obj('err', err, false)
-				}
-
-//				if (body) {
-//					debug.msg('getAllOrders - body: ')
-//					console.log(body)
-//				}
-				
-//				if (resp) {
-//					debug.msg('getAllOrders - resp: ')
-//					console.log(resp)
-//				}
-
-				if (err) {
-					debug.msg('getAllOrders -  err: ')
-					console.log(err)
-					return cb(err)
-				}			
-
-				cb(null, body)
-			})
-		},
-
-		// return the property used for range querying.
-		getCursor: function (trade) {
-			return trade.trade_id
-		},
-		
-		getMemory: function() {
-			return sizeof(websocket_cache)
-		}
+			getMemory: function() {
+				return sizeof(websocket_cache)
+			}
 	}
 	return exchange
 }

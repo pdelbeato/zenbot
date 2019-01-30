@@ -1305,8 +1305,8 @@ module.exports = function (program, conf) {
 									s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 								}
 
-								//Chiamata alla funzione syncBalance ogni so.poll_balance
-								setInterval(engine.syncBalance, so.poll_balance)
+//								//Chiamata alla funzione syncBalance ogni so.poll_balance
+//								setInterval(engine.syncBalance, so.poll_balance)
 								
 								//Chiamata alla funzione forwardScan() ogni so.poll_trades
 								//forwardScan()
