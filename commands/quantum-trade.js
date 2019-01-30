@@ -503,6 +503,7 @@ module.exports = function (program, conf) {
 						engine.positionStatus(s.positions[s.positions_index], 'Free')
 						setTimeout(function() {
 							s.positionProcessingQueue.push({mode: 'delete', id: s.positions[s.positions_index].id})
+							s.positions_index = null
 							s.positions.splice(s.positions_index,1)
 						}, so.order_poll_time)
 					}
