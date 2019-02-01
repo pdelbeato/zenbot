@@ -472,7 +472,7 @@ module.exports = function (program, conf) {
 				keyMap.set('L', {desc: ('Lock the position (does not cancel orders connected to the position)'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nLocking the position '.yellow + s.positions[s.positions_index].id)
-						(s.positions[s.positions_index].locked = true
+						s.positions[s.positions_index].locked = true
 					}
 					else {
 						console.log('No position in control.')
