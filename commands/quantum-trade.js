@@ -223,23 +223,23 @@ module.exports = function (program, conf) {
 				//Modo MARKET		
 				keyMap.set('b', {desc: ('limit'.grey + ' BUY'.green), action: function() {
 					console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command inserted'.grey)
-					engine.emitSignal('standard', 'buy')						
+					engine.emitSignal('manual', 'buy')						
 				}})
 				keyMap.set('B', {desc: ('market'.grey + ' BUY'.green), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command inserted'.grey)
-					engine.emitSignal('standard', 'buy', null, null, null, false, true)
+					engine.emitSignal('manual', 'buy', null, null, null, false, true)
 				}})
 				keyMap.set('s', {desc: ('limit'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command inserted'.grey)
-					engine.emitSignal('standard', 'sell')												 
+					engine.emitSignal('manual', 'sell')												 
 				}})
 				keyMap.set('S', {desc: ('market'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command inserted'.grey)
-					engine.emitSignal('standard', 'sell', null, null, null, false, true)		
+					engine.emitSignal('manual', 'sell', null, null, null, false, true)		
 				}})
-				keyMap.set('c', {desc: ('cancel order'.grey), action: function() {
-					engine.orderStatus(undefined, undefined, 'standard', undefined, 'Unset', 'standard')
-					console.log('\nmanual'.grey + ' standard orders cancel' + ' command executed'.grey)
+				keyMap.set('c', {desc: ('cancel manual orders'.grey), action: function() {
+					engine.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
+					console.log('\nmanual'.grey + ' orders cancel' + ' command executed'.grey)
 				}})
 				keyMap.set('C', {desc: ('cancel ALL order'.grey), action: function() {
 					console.log('\nmanual'.grey + ' canceling ALL orders')
@@ -463,6 +463,7 @@ module.exports = function (program, conf) {
 					if (s.positions_index != null) {
 						console.log('\nFreeing the position (cancelling all orders connected with the position) '.yellow + s.positions[s.positions_index].id)
 						engine.positionStatus(s.positions[s.positions_index], 'Free')
+						s.positions[s.positions_index].locked = false
 					}
 					else {
 						console.log('No position in control.')
@@ -471,7 +472,7 @@ module.exports = function (program, conf) {
 				keyMap.set('L', {desc: ('Lock the position (does not cancel orders connected to the position)'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nLocking the position '.yellow + s.positions[s.positions_index].id)
-						engine.positionStatus(s.positions[s.positions_index], 'Set', 'manual')
+						(s.positions[s.positions_index].locked = true
 					}
 					else {
 						console.log('No position in control.')
@@ -480,7 +481,7 @@ module.exports = function (program, conf) {
 				keyMap.set('U', {desc: ('Unlock the position (does not cancel orders connected to the position)'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nUnlocking the position '.yellow + s.positions[s.positions_index].id)
-						engine.positionStatus(s.positions[s.positions_index], 'Unset', 'manual')
+						s.positions[s.positions_index].locked = false
 					}
 					else {
 						console.log('No position in control.')
@@ -488,9 +489,10 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('c', {desc: ('cancel ALL orders connected to the position, without let it free'.grey), action: function() {
 					if (s.positions_index != null) {
-						console.log('\nCancelling all orders connected with the position '.yellow + s.positions[s.positions_index].id)
-						status_tmp = ~(s.positions[s.positions_index].status & engine.statusByte.locked)
-						engine.positionStatus(s.positions[s.positions_index], 'Unset', status_tmp)
+						console.log('\nCanceling all orders connected with the position '.yellow + s.positions[s.positions_index].id)
+//						status_tmp = ~(s.positions[s.positions_index].status & engine.orderFlag.locked)
+//						engine.positionStatus(s.positions[s.positions_index], 'Unset', status_tmp)
+						engine.positionStatus(s.positions[s.positions_index], 'Free')
 					}
 					else {
 						console.log('No position in control.')
@@ -498,7 +500,7 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('C', {desc: ('cancel the position'.grey), action: function() {
 					if (s.positions_index != null) {
-						console.log('\nCancelling the position '.yellow + s.positions[s.positions_index].id)
+						console.log('\nCanceling the position '.yellow + s.positions[s.positions_index].id)
 
 						engine.positionStatus(s.positions[s.positions_index], 'Free')
 						setTimeout(function() {

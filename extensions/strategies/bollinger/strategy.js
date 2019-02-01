@@ -10,22 +10,21 @@ module.exports = {
   description: 'Buy when (Signal ≤ Lower Bollinger Band) and sell when (Signal ≥ Upper Bollinger Band).',
 
   getOptions: function () {
-    this.option('period', 'period length, same as --period_length', String, '15m')
-    this.option('period_length', 'period length, same as --period', String, '15m')
-    //this.option('period_calc', 'calculate Bollinger Bands every periode_calc time period_length (or period)', Number, 1)
-    this.option('min_periods', 'min. number of history periods', Number, 301)
-    this.option('bollinger_size', 'period size', Number, 20)
-    this.option('bollinger_time', 'times of standard deviation between the upper/lower band and the moving averages', Number, 1.5)
-    this.option('bollinger_upper_bound_pct', 'pct the current price should be near the bollinger upper bound before we sell', Number, 0)
-    this.option('bollinger_lower_bound_pct', 'pct the current price should be near the bollinger lower bound before we buy', Number, 0)
-    this.option('bollinger_upper_watchdog_pct', 'pct the current price should be over the bollinger upper bound to activate watchdog', Number, 50)
-    this.option('bollinger_lower_watchdog_pct', 'pct the current price should be under the bollinger lower bound to activate watchdog', Number, 50)
-    this.option('bollinger_calmdown_watchdog_pct', 'pct the current price should be far from the bollinger bands to calmdown the watchdog', Number, 50)
+	this.option('bollinger', 'period_length', 'period length, ', String, '15m')
+    this.option('bollinger', 'period_calc', 'calculate Bollinger Bands every period_calc time period_length (or period)', Number, 1)
+    this.option('bollinger', 'min_periods', 'min. number of history periods', Number, 301)
+    this.option('bollinger', 'size', 'period size', Number, 20)
+    this.option('bollinger', 'time', 'times of standard deviation between the upper/lower band and the moving averages', Number, 1.5)
+    this.option('bollinger', 'upper_bound_pct', 'pct the current price should be near the bollinger upper bound before we sell', Number, 0)
+    this.option('bollinger', 'lower_bound_pct', 'pct the current price should be near the bollinger lower bound before we buy', Number, 0)
+    this.option('bollinger', 'upper_watchdog_pct', 'pct the current price should be over the bollinger upper bound to activate watchdog', Number, 50)
+    this.option('bollinger', 'lower_watchdog_pct', 'pct the current price should be under the bollinger lower bound to activate watchdog', Number, 50)
+    this.option('bollinger', 'calmdown_watchdog_pct', 'pct the current price should be far from the bollinger bands to calmdown the watchdog', Number, 50)
   },
 
   calculate: function (s) {
     // calculate Bollinger Bands
-    bollinger(s, 'bollinger', s.options.bollinger_size, 'close')
+    bollinger(s, 'bollinger', s.options.strategy.bollinger.opts.size, 'close')
   },
 
   onPeriod: function (s, cb) {
@@ -58,9 +57,9 @@ module.exports = {
         //Se non siamo in watchdog, utilizza la normale strategia
         if (!s.is_dump_watchdog && !s.is_pump_watchdog) {
           if (s.period.close > (upperBound - (upperBandWidth * s.options.bollinger_upper_bound_pct/100))) {
-            s.signal = 'sell'
+            s.eventBus.emit('sell', 'bollinger')
           } else if (s.period.close < (lowerBound + (lowerBandWidth * s.options.bollinger_lower_bound_pct/100))) {
-            s.signal = 'buy'
+        	  s.eventBus.emit('buy', 'bollinger')
           } else {
             s.signal = null // hold
           }
