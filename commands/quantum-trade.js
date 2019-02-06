@@ -1435,7 +1435,7 @@ module.exports = function (program, conf) {
 							console.error(err)
 						}
 						if (s.period) {
-							engine.writeReport(true)
+							engine.writeReport(undefined, true)
 						} else {
 							readline.clearLine(process.stdout)
 							readline.cursorTo(process.stdout, 0)
