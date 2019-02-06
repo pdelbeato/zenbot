@@ -1239,10 +1239,15 @@ module.exports = function (program, conf) {
 							}
 						})
 					}
+
+					//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco
 					if (!trades.length) {
 						var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------'
 						console.log(head)
+						
+						//A che diavolo serve?
 						output(conf).initializeOutput(s)
+						
 						var minuses = Math.floor((head.length - so.mode.length - 19) / 2)
 						console.log('-'.repeat(minuses) + ' STARTING ' + so.mode.toUpperCase() + ' TRADING ' + '-'.repeat(minuses + (minuses % 2 == 0 ? 0 : 1)))
 						if (so.mode === 'paper') {
@@ -1313,8 +1318,6 @@ module.exports = function (program, conf) {
 								//Chiamata alla funzione forwardScan() ogni so.poll_trades
 								//forwardScan()
 								setInterval(forwardScan, so.poll_trades)
-
-								
 
 								readline.emitKeypressEvents(process.stdin)
 								if (!so.non_interactive && process.stdin.setRawMode) {
