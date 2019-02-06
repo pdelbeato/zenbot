@@ -10,8 +10,9 @@ module.exports = {
   description: 'Buy when (Signal ≤ Lower Bollinger Band) and sell when (Signal ≥ Upper Bollinger Band).',
 
   getOptions: function () {
-	this.option('bollinger', 'period_length', 'period length, ', String, '15m')
-    this.option('bollinger', 'period_calc', 'calculate Bollinger Bands every period_calc time period_length (or period)', Number, 1)
+//	this.option('bollinger', 'period_length', 'period length, ', String, '15m')
+//    this.option('bollinger', 'period_calc', 'calculate Bollinger Bands every period_calc time period_length (or period)', Number, 1)
+    this.option('bollinger', 'period_calc', 'calculate Bollinger Bands every period_calc time', String, '15m')
     this.option('bollinger', 'min_periods', 'min. number of history periods', Number, 301)
     this.option('bollinger', 'size', 'period size', Number, 20)
     this.option('bollinger', 'time', 'times of standard deviation between the upper/lower band and the moving averages', Number, 1.5)
@@ -28,27 +29,27 @@ module.exports = {
   },
 
   onPeriod: function (s, cb) {
-    if (s.period.bollinger) {
-      if (s.period.bollinger.upperBound && s.period.bollinger.lowerBound) {
+    if (s.options.strategy.bollinger.data) {
+      if (s.options.strategy.bollinger.data.upperBound && s.options.strategy.bollinger.data.lowerBound) {
 //        let upperBound = s.period.bollinger.upper[s.period.bollinger.upper.length-1]
 //        let lowerBound = s.period.bollinger.lower[s.period.bollinger.lower.length-1]
 //        let upperBandWidth = (s.period.bollinger.upper[s.period.bollinger.upper.length-1] - s.period.bollinger.mid[s.period.bollinger.mid.length-1])
 //        let lowerBandWidth = (s.period.bollinger.mid[s.period.bollinger.mid.length-1] - s.period.bollinger.lower[s.period.bollinger.lower.length-1])
-		let upperBound = s.period.bollinger.upperBound
-		let lowerBound = s.period.bollinger.lowerBound
-		let upperBandWidth = (s.period.bollinger.upperBound - s.period.bollinger.midBound)
-		let lowerBandWidth = (s.period.bollinger.midBound - s.period.bollinger.lowerBound)
-		let upperWatchdogBound = upperBound + (upperBandWidth * s.options.bollinger_upper_watchdog_pct/100)
-        let lowerWatchdogBound = lowerBound - (lowerBandWidth * s.options.bollinger_lower_watchdog_pct/100)
-        let upperCalmdownWatchdogBound = upperBound - (upperBandWidth * s.options.bollinger_calmdown_watchdog_pct/100)
-        let lowerCalmdownWatchdogBound = lowerBound + (lowerBandWidth * s.options.bollinger_calmdown_watchdog_pct/100)
+		let upperBound = s.options.strategy.bollinger.data.upperBound
+		let lowerBound = s.options.strategy.bollinger.data.lowerBound
+		let upperBandWidth = (s.options.strategy.bollinger.data.upperBound - s.options.strategy.bollinger.data.midBound)
+		let lowerBandWidth = (s.options.strategy.bollinger.data.midBound - s.options.strategy.bollinger.data.lowerBound)
+		let upperWatchdogBound = upperBound + (upperBandWidth * s.options.strategy.bollinger.opts.upper_watchdog_pct/100)
+        let lowerWatchdogBound = lowerBound - (lowerBandWidth * s.options.strategy.bollinger.opts.lower_watchdog_pct/100)
+        let upperCalmdownWatchdogBound = upperBound - (upperBandWidth * s.options.strategy.bollinger.opts.calmdown_watchdog_pct/100)
+        let lowerCalmdownWatchdogBound = lowerBound + (lowerBandWidth * s.options.strategy.bollinger.opts.calmdown_watchdog_pct/100)
 
         //Se sono attive le opzioni watchdog, controllo se dobbiamo attivare il watchdog
-        if (s.options.pump_watchdog && s.period.close > upperWatchdogBound) {
+        if (s.options.strategy.bollinger.opts.pump_watchdog && s.period.close > upperWatchdogBound) {
           s.signal = 'pump'
           s.is_pump_watchdog = true
           s.is_dump_watchdog = false
-        } else if (s.options.dump_watchdog && s.period.close < lowerWatchdogBound) {
+        } else if (s.options.strategy.bollinger.opts.dump_watchdog && s.period.close < lowerWatchdogBound) {
           s.signal = 'dump'
           s.is_pump_watchdog = false
           s.is_dump_watchdog = true
@@ -56,9 +57,9 @@ module.exports = {
 
         //Se non siamo in watchdog, utilizza la normale strategia
         if (!s.is_dump_watchdog && !s.is_pump_watchdog) {
-          if (s.period.close > (upperBound - (upperBandWidth * s.options.bollinger_upper_bound_pct/100))) {
+          if (s.period.close > (upperBound - (upperBandWidth * ss.options.strategy.bollinger.opts.upper_bound_pct/100))) {
             s.eventBus.emit('sell', 'bollinger')
-          } else if (s.period.close < (lowerBound + (lowerBandWidth * s.options.bollinger_lower_bound_pct/100))) {
+          } else if (s.period.close < (lowerBound + (lowerBandWidth * s.options.strategy.bollinger.opts.lower_bound_pct/100))) {
         	  s.eventBus.emit('buy', 'bollinger')
           } else {
             s.signal = null // hold
@@ -77,21 +78,21 @@ module.exports = {
 
   onReport: function (s) {
     var cols = []
-    if (s.period.bollinger) {
-      if (s.period.bollinger.upperBound && s.period.bollinger.lowerBound) {
+    if (s.options.strategy.bollinger.data) {
+//      if (s.options.strategy.bollinger.data.upperBound && s.options.strategy.bollinger.data.lowerBound) {
 //        let upperBound = s.period.bollinger.upper[s.period.bollinger.upper.length-1]
 //        let lowerBound = s.period.bollinger.lower[s.period.bollinger.lower.length-1]
 //        let upperBandWidth = (s.period.bollinger.upper[s.period.bollinger.upper.length-1] - s.period.bollinger.mid[s.period.bollinger.mid.length-1])
 //        let lowerBandWidth = (s.period.bollinger.mid[s.period.bollinger.mid.length-1] - s.period.bollinger.lower[s.period.bollinger.lower.length-1])
-        let upperBandWidth = (s.period.bollinger.upperBound - s.period.bollinger.midBound)
-        let lowerBandWidth = (s.period.bollinger.midBound - s.period.bollinger.lowerBound)
-        let upperWatchdogBound = s.period.bollinger.upperBound + (upperBandWidth * s.options.bollinger_upper_watchdog_pct/100)
-        let lowerWatchdogBound = s.period.bollinger.lowerBound - (lowerBandWidth * s.options.bollinger_lower_watchdog_pct/100)
+        let upperBandWidth = (s.options.strategy.bollinger.data.upperBound - s.options.strategy.bollinger.data.midBound)
+        let lowerBandWidth = (s.options.strategy.bollinger.data.midBound - s.options.strategy.bollinger.data.lowerBound)
+        let upperWatchdogBound = s.options.strategy.bollinger.data.upperBound + (upperBandWidth * s.options.strategy.bollinger.opts.upper_watchdog_pct/100)
+        let lowerWatchdogBound = s.options.strategy.bollinger.data.lowerBound - (lowerBandWidth * s.options.strategy.bollinger.opts.lower_watchdog_pct/100)
 
         var color = 'grey'
-        if (s.period.close > (s.period.bollinger.upperBound - (upperBandWidth * s.options.bollinger_upper_bound_pct/100))) {
+        if (s.period.close > (s.options.strategy.bollinger.data.upperBound - (upperBandWidth * s.options.strategy.bollinger.opts.upper_bound_pct/100))) {
           color = 'green'
-        } else if (s.period.close < (s.period.bollinger.lowerBound + (lowerBandWidth * s.options.bollinger_lower_bound_pct/100))) {
+        } else if (s.period.close < (s.options.strategy.bollinger.data.lowerBound + (lowerBandWidth * s.options.strategy.bollinger.opts.lower_bound_pct/100))) {
           color = 'red'
         }
 
@@ -101,10 +102,10 @@ module.exports = {
         }
 
 //        cols.push(z(8, n(s.period.close).format('0.00'), ' ')[color])
-        cols.push(z(8, n(s.period.bollinger.lowerBound).format('0.00').substring(0,7), ' ').cyan)
+        cols.push(z(8, n(s.options.strategy.bollinger.data.lowerBound).format('0.00').substring(0,7), ' ').cyan)
         cols.push(' <->')
-        cols.push(z(8, n(s.period.bollinger.upperBound).format('0.00').substring(0,7), ' ').cyan)
-      }
+        cols.push(z(8, n(s.options.strategy.bollinger.data.upperBound).format('0.00').substring(0,7), ' ').cyan)
+//      }
     }
     else {
       cols.push('         ')
@@ -128,12 +129,12 @@ module.exports = {
     profit_stop_pct: Phenotypes.Range(1,20),
 
     // -- strategy
-    bollinger_size: Phenotypes.Range(1, 40),
-    bollinger_time: Phenotypes.RangeFloat(1,6),
-    bollinger_upper_bound_pct: Phenotypes.RangeFloat(-1, 30),
-    bollinger_lower_bound_pct: Phenotypes.RangeFloat(-1, 30),
-    bollinger_upper_watchdog_pct: Phenotypes.RangeFloat(50, 300),
-    bollinger_lower_watchdog_pct: Phenotypes.RangeFloat(50, 300),
-    bollinger_calmdown_watchdog_pct: Phenotypes.RangeFloat(-50, 80)
+    size: Phenotypes.Range(1, 40),
+    time: Phenotypes.RangeFloat(1,6),
+    upper_bound_pct: Phenotypes.RangeFloat(-1, 30),
+    lower_bound_pct: Phenotypes.RangeFloat(-1, 30),
+    upper_watchdog_pct: Phenotypes.RangeFloat(50, 300),
+    lower_watchdog_pct: Phenotypes.RangeFloat(50, 300),
+    calmdown_watchdog_pct: Phenotypes.RangeFloat(-50, 80)
   }
 }
