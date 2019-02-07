@@ -43,12 +43,12 @@ module.exports = {
 				//Se sono attive le opzioni watchdog, controllo se dobbiamo attivare il watchdog
 				if (s.options.strategy.bollinger.opts.pump_watchdog && s.period.close > upperWatchdogBound) {
 					s.signal = 'pump'
-					s.options.strategy.bollinger.is_pump_watchdog = true
-					s.options.strategy.bollinger.is_dump_watchdog = false
+					s.is_pump_watchdog = true
+					s.is_dump_watchdog = false
 				} else if (s.options.strategy.bollinger.opts.dump_watchdog && s.period.close < lowerWatchdogBound) {
 					s.signal = 'dump'
-					s.options.strategy.bollinger.is_pump_watchdog = false
-					s.options.strategy.bollinger.is_dump_watchdog = true
+					s.is_pump_watchdog = false
+					s.is_dump_watchdog = true
 				}
 
 				//Se non siamo in watchdog, utilizza la normale strategia
