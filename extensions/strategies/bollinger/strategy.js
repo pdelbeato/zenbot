@@ -41,11 +41,11 @@ module.exports = {
 				let lowerCalmdownWatchdogBound = lowerBound + (lowerBandWidth * s.options.strategy.bollinger.opts.calmdown_watchdog_pct/100)
 
 				//Se sono attive le opzioni watchdog, controllo se dobbiamo attivare il watchdog
-				if (s.options.strategy.bollinger.opts.pump_watchdog && s.period.close > upperWatchdogBound) {
+				if (so.pump_watchdog && s.period.close > upperWatchdogBound) {
 					s.signal = 'pump'
 					s.is_pump_watchdog = true
 					s.is_dump_watchdog = false
-				} else if (s.options.strategy.bollinger.opts.dump_watchdog && s.period.close < lowerWatchdogBound) {
+				} else if (so.dump_watchdog && s.period.close < lowerWatchdogBound) {
 					s.signal = 'dump'
 					s.is_pump_watchdog = false
 					s.is_dump_watchdog = true

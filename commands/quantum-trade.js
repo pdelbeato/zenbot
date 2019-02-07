@@ -830,17 +830,16 @@ module.exports = function (program, conf) {
 				opts_name = ''
 				opts_value = ''
 				Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
-					opts_name += z((key.length + 4), key.grey, ' ')
-					opts_value += z((key.length + 4), so.strategy[strategy_name].opts[key], ' ')
+					opts_name += z((key.length + 10), key.grey, ' ')
+					opts_value += z((key.length + 10), so.strategy[strategy_name].opts[key], ' ')
 				})
 				process.stdout.write('\n' + opts_name)
 				process.stdout.write('\n' + opts_value + '\n')
 			})
 			
 			process.stdout.write([
-				z(25, (so.mode === 'paper' ? so.mode.toUpperCase() : so.mode.toUpperCase()) + ' MODE'.grey, ' '),
+				z(25, so.mode.toUpperCase() + ' MODE'.grey, ' '),
 				z(25, 'PERIOD LENGTH'.grey, ' '),
-//				z(25, 'PERIOD CALC'.grey, ' '),
 				z(25, 'ORDER TYPE'.grey, ' '),
 				z(25, 'SLIPPAGE'.grey, ' '),
 				z(30, 'EXCHANGE FEES'.grey, ' ')
@@ -849,7 +848,6 @@ module.exports = function (program, conf) {
 			process.stdout.write([
 				z(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
 				z(10, so.period_length, ' '),
-//				z(17, so.period_calc, ' '),
 				z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
 				z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
 				z(17, (so.order_type === 'maker' ? so.order_type + ' ' + n(s.exchange.makerFee).format('0.0000%')  : so.order_type + ' ' + s.exchange.takerFee), ' ')
@@ -860,15 +858,15 @@ module.exports = function (program, conf) {
 			process.stdout.write([
 			z(30, 'TRAILING STOP %'.grey, ' '),
 			z(34, 'TRAILING DISTANCE %'.grey, ' '),
-//			z(35, 'DUMP / PUMP WATCHDOG'.grey, ' '),
-//			z(36, 'LONG / SHORT POSITION'.grey, ' ')
+			z(35, 'DUMP / PUMP WATCHDOG'.grey, ' '),
+			z(36, 'LONG / SHORT POSITION'.grey, ' ')
 			].join('') + '\n')
 			
 			process.stdout.write([
 				z(12, so.profit_stop_enable_pct + '%', ' '),
 				z(24, so.profit_stop_pct + '%', ' '),
-//				z(20, so.dump_watchdog, ' '),
-//				z(8, so.pump_watchdog, ' '),
+				z(20, so.dump_watchdog, ' '),
+				z(8, so.pump_watchdog, ' '),
 				z(16, so.active_long_position, ' '),
 				z(8, so.active_short_position, ' ')
 				].join('') + '\n\n')
