@@ -830,10 +830,10 @@ module.exports = function (program, conf) {
 				opts_name = ''
 				opts_value = ''
 				Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
-					opts_name += z((key.length + 10), key.grey, ' ')
-					opts_value += z((key.length + 10), so.strategy[strategy_name].opts[key], ' ')
+					opts_name += z((key.length + 4), key, ' ')
+					opts_value += z((key.length + 4), so.strategy[strategy_name].opts[key], ' ')
 				})
-				process.stdout.write('\n' + opts_name)
+				process.stdout.write('\n' + opts_name.grey)
 				process.stdout.write('\n' + opts_value + '\n')
 			})
 			
@@ -1448,7 +1448,9 @@ module.exports = function (program, conf) {
 							console.error(err)
 						}
 						if (s.period) {
-							engine.writeReport(undefined, true)
+							Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
+								engine.writeReport(strategy_name, true)
+							})
 						} else {
 							readline.clearLine(process.stdout)
 							readline.cursorTo(process.stdout, 0)

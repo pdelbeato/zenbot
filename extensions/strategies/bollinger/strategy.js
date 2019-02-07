@@ -81,22 +81,26 @@ module.exports = {
 			let upperWatchdogBound = s.options.strategy.bollinger.data.upperBound + (upperBandWidth * s.options.strategy.bollinger.opts.upper_watchdog_pct/100)
 			let lowerWatchdogBound = s.options.strategy.bollinger.data.lowerBound - (lowerBandWidth * s.options.strategy.bollinger.opts.lower_watchdog_pct/100)
 
-			var color = 'grey'
-				if (s.period.close > (s.options.strategy.bollinger.data.upperBound - (upperBandWidth * s.options.strategy.bollinger.opts.upper_bound_pct/100))) {
-					color = 'green'
-				} else if (s.period.close < (s.options.strategy.bollinger.data.lowerBound + (lowerBandWidth * s.options.strategy.bollinger.opts.lower_bound_pct/100))) {
-					color = 'red'
-				}
-
-			//Ma se siamo in dump/pump, allora il colore è bianco
-			if (s.period.close > upperWatchdogBound || s.period.close < lowerWatchdogBound) {
-				color = 'white'
+			var color_up = 'cyan'
+			var color_down = 'cyan'
+			//Se il prezzo supera un limite del canale, allora il colore del limite è bianco
+			if (s.period.close > (s.options.strategy.bollinger.data.upperBound - (upperBandWidth * s.options.strategy.bollinger.opts.upper_bound_pct/100))) {
+				color_up = 'white'
+			} else if (s.period.close < (s.options.strategy.bollinger.data.lowerBound + (lowerBandWidth * s.options.strategy.bollinger.opts.lower_bound_pct/100))) {
+				color_down = 'white'
 			}
 
-//			cols.push(z(8, n(s.period.close).format('0.00'), ' ')[color])
-			cols.push(z(8, n(s.options.strategy.bollinger.data.lowerBound).format('0.00').substring(0,7), ' ').cyan)
+			//Ma se siamo in dump/pump, allora il colore del limite è rosso
+			if (s.period.close > upperWatchdogBound) {
+				color_up = 'red'
+			}
+			if (s.period.close < lowerWatchdogBound) {
+				color_down = 'red'
+			}
+
+			cols.push(z(8, n(s.options.strategy.bollinger.data.lowerBound).format('0.00').substring(0,7), ' ')[color_down])
 			cols.push(' <->')
-			cols.push(z(8, n(s.options.strategy.bollinger.data.upperBound).format('0.00').substring(0,7), ' ').cyan)
+			cols.push(z(8, n(s.options.strategy.bollinger.data.upperBound).format('0.00').substring(0,7), ' ')[color_up])
 			}
 		}
 		else {
