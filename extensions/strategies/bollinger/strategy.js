@@ -52,19 +52,19 @@ module.exports = {
 				}
 
 				//Se non siamo in watchdog, utilizza la normale strategia
-				if (!s.options.strategy.bollinger.is_dump_watchdog && !s.options.strategy.bollinger.is_pump_watchdog) {
+				if (!s.is_dump_watchdog && !s.is_pump_watchdog) {
 					if (s.period.close > (upperBound - (upperBandWidth * s.options.strategy.bollinger.opts.upper_bound_pct/100))) {
-						s.eventBus.emit('sell', 'bollinger')
+						s.eventBus.emit('bollinger', 'sell')
 					} else if (s.period.close < (lowerBound + (lowerBandWidth * s.options.strategy.bollinger.opts.lower_bound_pct/100))) {
-						s.eventBus.emit('buy', 'bollinger')
+						s.eventBus.emit('bollinger', 'buy')
 					} else {
 						s.signal = null // hold
 					}
 				} else { //Siamo in watchdog, controlla se ci siamo ancora
 					if (s.period.close > lowerCalmdownWatchdogBound && s.period.close < upperCalmdownWatchdogBound) {
 						s.signal = null
-						s.options.strategy.bollinger.is_pump_watchdog = false
-						s.options.strategy.bollinger.is_dump_watchdog = false
+						s.is_pump_watchdog = false
+						s.is_dump_watchdog = false
 					}
 				}
 			}
