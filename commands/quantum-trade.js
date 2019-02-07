@@ -617,7 +617,13 @@ module.exports = function (program, conf) {
 				//Modo OPTIONS
 				keyMap.set('o', {desc: ('show current trade options'.grey), action: function() { listOptions ()}})
 				keyMap.set('a', {desc: ('show current trade options in a dirty view (full list)'.grey), action: function() {
-					console.log('\n' + cliff.inspect(so))
+					let so_tmp = JSON.parse(JSON.stringify(so))
+					delete so_tmp.strategy
+					console.log('\n' + cliff.inspect(so_tmp))
+
+					Object.keys(so.strategy).forEach(function (strategy_name, index) {
+						console.log('\n' + strategy_name + '\n' + cliff.inspect(so.strategy[strategy_name].opts))
+					})					
 				}})
 				keyMap.set('D', {desc: ('toggle DEBUG'.grey), action: function() {
 					debug.flip()
@@ -811,43 +817,53 @@ module.exports = function (program, conf) {
 			}
 			return cb(null)
 		}
-		/* End funzioni per le operazioni sul databse Mongo DB delle posizioni */ 
+		/* End funzioni per le operazioni sul database Mongo DB delle posizioni */ 
 		
 		/* To list options*/
 		function listOptions () {
-			console.log()
-			console.log(s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey)
-			console.log()
-			process.stdout.write(z(22, 'STRATEGY'.grey, ' ') + '\t' + so.strategy + '\t' + (require(`../extensions/strategies/${so.strategy}/strategy`).description).grey)
-			console.log('\n')
+			console.log('\n' + s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey + '\n')
+			
+			Object.keys(so.strategy).forEach(function (strategy_name, index) {
+				process.stdout.write(z(22, 'STRATEGY'.grey, ' ') + '\t' + strategy_name + '\t' + (require(`../extensions/strategies/${strategy_name}/strategy`).description).grey)
+				
+				opts_name = ''
+				opts_value = ''
+				Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
+					opts_name += z(25, key.grey, ' ')
+					opts_value += z(25, so.strategy[strategy_name].opts[key], ' ')
+				})
+				console.log('\n' + opts_name)
+				console.log('\n' + opts_value + '\n')
+			})
+			
 			process.stdout.write([
 				z(25, (so.mode === 'paper' ? so.mode.toUpperCase() : so.mode.toUpperCase()) + ' MODE'.grey, ' '),
 				z(25, 'PERIOD LENGTH'.grey, ' '),
-				z(25, 'PERIOD CALC'.grey, ' '),
+//				z(25, 'PERIOD CALC'.grey, ' '),
 				z(25, 'ORDER TYPE'.grey, ' '),
 				z(25, 'SLIPPAGE'.grey, ' '),
 				z(30, 'EXCHANGE FEES'.grey, ' ')
-				].join('') + '\n')
+				].join('') + '\n');
+
 			process.stdout.write([
 				z(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
 				z(10, so.period_length, ' '),
-				z(17, so.period_calc, ' '),
+//				z(17, so.period_calc, ' '),
 				z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
 				z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
 				z(17, (so.order_type === 'maker' ? so.order_type + ' ' + n(s.exchange.makerFee).format('0.0000%')  : so.order_type + ' ' + s.exchange.takerFee), ' ')
-				].join('') + '\n\n')
+				].join('') + '\n\n');
+
 			process.stdout.write('')
+			
 			process.stdout.write([
-			//z(19, 'BUY %'.grey, ' '),
-			//z(20, 'SELL %'.grey, ' '),
 			z(30, 'TRAILING STOP %'.grey, ' '),
 			z(34, 'TRAILING DISTANCE %'.grey, ' '),
 			z(35, 'DUMP / PUMP WATCHDOG'.grey, ' '),
 			z(36, 'LONG / SHORT POSITION'.grey, ' ')
 			].join('') + '\n')
+			
 			process.stdout.write([
-				//z(9, so.buy_pct + '%', ' '),
-				//z(9, so.sell_pct + '%', ' '),
 				z(12, so.profit_stop_enable_pct + '%', ' '),
 				z(24, so.profit_stop_pct + '%', ' '),
 				z(20, so.dump_watchdog, ' '),
@@ -861,7 +877,6 @@ module.exports = function (program, conf) {
 			z(35, 'CATCH ORDER DEFAULT %'.grey, ' '),
 			z(33, 'CATCH ORDER MANUAL %'.grey, ' '),
 			z(30, 'CATCH FIXED VALUE'.grey, ' '),
-//			z(36, 'LONG / SHORT POSITION'.grey, ' ')
 			].join('') + '\n')
 			process.stdout.write([
 				z(9, (so.buy_stop_pct || '--') + '%', ' '),
@@ -869,7 +884,6 @@ module.exports = function (program, conf) {
 				z(25, so.catch_order_pct + '%', ' '),
 				z(23, so.catch_manual_pct + '%', ' '),
 				z(25, formatCurrency(so.catch_fixed_value, s.currency), ' '),
-//				z(8, so.active_short_position, ' ')
 				].join('') + '\n\n')
 			process.stdout.write('')
 		}
