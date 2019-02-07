@@ -53,7 +53,7 @@ module.exports = {
 
 				//Se non siamo in watchdog, utilizza la normale strategia
 				if (!s.options.strategy.bollinger.is_dump_watchdog && !s.options.strategy.bollinger.is_pump_watchdog) {
-					if (s.period.close > (upperBound - (upperBandWidth * ss.options.strategy.bollinger.opts.upper_bound_pct/100))) {
+					if (s.period.close > (upperBound - (upperBandWidth * s.options.strategy.bollinger.opts.upper_bound_pct/100))) {
 						s.eventBus.emit('sell', 'bollinger')
 					} else if (s.period.close < (lowerBound + (lowerBandWidth * s.options.strategy.bollinger.opts.lower_bound_pct/100))) {
 						s.eventBus.emit('buy', 'bollinger')
@@ -75,7 +75,7 @@ module.exports = {
 	onReport: function (s) {
 		var cols = []
 		if (s.options.strategy.bollinger.data) {
-//			if (s.options.strategy.bollinger.data.upperBound && s.options.strategy.bollinger.data.lowerBound) {
+			if (s.options.strategy.bollinger.data.upperBound && s.options.strategy.bollinger.data.lowerBound) {
 			let upperBandWidth = (s.options.strategy.bollinger.data.upperBound - s.options.strategy.bollinger.data.midBound)
 			let lowerBandWidth = (s.options.strategy.bollinger.data.midBound - s.options.strategy.bollinger.data.lowerBound)
 			let upperWatchdogBound = s.options.strategy.bollinger.data.upperBound + (upperBandWidth * s.options.strategy.bollinger.opts.upper_watchdog_pct/100)
@@ -97,7 +97,7 @@ module.exports = {
 			cols.push(z(8, n(s.options.strategy.bollinger.data.lowerBound).format('0.00').substring(0,7), ' ').cyan)
 			cols.push(' <->')
 			cols.push(z(8, n(s.options.strategy.bollinger.data.upperBound).format('0.00').substring(0,7), ' ').cyan)
-//			}
+			}
 		}
 		else {
 			cols.push('         ')
