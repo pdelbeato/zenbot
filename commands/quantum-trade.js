@@ -833,8 +833,8 @@ module.exports = function (program, conf) {
 					opts_name += z((key.length + 4), key.grey, ' ')
 					opts_value += z((key.length + 4), so.strategy[strategy_name].opts[key], ' ')
 				})
-				console.log('\n' + opts_name)
-				console.log('\n' + opts_value + '\n')
+				process.stdout.write('\n' + opts_name)
+				process.stdout.write('\n' + opts_value + '\n')
 			})
 			
 			process.stdout.write([
