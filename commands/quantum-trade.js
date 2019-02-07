@@ -300,7 +300,7 @@ module.exports = function (program, conf) {
 				keyMap.set('A', {desc: ('insert catch order for all free position'.grey), action: function() {
 					console.log('\n' + 'Insert catch order for all free positions'.grey)
 					s.positions.forEach(function (position, index) {
-						engine.emitSignal('orderExecuted', position.side, position.id)
+						engine.emitSignal('orderExecuted', position.side, 'manual', position.id)
 					})	
 				}})
 				break
