@@ -829,8 +829,8 @@ module.exports = function (program, conf) {
 				opts_name = ''
 				opts_value = ''
 				Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
-					opts_name += z(25, key.grey, ' ')
-					opts_value += z(25, so.strategy[strategy_name].opts[key], ' ')
+					opts_name += z((key.length + 4), key.grey, ' ')
+					opts_value += z((key.lenght + 4), so.strategy[strategy_name].opts[key], ' ')
 				})
 				console.log('\n' + opts_name)
 				console.log('\n' + opts_value + '\n')
@@ -859,15 +859,15 @@ module.exports = function (program, conf) {
 			process.stdout.write([
 			z(30, 'TRAILING STOP %'.grey, ' '),
 			z(34, 'TRAILING DISTANCE %'.grey, ' '),
-			z(35, 'DUMP / PUMP WATCHDOG'.grey, ' '),
-			z(36, 'LONG / SHORT POSITION'.grey, ' ')
+//			z(35, 'DUMP / PUMP WATCHDOG'.grey, ' '),
+//			z(36, 'LONG / SHORT POSITION'.grey, ' ')
 			].join('') + '\n')
 			
 			process.stdout.write([
 				z(12, so.profit_stop_enable_pct + '%', ' '),
 				z(24, so.profit_stop_pct + '%', ' '),
-				z(20, so.dump_watchdog, ' '),
-				z(8, so.pump_watchdog, ' '),
+//				z(20, so.dump_watchdog, ' '),
+//				z(8, so.pump_watchdog, ' '),
 				z(16, so.active_long_position, ' '),
 				z(8, so.active_short_position, ' ')
 				].join('') + '\n\n')
