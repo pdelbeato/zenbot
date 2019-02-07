@@ -200,6 +200,7 @@ module.exports = function (program, conf) {
 			}})
 			keyMap.set('Q', {desc: ('exit program with statistical output'.grey), action: function() {
 				console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
+				so.manual = true
 				engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')								
 				setTimeout(function() { 
 					console.log('\nExiting... ' + '\nWriting statistics...'.grey)
@@ -1326,8 +1327,8 @@ module.exports = function (program, conf) {
 									s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 								}
 
-								//Chiamata alla funzione syncBalance ogni so.poll_balance
-								setInterval(engine.syncBalance, so.poll_balance)
+//								//Chiamata alla funzione syncBalance ogni so.poll_balance
+//								setInterval(engine.syncBalance, so.poll_balance)
 								
 								//Chiamata alla funzione forwardScan() ogni so.poll_trades
 								//forwardScan()
