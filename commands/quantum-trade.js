@@ -830,11 +830,11 @@ module.exports = function (program, conf) {
 				opts_name = ''
 				opts_value = ''
 				Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
-					opts_name += z((key.length + 4), key, ' ')
-					opts_value += z((key.length + 4), so.strategy[strategy_name].opts[key], ' ')
+					opts_name += z((key.length + 3), key, ' ')
+					opts_value += z((key.length + 3), so.strategy[strategy_name].opts[key], ' ')
 				})
 				process.stdout.write('\n' + opts_name.grey)
-				process.stdout.write('\n' + opts_value + '\n')
+				process.stdout.write('\n' + opts_value + '\n\n')
 			})
 			
 			process.stdout.write([
