@@ -7,6 +7,12 @@ var Gdax = require('gdax')
 module.exports = function gdax (conf) {
 	var so = minimist(process.argv)
 	var public_client = {}, authed_client, websocket_client = {}, websocket_cache = {}
+	var max_requests_per_second = 5
+	var next_request = 0
+
+	function now() {
+		return new Date().getTime()
+	}
 
 	function publicClient (product_id) {
 		if (!public_client[product_id]) {
@@ -35,7 +41,7 @@ module.exports = function gdax (conf) {
 				channels.push('user')
 			}
 
-			// Apro un websocket autenticato, quindi riceverò anche tutti i messaggi che riguardano il mio user_ida
+			// Apro un websocket autenticato, quindi riceverò anche tutti i messaggi che riguardano il mio user_id
 			websocket_client[product_id] = new Gdax.WebsocketClient([product_id], conf.gdax.websocketURI, auth, {channels})
 
 			// initialize a cache for the websocket connection (if it does not exist)
@@ -55,12 +61,15 @@ module.exports = function gdax (conf) {
 			websocket_client[product_id].on('message', (message) => {
 				// all messages with user_id are related to trades for current authenticated user
 				if(message.user_id){
-					debug.msg('websocket user channel income: \n')
+					debug.msg('websocket USER channel income: \n')
 					debug.msg(message, false)
 
 					switch (message.type) {
 					case 'open':
 						handleOrderOpen(message, product_id)
+						break
+					case 'received':
+						handleOrderReceived(message, product_id)
 						break
 					case 'done':
 						handleOrderDone(message, product_id)
@@ -98,13 +107,14 @@ module.exports = function gdax (conf) {
 			websocket_client[product_id].on('error', (err) => {
 				client_state.errored = true
 
-				debug.msg('websocket error: \n')
+				debug.msg('Websocket error: \n')
 				debug.msg(err, false)
-				debug.msg('\nrestarting websocket connection', false)
+				debug.msg('\nRestarting websocket connection', false)
 
 				websocket_client[product_id].disconnect()
 				websocket_client[product_id] = null
-				websocket_cache[product_id] = null
+				//Non azzero la cache. Verrà inizializzata dalla chiamata a websocketClient se non dovesse esistere 
+//				websocket_cache[product_id] = null
 				websocketClient(product_id)
 			})
 
@@ -166,7 +176,36 @@ module.exports = function gdax (conf) {
 			filled_size: 0
 		}
 	}
+	
+	function handleOrderReceived(update, product_id) {
 
+		/*	{ type: 'received',
+			  order_id: 'bb0b6f2f-ad10-44d9-b915-0c32eaa74573',
+			  order_type: 'market',
+			  size: '0.00833138',
+			  side: 'buy',
+			  funds: '26.3167465750000000',
+		  	  client_oid: '',
+			  product_id: 'BTC-EUR',
+			  sequence: 5040297451,
+			  user_id: '59ec8252f3a4f2013b610919',
+			  profile_id: 'cc709acd-c35b-492b-92f9-0a77ba16eeed',
+			  time: '2019-02-08T16:48:52.983000Z' }
+		 */
+
+		if (!websocket_cache[product_id].orders['~'+update.order_id]) {
+			websocket_cache[product_id].orders['~'+update.order_id] = {
+					id: update.order_id,
+					size: update.size,
+					product_id: update.product_id,
+					side: update.side,
+					status: 'received',
+					settled: false,
+					filled_size: 0
+			}
+		}
+	}
+	
 	function handleOrderDone(update, product_id) {
 		let cached_order = websocket_cache[product_id].orders['~'+update.order_id]
 		if (cached_order) {
@@ -223,6 +262,7 @@ module.exports = function gdax (conf) {
 		else {
 			debug.msg('**** handleOrderDone - Creo ordine e lo inserisco in websocket_cache')
 			
+			//Da sistemare bene nei casi filled e canceled
 			cached_order = websocket_cache[product_id].orders['~'+update.order_id] = {
 					id: update.order_id,
 					price: update.price,
@@ -263,7 +303,7 @@ module.exports = function gdax (conf) {
 
 	function handleOrderMatch(update, product_id) {
 		var cached_order = websocket_cache[product_id].orders['~'+update.maker_order_id] || websocket_cache[product_id].orders['~'+update.taker_order_id]
-		if(cached_order){
+		if (cached_order) {
 			cached_order.price = update.price
 			//cached_order.filled_size = (parseFloat(cached_order.filled_size) + update.size).toString()
 			cached_order.filled_size = (parseFloat(cached_order.filled_size) + parseFloat(update.size)).toString()
@@ -272,6 +312,34 @@ module.exports = function gdax (conf) {
 			//Aggiunto per risolvere il problema dell'invalid date in caso di partial filled
 			cached_order.done_at = update.time
 			debug.msg('handleOrderMatch: cached_order.done_at= ' + cached_order.done_at)
+		}
+		else {
+			debug.msg('**** handleOrderMatch - Non posso creare ordine che succede un macello')
+			/*
+			  {
+				    "type": "match",
+				    "trade_id": 10,
+				    "sequence": 50,
+				    "maker_order_id": "ac928c66-ca53-498f-9c13-a110027a60e8",
+				    "taker_order_id": "132fb6ae-456b-4654-b4e0-d681ac05cea1",
+				    "time": "2014-11-07T08:19:27.028459Z",
+				    "product_id": "BTC-USD",
+				    "size": "5.23512",
+				    "price": "400.23",
+				    "side": "sell"
+				}
+			 */
+//			order_id = 
+//			cached_order = websocket_cache[product_id].orders['~'+update.order_id] = {
+//				id: update.order_id,
+//				price: update.price,
+//				size: update.size,
+//				product_id: update.product_id,
+//				side: update.side,
+//				status: 'match',
+//				settled: true,
+//				filled_size: update.size,
+//			}		
 		}
 	}
 
@@ -313,7 +381,7 @@ module.exports = function gdax (conf) {
 			return require('./products.json')
 		},
 
-		getTrades: function (opts, cb) {
+			getTrades: function getTrades (opts, cb) {
 			var func_args = [].slice.call(arguments)
 			var client = publicClient(opts.product_id)
 			var args = {}
@@ -351,6 +419,8 @@ module.exports = function gdax (conf) {
 			}
 
 			debug.msg('getTrades - getproducttrades call')
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
 
 			client.getProductTrades(opts.product_id, args, function (err, resp, body) {
 				if (!err) err = statusErr(resp, body)
@@ -367,13 +437,20 @@ module.exports = function gdax (conf) {
 				trades.reverse()
 				cb(null, trades)
 			})
+				}
+				else {
+					debug.msg('getTrades - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { getTrades(opts, cb) }, (next_request - now() + 1))
+				}
 		},
 
-		getBalance: function (opts, cb) {
+			getBalance: function getBalance(opts, cb) {
 			var func_args = [].slice.call(arguments)
 			var client = authedClient()
 
 //			debug.msg('getBalance - getaccounts call')
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
 
 			client.getAccounts(function (err, resp, body) {
 				if (!err) err = statusErr(resp, body)
@@ -390,10 +467,14 @@ module.exports = function gdax (conf) {
 					}
 				})
 				cb(null, balance)
-			})
+					})}
+				else {
+					debug.msg('getBalance - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { getBalance(opts, cb) }, (next_request - now() + 1))
+				}
 		},
 
-		getQuote: function (opts, cb, forced = false) {
+			getQuote: function getQuote(opts, cb, forced = false) {
 			// check websocket cache first, if it is not forced
 			if (!forced && websocket_cache[opts.product_id]) {
 				var ticker = websocket_cache[opts.product_id].ticker
@@ -402,9 +483,12 @@ module.exports = function gdax (conf) {
 					return
 				}
 			}
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
+
 			var func_args = [].slice.call(arguments)
 			var client = publicClient(opts.product_id)
-			debug.msg('getQuote - getproductticker call')
+					debug.msg('getQuote - forced getProductTicker call')
 			client.getProductTicker(opts.product_id, function (err, resp, body) {
 				if (!err) err = statusErr(resp, body)
 				if (err) return retry('getQuote', func_args, err)
@@ -419,6 +503,11 @@ module.exports = function gdax (conf) {
 				else
 					cb({code: 'ENOTFOUND', body: opts.product_id + ' has no liquidity to quote'})
 			})
+				}
+				else {
+					debug.msg('getQuote forced - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { getQuote(opts, cb, forced) }, (next_request - now() + 1))
+				}
 		},
 
 		//Cancella l'ordine dalla websocket_cache, in modo da non aumentarla a dismisura
@@ -428,7 +517,10 @@ module.exports = function gdax (conf) {
 			}
 		},
 		
-		cancelOrder: function (opts, cb) {
+			cancelOrder: function cancelOrder(opts, cb) {
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
+
 			var func_args = [].slice.call(arguments)
 			var client = authedClient()
 
@@ -474,9 +566,17 @@ module.exports = function gdax (conf) {
 
 				cb()
 			})
+				}
+				else {
+					debug.msg('cancelOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { cancelOrder(opts, cb) }, (next_request - now() + 1))
+				}
 		},
 
-		cancelAllOrders: function (opts, cb) {
+			cancelAllOrders: function cancelAllOrders(opts, cb) {
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
+
 			var func_args = [].slice.call(arguments)
 			var client = authedClient()
 
@@ -506,9 +606,17 @@ module.exports = function gdax (conf) {
 
 				cb(null, body)
 			})
+				}
+				else {
+					debug.msg('cancelAllOrders - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { cancelAllOrders(opts, cb) }, (next_request - now() + 1))
+				}
 		},
 			
-		buy: function (opts, cb) {
+			buy: function buy(opts, cb) {
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
+
 			var func_args = [].slice.call(arguments)
 			var client = authedClient()
 			if (typeof opts.post_only === 'undefined') {
@@ -579,9 +687,17 @@ module.exports = function gdax (conf) {
 				orders['~' + body.id] = body
 				cb(null, body)
 			})
+				}
+				else {
+					debug.msg('buy - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { buy(opts, cb) }, (next_request - now() + 1))
+				}
 		},
 
-		sell: function (opts, cb) {
+			sell: function sell(opts, cb) {
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
+
 			var func_args = [].slice.call(arguments)
 			var client = authedClient()
 
@@ -648,9 +764,14 @@ module.exports = function gdax (conf) {
 				orders['~' + body.id] = body
 				cb(null, body)
 			})
+				}
+				else {
+					debug.msg('sell - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { sell(opts, cb) }, (next_request - now() + 1))
+				}
 		},
 
-		getOrder: function (opts, cb) {
+			getOrder: function getOrder(opts, cb) {
 			if(websocket_cache[opts.product_id] && websocket_cache[opts.product_id].orders['~' + opts.order_id]) {
 				let order_cache = websocket_cache[opts.product_id].orders['~' + opts.order_id]
 
@@ -660,6 +781,9 @@ module.exports = function gdax (conf) {
 				cb(null, order_cache)
 				return
 			}
+
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
 
 			var func_args = [].slice.call(arguments)
 			var client = authedClient()
@@ -756,9 +880,17 @@ module.exports = function gdax (conf) {
 
 				cb(null, body)
 			})
+				}
+				else {
+					debug.msg('getOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { getOrder(opts, cb) }, (next_request - now() + 1))
+				}
 		},
 		
-		getAllOrders: function (opts, cb) {
+			getAllOrders: function getAllOrders(opts, cb) {
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
+
 			var func_args = [].slice.call(arguments)
 			var client = authedClient()
 
@@ -790,6 +922,11 @@ module.exports = function gdax (conf) {
 
 				cb(null, body)
 			})
+				}
+				else {
+					debug.msg('getAllOrders - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { getAllOrders(opts, cb) }, (next_request - now() + 1))
+				}
 		},
 
 		// return the property used for range querying.

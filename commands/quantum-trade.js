@@ -200,6 +200,7 @@ module.exports = function (program, conf) {
 			}})
 			keyMap.set('Q', {desc: ('exit program with statistical output'.grey), action: function() {
 				console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
+				so.manual = true
 				engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')								
 				setTimeout(function() { 
 					console.log('\nExiting... ' + '\nWriting statistics...'.grey)
@@ -257,13 +258,13 @@ module.exports = function (program, conf) {
 					console.log('\nmanual'.grey + ' catch ' + 'BUY'.green + ' command inserted'.grey)
 					var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
 					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-					engine.emitSignal('manualcatch', 'buy', null, target_size, target_price)
+					engine.emitSignal('manual', 'buy', null, target_size, target_price)
 				}})
 				keyMap.set('s', {desc: ('manual catch order'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' catch ' + 'SELL'.red + ' command inserted'.grey)
 					var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
 					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-					engine.emitSignal('manualcatch', 'sell', null, target_size, target_price)	
+					engine.emitSignal('manual', 'sell', null, target_size, target_price)	
 				}})
 				keyMap.set('+', {desc: ('manual catch pct'.grey + ' INCREASE'.green), action: function() {
 					so.catch_manual_pct++
@@ -294,7 +295,7 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('C', {desc: ('cancel all manual catch orders'.grey), action: function() {
 					console.log('\nmanual'.grey + ' canceling ALL catch orders')
-					engine.orderStatus(undefined, undefined, 'manualcatch', undefined, 'Unset', 'manualcatch')
+					engine.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
 				}})
 				keyMap.set('A', {desc: ('insert catch order for all free position'.grey), action: function() {
 					console.log('\n' + 'Insert catch order for all free positions'.grey)
@@ -433,19 +434,64 @@ module.exports = function (program, conf) {
 						console.log('No position opened.')
 					}
 				}})
-				keyMap.set('i', {desc: ('get information on position'.grey), action: function() {
-					if (s.positions.length) {
+				keyMap.set('i', {desc: ('get information on the position'.grey), action: function() {
+					if (s.positions_index != null) {
 						console.log('\nInformation on position: '.yellow + s.positions[s.positions_index].id)
 						console.log(s.positions[s.positions_index])
 					}
 					else {
-						console.log('No position opened.')
+						console.log('No position in control.')
 					}
 				}})
-				keyMap.set('c', {desc: ('cancel all orders connected with the position'.grey), action: function() {
+				keyMap.set('K', {desc: ('set a manual close catch order on the position'.grey), action: function() {
+					if (s.positions_index != null) {
+						if (s.positions[s.positions_index].side === 'buy') {
+							console.log('\nSet a manual close catch SELL order on the position: '.yellow + s.positions[s.positions_index].id)
+							var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+							engine.emitSignal('manual', 'sell', s.positions[s.positions_index].id, null, target_price)
+						}
+						else {
+							console.log('\nSet a manual close catch BUY order on the position: '.yellow + s.positions[s.positions_index].id)
+							var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+							engine.emitSignal('manual', 'buy', s.positions[s.positions_index].id, null, target_price)
+						}
+					}
+					else {
+						console.log('No position in control.')
+					}
+				}})
+				keyMap.set('F', {desc: ('Free the position (cancel ALL orders connected to the position and let it be used)'.grey), action: function() {
+					if (s.positions_index != null) {
+						console.log('\nFreeing the position (cancelling all orders connected with the position) '.yellow + s.positions[s.positions_index].id)
+						engine.positionStatus(s.positions[s.positions_index], 'Free')
+					}
+					else {
+						console.log('No position in control.')
+					}
+				}})
+				keyMap.set('L', {desc: ('Lock the position (does not cancel orders connected to the position)'.grey), action: function() {
+					if (s.positions_index != null) {
+						console.log('\nLocking the position '.yellow + s.positions[s.positions_index].id)
+						engine.positionStatus(s.positions[s.positions_index], 'Set', 'manual')
+					}
+					else {
+						console.log('No position in control.')
+					}
+				}})
+				keyMap.set('U', {desc: ('Unlock the position (does not cancel orders connected to the position)'.grey), action: function() {
+					if (s.positions_index != null) {
+						console.log('\nUnlocking the position '.yellow + s.positions[s.positions_index].id)
+						engine.positionStatus(s.positions[s.positions_index], 'Unset', 'manual')
+					}
+					else {
+						console.log('No position in control.')
+					}
+				}})
+				keyMap.set('c', {desc: ('cancel ALL orders connected to the position, without let it free'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nCancelling all orders connected with the position '.yellow + s.positions[s.positions_index].id)
-						engine.positionStatus(s.positions[s.positions_index], 'Free')
+						status_tmp = ~(s.positions[s.positions_index].status & engine.statusByte.locked)
+						engine.positionStatus(s.positions[s.positions_index], 'Unset', status_tmp)
 					}
 					else {
 						console.log('No position in control.')
@@ -458,6 +504,7 @@ module.exports = function (program, conf) {
 						engine.positionStatus(s.positions[s.positions_index], 'Free')
 						setTimeout(function() {
 							s.positionProcessingQueue.push({mode: 'delete', id: s.positions[s.positions_index].id})
+							s.positions_index = null
 							s.positions.splice(s.positions_index,1)
 						}, so.order_poll_time)
 					}
@@ -1259,8 +1306,8 @@ module.exports = function (program, conf) {
 									s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 								}
 
-								//Chiamata alla funzione syncBalance ogni so.poll_balance
-								setInterval(engine.syncBalance, so.poll_balance)
+//								//Chiamata alla funzione syncBalance ogni so.poll_balance
+//								setInterval(engine.syncBalance, so.poll_balance)
 								
 								//Chiamata alla funzione forwardScan() ogni so.poll_trades
 								//forwardScan()
