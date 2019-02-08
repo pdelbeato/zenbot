@@ -965,13 +965,13 @@ module.exports = function (program, conf) {
 			if (s.my_trades.length && gains > 0) {
 				if (!statsonly) {
 					output_lines.push('win/loss: ' + gains + '/' + losses)
-					output_lines.push('error rate: ' + n(losses).divide(gains + losses).format('0.00%') : '0.00%').yellow)
+					output_lines.push('error rate: ' + (n(losses).divide(gains + losses).format('0.00%')).yellow)
 				}
 
 				//for API
 				s.stats.win = gains
 				s.stats.losses = losses
-				s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%') : '0.00%')
+				s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%')
 			}
 
 			if (!statsonly) {
@@ -1078,12 +1078,12 @@ module.exports = function (program, conf) {
 
 			if (s.my_trades.length && gains > 0) {
 				output_lines.push('win/loss: ' + gains + '/' + losses)
-				output_lines.push('error rate: ' + n(losses).divide(gains + losses).format('0.00%') : '0.00%').yellow)
+				output_lines.push('error rate: ' + (n(losses).divide(gains + losses).format('0.00%')).yellow)
 
 				//for API
 				s.stats.win = gains
 				s.stats.losses = losses
-				s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%') : '0.00%')
+				s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%')
 			}
 
 			var html_output = output_lines.map(function (line) {
