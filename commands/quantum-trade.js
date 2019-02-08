@@ -941,22 +941,11 @@ module.exports = function (program, conf) {
 				trade_per_day: n(s.my_trades.length / s.day_count).format('0.00')
 			}
 
-//Da sistemare tutta questa sezione in relazione alle novità introdotte con la versione quantum_parallel			
-			//var last_buy
-			var losses = 0, sells = 0
+			var losses = 0, gains = 0
 			s.my_trades.forEach(function (trade) {
-				// if (trade.type === 'buy') {
-				// last_buy = trade.price
-				// }
-				// else {
-				// if (last_buy && trade.price < last_buy) {
-				// losses++
-				// }
-				// sells++
-				// }
-				if (trade.side === 'sell') {
+				if (trade.profit) {
 					if (trade.profit > 0)
-						sells++
+						gains++
 					else
 						losses++
 				}
@@ -964,25 +953,25 @@ module.exports = function (program, conf) {
 
 			if (s.my_prev_trades.length) {
 				s.my_prev_trades.forEach(function (trade) {
-					if (trade.side === 'sell') {
+					if (trade.profit) {
 						if (trade.profit > 0)
-							sells++
+							gains++
 						else
 							losses++
 					}
 				})
 			}
 
-			if (s.my_trades.length && sells > 0) {
+			if (s.my_trades.length && gains > 0) {
 				if (!statsonly) {
-					output_lines.push('win/loss: ' + (sells - losses) + '/' + losses)
-					output_lines.push('error rate: ' + (sells ? n(losses).divide(sells).format('0.00%') : '0.00%').yellow)
+					output_lines.push('win/loss: ' + gains + '/' + losses)
+					output_lines.push('error rate: ' + n(losses).divide(gains + losses).format('0.00%') : '0.00%').yellow)
 				}
 
 				//for API
-				s.stats.win = (sells - losses)
+				s.stats.win = gains
 				s.stats.losses = losses
-				s.stats.error_rate = (sells ? n(losses).divide(sells).format('0.00%') : '0.00%')
+				s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%') : '0.00%')
 			}
 
 			if (!statsonly) {
@@ -1077,35 +1066,24 @@ module.exports = function (program, conf) {
 				trade_per_day: n(s.my_trades.length / s.day_count).format('0.00')
 			}
 
-			// var last_buy
-			var losses = 0, sells = 0
+			var losses = 0, gains = 0
 			s.my_trades.forEach(function (trade) {
-				//		if (trade.type === 'buy') {
-				//			last_buy = trade.price
-				//		}
-				//		else {
-				//			if (last_buy && trade.price < last_buy) {
-				//			losses++
-				//			}
-				//			sells++
-				//		}
-
-				if (trade.side === 'sell') {
+				if (trade.profit) {
 					if (trade.profit > 0)
-						sells++
+						gains++
 					else
 						losses++
 				}
 			})
 
-			if (s.my_trades.length && sells > 0) {
-				output_lines.push('win/loss: ' + (sells - losses) + '/' + losses)
-				output_lines.push('error rate: ' + (sells ? n(losses).divide(sells).format('0.00%') : '0.00%').yellow)
+			if (s.my_trades.length && gains > 0) {
+				output_lines.push('win/loss: ' + gains + '/' + losses)
+				output_lines.push('error rate: ' + n(losses).divide(gains + losses).format('0.00%') : '0.00%').yellow)
 
 				//for API
-				s.stats.win = (sells - losses)
+				s.stats.win = gains
 				s.stats.losses = losses
-				s.stats.error_rate = (sells ? n(losses).divide(sells).format('0.00%') : '0.00%')
+				s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%') : '0.00%')
 			}
 
 			var html_output = output_lines.map(function (line) {
