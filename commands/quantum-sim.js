@@ -76,9 +76,9 @@ module.exports = function (program, conf) {
       var tradesCollection = collectionService(conf).getTrades()
 
       var simResults = collectionService(conf).getSimResults()
-      
+
       var eventBus = conf.eventBus
-// chiama la funzione timebucket - riporta in ms
+      // chiama la funzione timebucket - riporta in ms
       if (so.start) {
         so.start = moment(so.start, 'YYYYMMDDhhmm').valueOf()
         if (so.days && !so.end) {
@@ -106,14 +106,14 @@ module.exports = function (program, conf) {
       so.selector = objectifySelector(selector || conf.selector)
       so.mode = 'sim'
 
-// richiama quantum-engine
+      // richiama quantum-engine
       var engine = engineFactory(s, conf)
       if (!so.min_periods) so.min_periods = 1
       var cursor, reversing, reverse_point
       var query_start = so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null
 
       function exitSim () {
-        // console.log()
+
         if (!s.period) {
           console.error('no trades found! try running `zenbot backfill ' + so.selector.normalized + '` first')
           process.exit(1)
@@ -166,7 +166,7 @@ module.exports = function (program, conf) {
         s.my_trades.forEach(function (trade) {
 
           if (trade.profit > 0) {
-             wins++
+            wins++
           } else if (trade.profit < 0){
             losses++
           }
@@ -199,7 +199,6 @@ module.exports = function (program, conf) {
         }
 
 
-
         for (i = 0; i < 6; i++) {
           console.log(output_lines[i])
         }
@@ -214,10 +213,9 @@ module.exports = function (program, conf) {
           var html_output = output_lines.map(function (line) {
             return colors.stripColors(line)
           }).join('\n')
-          //console.log(s.calc_lookback.slice(0, s.calc_lookback.length ))
-          console.log(s.calc_lookback.length)
-          console.log(so.min_periods)
-          var data = s.calc_lookback.map(function (period) {
+
+          var data = s.calc_lookback.slice(0, s.calc_lookback.length ).map(function (period) {
+          // var data = s.calc_lookback.map(function (period) {
             var data = {}
             var keys = Object.keys(period)
             for(var i = 0;i < keys.length;i++){
@@ -226,15 +224,21 @@ module.exports = function (program, conf) {
             return data
           })
 
+
           var code = 'var data = ' + JSON.stringify(data) + ';\n'
           code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
-          var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'sim_result.html.tpl'), {encoding: 'utf8'})
+          code += 'var options = ' + JSON.stringify(s.options) + ';\n'
+          console.log(code)
+          var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '9sim_result.html.tpl'), {encoding: 'utf8'})
+
 
           var out = tpl
+
             .replace('{{code}}', code)
             .replace('{{trend_ema_period}}', so.trend_ema || 36)
             .replace('{{output}}', html_output)
             .replace(/\{\{symbol\}\}/g,  so.selector.normalized + ' - zenbot ' + require('../package.json').version)
+
           var out_target = so.filename || 'simulations/sim_result_' + so.selector.normalized +'_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
           fs.writeFileSync(out_target, out)
           console.log('wrote', out_target)
@@ -296,12 +300,12 @@ module.exports = function (program, conf) {
 
           // emit per ogni trade -> va alla funzione   queueTrade che mette in coda il tradeProcessing e quindi onTrade
           eventBus.emit('trade', trade)
-          engine.syncBalance()       
+          engine.syncBalance()
         })
 
         collectionCursor.on('end', function(){
 
-    // se numTrades === 0 chiama engine.exit(exitSim) - se presente esegue onExit della strategia e poi exit di quantum-sim
+          // se numTrades === 0 chiama engine.exit(exitSim) - se presente esegue onExit della strategia e poi exit di quantum-sim
           if(numTrades === 0){
             if (so.symmetrical && !reversing) {
               reversing = true
