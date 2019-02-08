@@ -62,6 +62,9 @@ module.exports = function gdax (conf) {
 					case 'open':
 						handleOrderOpen(message, product_id)
 						break
+					case 'received':
+						handleOrderReceived(message, product_id)
+						break
 					case 'done':
 						handleOrderDone(message, product_id)
 						break
@@ -166,7 +169,36 @@ module.exports = function gdax (conf) {
 			filled_size: 0
 		}
 	}
+	
+	function handleOrderReceived(update, product_id) {
 
+		/*	{ type: 'received',
+			  order_id: 'bb0b6f2f-ad10-44d9-b915-0c32eaa74573',
+			  order_type: 'market',
+			  size: '0.00833138',
+			  side: 'buy',
+			  funds: '26.3167465750000000',
+		  	  client_oid: '',
+			  product_id: 'BTC-EUR',
+			  sequence: 5040297451,
+			  user_id: '59ec8252f3a4f2013b610919',
+			  profile_id: 'cc709acd-c35b-492b-92f9-0a77ba16eeed',
+			  time: '2019-02-08T16:48:52.983000Z' }
+		 */
+
+		if (!websocket_cache[product_id].orders['~'+update.order_id]) {
+			websocket_cache[product_id].orders['~'+update.order_id] = {
+					id: update.order_id,
+					size: update.size,
+					product_id: update.product_id,
+					side: update.side,
+					status: 'received',
+					settled: false,
+					filled_size: 0
+			}
+		}
+	}
+	
 	function handleOrderDone(update, product_id) {
 		let cached_order = websocket_cache[product_id].orders['~'+update.order_id]
 		if (cached_order) {
@@ -223,6 +255,7 @@ module.exports = function gdax (conf) {
 		else {
 			debug.msg('**** handleOrderDone - Creo ordine e lo inserisco in websocket_cache')
 			
+			//Da sistemare bene nei casi filled e canceled
 			cached_order = websocket_cache[product_id].orders['~'+update.order_id] = {
 					id: update.order_id,
 					price: update.price,
@@ -263,7 +296,7 @@ module.exports = function gdax (conf) {
 
 	function handleOrderMatch(update, product_id) {
 		var cached_order = websocket_cache[product_id].orders['~'+update.maker_order_id] || websocket_cache[product_id].orders['~'+update.taker_order_id]
-		if(cached_order){
+		if (cached_order) {
 			cached_order.price = update.price
 			//cached_order.filled_size = (parseFloat(cached_order.filled_size) + update.size).toString()
 			cached_order.filled_size = (parseFloat(cached_order.filled_size) + parseFloat(update.size)).toString()
@@ -272,6 +305,34 @@ module.exports = function gdax (conf) {
 			//Aggiunto per risolvere il problema dell'invalid date in caso di partial filled
 			cached_order.done_at = update.time
 			debug.msg('handleOrderMatch: cached_order.done_at= ' + cached_order.done_at)
+		}
+		else {
+			debug.msg('**** handleOrderMatch - Non posso creare ordine che succede un macello')
+			/*
+			  {
+				    "type": "match",
+				    "trade_id": 10,
+				    "sequence": 50,
+				    "maker_order_id": "ac928c66-ca53-498f-9c13-a110027a60e8",
+				    "taker_order_id": "132fb6ae-456b-4654-b4e0-d681ac05cea1",
+				    "time": "2014-11-07T08:19:27.028459Z",
+				    "product_id": "BTC-USD",
+				    "size": "5.23512",
+				    "price": "400.23",
+				    "side": "sell"
+				}
+			 */
+//			order_id = 
+//			cached_order = websocket_cache[product_id].orders['~'+update.order_id] = {
+//				id: update.order_id,
+//				price: update.price,
+//				size: update.size,
+//				product_id: update.product_id,
+//				side: update.side,
+//				status: 'match',
+//				settled: true,
+//				filled_size: update.size,
+//			}		
 		}
 	}
 
