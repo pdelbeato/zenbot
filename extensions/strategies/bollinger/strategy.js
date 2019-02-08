@@ -16,6 +16,7 @@ module.exports = {
 		this.option('bollinger', 'min_periods', 'min. number of history periods', Number, 301)
 		this.option('bollinger', 'size', 'period size', Number, 20)
 		this.option('bollinger', 'time', 'times of standard deviation between the upper/lower band and the moving averages', Number, 1.5)
+		this.option('bollinger', 'minimum_bandwidth_pct', 'minimum pct bandwidth to emit a signal', Number, null)
 		this.option('bollinger', 'upper_bound_pct', 'pct the current price should be near the bollinger upper bound before we sell', Number, 0)
 		this.option('bollinger', 'lower_bound_pct', 'pct the current price should be near the bollinger lower bound before we buy', Number, 0)
 		this.option('bollinger', 'upper_watchdog_pct', 'pct the current price should be over the bollinger upper bound to activate watchdog', Number, 50)
@@ -33,19 +34,30 @@ module.exports = {
 //			if (s.options.strategy.bollinger.data.upperBound && s.options.strategy.bollinger.data.lowerBound) {
 				let upperBound = s.options.strategy.bollinger.data.upperBound
 				let lowerBound = s.options.strategy.bollinger.data.lowerBound
+				let midBound = s.options.strategy.bollinger.data.midBound
 				let upperBandWidth = (s.options.strategy.bollinger.data.upperBound - s.options.strategy.bollinger.data.midBound)
 				let lowerBandWidth = (s.options.strategy.bollinger.data.midBound - s.options.strategy.bollinger.data.lowerBound)
+				let bandWidth_pct = (upperBound - lowerBound) / midBound * 100
+				let minimum_bandwidth_pct = s.options.strategy.bollinger.opts.minimum_bandwidth_pct
 				let upperWatchdogBound = upperBound + (upperBandWidth * s.options.strategy.bollinger.opts.upper_watchdog_pct/100)
 				let lowerWatchdogBound = lowerBound - (lowerBandWidth * s.options.strategy.bollinger.opts.lower_watchdog_pct/100)
 				let upperCalmdownWatchdogBound = upperBound - (upperBandWidth * s.options.strategy.bollinger.opts.calmdown_watchdog_pct/100)
 				let lowerCalmdownWatchdogBound = lowerBound + (lowerBandWidth * s.options.strategy.bollinger.opts.calmdown_watchdog_pct/100)
 
+				//Controllo la minimum_bandwidth
+				if (minimum_bandwidth_pct && (bandWidth_pct < minimum_bandwidth_pct)) {
+					console.log('bollinger strategy - minimum_bandwidth_pct= ' + minimum_bandwidth_pct + ' ; bandwidth_pct= ' + bandwidth_pct)
+					upperBound = midBound * (1 + minimum_bandwidth_pct/2)
+					lowerBound = midBound * (1 - minimum_bandwidth_pct/2)
+				}
+				
 				//Se sono attive le opzioni watchdog, controllo se dobbiamo attivare il watchdog
 				if (s.options.pump_watchdog && s.period.close > upperWatchdogBound) {
 					s.signal = 'pump'
 					s.is_pump_watchdog = true
 					s.is_dump_watchdog = false
-				} else if (s.options.dump_watchdog && s.period.close < lowerWatchdogBound) {
+				}
+				else if (s.options.dump_watchdog && s.period.close < lowerWatchdogBound) {
 					s.signal = 'dump'
 					s.is_pump_watchdog = false
 					s.is_dump_watchdog = true
@@ -55,12 +67,15 @@ module.exports = {
 				if (!s.is_dump_watchdog && !s.is_pump_watchdog) {
 					if (s.period.close > (upperBound - (upperBandWidth * s.options.strategy.bollinger.opts.upper_bound_pct/100))) {
 						s.eventBus.emit('bollinger', 'sell')
-					} else if (s.period.close < (lowerBound + (lowerBandWidth * s.options.strategy.bollinger.opts.lower_bound_pct/100))) {
+					}
+					else if (s.period.close < (lowerBound + (lowerBandWidth * s.options.strategy.bollinger.opts.lower_bound_pct/100))) {
 						s.eventBus.emit('bollinger', 'buy')
-					} else {
+					}
+					else {
 						s.signal = null // hold
 					}
-				} else { //Siamo in watchdog, controlla se ci siamo ancora
+				}
+				else { //Siamo in watchdog, controlla se ci siamo ancora
 					if (s.period.close > lowerCalmdownWatchdogBound && s.period.close < upperCalmdownWatchdogBound) {
 						s.signal = null
 						s.is_pump_watchdog = false
@@ -86,7 +101,8 @@ module.exports = {
 			//Se il prezzo supera un limite del canale, allora il colore del limite è bianco
 			if (s.period.close > (s.options.strategy.bollinger.data.upperBound - (upperBandWidth * s.options.strategy.bollinger.opts.upper_bound_pct/100))) {
 				color_up = 'white'
-			} else if (s.period.close < (s.options.strategy.bollinger.data.lowerBound + (lowerBandWidth * s.options.strategy.bollinger.opts.lower_bound_pct/100))) {
+			}
+			else if (s.period.close < (s.options.strategy.bollinger.data.lowerBound + (lowerBandWidth * s.options.strategy.bollinger.opts.lower_bound_pct/100))) {
 				color_down = 'white'
 			}
 
