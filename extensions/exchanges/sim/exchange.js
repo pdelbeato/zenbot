@@ -214,6 +214,8 @@ module.exports = function sim (conf, s) {
 
     processTrade: function(trade) {
       var orders_changed = false
+      
+      now = trade.time
 
       _.each(openOrders, function(order) {
         if (trade.time - order.time < so.order_adjust_time) {
