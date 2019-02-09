@@ -20,10 +20,11 @@ module.exports = function sim (conf, s) {
   var orders = {}
   var openOrders = {}
   let debug = false // debug output specific to the sim exchange
-
-  function now() {
-	  return new Date().getTime()
-  }
+  var now = 0
+  
+//  function now() {
+//	  return new Date().getTime()
+//  }
 
   // When orders change in any way, it's likely our "_hold" values have changed. Recalculate them
   function recalcHold() {
