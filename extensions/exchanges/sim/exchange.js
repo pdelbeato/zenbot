@@ -137,9 +137,9 @@ module.exports = function sim (conf, s) {
 //          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'buy',
-          orig_time: now(),
-          time: now(),
-          created_at: now()
+          orig_time: now,
+          time: now,
+          created_at: now
         }
 
         orders['~' + result.id] = order
@@ -173,9 +173,9 @@ module.exports = function sim (conf, s) {
 //          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'sell',
-          orig_time: now(),
-          time: now(),
-          created_at: now()
+          orig_time: now,
+          time: now,
+          created_at: now
         }
         orders['~' + result.id] = order
         openOrders['~' + result.id] = order
@@ -206,7 +206,7 @@ module.exports = function sim (conf, s) {
     getCursor: real_exchange.getCursor,
 
     getTime: function() {
-      return now()
+      return now
     },
     
     getMemory: function() {
