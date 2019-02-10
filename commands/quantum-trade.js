@@ -831,7 +831,7 @@ module.exports = function (program, conf) {
 				let opts_value = ''
 				Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
 					opts_name += z((key.length + 3), key, ' ')
-					opts_value += z(key.length, so.strategy[strategy_name].opts[key], ' ')
+					opts_value += z((key.length + 3), so.strategy[strategy_name].opts[key], ' ')
 				})
 				process.stdout.write('\n' + opts_name.grey)
 				process.stdout.write('\n' + opts_value + '\n\n')
