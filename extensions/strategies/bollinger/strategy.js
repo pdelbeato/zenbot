@@ -16,7 +16,7 @@ module.exports = {
 		this.option('bollinger', 'min_periods', 'min. number of history periods', Number, 301)
 		this.option('bollinger', 'size', 'period size', Number, 20)
 		this.option('bollinger', 'time', 'times of standard deviation between the upper/lower band and the moving averages', Number, 1.5)
-		this.option('bollinger', 'minimum_bandwidth_pct', 'minimum pct bandwidth to emit a signal', Number, null)
+		this.option('bollinger', 'min_bandwidth_pct', 'minimum pct bandwidth to emit a signal', Number, null)
 		this.option('bollinger', 'upper_bound_pct', 'pct the current price should be near the bollinger upper bound before we sell', Number, 0)
 		this.option('bollinger', 'lower_bound_pct', 'pct the current price should be near the bollinger lower bound before we buy', Number, 0)
 		this.option('bollinger', 'upper_watchdog_pct', 'pct the current price should be over the bollinger upper bound to activate watchdog', Number, 50)
@@ -38,17 +38,18 @@ module.exports = {
 				let upperBandwidth = (s.options.strategy.bollinger.data.upperBound - s.options.strategy.bollinger.data.midBound)
 				let lowerBandwidth = (s.options.strategy.bollinger.data.midBound - s.options.strategy.bollinger.data.lowerBound)
 				let bandwidth_pct = (upperBound - lowerBound) / midBound * 100
-				let minimum_bandwidth_pct = s.options.strategy.bollinger.opts.minimum_bandwidth_pct
+				let min_bandwidth_pct = s.options.strategy.bollinger.opts.min_bandwidth_pct
 				let upperWatchdogBound = upperBound + (upperBandwidth * s.options.strategy.bollinger.opts.upper_watchdog_pct/100)
 				let lowerWatchdogBound = lowerBound - (lowerBandwidth * s.options.strategy.bollinger.opts.lower_watchdog_pct/100)
 				let upperCalmdownWatchdogBound = upperBound - (upperBandwidth * s.options.strategy.bollinger.opts.calmdown_watchdog_pct/100)
 				let lowerCalmdownWatchdogBound = lowerBound + (lowerBandwidth * s.options.strategy.bollinger.opts.calmdown_watchdog_pct/100)
 
 				//Controllo la minimum_bandwidth
-				if (minimum_bandwidth_pct && (bandwidth_pct < minimum_bandwidth_pct)) {
-					console.log('bollinger strategy - minimum_bandwidth_pct= ' + minimum_bandwidth_pct + ' ; bandwidth_pct= ' + bandwidth_pct)
-					upperBound = midBound * (1 + minimum_bandwidth_pct/2)
-					lowerBound = midBound * (1 - minimum_bandwidth_pct/2)
+				if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
+					console.log('bollinger strategy - min_bandwidth_pct= ' + min_bandwidth_pct + ' ; bandwidth_pct= ' + bandwidth_pct)
+					upperBound = midBound * (1 + min_bandwidth_pct/2)
+					lowerBound = midBound * (1 - min_bandwidth_pct/2)
+					console.log('bollinger strategy - nuovi limiti. upperBound ' + upperBound + ' ; lowerBound= ' + lowerBound)
 				}
 				
 				//Se sono attive le opzioni watchdog, controllo se dobbiamo attivare il watchdog

@@ -71,7 +71,7 @@ module.exports = function gdax (conf) {
 					setInterval(() => {
 						heartbeat_time = Date.parse(websocket_cache[product_id].heartbeat.time)
 						if (heartbeat_time > last_heartbeat_time) {
-							console.log('websocket_client - Aggiorno last_heartbeat_time')
+//							console.log('websocket_client - Aggiorno last_heartbeat_time')
 							last_heartbeat_time = heartbeat_time
 						}
 						else {
@@ -464,7 +464,9 @@ module.exports = function gdax (conf) {
 					return Math.max(a, b)
 				}, -1)
 				if (opts.from && max_trade_id >= opts.from) {
-					var fromIndex = cache.trades.findIndex((value)=> {return value.trade_id == opts.from})
+					var fromIndex = cache.trades.findIndex((value) => {
+						return value.trade_id == opts.from
+					})
 					var newTrades = cache.trades.slice(fromIndex + 1)
 					newTrades = newTrades.map(function (trade) {
 						return {
@@ -520,7 +522,7 @@ module.exports = function gdax (conf) {
 						})
 						trades.reverse()
 						
-						debug.msg('getTrades - Lista trades:')
+						debug.msg('getTrades - Lista trades (se vuota, allora in so.poll_trades non sono avvenuti trades. Se non vuota, allora esiste un problema con il websocket):')
 						console.log(trades)
 						
 						cb(null, trades)
