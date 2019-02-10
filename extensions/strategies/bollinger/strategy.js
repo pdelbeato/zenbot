@@ -47,8 +47,8 @@ module.exports = {
 				//Controllo la minimum_bandwidth
 				if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
 					console.log('bollinger strategy - min_bandwidth_pct= ' + min_bandwidth_pct + ' ; bandwidth_pct= ' + bandwidth_pct)
-					upperBound = midBound * (1 + min_bandwidth_pct/2)
-					lowerBound = midBound * (1 - min_bandwidth_pct/2)
+					upperBound = midBound * (1 + (min_bandwidth_pct/100)/2)
+					lowerBound = midBound * (1 - (min_bandwidth_pct/100)/2)
 					console.log('bollinger strategy - nuovi limiti. upperBound ' + upperBound + ' ; lowerBound= ' + lowerBound)
 				}
 				
