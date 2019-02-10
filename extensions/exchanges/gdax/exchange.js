@@ -22,6 +22,7 @@ module.exports = function gdax (conf) {
 		return public_client[product_id]
 	}
 	
+	//Se ho risolto diversamente, togliere questo obbrobrio da qui e da trade e engine
 	function resetPublicClient (product_id) {
 		debug.msg('resetPublicClient')
 		publicClient (product_id, true)
@@ -39,7 +40,7 @@ module.exports = function gdax (conf) {
 				}
 			}
 
-			var channels = ['matches', 'ticker']
+			var channels = ['matches', 'ticker', 'heartbeat']
 
 			// subscribe to user channels which need fully auth data
 			if (auth) {
@@ -103,6 +104,9 @@ module.exports = function gdax (conf) {
 					break
 				case 'ticker':
 					handleTicker(message, product_id)
+					break
+				case 'heartbeat':
+					handleHeartbeat(message, product_id)
 					break
 				default:
 					break
@@ -371,6 +375,21 @@ module.exports = function gdax (conf) {
 		 */
 
 		websocket_cache[product_id].ticker = ticker
+	}
+	
+	function handleHeartbeat(heartbeat, product_id) {
+		/*
+		  	// Heartbeat message
+			{
+			    "type": "heartbeat",
+			    "sequence": 90,
+			    "last_trade_id": 20,
+			    "product_id": "BTC-USD",
+			    "time": "2014-11-07T08:19:28.464459Z"
+			}
+		 */
+		var cache = websocket_cache[product_id]
+		console.log(heartbeat)
 	}
 
 	var orders = {}
