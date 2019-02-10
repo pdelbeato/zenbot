@@ -46,10 +46,10 @@ module.exports = {
 
 				//Controllo la minimum_bandwidth
 				if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
-					console.log('bollinger strategy - min_bandwidth_pct= ' + min_bandwidth_pct + ' ; bandwidth_pct= ' + bandwidth_pct)
+//					console.log('bollinger strategy - min_bandwidth_pct= ' + min_bandwidth_pct + ' ; bandwidth_pct= ' + bandwidth_pct)
 					upperBound = midBound * (1 + (min_bandwidth_pct/100)/2)
 					lowerBound = midBound * (1 - (min_bandwidth_pct/100)/2)
-					console.log('bollinger strategy - nuovi limiti. upperBound ' + upperBound + ' ; lowerBound= ' + lowerBound)
+//					console.log('bollinger strategy - nuovi limiti. upperBound ' + upperBound + ' ; lowerBound= ' + lowerBound)
 				}
 				
 				//Se sono attive le opzioni watchdog, controllo se dobbiamo attivare il watchdog
@@ -92,8 +92,13 @@ module.exports = {
 		var cols = []
 		if (s.options.strategy.bollinger.data) {
 			if (s.options.strategy.bollinger.data.upperBound && s.options.strategy.bollinger.data.lowerBound) {
-			let upperBandwidth = (s.options.strategy.bollinger.data.upperBound - s.options.strategy.bollinger.data.midBound)
+				let upperBound = s.options.strategy.bollinger.data.upperBound
+				let lowerBound = s.options.strategy.bollinger.data.lowerBound
+				let midBound = s.options.strategy.bollinger.data.midBound
+				let upperBandwidth = (s.options.strategy.bollinger.data.upperBound - s.options.strategy.bollinger.data.midBound)
 			let lowerBandwidth = (s.options.strategy.bollinger.data.midBound - s.options.strategy.bollinger.data.lowerBound)
+			let bandwidth_pct = (upperBound - lowerBound) / midBound * 100
+				let min_bandwidth_pct = s.options.strategy.bollinger.opts.min_bandwidth_pct
 			let upperWatchdogBound = s.options.strategy.bollinger.data.upperBound + (upperBandwidth * s.options.strategy.bollinger.opts.upper_watchdog_pct/100)
 			let lowerWatchdogBound = s.options.strategy.bollinger.data.lowerBound - (lowerBandwidth * s.options.strategy.bollinger.opts.lower_watchdog_pct/100)
 
@@ -114,7 +119,12 @@ module.exports = {
 			if (s.period.close < lowerWatchdogBound) {
 				color_down = 'red'
 			}
-
+			
+			//Controllo la minimum_bandwidth
+			if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
+				cols.push('*')
+			}
+			
 			cols.push(z(8, n(s.options.strategy.bollinger.data.lowerBound).format('0.00').substring(0,7), ' ')[color_down])
 			cols.push(' <->')
 			cols.push(z(8, n(s.options.strategy.bollinger.data.upperBound).format('0.00').substring(0,7), ' ')[color_up])
