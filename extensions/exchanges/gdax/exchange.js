@@ -70,15 +70,16 @@ module.exports = function gdax (conf) {
 				setTimeout(() => {
 					setInterval(() => {
 
-						if (websocket_client[product_id].heartbeat.time > last_heartbeat_time) {
-							last_heartbeat_time = websocket_client[product_id].heartbeat.time
+						if (websocket_cache[product_id].heartbeat.time.toMilliseconds() > last_heartbeat_time) {
+							console.log('websocket_client - Aggiorno last_heartbeat_time')
+							last_heartbeat_time = websocket_cache[product_id].heartbeat.time.toMilliseconds()
 						}
 						else {
-							console.log('websocket_client - Non ricevo heartbeat da 10s. heartbeat.time= ' +  websocket_client[product_id].heartbeat.time + ' ; last_heartbeat_time= ' + last_heartbeat_time)
+							console.log('websocket_client - Non ricevo heartbeat da 10s. heartbeat.time= ' +  websocket_cache[product_id].heartbeat.time.toMilliseconds() + ' ; last_heartbeat_time= ' + last_heartbeat_time)
 							console.log('websocket client - Riconnetto websocket')
 							websocket_client[product_id].disconnect()
-							websocket_client[product_id] = null
-							websocketClient(product_id)
+//							websocket_client[product_id] = null
+//							websocketClient(product_id)
 						}
 					}, 10000)
 				}, 10000)
