@@ -9,6 +9,7 @@ module.exports = function gdax (conf) {
 	var public_client = {}, authed_client, websocket_client = {}, websocket_cache = {}
 	var max_requests_per_second = 5
 	var next_request = 0
+	var last_heartbeat_time = 0
 
 	function now() {
 		return new Date().getTime()
@@ -22,13 +23,14 @@ module.exports = function gdax (conf) {
 		return public_client[product_id]
 	}
 	
-	//Se ho risolto diversamente, togliere questo obbrobrio da qui e da trade e engine
-	function resetPublicClient (product_id) {
-		debug.msg('resetPublicClient')
-		publicClient (product_id, true)
-	}
+//	//Se ho risolto diversamente, togliere questo obbrobrio da qui e da trade e engine
+//	function resetPublicClient (product_id) {
+//		debug.msg('resetPublicClient')
+//		publicClient (product_id, true)
+//	}
 
 	function websocketClient (product_id) {
+		//Se non esiste il websocket_client
 		if (!websocket_client[product_id]) {
 			var auth = null
 			var client_state = {}
@@ -40,6 +42,7 @@ module.exports = function gdax (conf) {
 				}
 			}
 
+			//'heartbeat' è aggiunto in automatico, ma lo indico per tenerne traccia
 			var channels = ['matches', 'ticker', 'heartbeat']
 
 			// subscribe to user channels which need fully auth data
@@ -56,12 +59,26 @@ module.exports = function gdax (conf) {
 						trades: [],
 						trade_ids: [],
 						orders: {},
-						ticker: {}
+						ticker: {},
+						heartbeat: {}
 				}
 			}
 
 			websocket_client[product_id].on('open', () => {
 				debug.msg('websocket connection to ' + product_id + ' opened')
+				//Attivo un controllo ogni 10s sulla connessione
+				setInterval(() => {
+					if (websocket_client[product_id].heartbeat.time > last_heartbeat_time) {
+						last_heartbeat_time = websocket_client[product_id].heartbeat.time
+					}
+					else {
+						console.log('websocket_client - Non ricevo heartbeat da 10s. heartbeat.time= ' +  websocket_client[product_id].heartbeat.time + ' ; last_heartbeat_time= ' + last_heartbeat_time)
+						console.log('websocket client - Riconnetto websocket')
+						websocket_client[product_id].disconnect()
+						websocket_client[product_id] = null
+						websocketClient(product_id)
+					}
+				}, 10000)
 			})
 
 			websocket_client[product_id].on('message', (message) => {
@@ -137,8 +154,28 @@ module.exports = function gdax (conf) {
 
 				websocket_client[product_id] = null
 				websocket_client[product_id] = websocketClient(product_id)
+				
+				let count = 1;
+			    // attempt to re-connect every 30 seconds.
+			    // TODO: maybe use an exponential backoff instead
+			    const interval = setInterval(() => {
+			        if (!websocket_client[product_id]) {
+			            count++;
+
+			            // error if it keeps failing every 10/2 = 5 minutes
+			            if (count % 10 === 0) {
+			                const time_since = 30 * count;
+			                console.log('Websocket Error - Attempting to re-connect for the ${count} time. It has been ${time_since} seconds since we lost connection.');
+			            }
+			            websocket_client[product_id] = websocketClient(product_id)
+			        }
+			        else {
+			            clearInterval(interval);
+			        }
+			    }, 30000);
 			})
 		}
+		
 		return websocket_client[product_id]
 	}
 
@@ -388,8 +425,8 @@ module.exports = function gdax (conf) {
 			    "time": "2014-11-07T08:19:28.464459Z"
 			}
 		 */
-		var cache = websocket_cache[product_id]
-		console.log(heartbeat)
+		websocket_cache[product_id].heartbeat = heartbeat
+		//console.log(heartbeat)
 	}
 
 	var orders = {}
