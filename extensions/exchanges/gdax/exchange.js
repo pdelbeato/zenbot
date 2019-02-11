@@ -523,7 +523,7 @@ module.exports = function gdax (conf) {
 						trades.reverse()
 						
 						debug.msg('getTrades - Lista trades (se vuota, allora in so.poll_trades non sono avvenuti trades. Se non vuota, allora esiste un problema con il websocket):')
-						console.log(trades)
+//						console.log(trades)
 						
 						cb(null, trades)
 					})
