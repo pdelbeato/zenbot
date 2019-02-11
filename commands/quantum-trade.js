@@ -224,23 +224,23 @@ module.exports = function (program, conf) {
 				//Modo MARKET		
 				keyMap.set('b', {desc: ('limit'.grey + ' BUY'.green), action: function() {
 					console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command inserted'.grey)
-					engine.emitSignal('standard', 'buy')						
+					engine.emitSignal('manual', 'buy')						
 				}})
 				keyMap.set('B', {desc: ('market'.grey + ' BUY'.green), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command inserted'.grey)
-					engine.emitSignal('standard', 'buy', null, null, null, false, true)
+					engine.emitSignal('manual', 'buy', null, null, null, false, true)
 				}})
 				keyMap.set('s', {desc: ('limit'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command inserted'.grey)
-					engine.emitSignal('standard', 'sell')												 
+					engine.emitSignal('manual', 'sell')												 
 				}})
 				keyMap.set('S', {desc: ('market'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command inserted'.grey)
-					engine.emitSignal('standard', 'sell', null, null, null, false, true)		
+					engine.emitSignal('manual', 'sell', null, null, null, false, true)		
 				}})
-				keyMap.set('c', {desc: ('cancel order'.grey), action: function() {
-					engine.orderStatus(undefined, undefined, 'standard', undefined, 'Unset', 'standard')
-					console.log('\nmanual'.grey + ' standard orders cancel' + ' command executed'.grey)
+				keyMap.set('c', {desc: ('cancel manual orders'.grey), action: function() {
+					engine.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
+					console.log('\nmanual'.grey + ' orders cancel' + ' command executed'.grey)
 				}})
 				keyMap.set('C', {desc: ('cancel ALL order'.grey), action: function() {
 					console.log('\nmanual'.grey + ' canceling ALL orders')
@@ -300,7 +300,7 @@ module.exports = function (program, conf) {
 				keyMap.set('A', {desc: ('insert catch order for all free position'.grey), action: function() {
 					console.log('\n' + 'Insert catch order for all free positions'.grey)
 					s.positions.forEach(function (position, index) {
-						engine.emitSignal('orderExecuted', position.side, position.id)
+						engine.emitSignal('orderExecuted', position.side, 'manual', position.id)
 					})	
 				}})
 				break
@@ -464,6 +464,7 @@ module.exports = function (program, conf) {
 					if (s.positions_index != null) {
 						console.log('\nFreeing the position (cancelling all orders connected with the position) '.yellow + s.positions[s.positions_index].id)
 						engine.positionStatus(s.positions[s.positions_index], 'Free')
+						s.positions[s.positions_index].locked = false
 					}
 					else {
 						console.log('No position in control.')
@@ -472,7 +473,7 @@ module.exports = function (program, conf) {
 				keyMap.set('L', {desc: ('Lock the position (does not cancel orders connected to the position)'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nLocking the position '.yellow + s.positions[s.positions_index].id)
-						engine.positionStatus(s.positions[s.positions_index], 'Set', 'manual')
+						s.positions[s.positions_index].locked = true
 					}
 					else {
 						console.log('No position in control.')
@@ -481,7 +482,7 @@ module.exports = function (program, conf) {
 				keyMap.set('U', {desc: ('Unlock the position (does not cancel orders connected to the position)'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nUnlocking the position '.yellow + s.positions[s.positions_index].id)
-						engine.positionStatus(s.positions[s.positions_index], 'Unset', 'manual')
+						s.positions[s.positions_index].locked = false
 					}
 					else {
 						console.log('No position in control.')
@@ -489,9 +490,10 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('c', {desc: ('cancel ALL orders connected to the position, without let it free'.grey), action: function() {
 					if (s.positions_index != null) {
-						console.log('\nCancelling all orders connected with the position '.yellow + s.positions[s.positions_index].id)
-						status_tmp = ~(s.positions[s.positions_index].status & engine.statusByte.locked)
-						engine.positionStatus(s.positions[s.positions_index], 'Unset', status_tmp)
+						console.log('\nCanceling all orders connected with the position '.yellow + s.positions[s.positions_index].id)
+//						status_tmp = ~(s.positions[s.positions_index].status & engine.orderFlag.locked)
+//						engine.positionStatus(s.positions[s.positions_index], 'Unset', status_tmp)
+						engine.positionStatus(s.positions[s.positions_index], 'Free')
 					}
 					else {
 						console.log('No position in control.')
@@ -499,7 +501,7 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('C', {desc: ('cancel the position'.grey), action: function() {
 					if (s.positions_index != null) {
-						console.log('\nCancelling the position '.yellow + s.positions[s.positions_index].id)
+						console.log('\nCanceling the position '.yellow + s.positions[s.positions_index].id)
 
 						engine.positionStatus(s.positions[s.positions_index], 'Free')
 						setTimeout(function() {
@@ -616,7 +618,13 @@ module.exports = function (program, conf) {
 				//Modo OPTIONS
 				keyMap.set('o', {desc: ('show current trade options'.grey), action: function() { listOptions ()}})
 				keyMap.set('a', {desc: ('show current trade options in a dirty view (full list)'.grey), action: function() {
-					console.log('\n' + cliff.inspect(so))
+					let so_tmp = JSON.parse(JSON.stringify(so))
+					delete so_tmp.strategy
+					console.log('\n' + cliff.inspect(so_tmp))
+
+					Object.keys(so.strategy).forEach(function (strategy_name, index) {
+						console.log('\n' + strategy_name + '\n' + cliff.inspect(so.strategy[strategy_name].opts))
+					})					
 				}})
 				keyMap.set('D', {desc: ('toggle DEBUG'.grey), action: function() {
 					debug.flip()
@@ -810,43 +818,51 @@ module.exports = function (program, conf) {
 			}
 			return cb(null)
 		}
-		/* End funzioni per le operazioni sul databse Mongo DB delle posizioni */ 
+		/* End funzioni per le operazioni sul database Mongo DB delle posizioni */ 
 		
 		/* To list options*/
 		function listOptions () {
-			console.log()
-			console.log(s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey)
-			console.log()
-			process.stdout.write(z(22, 'STRATEGY'.grey, ' ') + '\t' + so.strategy + '\t' + (require(`../extensions/strategies/${so.strategy}/strategy`).description).grey)
-			console.log('\n')
+			console.log('\n' + s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey + '\n')
+			
+			Object.keys(so.strategy).forEach(function (strategy_name, index) {
+				process.stdout.write(z(22, 'STRATEGY'.grey, ' ') + '\t' + strategy_name + '\t' + (require(`../extensions/strategies/${strategy_name}/strategy`).description).grey)
+				
+				let opts_name = ''
+				let opts_value = ''
+				Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
+					opts_name += z((key.length + 3), key, ' ')
+					opts_value += z((key.length + 3), so.strategy[strategy_name].opts[key], ' ')
+				})
+				process.stdout.write('\n' + opts_name.grey)
+				process.stdout.write('\n' + opts_value + '\n\n')
+			})
+			
 			process.stdout.write([
-				z(25, (so.mode === 'paper' ? so.mode.toUpperCase() : so.mode.toUpperCase()) + ' MODE'.grey, ' '),
+				z(25, so.mode.toUpperCase() + ' MODE'.grey, ' '),
 				z(25, 'PERIOD LENGTH'.grey, ' '),
-				z(25, 'PERIOD CALC'.grey, ' '),
 				z(25, 'ORDER TYPE'.grey, ' '),
 				z(25, 'SLIPPAGE'.grey, ' '),
 				z(30, 'EXCHANGE FEES'.grey, ' ')
-				].join('') + '\n')
+				].join('') + '\n');
+
 			process.stdout.write([
 				z(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
 				z(10, so.period_length, ' '),
-				z(17, so.period_calc, ' '),
 				z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
 				z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
 				z(17, (so.order_type === 'maker' ? so.order_type + ' ' + n(s.exchange.makerFee).format('0.0000%')  : so.order_type + ' ' + s.exchange.takerFee), ' ')
-				].join('') + '\n\n')
+				].join('') + '\n\n');
+
 			process.stdout.write('')
+			
 			process.stdout.write([
-			//z(19, 'BUY %'.grey, ' '),
-			//z(20, 'SELL %'.grey, ' '),
 			z(30, 'TRAILING STOP %'.grey, ' '),
 			z(34, 'TRAILING DISTANCE %'.grey, ' '),
 			z(35, 'DUMP / PUMP WATCHDOG'.grey, ' '),
 			z(36, 'LONG / SHORT POSITION'.grey, ' ')
 			].join('') + '\n')
+			
 			process.stdout.write([
-				//z(9, so.buy_pct + '%', ' '),
-				//z(9, so.sell_pct + '%', ' '),
 				z(12, so.profit_stop_enable_pct + '%', ' '),
 				z(24, so.profit_stop_pct + '%', ' '),
 				z(20, so.dump_watchdog, ' '),
@@ -860,7 +876,6 @@ module.exports = function (program, conf) {
 			z(35, 'CATCH ORDER DEFAULT %'.grey, ' '),
 			z(33, 'CATCH ORDER MANUAL %'.grey, ' '),
 			z(30, 'CATCH FIXED VALUE'.grey, ' '),
-//			z(36, 'LONG / SHORT POSITION'.grey, ' ')
 			].join('') + '\n')
 			process.stdout.write([
 				z(9, (so.buy_stop_pct || '--') + '%', ' '),
@@ -868,7 +883,6 @@ module.exports = function (program, conf) {
 				z(25, so.catch_order_pct + '%', ' '),
 				z(23, so.catch_manual_pct + '%', ' '),
 				z(25, formatCurrency(so.catch_fixed_value, s.currency), ' '),
-//				z(8, so.active_short_position, ' ')
 				].join('') + '\n\n')
 			process.stdout.write('')
 		}
@@ -927,22 +941,11 @@ module.exports = function (program, conf) {
 				trade_per_day: n(s.my_trades.length / s.day_count).format('0.00')
 			}
 
-//Da sistemare tutta questa sezione in relazione alle novità introdotte con la versione quantum_parallel			
-			//var last_buy
-			var losses = 0, sells = 0
+			var losses = 0, gains = 0
 			s.my_trades.forEach(function (trade) {
-				// if (trade.type === 'buy') {
-				// last_buy = trade.price
-				// }
-				// else {
-				// if (last_buy && trade.price < last_buy) {
-				// losses++
-				// }
-				// sells++
-				// }
-				if (trade.side === 'sell') {
+				if (trade.profit) {
 					if (trade.profit > 0)
-						sells++
+						gains++
 					else
 						losses++
 				}
@@ -950,25 +953,25 @@ module.exports = function (program, conf) {
 
 			if (s.my_prev_trades.length) {
 				s.my_prev_trades.forEach(function (trade) {
-					if (trade.side === 'sell') {
+					if (trade.profit) {
 						if (trade.profit > 0)
-							sells++
+							gains++
 						else
 							losses++
 					}
 				})
 			}
 
-			if (s.my_trades.length && sells > 0) {
+			if (s.my_trades.length && gains > 0) {
 				if (!statsonly) {
-					output_lines.push('win/loss: ' + (sells - losses) + '/' + losses)
-					output_lines.push('error rate: ' + (sells ? n(losses).divide(sells).format('0.00%') : '0.00%').yellow)
+					output_lines.push('win/loss: ' + gains + '/' + losses)
+					output_lines.push('error rate: ' + (n(losses).divide(gains + losses).format('0.00%')).yellow)
 				}
 
 				//for API
-				s.stats.win = (sells - losses)
+				s.stats.win = gains
 				s.stats.losses = losses
-				s.stats.error_rate = (sells ? n(losses).divide(sells).format('0.00%') : '0.00%')
+				s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%')
 			}
 
 			if (!statsonly) {
@@ -1063,35 +1066,24 @@ module.exports = function (program, conf) {
 				trade_per_day: n(s.my_trades.length / s.day_count).format('0.00')
 			}
 
-			// var last_buy
-			var losses = 0, sells = 0
+			var losses = 0, gains = 0
 			s.my_trades.forEach(function (trade) {
-				//		if (trade.type === 'buy') {
-				//			last_buy = trade.price
-				//		}
-				//		else {
-				//			if (last_buy && trade.price < last_buy) {
-				//			losses++
-				//			}
-				//			sells++
-				//		}
-
-				if (trade.side === 'sell') {
+				if (trade.profit) {
 					if (trade.profit > 0)
-						sells++
+						gains++
 					else
 						losses++
 				}
 			})
 
-			if (s.my_trades.length && sells > 0) {
-				output_lines.push('win/loss: ' + (sells - losses) + '/' + losses)
-				output_lines.push('error rate: ' + (sells ? n(losses).divide(sells).format('0.00%') : '0.00%').yellow)
+			if (s.my_trades.length && gains > 0) {
+				output_lines.push('win/loss: ' + gains + '/' + losses)
+				output_lines.push('error rate: ' + (n(losses).divide(gains + losses).format('0.00%')).yellow)
 
 				//for API
-				s.stats.win = (sells - losses)
+				s.stats.win = gains
 				s.stats.losses = losses
-				s.stats.error_rate = (sells ? n(losses).divide(sells).format('0.00%') : '0.00%')
+				s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%')
 			}
 
 			var html_output = output_lines.map(function (line) {
@@ -1238,10 +1230,15 @@ module.exports = function (program, conf) {
 							}
 						})
 					}
+
+					//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco
 					if (!trades.length) {
 						var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------'
 						console.log(head)
+						
+						//A che diavolo serve?
 						output(conf).initializeOutput(s)
+						
 						var minuses = Math.floor((head.length - so.mode.length - 19) / 2)
 						console.log('-'.repeat(minuses) + ' STARTING ' + so.mode.toUpperCase() + ' TRADING ' + '-'.repeat(minuses + (minuses % 2 == 0 ? 0 : 1)))
 						if (so.mode === 'paper') {
@@ -1305,15 +1302,10 @@ module.exports = function (program, conf) {
 								if (s.lookback.length > so.keep_lookback_periods) {
 									s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 								}
-
-//								//Chiamata alla funzione syncBalance ogni so.poll_balance
-//								setInterval(engine.syncBalance, so.poll_balance)
 								
 								//Chiamata alla funzione forwardScan() ogni so.poll_trades
 								//forwardScan()
 								setInterval(forwardScan, so.poll_trades)
-
-								
 
 								readline.emitKeypressEvents(process.stdin)
 								if (!so.non_interactive && process.stdin.setRawMode) {
@@ -1431,7 +1423,9 @@ module.exports = function (program, conf) {
 							console.error(err)
 						}
 						if (s.period) {
-							engine.writeReport(true)
+							Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
+								engine.writeReport(strategy_name, true)
+							})
 						} else {
 							readline.clearLine(process.stdout)
 							readline.cursorTo(process.stdout, 0)
