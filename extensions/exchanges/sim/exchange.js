@@ -20,10 +20,11 @@ module.exports = function sim (conf, s) {
   var orders = {}
   var openOrders = {}
   let debug = false // debug output specific to the sim exchange
-
-  function now() {
-	  return new Date().getTime()
-  }
+  var now = 0
+  
+//  function now() {
+//	  return new Date().getTime()
+//  }
 
   // When orders change in any way, it's likely our "_hold" values have changed. Recalculate them
   function recalcHold() {
@@ -136,9 +137,9 @@ module.exports = function sim (conf, s) {
 //          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'buy',
-          orig_time: now(),
-          time: now(),
-          created_at: now()
+          orig_time: now,
+          time: now,
+          created_at: now
         }
 
         orders['~' + result.id] = order
@@ -172,9 +173,9 @@ module.exports = function sim (conf, s) {
 //          executed_value: 0,
           ordertype: opts.order_type,
           tradetype: 'sell',
-          orig_time: now(),
-          time: now(),
-          created_at: now()
+          orig_time: now,
+          time: now,
+          created_at: now
         }
         orders['~' + result.id] = order
         openOrders['~' + result.id] = order
@@ -205,7 +206,7 @@ module.exports = function sim (conf, s) {
     getCursor: real_exchange.getCursor,
 
     getTime: function() {
-      return now()
+      return now
     },
     
     getMemory: function() {
