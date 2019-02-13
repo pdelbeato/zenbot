@@ -214,7 +214,11 @@ module.exports = function (program, conf) {
             return colors.stripColors(line)
           }).join('\n')
 
-          var data = s.calc_lookback.slice(0, s.calc_lookback.length ).map(function (period) {
+
+          var data =s.lookback.slice(0, s.lookback.length).map(function (period) {
+
+          //var data = so.strategy.bollinger.calc_lookback.slice(0, so.strategy.bollinger.calc_lookback.length ).map(function (period) {
+          //var data = s.calc_lookback.slice(0, s.calc_lookback.length ).map(function (period) {
           // var data = s.calc_lookback.map(function (period) {
             var data = {}
             var keys = Object.keys(period)

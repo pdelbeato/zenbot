@@ -219,10 +219,10 @@ data=data.reverse();
 close_ref=data[0].close;
 data = data.map(function (d) {
   d.date = new Date(d.time)
-  if (typeof d.bollinger === 'object') {
-    d.upperBound=d.bollinger.upperBound
-    d.midBound=d.bollinger.midBound
-    d.lowerBound=d.bollinger.lowerBound
+  if (typeof d.strategy === 'object') {
+    d.upperBound=d.strategy.bollinger.data.upperBound
+    d.midBound=d.strategy.bollinger.data.midBound
+    d.lowerBound=d.strategy.bollinger.data.lowerBound
   }
   d.close_norm=d.close/close_ref
   return d
@@ -266,10 +266,10 @@ trades = trades.map(function (t,index) {
     // t.lowerBound=t.price;
     return t
   })
-  console.log(trades)
+  //console.log(trades)
 
-var data_trades = data.concat(trades);
-console.log(data_trades)
+//var data_trades = data.concat(trades);
+//console.log(data_trades)
 init_currency=[];init_asset=[];init_currency[0]=10000;init_asset[0]=1;
 var i;stock_Events=[];graph_realcapital=[];graph_quantum=[]
 for (i = 0; i < trades.length; i++) {
@@ -346,7 +346,7 @@ var chart = AmCharts.makeChart( "chartdiv", {
     } ],
 
     "color": "#7f8da9",
-    "dataProvider": data_trades,
+    "dataProvider": data,
 //    "title": "BTC-EUR",
     "categoryField": "date",
     "stockEvents": stock_Events
@@ -522,9 +522,13 @@ var chart = AmCharts.makeChart( "chartdiv", {
       "count": 12,
       "label": "12 hours"
     }, {
-      "period": "MAX",
-      "label": "MAX",
+      "period": "hh",
+      "count": 24,
+      "label": "24 hours",
       "selected": true
+    }, {
+      "period": "MAX",
+      "label": "MAX"
     } ]
   }
 } );
@@ -603,7 +607,7 @@ chart.scrollbarX.series.push(series);
 chart.scrollbarX.parent = chart.bottomAxesContainer;
 
 chart.events.on("ready", function () {
-  dateAxis.zoom({start:0.79, end:1});
+  // dateAxis.zoom({start:0.79, end:1});
 
 
   // Add legend
@@ -683,7 +687,7 @@ withData(data, trades, options)
            <td><script>document.write("test");</script></td>
         </tr>
 
-        
+
      </table>
   </div>
   <pre><code>{{output}}</code></pre>
