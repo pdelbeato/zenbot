@@ -903,7 +903,7 @@ module.exports = function (program, conf) {
     		  }
     		  else {
     			  console.log('\nOrders on Exchange: '.yellow + orders.length + '\n')
-    			  setTimeout(exit(), so.order_poll_time)
+    			  setTimeout(function() { exit() }, so.order_poll_time)
     		  } 
     	  })
       }
