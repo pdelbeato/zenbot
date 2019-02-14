@@ -68,7 +68,7 @@ module.exports = function gdax (conf) {
 				debug.msg('websocket connection to ' + product_id + ' opened')
 				//Attendo 10s e poi attivo un controllo ogni 10s sulla connessione
 				setTimeout(() => {
-					setInterval(() => {
+					var interval = setInterval(() => {
 						heartbeat_time = Date.parse(websocket_cache[product_id].heartbeat.time)
 						if (heartbeat_time > last_heartbeat_time) {
 //							console.log('websocket_client - Aggiorno last_heartbeat_time')
@@ -77,9 +77,8 @@ module.exports = function gdax (conf) {
 						else {
 							console.log('websocket_client - Non ricevo heartbeat da 10s. heartbeat.time= ' +  heartbeat_time + ' ; last_heartbeat_time= ' + last_heartbeat_time)
 							console.log('websocket client - Riconnetto websocket')
+							clearInterval(interval)
 							websocket_client[product_id].disconnect()
-//							websocket_client[product_id] = null
-//							websocketClient(product_id)
 						}
 					}, 10000)
 				}, 10000)
