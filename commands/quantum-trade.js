@@ -205,10 +205,7 @@ module.exports = function (program, conf) {
           console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
           so.manual = true
           engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
-          setTimeout(function() {
-            console.log('\nExiting... ' + '\nWriting statistics...'.grey)
-            printTrade(true)
-          }, so.order_poll_time*5)
+          exit()
         }})
 
         switch (mode) {
@@ -898,6 +895,20 @@ module.exports = function (program, conf) {
       }
       /* End listOptions() */
 
+      //Exit function
+      function exit() {
+    	  s.exchange.getAllOrders(so.selector, function (err, orders) {
+    		  if (orders && orders.length === 0) {
+    			  console.log('\nExiting... ' + '\nWriting statistics...'.grey)
+    			  printTrade(true)
+    		  }
+    		  else {
+    			  console.log('\nOrders on Exchange: '.yellow + orders.length + '\n')
+    			  setTimeout(exit(), so.order_poll_time)
+    		  } 
+    	  })
+      }
+      
       /* Implementing statistical Exit */
       function printTrade (quit, dump, statsonly = false) {
         var tmp_balance = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
