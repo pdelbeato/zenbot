@@ -1453,9 +1453,9 @@ module.exports = function (program, conf) {
         // millisecond to it, in order to avoid fetching a second time the last
         // trade of the previous batch.
         var opts = {
-			          product_id: so.selector.product_id,
-			          from: trade_cursor + 1
-			        }
+    		product_id: so.selector.product_id,
+    		from: trade_cursor + 1
+        }
 
         s.exchange.getTrades(opts, function (err, trades) {
           if (err) {

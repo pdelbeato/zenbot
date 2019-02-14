@@ -78,6 +78,16 @@ module.exports = function gdax (conf) {
 							console.log('websocket_client - Non ricevo heartbeat da 10s. heartbeat.time= ' +  heartbeat_time + ' ; last_heartbeat_time= ' + last_heartbeat_time)
 							console.log('websocket client - Riconnetto websocket')
 							clearInterval(interval)
+							//Tentativo per ristabilire la websocket_cache
+							let orders_tmp = websocket_cache[product_id].orders
+							websocket_cache[product_id] = {
+									trades: [],
+									trade_ids: [],
+									orders: orders_tmp,
+									ticker: {},
+									heartbeat: {}
+							}
+							
 							websocket_client[product_id].disconnect()
 						}
 					}, 10000)
