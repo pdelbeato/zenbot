@@ -85,8 +85,7 @@ module.exports = function (program, conf) {
       var raw_opts = minimist(process.argv)
       var s = {options: JSON.parse(JSON.stringify(raw_opts))}
       var so = s.options
-      var s.debug_exchange = false
-
+     
       //Se è stata impostata la funzione per il tempo di esecuzione, fissa il tempo di partenza
       if (so.run_for) {
         debug.msg('Run_for option = ', so.run_for)
@@ -168,6 +167,7 @@ module.exports = function (program, conf) {
       const keyMap = new Map()
       s.exchange_orders_index = null
       s.positions_index = null
+      s.debug_exchange = false
 
       function changeModeCommand(mode = 0) {
         //			debug.msg('changeModeCommand')
