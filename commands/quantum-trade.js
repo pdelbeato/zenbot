@@ -899,7 +899,8 @@ module.exports = function (program, conf) {
     	  s.exchange.getAllOrders(so.selector, function (err, orders) {
     		  if (orders && orders.length === 0) {
     			  console.log('\nExiting... ' + '\nWriting statistics...'.grey)
-    			  printTrade(true)
+    			  //Attendo ulteriori 5s per chiudere le statistiche
+    			  setTimeout(function() { printTrade(true) }, 5000)
     		  }
     		  else {
     			  console.log('\nOrders on Exchange: '.yellow + orders.length + '\n')
