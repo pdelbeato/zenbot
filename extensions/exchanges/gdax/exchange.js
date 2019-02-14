@@ -10,7 +10,7 @@ module.exports = function gdax (conf) {
 	var max_requests_per_second = 5
 	var next_request = 0
 	var last_heartbeat_time = 0
-
+	
 	function now() {
 		return new Date().getTime()
 	}
@@ -407,7 +407,7 @@ module.exports = function gdax (conf) {
 		cache.trades.push(trade)
 		cache.trade_ids.push(trade.trade_id)
 		
-		if (s.debug_exchange) {
+		if (this.exchange.debug_exchange) {
 			debug.msg('handleTrade - trade:')
 			debug.msg(trade, false)
 		}
@@ -430,7 +430,7 @@ module.exports = function gdax (conf) {
 		 */
 
 		websocket_cache[product_id].ticker = ticker
-		if (s.debug_exchange) {
+		if (this.exchange.debug_exchange) {
 			debug.msg('handleTicker - ticker:')
 			debug.msg(ticker, false)
 		}
@@ -448,7 +448,7 @@ module.exports = function gdax (conf) {
 			}
 		 */
 		websocket_cache[product_id].heartbeat = heartbeat
-		if (s.debug_exchange) {
+		if (this.exchange.debug_exchange) {
 			debug.msg('handleTrade - heartbeat:')
 			debug.msg(heartbeat, false)
 		}
@@ -462,6 +462,8 @@ module.exports = function gdax (conf) {
 			makerFee: 0,
 			takerFee: 0.3,
 			backfillRateLimit: 335,
+			
+			debug_exchange: false,
 
 			getProducts: function () {
 				return require('./products.json')

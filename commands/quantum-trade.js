@@ -167,7 +167,6 @@ module.exports = function (program, conf) {
       const keyMap = new Map()
       s.exchange_orders_index = null
       s.positions_index = null
-      s.debug_exchange = false
 
       function changeModeCommand(mode = 0) {
         //			debug.msg('changeModeCommand')
@@ -653,8 +652,8 @@ module.exports = function (program, conf) {
         		console.log('\nDEBUG mode: ' + (debug.on ? 'ON'.green.inverse : 'OFF'.red.inverse))
         	}})
         	keyMap.set('X', {desc: ('toggle DEBUG EXCHANGE'.grey), action: function() {
-        		debug_exchange = !debug_exchange
-        		console.log('\nDEBUG EXCHANGE mode: ' + (debug_exchange ? 'ON'.green.inverse : 'OFF'.red.inverse))
+        		s.exchange.debug_exchange = !s.exchange.debug_exchange
+        		console.log('\nDEBUG EXCHANGE mode: ' + (s.exchange.debug_exchange ? 'ON'.green.inverse : 'OFF'.red.inverse))
         	}})
         	keyMap.set('R', {desc: ('try to recover MongoDB connection'.grey), 	action: function() {
         		console.log('\nTrying to recover MongoDB connection...'.grey)
