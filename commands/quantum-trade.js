@@ -85,6 +85,7 @@ module.exports = function (program, conf) {
       var raw_opts = minimist(process.argv)
       var s = {options: JSON.parse(JSON.stringify(raw_opts))}
       var so = s.options
+      var s.debug_exchange = false
 
       //Se è stata impostata la funzione per il tempo di esecuzione, fissa il tempo di partenza
       if (so.run_for) {
@@ -162,6 +163,7 @@ module.exports = function (program, conf) {
       modeMap.set(4, 'POSITIONS')
       modeMap.set(5, 'LIMITS')
       modeMap.set(6, 'OPTIONS')
+      modeMap.set(7, 'DEBUG TOOLS')
 
       const keyMap = new Map()
       s.exchange_orders_index = null
@@ -173,13 +175,14 @@ module.exports = function (program, conf) {
 
         keyMap.clear()
 
-        keyMap.set('0', {desc: ('Modo '.grey + 'NULL'.yellow),		action: function() { changeModeCommand(0)}})
-        keyMap.set('1', {desc: ('Modo '.grey + 'MARKET'.yellow),	action: function() { changeModeCommand(1)}})
-        keyMap.set('2', {desc: ('Modo '.grey + 'CATCH'.yellow), 	action: function() { changeModeCommand(2)}})
-        keyMap.set('3', {desc: ('Modo '.grey + 'EXCHANGE'.yellow), 	action:	function() { changeModeCommand(3)}})
-        keyMap.set('4', {desc: ('Modo '.grey + 'POSITIONS'.yellow),	action:	function() { changeModeCommand(4)}})
-        keyMap.set('5', {desc: ('Modo '.grey + 'LIMITS'.yellow), 	action: function() { changeModeCommand(5)}})
-        keyMap.set('6', {desc: ('Modo '.grey + 'OPTIONS'.yellow), 	action: function() { changeModeCommand(6)}})
+        keyMap.set('0', {desc: ('Modo '.grey + 'NULL'.yellow),			action: function() { changeModeCommand(0)}})
+        keyMap.set('1', {desc: ('Modo '.grey + 'MARKET'.yellow),		action: function() { changeModeCommand(1)}})
+        keyMap.set('2', {desc: ('Modo '.grey + 'CATCH'.yellow), 		action: function() { changeModeCommand(2)}})
+        keyMap.set('3', {desc: ('Modo '.grey + 'EXCHANGE'.yellow), 		action:	function() { changeModeCommand(3)}})
+        keyMap.set('4', {desc: ('Modo '.grey + 'POSITIONS'.yellow),		action:	function() { changeModeCommand(4)}})
+        keyMap.set('5', {desc: ('Modo '.grey + 'LIMITS'.yellow), 		action: function() { changeModeCommand(5)}})
+        keyMap.set('6', {desc: ('Modo '.grey + 'OPTIONS'.yellow), 		action: function() { changeModeCommand(6)}})
+        keyMap.set('7', {desc: ('Modo '.grey + 'DEBUG TOOLS'.yellow), 	action: function() { changeModeCommand(7)}})
 
         keyMap.set('l', {desc: ('list available commands'.grey), 	action: function() { listKeys()}})
 
@@ -206,14 +209,6 @@ module.exports = function (program, conf) {
             console.log('\nExiting... ' + '\nWriting statistics...'.grey)
             printTrade(true)
           }, so.order_poll_time*5)
-        }})
-        keyMap.set('R', {desc: ('try to recover MongoDB connection'.grey), 	action: function() {
-          console.log('\nTrying to recover MongoDB connection...'.grey)
-          recoverMongoDB()
-        }})
-        keyMap.set('K', {desc: ('clean MongoDB databases (delete data older than 30 days)'.grey), action: function() {
-          console.log('\nCleaning MongoDB databases...'.grey)
-          cleanMongoDB()
         }})
 
         switch (mode) {
@@ -626,10 +621,6 @@ module.exports = function (program, conf) {
               console.log('\n' + strategy_name + '\n' + cliff.inspect(so.strategy[strategy_name].opts))
             })
           }})
-          keyMap.set('D', {desc: ('toggle DEBUG'.grey), action: function() {
-            debug.flip()
-            console.log('\nDEBUG mode: ' + (debug.on ? 'ON'.green.inverse : 'OFF'.red.inverse))
-          }})
           keyMap.set('w', {desc: ('toggle Dump Watchdog'.grey), action: function() {
             so.dump_watchdog = !so.dump_watchdog
             s.is_dump_watchdog = so.dump_watchdog
@@ -658,8 +649,27 @@ module.exports = function (program, conf) {
           }})
           break
         }
+        case 7: {
+        	//Modo DEBUG TOOLS
+        	keyMap.set('D', {desc: ('toggle DEBUG'.grey), action: function() {
+        		debug.flip()
+        		console.log('\nDEBUG mode: ' + (debug.on ? 'ON'.green.inverse : 'OFF'.red.inverse))
+        	}})
+        	keyMap.set('X', {desc: ('toggle DEBUG EXCHANGE'.grey), action: function() {
+        		debug_exchange = !debug_exchange
+        		console.log('\nDEBUG EXCHANGE mode: ' + (debug_exchange ? 'ON'.green.inverse : 'OFF'.red.inverse))
+        	}})
+        	keyMap.set('R', {desc: ('try to recover MongoDB connection'.grey), 	action: function() {
+        		console.log('\nTrying to recover MongoDB connection...'.grey)
+        		recoverMongoDB()
+        	}})
+        	keyMap.set('K', {desc: ('clean MongoDB databases (delete data older than 30 days)'.grey), action: function() {
+        		console.log('\nCleaning MongoDB databases...'.grey)
+        		cleanMongoDB()
+        	}})
+        	break
         }
-
+        }
         listKeys()
       }
       /* End of changeModeCommand() */
@@ -1505,14 +1515,6 @@ module.exports = function (program, conf) {
                       console.error(err)
                     }
                   })
-
-                  //								if (s.update_position_id != null) {
-                  //									managePositionCollection('update', s.update_position_id)
-                  //								}
-                  //
-                  //								if (s.delete_position_id != null) {
-                  //									managePositionCollection('delete', s.delete_position_id)
-                  //								}
                 })
                 my_trades_size = s.my_trades.length
               }
@@ -1532,6 +1534,7 @@ module.exports = function (program, conf) {
                   }
                 })
               }
+              
               if (s.lookback.length > lookback_size) {
                 savePeriod(s.lookback[0])
                 lookback_size = s.lookback.length

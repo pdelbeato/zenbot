@@ -396,6 +396,11 @@ module.exports = function gdax (conf) {
 		var cache = websocket_cache[product_id]
 		cache.trades.push(trade)
 		cache.trade_ids.push(trade.trade_id)
+		
+		if (s.debug_exchange) {
+			debug.msg('handleTrade - trade:')
+			debug.msg(trade, false)
+		}
 	}
 
 	function handleTicker(ticker, product_id) {
@@ -415,6 +420,10 @@ module.exports = function gdax (conf) {
 		 */
 
 		websocket_cache[product_id].ticker = ticker
+		if (s.debug_exchange) {
+			debug.msg('handleTicker - ticker:')
+			debug.msg(ticker, false)
+		}
 	}
 	
 	function handleHeartbeat(heartbeat, product_id) {
@@ -429,7 +438,10 @@ module.exports = function gdax (conf) {
 			}
 		 */
 		websocket_cache[product_id].heartbeat = heartbeat
-		//console.log(heartbeat)
+		if (s.debug_exchange) {
+			debug.msg('handleTrade - heartbeat:')
+			debug.msg(heartbeat, false)
+		}
 	}
 
 	var orders = {}
