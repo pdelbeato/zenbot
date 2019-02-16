@@ -207,6 +207,12 @@ table tr:nth-child(2n+1) {
 <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
 <h2 style="color: #2e6c80; text-align: center;">Candelstick and Stock Events
 </h2>
+<div style="padding-bottom: 5px;">
+<input type="button" class="amChartsButton" id="addPanelButton" value="Volume" onclick="addPanel('Volume');">
+<input type="button" class="amChartsButton" id="addPanelButton" value="%B" onclick="addPanel('%B');">
+<input type="button" class="amChartsButton" id="addPanelButton" value="BB Band" onclick="addPanel('BBBand');">
+<input type="button" class="amChartsButton" id="removePanelButton" value="remove panel" onclick="removePanels();">
+</div>
 <div id="chartdiv"></div>
 <h2 style="color: #2e6c80; text-align: center;">Buy &amp; Hold&nbsp; &nbsp; VS&nbsp; &nbsp;Strategy</h2>
 <div id="chartdiv2"></div>
@@ -214,7 +220,9 @@ table tr:nth-child(2n+1) {
 <div id="chartdiv3"></div>
 
   <script>
+
 var withData = function (data, trades, options) {
+
 data=data.reverse();
 close_ref=data[0].close;
 data = data.map(function (d) {
@@ -223,12 +231,18 @@ data = data.map(function (d) {
     d.upperBound=d.strategy.bollinger.data.upperBound
     d.midBound=d.strategy.bollinger.data.midBound
     d.lowerBound=d.strategy.bollinger.data.lowerBound
-  }
+    if (d.upperBound - d.lowerBound>0 && d.midBound!==0) {
+      d.boll_perc_B= (d.close - d.lowerBound ) / (d.upperBound - d.lowerBound)
+      d.BB_band=(d.upperBound - d.lowerBound)/d.midBound
+    } else {
+      d.boll_perc_B=0
+      }
+    }
   d.close_norm=d.close/close_ref
   return d
 })
 
-
+console.log(data)
 rem_index=[];
 
 trades = trades.map(function (t,index) {
@@ -254,18 +268,7 @@ rem_index.reverse().forEach(function(element) {
   trades.splice(element,1);
   });
 
-trades = trades.map(function (t,index) {
 
-    t.open=t.price;
-    t.close=t.price;
-    t.high=t.price;
-    t.low=t.price;
-    t.volume=0;
-    // t.upperBound=t.price;
-    // t.midBound=t.price;
-    // t.lowerBound=t.price;
-    return t
-  })
   //console.log(trades)
 
 //var data_trades = data.concat(trades);
@@ -343,7 +346,14 @@ var chart = AmCharts.makeChart( "chartdiv", {
     } ,{
       "fromField": "midBound",
       "toField": "midBound"
-    } ],
+    } ,{
+      "fromField": "boll_perc_B",
+      "toField": "boll_perc_B"
+    },{
+      "fromField": "BB_band",
+      "toField": "BB_band"
+    }
+  ],
 
     "color": "#7f8da9",
     "dataProvider": data,
@@ -463,33 +473,80 @@ var chart = AmCharts.makeChart( "chartdiv", {
       }
     },
 
-    {
-      "title": "Volume",
-      "percentHeight": 30,
-      "marginTop": 1,
-      "showCategoryAxis": true,
-      "valueAxes": [ {
-        "dashLength": 5
-      } ],
+    // {
+    //   "title": "Volume",
+    //   "percentHeight": 30,
+    //   "marginTop": 1,
+    //   "showCategoryAxis": true,
+    //   "valueAxes": [ {
+    //     "dashLength": 5
+    //   } ],
+    //
+    //   "categoryAxis": {
+    //     "dashLength": 5
+    //   },
+    //
+    //   "stockGraphs": [ {
+    //     "valueField": "volume",
+    //     "type": "column",
+    //     "showBalloon": false,
+    //     "fillAlphas": 1
+    //   } ],
+    //
+    //   "stockLegend": {
+    //     "markerType": "none",
+    //     "markerSize": 0,
+    //     "labelText": "",
+    //     "periodValueTextRegular": "[[value.close]]"
+    //   }
+    // },
 
-      "categoryAxis": {
-        "dashLength": 5
-      },
 
-      "stockGraphs": [ {
-        "valueField": "volume",
-        "type": "column",
-        "showBalloon": false,
-        "fillAlphas": 1
-      } ],
-
-      "stockLegend": {
-        "markerType": "none",
-        "markerSize": 0,
-        "labelText": "",
-        "periodValueTextRegular": "[[value.close]]"
-      }
-    }
+//Bollinger %b = (Closing Price - Lower Band) / (Upper Band - Lower Band).
+    // {
+    //   "title": "%B",
+    //   "percentHeight": 30,
+    //   "marginTop": 1,
+    //   "showCategoryAxis": true,
+    //   "valueAxes": [ {
+    //     "dashLength": 5
+    //   } ],
+    //
+    //   "categoryAxis": {
+    //     "dashLength": 5
+    //   },
+    //
+    //   "stockGraphs": [ {
+    //     "valueField": "boll_perc_B",
+    //     //"type": "column",
+    //     "showBalloon": false,
+    //     "fillAlphas": 0
+    //   }
+    //   ,
+    //   // {
+    //   //   "id": "fromGraph2",
+    //   //   "lineAlpha": 0,
+    //   //   "fillColors": "#91b3ff",
+    //   //   "showBalloon": false,
+    //   //   "valueField": 0,
+    //   //   "fillAlphas": 0
+    //   //   },{
+    //   //   "fillAlphas": 0.2,
+    //   //   "fillColors": "#91b3ff",
+    //   //   "fillToGraph": "fromGraph",
+    //   //   "lineAlpha": 0,
+    //   //   "showBalloon": false,
+    //   //   "valueField": 1
+    //   //   }
+    //   ],
+    //
+    //   "stockLegend": {
+    //     "markerType": "none",
+    //     "markerSize": 0,
+    //     "labelText": "",
+    //     "periodValueTextRegular": "[[value.close]]"
+    //   }
+    // }
   ],
 
   "chartScrollbarSettings": {
@@ -662,8 +719,103 @@ winLabel.label.horizontalCenter = "left";
 winLabel.label.dx = 10;
 
 
+}
+
+function addPanel(a) {
+  var chart = AmCharts.charts[ 0 ];
+  //if ( chart.panels.length == 1 && a ==="Volume" ) {
+  if ( a ==="Volume" ) {
+    var newPanel = new AmCharts.StockPanel();
+    newPanel.allowTurningOff = true;
+    newPanel.title = "Volume";
+    newPanel.showCategoryAxis = true;
 
 
+    newPanel.percentHeight = 30;
+    newPanel.marginTop = 1;
+
+
+    var graph = new AmCharts.StockGraph();
+    graph.valueField = "volume";
+    graph.type= "column";
+    graph.fillAlphas = 0.5;
+    newPanel.addStockGraph( graph );
+
+    var legend = new AmCharts.StockLegend();
+    legend.markerType = "none";
+    legend.markerSize = 0;
+    legend.periodValueTextRegular = "[[value.close]]"
+    newPanel.stockLegend = legend;
+
+
+    chart.addPanelAt( newPanel,1);
+    chart.validateNow();
+
+  }
+  if ( a ==="%B" ) {
+    var newPanel = new AmCharts.StockPanel();
+    newPanel.allowTurningOff = true;
+    newPanel.title = "%B";
+    newPanel.showCategoryAxis = true;
+
+
+    newPanel.percentHeight = 40;
+    newPanel.marginTop = 1;
+
+
+    var graph = new AmCharts.StockGraph();
+    graph.valueField = "boll_perc_B";
+    //graph.type= "column";
+    graph.fillAlphas = 0.5;
+    newPanel.addStockGraph( graph );
+
+    var legend = new AmCharts.StockLegend();
+    legend.markerType = "none";
+    legend.markerSize = 0;
+    legend.periodValueTextRegular = "[[value.close]]"
+    newPanel.stockLegend = legend;
+
+
+    chart.addPanelAt( newPanel,1);
+    chart.validateNow();
+
+  }
+  if ( a ==="BBBand" ) {
+    var newPanel = new AmCharts.StockPanel();
+    newPanel.allowTurningOff = true;
+    newPanel.title = "BB Bandwith";
+    newPanel.showCategoryAxis = true;
+
+
+    newPanel.percentHeight = 40;
+    newPanel.marginTop = 1;
+
+
+    var graph = new AmCharts.StockGraph();
+    graph.valueField = "BB_band";
+    //graph.type= "column";
+    graph.fillAlphas = 0.5;
+    newPanel.addStockGraph( graph );
+
+    var legend = new AmCharts.StockLegend();
+    legend.markerType = "none";
+    legend.markerSize = 0;
+    legend.periodValueTextRegular = "[[value.close]]"
+    newPanel.stockLegend = legend;
+
+
+    chart.addPanelAt( newPanel,1);
+    chart.validateNow();
+
+  }
+}
+
+function removePanel() {
+  var chart = AmCharts.charts[ 0 ];
+  if ( chart.panels.length > 1 ) {
+    chart.removePanel( chart.panels[ 1 ] );
+    chart.validateNow();
+  }
 }
   </script>
   <script>
