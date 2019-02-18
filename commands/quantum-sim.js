@@ -159,8 +159,8 @@ module.exports = function (program, conf) {
         output_lines.push('vs. buy hold: ' + n(s.real_capital).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
         output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 
-        var last_buy
-        var losses = 0, sells = 0
+
+        var losses = 0
         var wins = 0
         //console.log(s.my_trades)
         s.my_trades.forEach(function (trade) {
@@ -199,7 +199,7 @@ module.exports = function (program, conf) {
         }
 
 
-        for (i = 0; i < 6; i++) {
+        for (var i = 0; i < 6; i++) {
           console.log(output_lines[i])
         }
 
@@ -232,8 +232,8 @@ module.exports = function (program, conf) {
           var code = 'var data = ' + JSON.stringify(data) + ';\n'
           code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
           code += 'var options = ' + JSON.stringify(s.options) + ';\n'
-          console.log(code)
-          var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '9sim_result.html.tpl'), {encoding: 'utf8'})
+          //console.log(code)
+          var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '11sim_result.html.tpl'), {encoding: 'utf8'})
 
 
           var out = tpl

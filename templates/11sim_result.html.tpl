@@ -112,18 +112,7 @@ table tr:nth-child(2n+1) {
     left: 0;
     position: absolute;
   }
-  td:nth-child(2):before {
-    content: 'Name:';
-  }
-  td:nth-child(3):before {
-    content: 'Email:';
-  }
-  td:nth-child(4):before {
-    content: 'Phone:';
-  }
-  td:nth-child(5):before {
-    content: 'Comments:';
-  }
+
 
   tr {
     padding: 10px 0;
@@ -213,6 +202,7 @@ table tr:nth-child(2n+1) {
 <input type="button" class="amChartsButton" id="addPanelButton" value="BB Band" onclick="addPanel('BBBand');">
 <!-- <input type="button" class="amChartsButton" id="removePanelButton" value="remove panel" onclick="removePanels();"> -->
 </div>
+
 <div id="chartdiv"></div>
 <h2 style="color: #2e6c80; text-align: center;">Buy &amp; Hold&nbsp; &nbsp; VS&nbsp; &nbsp;Strategy</h2>
 <div id="chartdiv2"></div>
@@ -323,7 +313,7 @@ var chart = AmCharts.makeChart( "chartdiv", {
 // },
 "categoryAxesSettings": {
   "minPeriod": "mm",
-  "groupToPeriods":[ "mm", "15mm"]
+  "groupToPeriods":[ "mm", "15mm", "hh", "DD"]
 },
  // "categoryAxesSettings": {
  //    // "maxSeries": 0,
@@ -511,7 +501,7 @@ var chart = AmCharts.makeChart( "chartdiv", {
   "chartScrollbarSettings": {
     "graph": "g1",
     "graphType": "line",
-    "usePeriod": "15mm"
+    "usePeriod": "hh"
   },
   // "dataSetSelector": {
   //   "position": "left"
@@ -554,19 +544,34 @@ var chart = AmCharts.makeChart( "chartdiv", {
 } );
 
 chart.addListener("zoomed", handleZoom);
+
 function handleZoom(e) {
-  activeRange = {
-    startDate: e.startDate,
-    endDate: e.endDate,
-    period: e.period
+  // activeRange = {
+  //   startDate: e.startDate,
+  //   endDate: e.endDate,
+  //   period: e.period
+  // };
+
+//  console.log('new activeRange', activeRange);
+console.log(e.period)
+  if (e.period === "15mm"){
+    var chart = AmCharts.charts[ 0 ];
+    chart.panels[0].graphs[1].hidden=false
+    chart.panels[0].graphs[2].hidden=false
+    chart.panels[0].graphs[3].hidden=false
+    chart.panels[0].graphs[4].hidden=false
+    chart.panels[0].graphs[5].hidden=false
+
+  }else{
+    var chart = AmCharts.charts[ 0 ];
+
+    chart.panels[0].graphs[1].hidden=true
+    chart.panels[0].graphs[2].hidden=true
+    chart.panels[0].graphs[3].hidden=true
+    chart.panels[0].graphs[4].hidden=true
+    chart.panels[0].graphs[5].hidden=true
   };
-
-  console.log('new activeRange', activeRange);
-  if (e.period === "hh"){
-    console.log("ore")
-
-
-  };
+    chart.validateNow(true, true);
 }
 
 
@@ -818,6 +823,6 @@ withData(data, trades, options)
 
      </table>
   </div>
-  <pre><code>{{output}}</code></pre>
+  <!-- <pre><code>{{output}}</code></pre> -->
 </body>
 </html>

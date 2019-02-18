@@ -207,12 +207,6 @@ table tr:nth-child(2n+1) {
 <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
 <h2 style="color: #2e6c80; text-align: center;">Candelstick and Stock Events
 </h2>
-<div style="padding-bottom: 5px;">
-<input type="button" class="amChartsButton" id="addPanelButton" value="Volume" onclick="addPanel('Volume');">
-<input type="button" class="amChartsButton" id="addPanelButton" value="%B" onclick="addPanel('%B');">
-<input type="button" class="amChartsButton" id="addPanelButton" value="BB Band" onclick="addPanel('BBBand');">
-<!-- <input type="button" class="amChartsButton" id="removePanelButton" value="remove panel" onclick="removePanels();"> -->
-</div>
 <div id="chartdiv"></div>
 <h2 style="color: #2e6c80; text-align: center;">Buy &amp; Hold&nbsp; &nbsp; VS&nbsp; &nbsp;Strategy</h2>
 <div id="chartdiv2"></div>
@@ -220,29 +214,21 @@ table tr:nth-child(2n+1) {
 <div id="chartdiv3"></div>
 
   <script>
-
 var withData = function (data, trades, options) {
-
 data=data.reverse();
 close_ref=data[0].close;
 data = data.map(function (d) {
   d.date = new Date(d.time)
-  if (typeof d.strategy === 'object') {
+  if (typeof d.bollinger === 'object') {
     d.upperBound=d.strategy.bollinger.data.upperBound
     d.midBound=d.strategy.bollinger.data.midBound
     d.lowerBound=d.strategy.bollinger.data.lowerBound
-    if (d.upperBound - d.lowerBound>0 && d.midBound!==0) {
-      d.boll_perc_B= (d.close - d.lowerBound ) / (d.upperBound - d.lowerBound)
-      d.BB_band=(d.upperBound - d.lowerBound)/d.midBound
-    } else {
-      d.boll_perc_B=0
-      }
-    }
+  }
   d.close_norm=d.close/close_ref
   return d
 })
 
-console.log(data)
+
 rem_index=[];
 
 trades = trades.map(function (t,index) {
@@ -268,8 +254,19 @@ rem_index.reverse().forEach(function(element) {
   trades.splice(element,1);
   });
 
+trades = trades.map(function (t,index) {
 
-  //console.log(trades)
+    t.open=t.price;
+    t.close=t.price;
+    t.high=t.price;
+    t.low=t.price;
+    t.volume=0;
+    // t.upperBound=t.price;
+    // t.midBound=t.price;
+    // t.lowerBound=t.price;
+    return t
+  })
+  console.log(trades)
 
 //var data_trades = data.concat(trades);
 //console.log(data_trades)
@@ -314,23 +311,16 @@ if (i===0) {
 }
 
 var chart = AmCharts.makeChart( "chartdiv", {
-
   "type": "stock",
   "theme": "light",
   //"dataDateFormat" : "YYYY-MM-DD",
-//   "chartCursorSettings": {
-//   "pan": true
-// },
-"categoryAxesSettings": {
-  "minPeriod": "mm",
-  "groupToPeriods":[ "mm", "15mm"]
-},
- // "categoryAxesSettings": {
- //    // "maxSeries": 0,
- //    // "minPeriod": "mm",
- //    "groupToPeriods":["mm", "15mm"]
- //   },
-
+  "categoryAxesSettings": {
+    "minPeriod": "mm",
+    "groupToPeriods":["mm", "15mm", "hh"]
+  },
+  "ChartScrollbarSettings": {
+    "enabled": true
+  },
   "dataSets": [ {
     "fieldMappings": [ {
       "fromField": "open",
@@ -356,14 +346,7 @@ var chart = AmCharts.makeChart( "chartdiv", {
     } ,{
       "fromField": "midBound",
       "toField": "midBound"
-    } ,{
-      "fromField": "boll_perc_B",
-      "toField": "boll_perc_B"
-    },{
-      "fromField": "BB_band",
-      "toField": "BB_band"
-    }
-  ],
+    } ],
 
     "color": "#7f8da9",
     "dataProvider": data,
@@ -371,20 +354,30 @@ var chart = AmCharts.makeChart( "chartdiv", {
     "categoryField": "date",
     "stockEvents": stock_Events
 
+
   }
+
 ],
+
 
   "panels": [ {
       "title": "Value",
       "showCategoryAxis": false,
       "percentHeight": 70,
       "recalculateToPercents":"never",
+      // "valueAxes": [ {
+      //   "dashLength": 5
+      // } ],
+      //
+      // "categoryAxis": {
+      //   "dashLength": 5
+      // },
 
       "stockGraphs": [ {
         "id": "g1",
         "balloonText": "Open:<b>[[open]]</b><br>Low:<b>[[low]]</b><br>High:<b>[[high]]</b><br>Close:<b>[[close]]</b><br>",
         "closeField": "close",
-        "fillColors": "#3fd217",
+        "fillColors": "#56d317",
         "highField": "high",
         "lineColor": "#000000",
         "lineAlpha": 1,
@@ -393,10 +386,11 @@ var chart = AmCharts.makeChart( "chartdiv", {
         "negativeFillColors": "#ff0000",
         "negativeLineColor": "#000000",
         "openField": "open",
-        "precision":2,
         "title": "Price:",
         "type": "candlestick",
-
+        // "valueField": "high",
+        // "comparable": true,
+        // "compareField": "open2"
       },
       {
         "id": "g2",
@@ -409,7 +403,6 @@ var chart = AmCharts.makeChart( "chartdiv", {
         "title": "media",
         "useLineColorForBulletBorder": true,
         "lineColor": "#f44242",
-        "precision":2,
         "valueField": "midBound"
       },{
         "id": "g3",
@@ -422,7 +415,6 @@ var chart = AmCharts.makeChart( "chartdiv", {
         "title": "upperBound",
         "useLineColorForBulletBorder": true,
         "lineColor": "#426ed1",
-        "precision":2,
         "valueField": "upperBound"
       },{
         "id": "g4",
@@ -435,7 +427,6 @@ var chart = AmCharts.makeChart( "chartdiv", {
         "title": "lowerBound",
         "useLineColorForBulletBorder": true,
         "lineColor": "#426ed1",
-        "precision":2,
         "valueField": "lowerBound"
       },
       {
@@ -447,11 +438,10 @@ var chart = AmCharts.makeChart( "chartdiv", {
         "fillAlphas": 0
         },{
         "fillAlphas": 0.2,
-       "fillColors": "#91b3ff",
+        "fillColors": "#91b3ff",
         "fillToGraph": "fromGraph",
         "lineAlpha": 0,
         "showBalloon": false,
-        "precision":2,
         "valueField": "upperBound"
         },
         {
@@ -465,16 +455,13 @@ var chart = AmCharts.makeChart( "chartdiv", {
           "title": "open2",
           "useLineColorForBulletBorder": true,
           "lineColor": "#426ed1",
-          "precision":2,
           "valueField": "open2"
           }
       ],
 
       "stockLegend": {
-
         "valueTextRegular": "[[value]]",
         "valueWidth": 140
-
       //   "periodValueTextComparing": "[[percents.value.close]]%"
       }
     },
@@ -511,7 +498,7 @@ var chart = AmCharts.makeChart( "chartdiv", {
   "chartScrollbarSettings": {
     "graph": "g1",
     "graphType": "line",
-    "usePeriod": "15mm"
+    "usePeriod": "hh"
   },
   // "dataSetSelector": {
   //   "position": "left"
@@ -520,11 +507,7 @@ var chart = AmCharts.makeChart( "chartdiv", {
     "position": "top",
     "dateFormat": "YYYY-MM-DD JJ:NN",
     "inputFieldWidth": 150,
-    "periods": [{
-      "period": "mm",
-      "count": 15,
-      "label": "15 min"
-    }, {
+    "periods": [ {
       "period": "hh",
       "count": 1,
       "label": "1 hour"
@@ -540,11 +523,7 @@ var chart = AmCharts.makeChart( "chartdiv", {
     }, {
       "period": "hh",
       "count": 12,
-      "label": "12 hours"
-    }, {
-      "period": "hh",
-      "count": 24,
-      "label": "24 hours",
+      "label": "12 hours",
       "selected": true
     }, {
       "period": "MAX",
@@ -552,7 +531,6 @@ var chart = AmCharts.makeChart( "chartdiv", {
     } ]
   }
 } );
-
 chart.addListener("zoomed", handleZoom);
 function handleZoom(e) {
   activeRange = {
@@ -562,14 +540,11 @@ function handleZoom(e) {
   };
 
   console.log('new activeRange', activeRange);
-  if (e.period === "hh"){
-    console.log("ore")
-
-
-  };
 }
 
 
+
+//chart.validateNow();
 
 // Themes begin
 am4core.useTheme(am4themes_animated);
@@ -644,7 +619,7 @@ chart.scrollbarX.series.push(series);
 chart.scrollbarX.parent = chart.bottomAxesContainer;
 
 chart.events.on("ready", function () {
-  // dateAxis.zoom({start:0.79, end:1});
+  dateAxis.zoom({start:0.79, end:1});
 
 
   // Add legend
@@ -699,100 +674,9 @@ winLabel.label.horizontalCenter = "left";
 winLabel.label.dx = 10;
 
 
+
+
 }
-
-function addPanel(a) {
-  var chart = AmCharts.charts[ 0 ];
-  //if ( chart.panels.length == 1 && a ==="Volume" ) {
-  if ( a ==="Volume" ) {
-    var newPanel = new AmCharts.StockPanel();
-    newPanel.allowTurningOff = true;
-    newPanel.title = "Volume";
-    newPanel.showCategoryAxis = true;
-
-
-    newPanel.percentHeight = 30;
-    newPanel.marginTop = 1;
-
-
-    var graph = new AmCharts.StockGraph();
-    graph.valueField = "volume";
-    graph.type= "column";
-    graph.fillAlphas = 0.5;
-    newPanel.addStockGraph( graph );
-
-    var legend = new AmCharts.StockLegend();
-    legend.markerType = "none";
-    legend.markerSize = 0;
-    legend.periodValueTextRegular = "[[value.close]]"
-    newPanel.stockLegend = legend;
-
-
-  }
-  if ( a ==="%B" ) {
-    var newPanel = new AmCharts.StockPanel();
-    newPanel.allowTurningOff = true;
-    newPanel.title = "%B";
-    newPanel.showCategoryAxis = true;
-
-
-    newPanel.percentHeight = 40;
-    newPanel.marginTop = 1;
-
-
-    var graph = new AmCharts.StockGraph();
-    graph.valueField = "boll_perc_B";
-    //graph.type= "column";
-    graph.fillAlphas = 0.5;
-    newPanel.addStockGraph( graph );
-
-    var legend = new AmCharts.StockLegend();
-    legend.markerType = "none";
-    legend.markerSize = 0;
-    legend.periodValueTextRegular = "[[value.close]]"
-    newPanel.stockLegend = legend;
-
-
-
-  }
-  if ( a ==="BBBand" ) {
-    var newPanel = new AmCharts.StockPanel();
-    newPanel.allowTurningOff = true;
-    newPanel.title = "BB Bandwith";
-    newPanel.showCategoryAxis = true;
-
-
-    newPanel.percentHeight = 40;
-    newPanel.marginTop = 1;
-
-
-    var graph = new AmCharts.StockGraph();
-    graph.valueField = "BB_band";
-    //graph.type= "column";
-    graph.fillAlphas = 0.5;
-    newPanel.addStockGraph( graph );
-
-    var legend = new AmCharts.StockLegend();
-    legend.markerType = "none";
-    legend.markerSize = 0;
-    legend.periodValueTextRegular = "[[value.close]]"
-    newPanel.stockLegend = legend;
-
-
-
-
-  }
-  chart.addPanelAt( newPanel,1);
-  chart.validateNow();
-}
-
-// function removePanel() {
-//   var chart = AmCharts.charts[ 0 ];
-//   if ( chart.panels.length > 1 ) {
-//     chart.removePanel( chart.panels[ 1 ] );
-//     chart.validateNow();
-//   }
-// }
   </script>
   <script>
 {{code}}
