@@ -1112,14 +1112,6 @@
     "label": "BTC/QRL"
   },
   {
-    "asset": "MORE",
-    "currency": "ETH",
-    "min_size": "7.69230769",
-    "max_size": "1000000",
-    "increment": "0.00000001",
-    "label": "ETH/MORE"
-  },
-  {
     "asset": "PTOY",
     "currency": "BTC",
     "min_size": "61.88118812",
@@ -1534,14 +1526,6 @@
     "max_size": "1000000",
     "increment": "0.00000001",
     "label": "BTC/SALT"
-  },
-  {
-    "asset": "SALT",
-    "currency": "ETH",
-    "min_size": "2.62765130",
-    "max_size": "1000000",
-    "increment": "0.00000001",
-    "label": "ETH/SALT"
   },
   {
     "asset": "TIX",
@@ -2566,5 +2550,45 @@
     "max_size": "1000000",
     "increment": "0.00000001",
     "label": "USD/KMD"
+  },
+  {
+    "asset": "BTT",
+    "currency": "USDT",
+    "min_size": "3500.00000000",
+    "max_size": "1000000",
+    "increment": "0.00000001",
+    "label": "USDT/BTT"
+  },
+  {
+    "asset": "GRIN",
+    "currency": "BTC",
+    "min_size": "0.70000000",
+    "max_size": "1000000",
+    "increment": "0.00000001",
+    "label": "BTC/GRIN"
+  },
+  {
+    "asset": "CTXC",
+    "currency": "BTC",
+    "min_size": "30.00000000",
+    "max_size": "1000000",
+    "increment": "0.00000001",
+    "label": "BTC/CTXC"
+  },
+  {
+    "asset": "HXRO",
+    "currency": "BTC",
+    "min_size": "60.00000000",
+    "max_size": "1000000",
+    "increment": "0.00000001",
+    "label": "BTC/HXRO"
+  },
+  {
+    "asset": "SERV",
+    "currency": "BTC",
+    "min_size": "30.00000000",
+    "max_size": "1000000",
+    "increment": "0.00000001",
+    "label": "BTC/SERV"
   }
 ]
