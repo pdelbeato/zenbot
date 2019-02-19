@@ -231,9 +231,10 @@ module.exports = function (program, conf) {
 
           var code = 'var data = ' + JSON.stringify(data) + ';\n'
           code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
+          console.log(code)
           code += 'var options = ' + JSON.stringify(s.options) + ';\n'
-          //console.log(code)
-          var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '11sim_result.html.tpl'), {encoding: 'utf8'})
+          // console.log(code)
+          var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '13sim_result.html.tpl'), {encoding: 'utf8'})
 
 
           var out = tpl
