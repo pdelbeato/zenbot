@@ -219,7 +219,7 @@ module.exports = function sim (conf, s) {
       now = trade.time
 
       _.each(openOrders, function(order) {
-        if (trade.time - order.time < so.order_adjust_time) {
+        if (trade.time - order.time < so.order_poll_time) {
           return // Not time yet
         }
         if (order.tradetype === 'buy' && trade.price <= order.price) {

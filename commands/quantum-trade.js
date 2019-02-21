@@ -126,23 +126,23 @@ module.exports = function (program, conf) {
 		so.min_prev_trades = cmd.min_prev_trades
 		so.debug = cmd.debug
 		so.stats = !cmd.disable_stats
-		so.mode = so.paper ? 'paper' : 'live'
+		so.mode = so.paper ? 'paper' : 'live';
 
-			//debug.msg('updateMsg=' + so.update_msg)
-			if (so.update_msg) {
-				//			var nextUpdateMsg = moment().add(so.update_msg, 'h')
-				var nextUpdateMsg = moment().startOf('day').add(8, 'h')
+		//debug.msg('updateMsg=' + so.update_msg)
+		if (so.update_msg) {
+			//			var nextUpdateMsg = moment().add(so.update_msg, 'h')
+			var nextUpdateMsg = moment().startOf('day').add(8, 'h')
 
-				while (nextUpdateMsg < moment()) {
-					nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
-					//				debug.msg('nextUpdateMsg=' + nextUpdateMsg)
-				}
-
-				if (!so.no_first_message) {
-					nextUpdateMsg = nextUpdateMsg.subtract(so.update_msg, 'h')
-					//				debug.msg('First message on. nextUpdateMsg=' + nextUpdateMsg)
-				}
+			while (nextUpdateMsg < moment()) {
+				nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
+				//				debug.msg('nextUpdateMsg=' + nextUpdateMsg)
 			}
+
+			if (!so.no_first_message) {
+				nextUpdateMsg = nextUpdateMsg.subtract(so.update_msg, 'h')
+				//				debug.msg('First message on. nextUpdateMsg=' + nextUpdateMsg)
+			}
+		}
 
 		if (!so.min_periods) so.min_periods = 301
 
@@ -785,7 +785,7 @@ module.exports = function (program, conf) {
 			})
 		}
 
-		/* Funzioni per le operazioni sul databse Mongo DB delle posizioni */
+		/* Funzioni per le operazioni sul database Mongo DB delle posizioni */
 		s.positionProcessingQueue = async.queue(function(task, callback) {
 			managePositionCollection(task.mode, task.id, callback)
 		})
@@ -1054,10 +1054,12 @@ module.exports = function (program, conf) {
 		var shouldSaveStats = false
 		function toggleStats() {
 			shouldSaveStats = !shouldSaveStats
-			if(shouldSaveStats)
+			if (shouldSaveStats) {
 				console.log('Auto stats dump enabled')
-				else
-					console.log('Auto stats dump disabled')
+			}
+			else {
+				console.log('Auto stats dump disabled')
+			}
 		}
 
 		function saveStatsLoop() {
@@ -1086,21 +1088,23 @@ module.exports = function (program, conf) {
 			output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 			// Build stats for UI
 			s.stats = {
-					profit: profit.format('0.00%'),
-					tmp_balance: n(tmp_balance).format('0.00000000'),
-					buy_hold: buy_hold.format('0.00000000'),
-					buy_hold_profit: n(buy_hold_profit).format('0.00%'),
-					day_count: s.day_count,
-					trade_per_day: n(s.my_trades.length / s.day_count).format('0.00')
+				profit: profit.format('0.00%'),
+				tmp_balance: n(tmp_balance).format('0.00000000'),
+				buy_hold: buy_hold.format('0.00000000'),
+				buy_hold_profit: n(buy_hold_profit).format('0.00%'),
+				day_count: s.day_count,
+				trade_per_day: n(s.my_trades.length / s.day_count).format('0.00')
 			}
 
 			var losses = 0, gains = 0
 			s.my_trades.forEach(function (trade) {
 				if (trade.profit) {
-					if (trade.profit > 0)
+					if (trade.profit > 0) {
 						gains++
-						else
-							losses++
+					}
+					else {
+						losses++
+					}
 				}
 			})
 
@@ -1241,10 +1245,10 @@ module.exports = function (program, conf) {
 					if (err) throw err
 					if (trades.length && so.use_prev_trades) {
 						let prevOpts = {
-								query: {
-									selector: so.selector.normalized
-								},
-								limit: so.min_prev_trades
+							query: {
+								selector: so.selector.normalized
+							},
+							limit: so.min_prev_trades
 						}
 						if (!so.min_prev_trades) {
 							prevOpts.query.time = {$gte : trades[0].time}
@@ -1310,13 +1314,13 @@ module.exports = function (program, conf) {
 									s.orig_asset = session.orig_asset = prev_session.orig_asset
 									s.orig_price = session.orig_price = prev_session.orig_price
 									s.orig_capital = session.orig_capital = prev_session.orig_capital
-									s.day_count = session.day_count = prev_session.day_count ? prev_session.day_count : 1
-											s.my_trades.length = session.num_trades = prev_session.num_trades
-											debug.obj('getNext() - prev_session', session)
-											if (so.mode === 'paper') {
-												debug.obj('getNext() - paper: ', prev_session.balance)
-												s.balance = prev_session.balance
-											}
+									s.day_count = session.day_count = (prev_session.day_count ? prev_session.day_count : 1)
+									s.my_trades.length = session.num_trades = prev_session.num_trades
+									debug.obj('getNext() - prev_session', session)
+									if (so.mode === 'paper') {
+										debug.obj('getNext() - paper: ', prev_session.balance)
+										s.balance = prev_session.balance
+									}
 								}
 								else {
 									debug.msg('getNext() - no prev_session')
@@ -1525,12 +1529,14 @@ module.exports = function (program, conf) {
 								my_trade.session_id = session.id
 								my_trade.mode = so.mode
 								//Corretto il Deprecation Warning
-								if (s.db_valid) my_trades.updateOne({'_id' : my_trade._id}, {$set: my_trade}, {upsert: true}, function (err) {
-									if (err) {
-										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
-										console.error(err)
-									}
-								})
+								if (s.db_valid) {
+									my_trades.updateOne({'_id' : my_trade._id}, {$set: my_trade}, {upsert: true}, function (err) {
+										if (err) {
+											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
+											console.error(err)
+										}
+									})
+								}
 							})
 							my_trades_size = s.my_trades.length
 						}
@@ -1543,12 +1549,14 @@ module.exports = function (program, conf) {
 							}
 							period._id = period.id
 							//Corretto il Deprecation Warning
-							if (s.db_valid) periods.updateOne({'_id': period._id}, {$set: period}, {upsert: true}, function (err) {
-								if (err) {
-									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving periods')
-									console.error(err)
-								}
-							})
+							if (s.db_valid) {
+								periods.updateOne({'_id': period._id}, {$set: period}, {upsert: true}, function (err) {
+									if (err) {
+										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving periods')
+										console.error(err)
+									}
+								})
+							}
 						}
 
 						if (s.lookback.length > lookback_size) {
