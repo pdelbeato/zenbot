@@ -88,7 +88,12 @@ module.exports = function gdax (conf) {
 									heartbeat: {}
 							}
 							
-							websocket_client[product_id].disconnect()
+							try {
+								websocket_client[product_id].disconnect()
+							}
+							catch(err) {
+								console.log('websocket_client - Errore nella disconnessione:\n' + err)
+							}
 						}
 					}, 10000)
 				}, 10000)

@@ -972,20 +972,24 @@ module.exports = function (program, conf) {
 			var losses = 0, gains = 0
 			s.my_trades.forEach(function (trade) {
 				if (trade.profit) {
-					if (trade.profit > 0)
+					if (trade.profit > 0) {
 						gains++
-						else
-							losses++
+					}
+					else {
+						losses++
+					}
 				}
 			})
 
 			if (s.my_prev_trades.length) {
 				s.my_prev_trades.forEach(function (trade) {
 					if (trade.profit) {
-						if (trade.profit > 0)
+						if (trade.profit > 0) {
 							gains++
-							else
-								losses++
+						}
+						else {
+							losses++
+						}
 					}
 				})
 			}
