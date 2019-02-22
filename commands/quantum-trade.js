@@ -734,13 +734,14 @@ module.exports = function (program, conf) {
 					collectionServiceInstance = collectionService(conf)
 					my_trades = collectionServiceInstance.getMyTrades()
 					my_positions = collectionServiceInstance.getMyPositions()
+					my_closed_positions = collectionServiceInstance.getMyClosedPositions()
 					periods = collectionServiceInstance.getPeriods()
 					sessions = collectionServiceInstance.getSessions()
 					balances = collectionServiceInstance.getBalances()
 					trades = collectionServiceInstance.getTrades()
 					resume_markers = collectionServiceInstance.getResumeMarkers()
+		
 					debug.msg(' fatto! Ricreo my_positions...', false)
-
 					//Corretto il Deprecation Warning
 					my_positions.drop()
 					s.positions.forEach(function (position) {
@@ -748,6 +749,20 @@ module.exports = function (program, conf) {
 						my_positions.insertOne(position, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
+								console.error(err)
+							}
+						})
+					})
+					debug.msg(' fatto!', false)
+					
+					debug.msg(' fatto! Ricreo my_closed_positions...', false)
+					//Corretto il Deprecation Warning
+					my_closed_positions.drop()
+					s.closed_positions.forEach(function (position) {
+						//Corretto il Deprecation Warning
+						my_closed_positions.insertOne(position, function (err) {
+							if (err) {
+								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
 								console.error(err)
 							}
 						})
@@ -803,7 +818,6 @@ module.exports = function (program, conf) {
 
 				if (s.db_valid) {
 					my_positions.updateOne({'_id' : position_id}, {$set: position}, {upsert: true}, function (err) {
-						//						s.update_position_id = null
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
 							console.error(err)
@@ -815,10 +829,20 @@ module.exports = function (program, conf) {
 			}
 			case 'delete': {
 				if (s.db_valid) {
+					//Cancello la posizione dal db delle posizioni aperte...
 					my_positions.deleteOne({'_id' : position_id}, function (err) {
-						//						s.delete_position_id = null
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in my_positions')
+							console.error(err)
+							return cb(err)
+						}
+					})
+					//... e inserisco la posizione chiusa del db delle posizioni chiuse
+					position = s.closed_positions.find(x => x.id === position_id)
+					position._id = position.id
+					my_closed_positions.updateOne({'_id' : position_id}, {$set: position}, {upsert: true}, function (err) {
+						if (err) {
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_closed_positions')
 							console.error(err)
 							return cb(err)
 						}
