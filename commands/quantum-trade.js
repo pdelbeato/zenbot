@@ -1253,6 +1253,7 @@ module.exports = function (program, conf) {
 				})
 				s.positions = my_prev_positions.slice(0)
 			}
+			console.log('Recuperate le vecchie posizioni aperte: ' + s.positions.length)
 		})
 		
 		//Recupera tutte le vecchie posizioni chiuse e le copia in s.closed_positions
@@ -1261,6 +1262,7 @@ module.exports = function (program, conf) {
 			if (my_closed_positions.length) {
 				s.close_positions = my_closed_positions.slice(0)
 			}
+			console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions-length)
 		})
 		
 		//Recupera tutti i vecchi trade e li copia in s.my_trades
@@ -1270,6 +1272,7 @@ module.exports = function (program, conf) {
 				s.my_trades = my_prev_trades.slice(0)
 //				s.my_prev_trades = my_prev_trades.reverse().slice(0) // simple copy, less recent executed first
 			}
+			console.log('Recuperati i vecchi trade: ' + s.my_trades.length)
 		})
 
 		//Per caricare i dati dei trades, chiama zenbot.js backfill (so.selector.normalized) --days __ --conf __
