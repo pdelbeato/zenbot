@@ -768,6 +768,20 @@ module.exports = function (program, conf) {
 						})
 					})
 					debug.msg(' fatto!', false)
+					
+					debug.msg(' fatto! Ricreo my_trades...', false)
+					//Corretto il Deprecation Warning
+					my_trades.drop()
+					s.my_trades.forEach(function (position) {
+						//Corretto il Deprecation Warning
+						my_trades.insertOne(position, function (err) {
+							if (err) {
+								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
+								console.error(err)
+							}
+						})
+					})
+					debug.msg(' fatto!', false)
 				})
 			}, 10000)
 			s.db_valid = true
@@ -862,14 +876,14 @@ module.exports = function (program, conf) {
 			Object.keys(so.strategy).forEach(function (strategy_name, index) {
 				process.stdout.write(z(22, 'STRATEGY'.grey, ' ') + '\t' + strategy_name + '\t' + (require(`../extensions/strategies/${strategy_name}/strategy`).description).grey)
 
-				let opts_name = ''
-					let opts_value = ''
-						Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
-							opts_name += z((key.length + 3), key, ' ')
-							opts_value += z((key.length + 3), so.strategy[strategy_name].opts[key], ' ')
-						})
-						process.stdout.write('\n' + opts_name.grey)
-						process.stdout.write('\n' + opts_value + '\n\n')
+				let opts_name = '';
+				let opts_value = '';
+				Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
+					opts_name += z((key.length + 3), key, ' ')
+					opts_value += z((key.length + 3), so.strategy[strategy_name].opts[key], ' ')
+				})
+				process.stdout.write('\n' + opts_name.grey)
+				process.stdout.write('\n' + opts_value + '\n\n')
 			})
 
 			process.stdout.write([
@@ -1248,6 +1262,15 @@ module.exports = function (program, conf) {
 				s.close_positions = my_closed_positions.slice(0)
 			}
 		})
+		
+		//Recupera tutti i vecchi trade e li copia in s.my_trades
+		my_trades.find({selector: so.selector.normalized}).toArray(function (err, my_prev_trades) {
+			if (err) throw err
+			if (my_prev_trades.length) {
+				s.my_trades = my_prev_trades.slice(0)
+//				s.my_prev_trades = my_prev_trades.reverse().slice(0) // simple copy, less recent executed first
+			}
+		})
 
 		//Per caricare i dati dei trades, chiama zenbot.js backfill (so.selector.normalized) --days __ --conf __
 		console.log('fetching pre-roll data:')
@@ -1266,13 +1289,13 @@ module.exports = function (program, conf) {
 
 			function getNext() {
 				var opts = {
-						query: {
-							selector: so.selector.normalized
-						},
-						sort: {
-							time: 1
-						},
-						limit: 1000
+					query: {
+						selector: so.selector.normalized
+					},
+					sort: {
+						time: 1
+					},
+					limit: 1000
 				}
 				if (db_cursor) {
 					opts.query.time = {$gt: db_cursor}
@@ -1283,27 +1306,27 @@ module.exports = function (program, conf) {
 				}
 				trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(function (err, trades) {
 					if (err) throw err
-					if (trades.length) { //} && so.use_prev_trades) {
-						let prevOpts = {
-							query: {
-								selector: so.selector.normalized
-							},
-							//limit: so.min_prev_trades
-						}
-						//if (!so.min_prev_trades) {
-							prevOpts.query.time = {$gte : trades[0].time}
-						//}
-						//Recupera i vecchi my_trades e li mette in s.my_prev_trades
-//						my_trades.find(prevOpts.query).sort({$natural:-1}).limit(prevOpts.limit).toArray(function (err, my_prev_trades) {
-						my_trades.find(prevOpts.query).sort({$natural:-1}).toArray(function (err, my_prev_trades) {
-							if (err) throw err
-							if (my_prev_trades.length) {
-								//console.log('My_prev_trades')
-//								s.my_prev_trades = my_prev_trades.reverse().slice(0) // simple copy, less recent executed first
-								s.my_trades = my_prev_trades.reverse().slice(0) // simple copy, less recent executed first
-							}
-						})
-					}
+//					if (trades.length) { //} && so.use_prev_trades) {
+//						let prevOpts = {
+//							query: {
+//								selector: so.selector.normalized
+//							},
+//							//limit: so.min_prev_trades
+//						}
+//						//if (!so.min_prev_trades) {
+//							prevOpts.query.time = {$gte : trades[0].time}
+//						//}
+//						//Recupera i vecchi my_trades e li mette in s.my_prev_trades
+////						my_trades.find(prevOpts.query).sort({$natural:-1}).limit(prevOpts.limit).toArray(function (err, my_prev_trades) {
+//						my_trades.find(prevOpts.query).sort({$natural:-1}).toArray(function (err, my_prev_trades) {
+//							if (err) throw err
+//							if (my_prev_trades.length) {
+//								//console.log('My_prev_trades')
+////								s.my_prev_trades = my_prev_trades.reverse().slice(0) // simple copy, less recent executed first
+//								s.my_trades = my_prev_trades.reverse().slice(0) // simple copy, less recent executed first
+//							}
+//						})
+//					}
 
 					//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco
 					if (!trades.length) {
