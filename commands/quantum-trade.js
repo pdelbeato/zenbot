@@ -1341,6 +1341,8 @@ module.exports = function (program, conf) {
 									day_count: s.day_count,
 									num_trades: s.my_trades.length
 							}
+							delete session.so.strategy
+														
 							session._id = session.id
 							sessions.find({selector: so.selector.normalized}).limit(1).sort({started: -1}).toArray(function (err, prev_sessions) {
 								if (err) throw err
@@ -1355,7 +1357,7 @@ module.exports = function (program, conf) {
 									s.orig_price = session.orig_price = prev_session.orig_price
 									s.orig_capital = session.orig_capital = prev_session.orig_capital
 									s.day_count = session.day_count = (prev_session.day_count ? prev_session.day_count : 1)
-									s.my_trades.length = session.num_trades = prev_session.num_trades
+									session.num_trades = prev_session.num_trades
 									debug.obj('getNext() - prev_session', session)
 									if (so.mode === 'paper') {
 										debug.obj('getNext() - paper: ', prev_session.balance)
