@@ -1327,12 +1327,14 @@ module.exports = function (program, conf) {
 								if (err.body) console.error(err.body)
 								throw err
 							}
+							let so_tmp = JSON.parse(JSON.stringify(so))
+							delete so_tmp.strategy
 							session = {
 									id: crypto.randomBytes(4).toString('hex'),
 									selector: so.selector.normalized,
 									started: new Date().getTime(),
 									mode: so.mode,
-									options: so,
+									options: so_tmp,
 									//Spostati qui da forwardScan()
 									start_capital: s.start_capital,
 									start_price: s.start_price,
@@ -1341,7 +1343,6 @@ module.exports = function (program, conf) {
 									day_count: s.day_count,
 									num_trades: s.my_trades.length
 							}
-							delete session.so.strategy
 														
 							session._id = session.id
 							sessions.find({selector: so.selector.normalized}).limit(1).sort({started: -1}).toArray(function (err, prev_sessions) {
