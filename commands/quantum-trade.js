@@ -1261,7 +1261,7 @@ module.exports = function (program, conf) {
 			if (err) throw err
 			if (my_closed_positions.length) {
 				s.close_positions = my_closed_positions.slice(0)
-				console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions-length)
+				console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
 			}
 		})
 		
