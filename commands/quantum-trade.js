@@ -1260,7 +1260,7 @@ module.exports = function (program, conf) {
 		my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, my_closed_positions) {
 			if (err) throw err
 			if (my_closed_positions.length) {
-				s.close_positions = my_closed_positions.slice(0)
+				s.closed_positions = my_closed_positions.slice(0)
 				console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
 			}
 		})
