@@ -155,7 +155,12 @@ module.exports = function gdax (conf) {
 				debug.msg(err, false)
 				debug.msg('\nRestarting websocket connection', false)
 
-				websocket_client[product_id].disconnect()
+				try {
+					websocket_client[product_id].disconnect()
+				}
+				catch(err) {
+					console.log('websocket_client - Errore nella disconnessione:\n' + err)
+				}
 				websocket_client[product_id] = null
 				//Non azzero la cache. Verrà inizializzata dalla chiamata a websocketClient se non dovesse esistere 
 //				websocket_cache[product_id] = null
