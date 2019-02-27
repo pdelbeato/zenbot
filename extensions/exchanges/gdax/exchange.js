@@ -496,6 +496,11 @@ module.exports = function gdax (conf) {
 				var max_trade_id = cache.trade_ids.reduce(function(a, b) {
 					return Math.max(a, b)
 				}, -1)
+				
+				if (exchange.debug_exchange) {
+					debug.msg('getTrades - opts.from= ' + opts.from + ' ; max_trade_id= ' + max_trade_id)
+				}
+				
 				if (opts.from && max_trade_id >= opts.from) {
 					var fromIndex = cache.trades.findIndex((value) => {
 						return value.trade_id == opts.from
@@ -511,6 +516,10 @@ module.exports = function gdax (conf) {
 						}
 					})
 					newTrades.reverse()
+					if (exchange.debug_exchange) {
+						debug.msg('getTrades - newTrades:')
+						console.log(newTrades)
+					}
 					cb(null, newTrades)
 					// trim cache
 					cache.trades = cache.trades.slice(fromIndex)
