@@ -1448,6 +1448,7 @@ module.exports = function (program, conf) {
 		/* End of backfiller.on(exit) */
 
 		var prev_timeout = null
+		//forwardScan() viene chiamata ogni so.poll_trades
 		function forwardScan () {
 			function saveSession () {
 				//				engine.syncBalance(function (err) {
@@ -1563,7 +1564,8 @@ module.exports = function (program, conf) {
 						prev_timeout = true
 					}
 					else {
-						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - getTrades request failed. retrying...')
+//						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - getTrades request failed. retrying...')
+						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - getTrades request failed. Not retrying.')
 						console.error(err)
 					}
 					return

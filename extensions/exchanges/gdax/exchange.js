@@ -215,9 +215,9 @@ module.exports = function gdax (conf) {
 	function statusErr (resp, body) {
 		if (resp.statusCode !== 200) {
 			var err = new Error('non-200 status: ' + resp.statusCode)
-			err.code = 'HTTP_STATUS'
-				err.body = body
-				return err
+			err.code = 'HTTP_STATUS';
+			err.body = body
+			return err
 		}
 	}
 
@@ -551,7 +551,8 @@ module.exports = function gdax (conf) {
 							err = statusErr(resp, body)
 						}
 						if (err) {
-							return retry('getTrades', func_args, err)
+//							return retry('getTrades', func_args, err)
+							cb(err, null)
 						}
 						var trades = body.map(function (trade) {
 							return {
@@ -571,8 +572,11 @@ module.exports = function gdax (conf) {
 					})
 				}
 				else {
-					debug.msg('getTrades - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { getTrades(opts, cb) }, (next_request - now() + 1))
+//					debug.msg('getTrades - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+//					setTimeout(function() { getTrades(opts, cb) }, (next_request - now() + 1))
+					debug.msg('getTrades - Devo attendere, quindi se ne parla il prossimo giro')
+					err= 'Requests too near'
+					cb(err, null)
 				}
 			},
 
