@@ -1412,7 +1412,8 @@ module.exports = function (program, conf) {
 									s.orig_price = session.orig_price = prev_session.orig_price
 									s.orig_capital_currency = session.orig_capital_currency = prev_session.orig_capital_currency
 									s.orig_capital_asset = session.orig_capital_asset = prev_session.orig_capital_asset
-									
+									s.start_currency = s.balance.currency
+									s.start_asset = s.balance.asset
 									s.day_count = session.day_count = (prev_session.day_count ? prev_session.day_count : 1)
 									session.num_trades = prev_session.num_trades
 									debug.obj('getNext() - prev_session', session)
@@ -1423,8 +1424,8 @@ module.exports = function (program, conf) {
 								}
 								else {
 									debug.msg('getNext() - no prev_session')
-									s.orig_currency = s.start_currency = raw_opts.currency_capital | 0
-									s.orig_asset = s.start_asset = raw_opts.asset_capital | 0
+									s.orig_currency = s.start_currency = raw_opts.currency_capital | s.balance.currency | 0
+									s.orig_asset = s.start_asset = raw_opts.asset_capital | s.balance.asset | 0
 									s.orig_price = s.start_price
 									s.orig_capital_currency = s.orig_currency + (s.orig_asset * s.orig_price)
 									s.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
