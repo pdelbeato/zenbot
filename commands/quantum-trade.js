@@ -955,7 +955,7 @@ module.exports = function (program, conf) {
 		/* Implementing statistical Exit */
 		function printTrade (quit, dump, statsonly = false) {
 			var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
-			var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.asset).divide(s.period.close)).format('0.00000000')
+			var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
 			if (quit) {
 				if (s.my_trades.length) {
 					s.my_trades.push({
