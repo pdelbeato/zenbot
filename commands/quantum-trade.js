@@ -954,7 +954,8 @@ module.exports = function (program, conf) {
 
 		/* Implementing statistical Exit */
 		function printTrade (quit, dump, statsonly = false) {
-			var tmp_balance = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
+			var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
+			var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.asset).divide(s.period.close)).format('0.00000000')
 			if (quit) {
 				if (s.my_trades.length) {
 					s.my_trades.push({
@@ -964,26 +965,39 @@ module.exports = function (program, conf) {
 						time: s.period.time
 					})
 				}
-				s.balance.currency = tmp_balance
+				s.balance.currency = tmp_capital_currency
 				s.balance.asset = 0
 				s.lookback.unshift(s.period)
 			}
-			//        var profit = s.start_capital ? n(tmp_balance).subtract(s.start_capital).divide(s.start_capital) : n(0)
-			//        var buy_hold = s.start_price ? n(s.period.close).multiply(n(s.start_capital).divide(s.start_price)) : n(tmp_balance)
-			//        var buy_hold_profit = s.start_capital ? n(buy_hold).subtract(s.start_capital).divide(s.start_capital) : n(0)
-			var profit = n(tmp_balance).subtract(s.orig_capital).divide(s.orig_capital)
-			var buy_hold = n(s.period.close).multiply(n(s.orig_capital).divide(s.orig_price))
-			var buy_hold_profit = n(buy_hold).subtract(s.orig_capital).divide(s.orig_capital)
+			//        var profit = s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
+			//        var buy_hold = s.start_price ? n(s.period.close).multiply(n(s.start_capital_currency).divide(s.start_price)) : n(tmp_capital_currency)
+			//        var buy_hold_profit = s.start_capital_currency ? n(buy_hold).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
+			var profit_currency = n(tmp_capital_currency).subtract(s.orig_capital_currency).divide(s.orig_capital_currency)
+			var profit_asset = n(tmp_capital_asset).subtract(s.orig_capital_asset).divide(s.orig_capital_asset)
+			var buy_hold = n(s.orig_capital_currency).divide(s.orig_price).multiply(s.period.close)
+			var buy_hold_profit = n(buy_hold).subtract(s.orig_capital_currency).divide(s.orig_capital_currency)
+			var sell_hold = n(s.orig_capital_asset).multiply(s.orig_price).divide(s.period.close)
+			var sell_hold_profit = n(sell_hold).subtract(s.orig_capital_asset).divide(s.orig_capital_asset)
 			if (!statsonly) {
 				console.log()
 				var output_lines = []
-				output_lines.push('Starting capital: ' + formatCurrency(s.start_capital, s.currency).yellow)
-				output_lines.push('Original capital: ' + formatCurrency(s.orig_capital, s.currency).yellow)
+				output_lines.push('Starting currency: ' + formatCurrency(s.start_currency, s.currency).yellow)
+				output_lines.push('Starting asset: ' + formatAsset(s.start_asset, s.asset).yellow)
+				output_lines.push('Starting capital in currency: ' + formatCurrency(s.start_capital_currency, s.currency).yellow)
+				output_lines.push('Starting capital in asset: ' + formatAsset(s.start_capital_asset, s.asset).yellow)
+				output_lines.push('Starting price: ' + formatCurrency(s.start_price, s.currency).yellow)
+				output_lines.push('Original currency: ' + formatCurrency(s.orig_currency, s.currency).yellow)
+				output_lines.push('Original asset: ' + formatAsset(s.orig_asset, s.asset).yellow)				
+				output_lines.push('Original capital in currency: ' + formatCurrency(s.orig_capital_currency, s.currency).yellow)
+				output_lines.push('Original capital in asset: ' + formatAsset(s.orig_capital_asset, s.asset).yellow)
 				output_lines.push('Original price: ' + formatCurrency(s.orig_price, s.currency).yellow)
-				output_lines.push('Last balance: ' + n(tmp_balance).format('0.00').yellow + ' (' + profit.format('0.00%') + ')')
 				output_lines.push('Balance: ' + formatCurrency(s.balance.currency, s.currency).yellow + ' ; ' +  formatAsset(s.balance.asset, s.asset).yellow)
+				output_lines.push('Last capital in currency: ' + n(tmp_capital_currency).format('0.00').yellow + ' (' + profit_currency.format('0.00%') + ')')
 				output_lines.push('BuyHold: ' + buy_hold.format('0.00').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
-				output_lines.push('vs. BuyHold: ' + n(tmp_balance).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
+				output_lines.push('vs. BuyHold: ' + n(tmp_capital_currency).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
+				output_lines.push('Last capital in asset: ' + n(tmp_capital_asset).format('0.00000000').yellow + ' (' + profit_asset.format('0.00%') + ')')
+				output_lines.push('SellHold: ' + sell_hold.format('0.00000000').yellow + ' (' + n(sell_hold_profit).format('0.00%') + ')')
+				output_lines.push('vs. SellHold: ' + n(tmp_capital_asset).subtract(sell_hold).divide(sell_hold).format('0.00%').yellow)
 				//output_lines.push((s.my_prev_trades.length ? s.my_trades.length + s.my_prev_trades.length : s.my_trades.length) + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 				output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 				output_lines.push(s.positions.length + ' positions opened.')
@@ -999,8 +1013,8 @@ module.exports = function (program, conf) {
 			}
 			// Build stats for UI
 			s.stats = {
-					profit: profit.format('0.00%'),
-					tmp_balance: n(tmp_balance).format('0.00'),
+					profit_currency: profit_currency.format('0.00%'),
+					tmp_capital_currency: n(tmp_capital_currency).format('0.00'),
 					buy_hold: buy_hold.format('0.00'),
 					buy_hold_profit: n(buy_hold_profit).format('0.00%'),
 					day_count: s.day_count,
@@ -1116,22 +1130,28 @@ module.exports = function (program, conf) {
 			if(!shouldSaveStats) return
 
 			var output_lines = []
-			var tmp_balance = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
+			var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
+			var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
 
-			//        var profit = s.start_capital ? n(tmp_balance).subtract(s.start_capital).divide(s.start_capital) : n(0)
-			var profit = n(tmp_balance).subtract(s.orig_capital).divide(s.orig_capital)
-			output_lines.push('Last balance: ' + formatCurrency(tmp_balance, s.currency).yellow + ' (' + profit.format('0.00%') + ')')
-			//        var buy_hold = s.start_price ? n(s.period.close).multiply(n(s.start_capital).divide(s.start_price)) : n(tmp_balance)
-			var buy_hold = n(s.period.close).multiply(n(s.orig_capital).divide(s.orig_price))
-			//        var buy_hold_profit = s.start_capital ? n(buy_hold).subtract(s.start_capital).divide(s.start_capital) : n(0)
-			var buy_hold_profit = n(buy_hold).subtract(s.orig_capital).divide(s.orig_capital)
+			//        var profit = s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
+			var profit_currency = n(tmp_capital_currency).subtract(s.orig_capital_currency).divide(s.orig_capital_currency)
+			var profit_asset = n(tmp_capital_asset).subtract(s.orig_capital_asset).divide(s.orig_capital_asset)
+			output_lines.push('Last balance in currency: ' + formatCurrency(tmp_capital_currency, s.currency).yellow + ' (' + profit_currency.format('0.00%') + ')')
+			output_lines.push('Last balance in asset: ' + formatAsset(tmp_capital_asset, s.asset).yellow + ' (' + profit_asset.format('0.00%') + ')')
+			var buy_hold = n(s.orig_capital_currency).divide(s.orig_price).multiply(s.period.close)
+			var buy_hold_profit = n(buy_hold).subtract(s.orig_capital_currency).divide(s.orig_capital_currency)
+			var sell_hold = n(s.orig_capital_asset).multiply(s.orig_price).divide(s.period.close)
+			var sell_hold_profit = n(sell_hold).subtract(s.orig_capital_asset).divide(s.orig_capital_asset)
+			
 			output_lines.push('BuyHold: ' + formatCurrency(buy_hold, s.currency).yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
-			output_lines.push('vs. BuyHold: ' + n(tmp_balance).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
+			output_lines.push('vs. BuyHold: ' + n(tmp_capital_currency).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
+			output_lines.push('SellHold: ' + formatAsset(sell_hold, s.asset).yellow + ' (' + n(sell_hold_profit).format('0.00%') + ')')
+			output_lines.push('vs. SellHold: ' + n(tmp_capital_asset).subtract(sell_hold).divide(sell_hold).format('0.00%').yellow)
 			output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 			// Build stats for UI
 			s.stats = {
-				profit: profit.format('0.00%'),
-				tmp_balance: n(tmp_balance).format('0.00000000'),
+				profit_currency: profit_currency.format('0.00%'),
+				tmp_capital_currency: n(tmp_capital_currency).format('0.00000000'),
 				buy_hold: buy_hold.format('0.00000000'),
 				buy_hold_profit: n(buy_hold_profit).format('0.00%'),
 				day_count: s.day_count,
@@ -1364,9 +1384,15 @@ module.exports = function (program, conf) {
 									mode: so.mode,
 									options: so_tmp,
 									//Spostati qui da forwardScan()
-									start_capital: s.start_capital,
+									start_currency: s.start_currency,
+									start_asset: s.start_asset,
+									start_capital_currency: s.start_capital_currency,
+									start_capital_asset: s.start_capital_asset,
 									start_price: s.start_price,
-									orig_capital: s.start_capital,
+									orig_currency: s.orig_currency,
+									orig_asset: s.orig_asset,
+									orig_capital_currency: s.start_capital_currency,
+									orig_capital_asset: s.start_capital_asset,
 									orig_price: s.start_price,
 									day_count: s.day_count,
 									num_trades: s.my_trades.length
@@ -1377,14 +1403,16 @@ module.exports = function (program, conf) {
 								if (err) throw err
 								var prev_session = prev_sessions[0]
 								//                  if (prev_session && !cmd.reset) {
-								if (prev_session && !cmd.reset && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency && !raw_opts.currency_capital && !raw_opts.asset_capital))) {
+								if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
 									//									debug.msg('getNext() - prev_session')
-									//                    if (prev_session.orig_capital && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
-									//                      s.orig_capital = session.orig_capital = so.currency_capital || prev_session.orig_capital
+									//                    if (prev_session.orig_capital_currency && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
+									//                      s.orig_capital_currency = session.orig_capital_currency = so.currency_capital || prev_session.orig_capital_currency
 									s.orig_currency = session.orig_currency = prev_session.orig_currency
 									s.orig_asset = session.orig_asset = prev_session.orig_asset
 									s.orig_price = session.orig_price = prev_session.orig_price
-									s.orig_capital = session.orig_capital = prev_session.orig_capital
+									s.orig_capital_currency = session.orig_capital_currency = prev_session.orig_capital_currency
+									s.orig_capital_asset = session.orig_capital_asset = prev_session.orig_capital_asset
+									
 									s.day_count = session.day_count = (prev_session.day_count ? prev_session.day_count : 1)
 									session.num_trades = prev_session.num_trades
 									debug.obj('getNext() - prev_session', session)
@@ -1398,8 +1426,9 @@ module.exports = function (program, conf) {
 									s.orig_currency = s.start_currency = raw_opts.currency_capital | 0
 									s.orig_asset = s.start_asset = raw_opts.asset_capital | 0
 									s.orig_price = s.start_price
-									s.orig_capital = s.orig_currency + (s.orig_asset * s.orig_price)
-									debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital = ' + s.orig_capital + ' ; s.orig_price = ' + s.orig_price)
+									s.orig_capital_currency = s.orig_currency + (s.orig_asset * s.orig_price)
+									s.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
+									debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital_currency = ' + s.orig_capital_currency + ' ; s.orig_capital_asset = ' + s.orig_capital_asset + ' ; s.orig_price = ' + s.orig_price)
 								}
 								//                  }
 								if (s.lookback.length > so.keep_lookback_periods) {
@@ -1491,14 +1520,14 @@ module.exports = function (program, conf) {
 						asset: s.balance.asset,
 						price: s.period.close,
 						//Questi due seguenti a cosa serve memorizzarli nel db dei balances?
-						start_capital: session.orig_capital,
+						start_capital_currency: session.orig_capital_currency,
 						start_price: session.orig_price,
 					}
 					b._id = b.id
 					b.consolidated = n(s.balance.asset).multiply(s.period.close).add(s.balance.currency).value()
-					b.profit = (b.consolidated - session.orig_capital) / session.orig_capital
+					b.profit_currency = (b.consolidated - session.orig_capital_currency) / session.orig_capital_currency
 					b.buy_hold = s.period.close * (session.orig_asset + session.orig_currency / session.orig_price)
-					b.buy_hold_profit = (b.buy_hold - session.orig_capital) / session.orig_capital
+					b.buy_hold_profit = (b.buy_hold - session.orig_capital_currency) / session.orig_capital_currency
 					b.vs_buy_hold = (b.consolidated - b.buy_hold) / b.buy_hold
 					conf.output.api.on && printTrade(false, false, true)
 					if (so.mode === 'live' && s.db_valid) {
