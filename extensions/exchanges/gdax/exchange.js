@@ -552,7 +552,7 @@ module.exports = function gdax (conf) {
 						}
 						if (err) {
 //							return retry('getTrades', func_args, err)
-							cb(err, null)
+							return cb(err, null)
 						}
 						var trades = body.map(function (trade) {
 							return {
