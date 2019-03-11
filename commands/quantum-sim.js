@@ -9,6 +9,7 @@ var tb = require('timebucket')
   , engineFactory = require('../lib/quantum-engine')
   , collectionService = require('../lib/services/collection-service')
   , _ = require('lodash')
+  , debug = require('./debug')
 
 module.exports = function (program, conf) {
   program
