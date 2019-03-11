@@ -146,17 +146,25 @@ module.exports = function (program, conf) {
         s.lookback.unshift(s.period)
         //var profit = s.start_capital ? n(s.balance.currency).subtract(s.start_capital).divide(s.start_capital) : n(0)
 
-        var profit = s.start_capital ? n(s.real_capital).subtract(s.start_capital).divide(s.start_capital) : n(0)
+        
+        s.orig_currency = s.start_currency = raw_opts.currency_capital | s.balance.currency | 0
+		s.orig_asset = s.start_asset = raw_opts.asset_capital | s.balance.asset | 0
+		s.orig_price = s.start_price
+		s.orig_capital_currency = s.orig_currency + (s.orig_asset * s.orig_price)
+		s.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
+									
+									
+        var profit = s.start_capital_currency ? n(s.currency_capital).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
 
-        output_lines.push('end balance: ' + n(s.real_capital).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
-        console.log('start_capital', s.start_capital)
+        output_lines.push('end balance: ' + n(s.capital_currency).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
+        console.log('start_capital', s.start_capital_currency)
         console.log('start_price', n(s.start_price).format('0.00000000'))
         console.log('close', n(s.period.close).format('0.00000000'))
-        var buy_hold = s.start_price ? n(s.period.close).multiply(n(s.start_capital).divide(s.start_price)) : n(s.balance.currency)
+        var buy_hold = s.start_price ? n(s.period.close).multiply(n(s.start_capital_currency).divide(s.start_price)) : n(s.balance.currency)
         //console.log('buy hold', buy_hold.format('0.00000000'))
-        var buy_hold_profit = s.start_capital ? n(buy_hold).subtract(s.start_capital).divide(s.start_capital) : n(0)
+        var buy_hold_profit = s.start_capital_currency ? n(buy_hold).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
         output_lines.push('buy hold: ' + buy_hold.format('0.00000000').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
-        output_lines.push('vs. buy hold: ' + n(s.real_capital).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
+        output_lines.push('vs. buy hold: ' + n(s.currency_capital).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
         output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 
 
