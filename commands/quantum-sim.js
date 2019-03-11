@@ -152,7 +152,7 @@ module.exports = function (program, conf) {
 		s.orig_price = s.start_price
 		s.orig_capital_currency = s.orig_currency + (s.orig_asset * s.orig_price)
 		s.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
-									
+		debug.msg('s.orig_currency= ' + s.orig_currency + ' ; s.orig_capital_currency= ' + s.orig_capital_currency)
 									
         var profit = s.start_capital_currency ? n(s.currency_capital).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
 
