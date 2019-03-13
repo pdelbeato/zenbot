@@ -87,14 +87,15 @@ module.exports = function sim (conf, s) {
 					var order = orders[order_id]
 
 					if (order.status === 'open') {
-						order.status = 'cancelled'
-							delete openOrders[order_id]
+						order.status = 'cancelled';
+						delete openOrders[order_id]
 						recalcHold(function() {
-							return cb(null)
+							cb(null)
 						})
 					}
-
-					cb(null)
+					else {
+						cb(null)
+					}
 				}, latency)
 			},
 
@@ -102,11 +103,9 @@ module.exports = function sim (conf, s) {
 				setTimeout(function() {
 					_.each(orders, function(order) {
 						if (order.status === 'open') {
-							order.status = 'cancelled'
-								delete openOrders[order.order_id]
-							recalcHold(function() {
-								return cb(null)
-							})
+							order.status = 'cancelled';
+							delete openOrders[order.order_id]
+							recalcHold()
 						}
 					})
 
@@ -150,7 +149,7 @@ module.exports = function sim (conf, s) {
 					orders['~' + result.id] = order
 					openOrders['~' + result.id] = order
 					recalcHold(function() {
-						return cb(null, order)
+						cb(null, order)
 					})
 				}, latency)
 			},
@@ -186,7 +185,7 @@ module.exports = function sim (conf, s) {
 					orders['~' + result.id] = order
 					openOrders['~' + result.id] = order
 					recalcHold(function() {
-						return cb(null, order)
+						cb(null, order)
 					})
 				}, latency)
 			},
@@ -239,8 +238,9 @@ module.exports = function sim (conf, s) {
 					}
 				})
 
-				if (orders_changed)
+				if (orders_changed) {
 					recalcHold()
+				}
 			}
 	}
 
