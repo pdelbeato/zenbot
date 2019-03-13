@@ -228,23 +228,23 @@ module.exports = function sim (conf, s) {
 					if (trade.time - order.time < so.order_poll_time) {
 						return // Not time yet
 					}
-					if (order.tradetype === 'buy' && trade.price <= order.price) {
-						processBuy(order, trade)
-						orders_changed = true
+					if (!orders_changed && order.tradetype === 'buy' && trade.price <= order.price) {
+						processBuy(order, trade, function() {
+							orders_changed = true
+							recalcHold()
+						})
 					}
-					else if (order.tradetype === 'sell' && trade.price >= order.price) {
-						processSell(order, trade)
-						orders_changed = true
+					else if (!orders_changed && order.tradetype === 'sell' && trade.price >= order.price) {
+						processSell(order, trade, function() {
+							orders_changed = true
+							recalcHold()
+						})
 					}
 				})
-
-				if (orders_changed) {
-					recalcHold()
-				}
 			}
 	}
 
-	function processBuy (buy_order, trade) {
+	function processBuy (buy_order, trade, cb = function() {}) {
 		let fee = 0
 		let size = Math.min(buy_order.remaining_size, trade.size)
 		let price = buy_order.price
@@ -269,24 +269,29 @@ module.exports = function sim (conf, s) {
 		balance.currency = n(balance.currency).subtract(total).format('0.00000000')
 
 		// Process existing order size changes
-		let order = buy_order
-		order.filled_size = n(order.filled_size).add(size).format('0.00000000')
-		order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
+//		let order = buy_order
+		buy_order.filled_size = n(buy_order.filled_size).add(size).format('0.00000000')
+		buy_order.remaining_size = n(buy_order.size).subtract(buy_order.filled_size).format('0.00000000')
 //		order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
-		order.done_at = new Date(trade.done_at).getTime()
+		buy_order.done_at = new Date(trade.done_at).getTime()
 
-		if (order.remaining_size <= 0) {
-			if (debug) console.log('full fill bought')
-			order.status = 'done'
-				order.done_at = trade.time
-				delete openOrders['~' + order.id]
+		if (buy_order.remaining_size <= 0) {
+			if (debug) {
+				console.log('full fill bought')
+			}
+			buy_order.status = 'done';
+			buy_order.done_at = trade.time
+			delete openOrders['~' + buy_order.id]
 		}
 		else {
-			if (debug) console.log('partial fill buy')
+			if (debug) {
+				console.log('partial fill buy')
+			}
 		}
+		cb()
 	}
 
-	function processSell (sell_order, trade) {
+	function processSell (sell_order, trade, cb = function() {}) {
 		let fee = 0
 		let size = Math.min(sell_order.remaining_size, trade.size)
 		let price = sell_order.price
@@ -311,21 +316,26 @@ module.exports = function sim (conf, s) {
 		balance.currency = n(balance.currency).add(total).subtract(fee).format('0.00000000')
 
 		// Process existing order size changes
-		let order = sell_order
-		order.filled_size = n(order.filled_size).add(size).format('0.00000000')
-		order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
+//		let order = sell_order
+		sell_order.filled_size = n(sell_order.filled_size).add(size).format('0.00000000')
+		sell_order.remaining_size = n(sell_order.size).subtract(sell_order.filled_size).format('0.00000000')
 //		order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
-		order.done_at = new Date(trade.done_at).getTime()
+		sell_order.done_at = new Date(trade.done_at).getTime()
 
-		if (order.remaining_size <= 0) {
-			if (debug) console.log('full fill sold')
-			order.status = 'done'
-				order.done_at = trade.time
-				delete openOrders['~' + order.id]
+		if (sell_order.remaining_size <= 0) {
+			if (debug) {
+				console.log('full fill sold')
+			}
+			sell_order.status = 'done';
+			sell_order.done_at = trade.time
+			delete openOrders['~' + sell_order.id]
 		}
 		else {
-			if (debug) console.log('partial fill sell')
+			if (debug) {
+				console.log('partial fill sell')
+			}
 		}
+		cb()
 	}
 
 	return exchange
