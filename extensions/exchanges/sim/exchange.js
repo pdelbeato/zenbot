@@ -1,325 +1,332 @@
 let path = require('path')
-  , n = require('numbro')
-  , _ = require('lodash')
+, n = require('numbro')
+, _ = require('lodash')
 
 module.exports = function sim (conf, s) {
 
-  let latency = 100 // In milliseconds, enough to be realistic without being disruptive
-  let so = s.options
-  let exchange_id = so.selector.exchange_id
-  let real_exchange = require(path.resolve(__dirname, `../${exchange_id}/exchange`))(conf)
+	let latency = 100 // In milliseconds, enough to be realistic without being disruptive
+	let so = s.options
+	let exchange_id = so.selector.exchange_id
+	let real_exchange = require(path.resolve(__dirname, `../${exchange_id}/exchange`))(conf)
 
-  var balance = {
-	  asset: so.asset_capital,
-	  currency: so.currency_capital,
-	  asset_hold: 0,
-	  currency_hold: 0
-  }
+	var balance = {
+		asset: so.asset_capital,
+		currency: so.currency_capital,
+		asset_hold: 0,
+		currency_hold: 0
+	}
 
-  var last_order_id = 1001
-  var orders = {}
-  var openOrders = {}
-  let debug = false // debug output specific to the sim exchange
-  var now = 0
-  
-//  function now() {
-//	  return new Date().getTime()
-//  }
+	var last_order_id = 1001
+	var orders = {}
+	var openOrders = {}
+	let debug = false // debug output specific to the sim exchange
+	var now = 0
 
-  // When orders change in any way, it's likely our "_hold" values have changed. Recalculate them
-  function recalcHold() {
-    balance.currency_hold = 0
-    balance.asset_hold = 0
-    _.each(openOrders, function(order) {
-      if (order.tradetype === 'buy') {
-        balance.currency_hold += n(order.remaining_size).multiply(n(order.price)).value()
-      }
-      else {
-        balance.asset_hold += n(order.remaining_size).value()
-      }
-    })
-  }
+//	function now() {
+//	return new Date().getTime()
+//	}
 
-  var exchange = {
-    name: 'sim',
-    historyScan: real_exchange.historyScan,
-    historyScanUsesTime: real_exchange.historyScanUsesTime,
-    makerFee: real_exchange.makerFee,
-    takerFee: real_exchange.takerFee,
-    dynamicFees: real_exchange.dynamicFees,
+	// When orders change in any way, it's likely our "_hold" values have changed. Recalculate them
+	function recalcHold(cb = function() {}) {
+		balance.currency_hold = 0
+		balance.asset_hold = 0
+		_.each(openOrders, function(order) {
+			if (order.tradetype === 'buy') {
+				balance.currency_hold += n(order.remaining_size).multiply(n(order.price)).value()
+			}
+			else {
+				balance.asset_hold += n(order.remaining_size).value()
+			}
+		})
+		cb()
+	}
 
-    getProducts: real_exchange.getProducts,
+	var exchange = {
+			name: 'sim',
+			historyScan: real_exchange.historyScan,
+			historyScanUsesTime: real_exchange.historyScanUsesTime,
+			makerFee: real_exchange.makerFee,
+			takerFee: real_exchange.takerFee,
+			dynamicFees: real_exchange.dynamicFees,
 
-    getTrades: function (opts, cb) {
-      if (so.mode === 'paper') {
-        return real_exchange.getTrades(opts, cb)
-      }
-      else {
-        return cb(null, [])
-      }
-    },
+			getProducts: real_exchange.getProducts,
 
-    getBalance: function (opts, cb) {
-      setTimeout(function() {
-        s.sim_asset = balance.asset
-        return cb(null, balance)
-      }, latency)
-    },
+			getTrades: function (opts, cb) {
+				if (so.mode === 'paper') {
+					return real_exchange.getTrades(opts, cb)
+				}
+				else {
+					return cb(null, [])
+				}
+			},
 
-    getQuote: function (opts, cb) {
-      if (so.mode === 'paper') {
-        return real_exchange.getQuote(opts, cb)
-      }
-      else {
-        setTimeout(function() {
-          return cb(null, {
-            bid: s.period.close,
-            ask: s.period.close
-          })
-        }, latency)
-      }
-    },
+			getBalance: function (opts, cb) {
+				setTimeout(function() {
+					s.sim_asset = balance.asset
+					return cb(null, balance)
+				}, latency)
+			},
 
-    cancelOrder: function (opts, cb) {
-      setTimeout(function() {
-        var order_id = '~' + opts.order_id
-        var order = orders[order_id]
+			getQuote: function (opts, cb) {
+				if (so.mode === 'paper') {
+					return real_exchange.getQuote(opts, cb)
+				}
+				else {
+					setTimeout(function() {
+						return cb(null, {
+							bid: s.period.close,
+							ask: s.period.close
+						})
+					}, latency)
+				}
+			},
 
-        if (order.status === 'open') {
-          order.status = 'cancelled'
-          delete openOrders[order_id]
-          recalcHold()
-        }
+			cancelOrder: function (opts, cb) {
+				setTimeout(function() {
+					var order_id = '~' + opts.order_id
+					var order = orders[order_id]
 
-        cb(null)
-      }, latency)
-    },
-    
-    cancelAllOrders: function (opts, cb) {
-    	setTimeout(function() {
-    		_.each(orders, function(order) {
-    			if (order.status === 'open') {
-    				order.status = 'cancelled'
-    				delete openOrders[order.order_id]
-    				recalcHold()
-    			}
-    		})
-    		
-    		cb(null)
-    	}, latency)
-    },
-    
-    cancelOrderCache: function (opts) {
-		return
-	},
+					if (order.status === 'open') {
+						order.status = 'cancelled'
+							delete openOrders[order_id]
+						recalcHold(function() {
+							return cb(null)
+						})
+					}
 
-    buy: function (opts, cb) {
-      setTimeout(function() {
-        if (debug) console.log(`buying ${opts.size * opts.price} vs on hold: ${balance.currency} - ${balance.currency_hold} = ${balance.currency - balance.currency_hold}`)
-        if (opts.size * opts.price > (balance.currency - balance.currency_hold)) {
-          if (debug) console.log('nope')
-          return cb(null, { status: 'rejected', reject_reason: 'balance'})
-        }
+					cb(null)
+				}, latency)
+			},
 
-        var result = {
-          id: last_order_id++
-        }
+			cancelAllOrders: function (opts, cb) {
+				setTimeout(function() {
+					_.each(orders, function(order) {
+						if (order.status === 'open') {
+							order.status = 'cancelled'
+								delete openOrders[order.order_id]
+							recalcHold(function() {
+								return cb(null)
+							})
+						}
+					})
 
-        var order = {
-          id: result.id,
-          status: 'open',
-          price: opts.price,
-          size: opts.size,
-          orig_size: opts.size,
-          remaining_size: opts.size,
-          post_only: !!opts.post_only,
-          filled_size: 0,
-//          executed_value: 0,
-          ordertype: opts.order_type,
-          tradetype: 'buy',
-          orig_time: now,
-          time: now,
-          created_at: now
-        }
+					cb(null)
+				}, latency)
+			},
 
-        orders['~' + result.id] = order
-        openOrders['~' + result.id] = order
-        recalcHold()
-        cb(null, order)
-      }, latency)
-    },
+			cancelOrderCache: function (opts) {
+				return
+			},
 
-    sell: function (opts, cb) {
-      setTimeout(function() {
-        if (debug) console.log(`selling ${opts.size} vs on hold: ${balance.asset} - ${balance.asset_hold} = ${balance.asset - balance.asset_hold}`)
-        if (opts.size > (balance.asset - balance.asset_hold)) {
-          if (debug) console.log('nope')
-          return cb(null, { status: 'rejected', reject_reason: 'balance'})
-        }
+			buy: function (opts, cb) {
+				setTimeout(function() {
+					if (debug) console.log(`buying ${opts.size * opts.price} vs on hold: ${balance.currency} - ${balance.currency_hold} = ${balance.currency - balance.currency_hold}`)
+					if (opts.size * opts.price > (balance.currency - balance.currency_hold)) {
+						if (debug) console.log('nope')
+						return cb(null, { status: 'rejected', reject_reason: 'balance'})
+					}
 
-        var result = {
-          id: last_order_id++
-        }
+					var result = {
+							id: last_order_id++
+					}
 
-        var order = {
-          id: result.id,
-          status: 'open',
-          price: opts.price,
-          size: opts.size,
-          orig_size: opts.size,
-          remaining_size: opts.size,
-          post_only: !!opts.post_only,
-          filled_size: 0,
-//          executed_value: 0,
-          ordertype: opts.order_type,
-          tradetype: 'sell',
-          orig_time: now,
-          time: now,
-          created_at: now
-        }
-        orders['~' + result.id] = order
-        openOrders['~' + result.id] = order
-        recalcHold()
-        cb(null, order)
-      }, latency)
-    },
+					var order = {
+							id: result.id,
+							status: 'open',
+							price: opts.price,
+							size: opts.size,
+							orig_size: opts.size,
+							remaining_size: opts.size,
+							post_only: !!opts.post_only,
+							filled_size: 0,
+//							executed_value: 0,
+							ordertype: opts.order_type,
+							tradetype: 'buy',
+							orig_time: now,
+							time: now,
+							created_at: now
+					}
 
-    getOrder: function (opts, cb) {
-      setTimeout(function() {
-        var order = orders['~' + opts.order_id]
-        cb(null, order)
-      }, latency)
-    },
+					orders['~' + result.id] = order
+					openOrders['~' + result.id] = order
+					recalcHold(function() {
+						return cb(null, order)
+					})
+				}, latency)
+			},
 
-    getAllOrders: function (opts, cb) {
-    	setTimeout(function() {
-    		cb(null, orders)
-    	}, latency)
-    },
+			sell: function (opts, cb) {
+				setTimeout(function() {
+					if (debug) console.log(`selling ${opts.size} vs on hold: ${balance.asset} - ${balance.asset_hold} = ${balance.asset - balance.asset_hold}`)
+					if (opts.size > (balance.asset - balance.asset_hold)) {
+						if (debug) console.log('nope')
+						return cb(null, { status: 'rejected', reject_reason: 'balance'})
+					}
 
-    setFees: function(opts) {
-      if (so.mode === 'paper') {
-        return real_exchange.setFees(opts)
-      }
-    },
-    
-    getCursor: real_exchange.getCursor,
+					var result = {
+							id: last_order_id++
+					}
 
-    getTime: function() {
-      return now
-    },
-    
-    getMemory: function() {
-		return 'sim'
-	},
+					var order = {
+							id: result.id,
+							status: 'open',
+							price: opts.price,
+							size: opts.size,
+							orig_size: opts.size,
+							remaining_size: opts.size,
+							post_only: !!opts.post_only,
+							filled_size: 0,
+//							executed_value: 0,
+							ordertype: opts.order_type,
+							tradetype: 'sell',
+							orig_time: now,
+							time: now,
+							created_at: now
+					}
+					orders['~' + result.id] = order
+					openOrders['~' + result.id] = order
+					recalcHold(function() {
+						return cb(null, order)
+					})
+				}, latency)
+			},
 
-    processTrade: function(trade) {
-      var orders_changed = false
-      
-      now = trade.time
+			getOrder: function (opts, cb) {
+				setTimeout(function() {
+					var order = orders['~' + opts.order_id]
+					cb(null, order)
+				}, latency)
+			},
 
-      _.each(openOrders, function(order) {
-        if (trade.time - order.time < so.order_poll_time) {
-          return // Not time yet
-        }
-        if (order.tradetype === 'buy' && trade.price <= order.price) {
-          processBuy(order, trade)
-          orders_changed = true
-        }
-        else if (order.tradetype === 'sell' && trade.price >= order.price) {
-          processSell(order, trade)
-          orders_changed = true
-        }
-      })
+			getAllOrders: function (opts, cb) {
+				setTimeout(function() {
+					cb(null, orders)
+				}, latency)
+			},
 
-      if (orders_changed)
-        recalcHold()
-    }
-  }
+			setFees: function(opts) {
+				if (so.mode === 'paper') {
+					return real_exchange.setFees(opts)
+				}
+			},
 
-  function processBuy (buy_order, trade) {
-    let fee = 0
-    let size = Math.min(buy_order.remaining_size, trade.size)
-    let price = buy_order.price
+			getCursor: real_exchange.getCursor,
 
-    // Add estimated slippage to price
-    if (so.order_type === 'maker') {
-      price = n(price).add(n(price).multiply(so.avg_slippage_pct / 100)).format('0.00000000')
-    }
+			getTime: function() {
+				return now
+			},
 
-    let total = n(price).multiply(size)
+			getMemory: function() {
+				return 'sim'
+			},
 
-    // Compute fees
-    if (so.order_type === 'maker' && exchange.makerFee) {
-      fee = n(size).multiply(exchange.makerFee / 100).value()
-    }
-    else if (so.order_type === 'taker' && s.exchange.takerFee) {
-      fee = n(size).multiply(exchange.takerFee / 100).value()
-    }
+			processTrade: function(trade) {
+				var orders_changed = false
 
-    // Update balance
-    balance.asset = n(balance.asset).add(size).subtract(fee).format('0.00000000')
-    balance.currency = n(balance.currency).subtract(total).format('0.00000000')
+				now = trade.time
 
-    // Process existing order size changes
-    let order = buy_order
-    order.filled_size = n(order.filled_size).add(size).format('0.00000000')
-    order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
-//    order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
-    order.done_at = new Date(trade.done_at).getTime()
+				_.each(openOrders, function(order) {
+					if (trade.time - order.time < so.order_poll_time) {
+						return // Not time yet
+					}
+					if (order.tradetype === 'buy' && trade.price <= order.price) {
+						processBuy(order, trade)
+						orders_changed = true
+					}
+					else if (order.tradetype === 'sell' && trade.price >= order.price) {
+						processSell(order, trade)
+						orders_changed = true
+					}
+				})
 
-    if (order.remaining_size <= 0) {
-      if (debug) console.log('full fill bought')
-      order.status = 'done'
-      order.done_at = trade.time
-      delete openOrders['~' + order.id]
-    }
-    else {
-      if (debug) console.log('partial fill buy')
-    }
-  }
+				if (orders_changed)
+					recalcHold()
+			}
+	}
 
-  function processSell (sell_order, trade) {
-    let fee = 0
-    let size = Math.min(sell_order.remaining_size, trade.size)
-    let price = sell_order.price
+	function processBuy (buy_order, trade) {
+		let fee = 0
+		let size = Math.min(buy_order.remaining_size, trade.size)
+		let price = buy_order.price
 
-    // Add estimated slippage to price
-    if (so.order_type === 'maker') {
-      price = n(price).subtract(n(price).multiply(so.avg_slippage_pct / 100)).format('0.00000000')
-    }
+		// Add estimated slippage to price
+		if (so.order_type === 'maker') {
+			price = n(price).add(n(price).multiply(so.avg_slippage_pct / 100)).format('0.00000000')
+		}
 
-    let total = n(price).multiply(size)
+		let total = n(price).multiply(size)
 
-    // Compute fees
-    if (so.order_type === 'maker' && exchange.makerFee) {
-      fee = n(total).multiply(exchange.makerFee / 100).value()
-    }
-    else if (so.order_type === 'taker' && exchange.takerFee) {
-      fee = n(total).multiply(exchange.takerFee / 100).value()
-    }
+		// Compute fees
+		if (so.order_type === 'maker' && exchange.makerFee) {
+			fee = n(size).multiply(exchange.makerFee / 100).value()
+		}
+		else if (so.order_type === 'taker' && s.exchange.takerFee) {
+			fee = n(size).multiply(exchange.takerFee / 100).value()
+		}
 
-    // Update balance
-    balance.asset = n(balance.asset).subtract(size).format('0.00000000')
-    balance.currency = n(balance.currency).add(total).subtract(fee).format('0.00000000')
+		// Update balance
+		balance.asset = n(balance.asset).add(size).subtract(fee).format('0.00000000')
+		balance.currency = n(balance.currency).subtract(total).format('0.00000000')
 
-    // Process existing order size changes
-    let order = sell_order
-    order.filled_size = n(order.filled_size).add(size).format('0.00000000')
-    order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
-//    order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
-    order.done_at = new Date(trade.done_at).getTime()
+		// Process existing order size changes
+		let order = buy_order
+		order.filled_size = n(order.filled_size).add(size).format('0.00000000')
+		order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
+//		order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
+		order.done_at = new Date(trade.done_at).getTime()
 
-    if (order.remaining_size <= 0) {
-      if (debug) console.log('full fill sold')
-      order.status = 'done'
-      order.done_at = trade.time
-      delete openOrders['~' + order.id]
-    }
-    else {
-      if (debug) console.log('partial fill sell')
-    }
-  }
+		if (order.remaining_size <= 0) {
+			if (debug) console.log('full fill bought')
+			order.status = 'done'
+				order.done_at = trade.time
+				delete openOrders['~' + order.id]
+		}
+		else {
+			if (debug) console.log('partial fill buy')
+		}
+	}
 
-  return exchange
+	function processSell (sell_order, trade) {
+		let fee = 0
+		let size = Math.min(sell_order.remaining_size, trade.size)
+		let price = sell_order.price
+
+		// Add estimated slippage to price
+		if (so.order_type === 'maker') {
+			price = n(price).subtract(n(price).multiply(so.avg_slippage_pct / 100)).format('0.00000000')
+		}
+
+		let total = n(price).multiply(size)
+
+		// Compute fees
+		if (so.order_type === 'maker' && exchange.makerFee) {
+			fee = n(total).multiply(exchange.makerFee / 100).value()
+		}
+		else if (so.order_type === 'taker' && exchange.takerFee) {
+			fee = n(total).multiply(exchange.takerFee / 100).value()
+		}
+
+		// Update balance
+		balance.asset = n(balance.asset).subtract(size).format('0.00000000')
+		balance.currency = n(balance.currency).add(total).subtract(fee).format('0.00000000')
+
+		// Process existing order size changes
+		let order = sell_order
+		order.filled_size = n(order.filled_size).add(size).format('0.00000000')
+		order.remaining_size = n(order.size).subtract(order.filled_size).format('0.00000000')
+//		order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
+		order.done_at = new Date(trade.done_at).getTime()
+
+		if (order.remaining_size <= 0) {
+			if (debug) console.log('full fill sold')
+			order.status = 'done'
+				order.done_at = trade.time
+				delete openOrders['~' + order.id]
+		}
+		else {
+			if (debug) console.log('partial fill sell')
+		}
+	}
+
+	return exchange
 }
