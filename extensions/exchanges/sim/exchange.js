@@ -229,22 +229,18 @@ module.exports = function sim (conf, s) {
 						return // Not time yet
 					}
 					if (!orders_changed && order.tradetype === 'buy' && trade.price <= order.price) {
-						processBuy(order, trade, function() {
-							orders_changed = true
-							recalcHold()
-						})
+						orders_changed = true
+						processBuy(order, trade)
 					}
 					else if (!orders_changed && order.tradetype === 'sell' && trade.price >= order.price) {
-						processSell(order, trade, function() {
-							orders_changed = true
-							recalcHold()
-						})
+						orders_changed = true
+						processSell(order, trade)
 					}
 				})
 			}
 	}
 
-	function processBuy (buy_order, trade, cb = function() {}) {
+	function processBuy (buy_order, trade) {
 		let fee = 0
 		let size = Math.min(buy_order.remaining_size, trade.size)
 		let price = buy_order.price
@@ -288,10 +284,10 @@ module.exports = function sim (conf, s) {
 				console.log('partial fill buy')
 			}
 		}
-		cb()
+		recalcHold()
 	}
 
-	function processSell (sell_order, trade, cb = function() {}) {
+	function processSell (sell_order, trade) {
 		let fee = 0
 		let size = Math.min(sell_order.remaining_size, trade.size)
 		let price = sell_order.price
@@ -335,7 +331,7 @@ module.exports = function sim (conf, s) {
 				console.log('partial fill sell')
 			}
 		}
-		cb()
+		recalcHold()
 	}
 
 	return exchange
