@@ -307,9 +307,9 @@ module.exports = function (program, conf) {
           // emit per ogni trade -> va alla funzione   queueTrade che mette in coda il tradeProcessing e quindi onTrade
           eventBus.emit('trade', trade)
           if (!s.orig_currency) {
-        	  engine.syncBalance(function () {
-        		  s.orig_currency = s.start_currency = so.currency_capital | s.balance.currency | 0
-        		  s.orig_asset = s.start_asset = so.asset_capital | s.balance.asset | 0
+        	  s.orig_currency = s.start_currency = so.currency_capital | s.balance.currency | 0
+    		  s.orig_asset = s.start_asset = so.asset_capital | s.balance.asset | 0
+        	  engine.syncBalance(function () {        		  
         		  s.orig_price = s.start_price
         		  s.orig_capital_currency = s.orig_currency + (s.orig_asset * s.orig_price)
         		  s.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
