@@ -313,7 +313,7 @@ module.exports = function (program, conf) {
 
           // emit per ogni trade -> va alla funzione   queueTrade che mette in coda il tradeProcessing e quindi onTrade
           eventBus.emit('trade', trade)
-          engine.syncBalance()
+//          engine.syncBalance()
         })
 
         collectionCursor.on('end', function(){
