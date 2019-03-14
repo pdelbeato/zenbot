@@ -112,15 +112,6 @@ module.exports = function (program, conf) {
       if (!so.min_periods) so.min_periods = 1
       var cursor, reversing, reverse_point
       var query_start = (so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null)
-
-      engine.syncBalance(function () {
-    	  s.orig_currency = s.start_currency = so.currency_capital | s.balance.currency | 0
-    	  s.orig_asset = s.start_asset = so.asset_capital | s.balance.asset | 0
-    	  s.orig_price = s.start_price
-    	  s.orig_capital_currency = s.orig_currency + (s.orig_asset * s.orig_price)
-    	  s.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
-    	  debug.msg('s.orig_currency= ' + s.orig_currency + ' ; s.orig_capital_currency= ' + s.orig_capital_currency)
-      })
     
       function exitSim () {
 
@@ -315,7 +306,16 @@ module.exports = function (program, conf) {
 
           // emit per ogni trade -> va alla funzione   queueTrade che mette in coda il tradeProcessing e quindi onTrade
           eventBus.emit('trade', trade)
-//          engine.syncBalance()
+          if (!s.orig_currency) {
+        	  engine.syncBalance(function () {
+        		  s.orig_currency = s.start_currency = so.currency_capital | s.balance.currency | 0
+        		  s.orig_asset = s.start_asset = so.asset_capital | s.balance.asset | 0
+        		  s.orig_price = s.start_price
+        		  s.orig_capital_currency = s.orig_currency + (s.orig_asset * s.orig_price)
+        		  s.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
+        		  debug.msg('s.orig_currency= ' + s.orig_currency + ' ; s.orig_capital_currency= ' + s.orig_capital_currency)
+        	  })
+          }
         })
 
         collectionCursor.on('end', function(){
