@@ -498,7 +498,6 @@ module.exports = function (program, conf) {
 						setTimeout(function() {
 							s.positionProcessingQueue.push({mode: 'delete', id: s.positions[s.positions_index].id})
 							s.positions_index = null
-							s.positions.splice(s.positions_index,1)
 						}, so.order_poll_time)
 					}
 					else {
@@ -862,6 +861,7 @@ module.exports = function (program, conf) {
 						}
 					})
 				}
+				s.positions.splice(s.positions_index,1)
 				break
 			}
 			}
