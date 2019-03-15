@@ -861,7 +861,6 @@ module.exports = function (program, conf) {
 						}
 					})
 				}
-				s.positions.splice(s.positions_index,1)
 				break
 			}
 			}
