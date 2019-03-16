@@ -40,14 +40,6 @@
     "label": "BCH/GBP"
   },
   {
-    "asset": "MKR",
-    "currency": "USDC",
-    "min_size": "0.01",
-    "max_size": "1000",
-    "increment": "0.01",
-    "label": "MKR/USDC"
-  },
-  {
     "asset": "BCH",
     "currency": "EUR",
     "min_size": "0.01",
@@ -104,14 +96,6 @@
     "label": "GNT/USDC"
   },
   {
-    "asset": "ZIL",
-    "currency": "USDC",
-    "min_size": "1",
-    "max_size": "150000",
-    "increment": "0.000001",
-    "label": "ZIL/USDC"
-  },
-  {
     "asset": "MANA",
     "currency": "USDC",
     "min_size": "1",
@@ -158,6 +142,54 @@
     "max_size": "5000",
     "increment": "0.01",
     "label": "ETC/EUR"
+  },
+  {
+    "asset": "XRP",
+    "currency": "USD",
+    "min_size": "1",
+    "max_size": "500000",
+    "increment": "0.0001",
+    "label": "XRP/USD"
+  },
+  {
+    "asset": "XRP",
+    "currency": "EUR",
+    "min_size": "1",
+    "max_size": "500000",
+    "increment": "0.0001",
+    "label": "XRP/EUR"
+  },
+  {
+    "asset": "XRP",
+    "currency": "BTC",
+    "min_size": "1",
+    "max_size": "500000",
+    "increment": "0.00000001",
+    "label": "XRP/BTC"
+  },
+  {
+    "asset": "XLM",
+    "currency": "EUR",
+    "min_size": "1",
+    "max_size": "600000",
+    "increment": "0.000001",
+    "label": "XLM/EUR"
+  },
+  {
+    "asset": "XLM",
+    "currency": "BTC",
+    "min_size": "1",
+    "max_size": "600000",
+    "increment": "0.00000001",
+    "label": "XLM/BTC"
+  },
+  {
+    "asset": "XLM",
+    "currency": "USD",
+    "min_size": "1",
+    "max_size": "600000",
+    "increment": "0.000001",
+    "label": "XLM/USD"
   },
   {
     "asset": "BTC",
