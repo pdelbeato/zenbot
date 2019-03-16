@@ -50,7 +50,7 @@ module.exports = function sim (conf, s) {
 			makerFee: real_exchange.makerFee,
 			takerFee: real_exchange.takerFee,
 			dynamicFees: real_exchange.dynamicFees,
-
+			
 			getProducts: real_exchange.getProducts,
 
 			getTrades: function (opts, cb) {
@@ -244,7 +244,7 @@ module.exports = function sim (conf, s) {
 					s.wait_processTrade = false
 				}
 				else {
-					debug.msg('processTrade - Attendo... ')
+					console.log('processTrade - Attendo... ')
 					waitCondition('wait_processTrade', 10, cb)
 				}
 			}
@@ -252,11 +252,11 @@ module.exports = function sim (conf, s) {
 
 	function waitCondition (condition, interval, cb) {
 		if (s[condition]) {
-			debug.msg('waitCondition - condition= ' + s[condition] + '. Waiting...')
+			console.log('waitCondition - condition= ' + s[condition] + '. Waiting...')
 			setTimeout (function() { waitCondition(condition, interval, cb) }, interval)
 		}
 		else {
-			debug.msg('waitCondition - condition= ' + s[condition] + '. Continuing...')
+			console.log('waitCondition - condition= ' + s[condition] + '. Continuing...')
 			cb()
 		}
 	}
@@ -292,7 +292,7 @@ module.exports = function sim (conf, s) {
 //		order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
 		buy_order.done_at = new Date(trade.done_at).getTime()
 
-		if (buy_order.remaining_size <= 0) {
+		if (buy_order.remaining_size <= s.product.min_size) {
 			if (debug) {
 				console.log('full fill bought')
 			}
@@ -339,7 +339,7 @@ module.exports = function sim (conf, s) {
 //		order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
 		sell_order.done_at = new Date(trade.done_at).getTime()
 
-		if (sell_order.remaining_size <= 0) {
+		if (sell_order.remaining_size <= s.product.min_size) {
 			if (debug) {
 				console.log('full fill sold')
 			}
