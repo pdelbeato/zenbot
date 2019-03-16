@@ -22,6 +22,8 @@ module.exports = function sim (conf, s) {
 	let debug = false // debug output specific to the sim exchange
 	var now = 0
 
+	s.wait_processTrade = false
+	
 //	function now() {
 //	return new Date().getTime()
 //	}
@@ -219,8 +221,6 @@ module.exports = function sim (conf, s) {
 				return 'sim'
 			},
 
-			s.wait_processTrade = false,
-			
 			processTrade: function(trade) {
 				if (!s.wait_processTrade) {
 					s.wait_processTrade = true
