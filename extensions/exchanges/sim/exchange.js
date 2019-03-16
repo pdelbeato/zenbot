@@ -219,27 +219,48 @@ module.exports = function sim (conf, s) {
 				return 'sim'
 			},
 
+			s.wait_processTrade = false,
+			
 			processTrade: function(trade) {
-				var orders_changed = false
+				if (!s.wait_processTrade) {
+					s.wait_processTrade = true
+					var orders_changed = false
 
-				now = trade.time
+					now = trade.time
 
-				_.each(openOrders, function(order) {
-					if (trade.time - order.time < so.order_poll_time) {
-						return // Not time yet
-					}
-					if (!orders_changed && order.tradetype === 'buy' && trade.price <= order.price) {
-						orders_changed = true
-						processBuy(order, trade)
-					}
-					else if (!orders_changed && order.tradetype === 'sell' && trade.price >= order.price) {
-						orders_changed = true
-						processSell(order, trade)
-					}
-				})
+					_.each(openOrders, function(order) {
+						if (trade.time - order.time < so.order_poll_time) {
+							return // Not time yet
+						}
+						if (!orders_changed && order.tradetype === 'buy' && trade.price <= order.price) {
+							orders_changed = true
+							processBuy(order, trade)
+						}
+						else if (!orders_changed && order.tradetype === 'sell' && trade.price >= order.price) {
+							orders_changed = true
+							processSell(order, trade)
+						}
+					})
+					s.wait_processTrade = false
+				}
+				else {
+					debug.msg('processTrade - Attendo... ')
+					waitCondition('wait_processTrade', 10, cb)
+				}
 			}
 	}
 
+	function waitCondition (condition, interval, cb) {
+		if (s[condition]) {
+			debug.msg('waitCondition - condition= ' + s[condition] + '. Waiting...')
+			setTimeout (function() { waitCondition(condition, interval, cb) }, interval)
+		}
+		else {
+			debug.msg('waitCondition - condition= ' + s[condition] + '. Continuing...')
+			cb()
+		}
+	}
+	
 	function processBuy (buy_order, trade) {
 		let fee = 0
 		let size = Math.min(buy_order.remaining_size, trade.size)
