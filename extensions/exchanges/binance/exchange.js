@@ -1,3 +1,4 @@
+let debug = require('../../../lib/debug')
 const ccxt = require('ccxt')
   , path = require('path')
   // eslint-disable-next-line no-unused-vars
