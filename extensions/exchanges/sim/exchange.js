@@ -192,7 +192,13 @@ module.exports = function sim (conf, s) {
 				}, latency)
 			},
 
-			getOrder: function (opts, cb) {
+			getOrder: function (opts, forced= false, cb) {
+				//Per accettare cb come secondo argomento
+				if (typeof forced === 'function') {
+					cb = forced
+					forced = false
+				}
+				
 				setTimeout(function() {
 					var order = orders['~' + opts.order_id]
 					cb(null, order)
