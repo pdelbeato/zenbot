@@ -852,14 +852,16 @@ module.exports = function (program, conf) {
 					})
 					//... e inserisco la posizione chiusa del db delle posizioni chiuse
 					position = s.closed_positions.find(x => x.id === position_id)
-					position._id = position.id
-					my_closed_positions.updateOne({'_id' : position_id}, {$set: position}, {upsert: true}, function (err) {
-						if (err) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_closed_positions')
-							console.error(err)
-							return cb(err)
-						}
-					})
+					if (position) {
+						position._id = position.id
+						my_closed_positions.updateOne({'_id' : position_id}, {$set: position}, {upsert: true}, function (err) {
+							if (err) {
+								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_closed_positions')
+								console.error(err)
+								return cb(err)
+							}
+						})
+					}
 				}
 				break
 			}
