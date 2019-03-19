@@ -907,8 +907,14 @@ module.exports = function gdax (conf) {
 				}
 			},
 
-			getOrder: function getOrder(opts, cb) {
-				if(websocket_cache[opts.product_id] && websocket_cache[opts.product_id].orders['~' + opts.order_id]) {
+			getOrder: function getOrder(opts, forced = false, cb) {
+				//Per accettare cb come secondo argomento
+				if (typeof forced === 'function') {
+					cb = forced
+					forced = false
+				}
+				
+				if(!forced && websocket_cache[opts.product_id] && websocket_cache[opts.product_id].orders['~' + opts.order_id]) {
 					let order_cache = websocket_cache[opts.product_id].orders['~' + opts.order_id]
 
 //					debug.msg('getOrder - websocket cache:')
