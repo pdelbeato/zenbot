@@ -239,7 +239,7 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('M', {desc: ('switch between \'Maker\' and \'Taker\' order type'.grey), action: function() {
 					(so.order_type === 'maker' ? so.order_type = 'taker' : so.order_type = 'maker')
-					console.log('\n' + so.order_type.toUpperCase() + ' fees activated'.black.bgGreen)
+					console.log('\n' + so.order_type.toUpperCase().black.bgyellow + ' fees activated'.black.bgYellow)
 				}})
 				break
 			}
