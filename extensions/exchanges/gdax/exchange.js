@@ -242,7 +242,10 @@ module.exports = function gdax (conf) {
 				side: update.side,
 				status: 'open',
 				settled: false,
-				filled_size: 0
+				filled_size: 0,
+				executed_value: 0,
+				fill_fees: 0,
+				currency_fees: null
 		}
 	}
 
@@ -762,14 +765,15 @@ module.exports = function gdax (conf) {
 						delete opts.price
 						delete opts.post_only
 						delete opts.cancel_after
-						opts.type = 'market'
+						opts.type = 'market';
 					}
 					else {
+						opts.type = 'limit';
 						if (opts.cancel_after) {
-							opts.time_in_force = 'GTT'
+							opts.time_in_force = 'GTT';
 						}
 						else {
-							opts.time_in_force = 'GTC'
+							opts.time_in_force = 'GTC';
 						}
 					}
 					delete opts.order_type
@@ -845,14 +849,15 @@ module.exports = function gdax (conf) {
 						delete opts.price
 						delete opts.post_only
 						delete opts.cancel_after
-						opts.type = 'market'
+						opts.type = 'market';
 					}
 					else {
+						opts.type = 'limit';
 						if (opts.cancel_after) {
-							opts.time_in_force = 'GTT'
+							opts.time_in_force = 'GTT';
 						}
 						else {
-							opts.time_in_force = 'GTC'
+							opts.time_in_force = 'GTC';
 						}
 					}
 					delete opts.order_type
@@ -907,8 +912,14 @@ module.exports = function gdax (conf) {
 				}
 			},
 
-			getOrder: function getOrder(opts, cb) {
-				if(websocket_cache[opts.product_id] && websocket_cache[opts.product_id].orders['~' + opts.order_id]) {
+			getOrder: function getOrder(opts, forced = false, cb) {
+				//Per accettare cb come secondo argomento
+				if (typeof forced === 'function') {
+					cb = forced
+					forced = false
+				}
+				
+				if(!forced && websocket_cache[opts.product_id] && websocket_cache[opts.product_id].orders['~' + opts.order_id]) {
 					let order_cache = websocket_cache[opts.product_id].orders['~' + opts.order_id]
 
 //					debug.msg('getOrder - websocket cache:')
@@ -927,55 +938,55 @@ module.exports = function gdax (conf) {
 					debug.msg('getOrder - getOrder call')
 
 					/*
-			 	getOrder
-			    { id: '92a24124-067b-4d3c-b79f-afdc1a13eaea',
-			    price: '5571.79000000',
-			    size: '0.04487500',
-			    product_id: 'BTC-EUR',
-			    side: 'buy',
-			    type: 'limit',
-			    time_in_force: 'GTT',
-			    expire_time: '2018-10-24T12:03:57',
-			    post_only: true,
-			    created_at: '2018-10-23T12:03:58.612863Z',
-			    reject_reason: 'post only',
-			    fill_fees: '0.0000000000000000',
-			    filled_size: '0.00000000',
-			    executed_value: '0.0000000000000000',
-			    status: 'rejected',
-			    settled: false }
+				 	getOrder
+				    { id: '92a24124-067b-4d3c-b79f-afdc1a13eaea',
+				    price: '5571.79000000',
+				    size: '0.04487500',
+				    product_id: 'BTC-EUR',
+				    side: 'buy',
+				    type: 'limit',
+				    time_in_force: 'GTT',
+				    expire_time: '2018-10-24T12:03:57',
+				    post_only: true,
+				    created_at: '2018-10-23T12:03:58.612863Z',
+				    reject_reason: 'post only',
+				    fill_fees: '0.0000000000000000',
+				    filled_size: '0.00000000',
+				    executed_value: '0.0000000000000000',
+				    status: 'rejected',
+				    settled: false }
 			    
-			    {
-				    "id": "68e6a28f-ae28-4788-8d4f-5ab4e5e5ae08",
-				    "size": "1.00000000",
-				    "product_id": "BTC-USD",
-				    "side": "buy",
-				    "stp": "dc",
-				    "funds": "9.9750623400000000",
-				    "specified_funds": "10.0000000000000000",
-				    "type": "market",
-				    "post_only": false,
-				    "created_at": "2016-12-08T20:09:05.508883Z",
-				    "done_at": "2016-12-08T20:09:05.527Z",
-				    "done_reason": "filled",
-				    "fill_fees": "0.0249376391550000",
-				    "filled_size": "0.01291771",
-				    "executed_value": "9.9750556620000000",
-				    "status": "done",
-				    "settled": true
-				}
+				    {
+					    "id": "68e6a28f-ae28-4788-8d4f-5ab4e5e5ae08",
+					    "size": "1.00000000",
+					    "product_id": "BTC-USD",
+					    "side": "buy",
+					    "stp": "dc",
+					    "funds": "9.9750623400000000",
+					    "specified_funds": "10.0000000000000000",
+					    "type": "market",
+					    "post_only": false,
+					    "created_at": "2016-12-08T20:09:05.508883Z",
+					    "done_at": "2016-12-08T20:09:05.527Z",
+					    "done_reason": "filled",
+					    "fill_fees": "0.0249376391550000",
+					    "filled_size": "0.01291771",
+					    "executed_value": "9.9750556620000000",
+					    "status": "done",
+					    "settled": true
+					}
+	
+				    websocket
+				    { 	id: update.order_id,
+						price: update.price,
+						size: update.remaining_size,
+						product_id: update.product_id,
+						side: update.side,
+						status: 'open',
+						settled: false,
+						filled_size: 0 }
 
-			    websocket
-			    { 	id: update.order_id,
-					price: update.price,
-					size: update.remaining_size,
-					product_id: update.product_id,
-					side: update.side,
-					status: 'open',
-					settled: false,
-					filled_size: 0 }
-
-					 */
+					*/
 
 					client.getOrder(opts.order_id, function (err, resp, body) {
 						if (!err && resp.statusCode === 200) {
@@ -1044,47 +1055,47 @@ module.exports = function gdax (conf) {
 				}
 			},
 
-			getAllOrders: function getAllOrders(opts, cb) {
-				if (now() > next_request) {
-					next_request = now() + 1000/max_requests_per_second
-
-					var func_args = [].slice.call(arguments)
-					var client = authedClient()
-
-					debug.msg('getAllOrders - getAllOrders call')
-
-					client.getOrders(opts, function (err, resp, body) {
-						if (!err && resp.statusCode !== 404) {
-							err = statusErr(resp, body)
-							debug.msg('getOrder - !404 (' + resp.statusCode + '):')
-							if (err)
-								debug.obj('err', err, false)
-						}
-
-//						if (body) {
-//						debug.msg('getAllOrders - body: ')
-//						console.log(body)
+//			getAllOrders: function getAllOrders(opts, cb) {
+//				if (now() > next_request) {
+//					next_request = now() + 1000/max_requests_per_second
+//
+//					var func_args = [].slice.call(arguments)
+//					var client = authedClient()
+//
+//					debug.msg('getAllOrders - getAllOrders call')
+//
+//					client.getOrders(opts, function (err, resp, body) {
+//						if (!err && resp.statusCode !== 404) {
+//							err = statusErr(resp, body)
+//							debug.msg('getOrder - !404 (' + resp.statusCode + '):')
+//							if (err)
+//								debug.obj('err', err, false)
 //						}
-
-//						if (resp) {
-//						debug.msg('getAllOrders - resp: ')
-//						console.log(resp)
-//						}
-
-						if (err) {
-							debug.msg('getAllOrders -  err: ')
-							console.log(err)
-							return cb(err)
-						}			
-
-						cb(null, body)
-					})
-				}
-				else {
-					debug.msg('getAllOrders - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { getAllOrders(opts, cb) }, (next_request - now() + 1))
-				}
-			},
+//
+////						if (body) {
+////						debug.msg('getAllOrders - body: ')
+////						console.log(body)
+////						}
+//
+////						if (resp) {
+////						debug.msg('getAllOrders - resp: ')
+////						console.log(resp)
+////						}
+//
+//						if (err) {
+//							debug.msg('getAllOrders -  err: ')
+//							console.log(err)
+//							return cb(err)
+//						}			
+//
+//						cb(null, body)
+//					})
+//				}
+//				else {
+//					debug.msg('getAllOrders - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+//					setTimeout(function() { getAllOrders(opts, cb) }, (next_request - now() + 1))
+//				}
+//			},
 
 			// return the property used for range querying.
 			getCursor: function (trade) {
