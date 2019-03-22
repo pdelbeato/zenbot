@@ -239,7 +239,7 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('M', {desc: ('switch between \'Maker\' and \'Taker\' order type'.grey), action: function() {
 					(so.order_type === 'maker' ? so.order_type = 'taker' : so.order_type = 'maker')
-					console.log('\n' + so.order_type.toUpperCase().black.bgyellow + ' fees activated'.black.bgYellow)
+					console.log('\n' + so.order_type.toUpperCase() + ' ' + 'fees activated'.black.bgYellow)
 				}})
 				break
 			}
@@ -479,7 +479,7 @@ module.exports = function (program, conf) {
 						console.log('No position in control.')
 					}
 				}})
-				keyMap.set('c', {desc: ('cancel ALL orders connected to the position, without let it free'.grey), action: function() {
+				keyMap.set('c', {desc: ('cancel ALL orders connected to the position, leaving it locked/unlocked'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nCanceling all orders connected with the position '.yellow + s.positions[s.positions_index].id)
 						//						status_tmp = ~(s.positions[s.positions_index].status & engine.orderFlag.locked)
@@ -826,7 +826,7 @@ module.exports = function (program, conf) {
 		function managePositionCollection (mode, position_id, cb = function () {}) {
 			switch (mode) {
 			case 'update': {
-				position = s.positions.find(x => x.id === position_id)
+				var position = s.positions.find(x => x.id === position_id)
 				position._id = position.id
 
 				if (s.db_valid) {
@@ -841,9 +841,14 @@ module.exports = function (program, conf) {
 				break
 			}
 			case 'delete': {
+				var position_index = s.positions.findIndex(x => x.id === position_id)
+				
 				if (s.db_valid) {
 					//Cancello la posizione dal db delle posizioni aperte...
 					my_positions.deleteOne({'_id' : position_id}, function (err) {
+						//In ogni caso, elimino la posizione da s.positions
+						s.positions.splice(position_index,1)
+						
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in my_positions')
 							console.error(err)
@@ -852,14 +857,16 @@ module.exports = function (program, conf) {
 					})
 					//... e inserisco la posizione chiusa del db delle posizioni chiuse
 					position = s.closed_positions.find(x => x.id === position_id)
-					position._id = position.id
-					my_closed_positions.updateOne({'_id' : position_id}, {$set: position}, {upsert: true}, function (err) {
-						if (err) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_closed_positions')
-							console.error(err)
-							return cb(err)
-						}
-					})
+					if (position) {
+						position._id = position.id
+						my_closed_positions.updateOne({'_id' : position_id}, {$set: position}, {upsert: true}, function (err) {
+							if (err) {
+								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_closed_positions')
+								console.error(err)
+								return cb(err)
+							}
+						})
+					}
 				}
 				break
 			}
