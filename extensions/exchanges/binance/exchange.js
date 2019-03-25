@@ -462,7 +462,7 @@ module.exports = function binance (conf) {
 						body.forEach(function(order, index) {
 //							delete order.info
 							exchange_cache.openOrders['~' + order.id] = order
-						}
+						})
 						cb(null)
 					}, function(err) {
 						return retry('getOpenOrders', func_args, err)

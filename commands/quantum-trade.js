@@ -1447,8 +1447,8 @@ module.exports = function (program, conf) {
 								setInterval(forwardScan, so.poll_trades)
 								
 								//Se esiste , chiamata alla funzione getOpenOrders() ogni so.order_poll_time
-								if (typeof exchange.getOpenOrders === 'function') {
-									setInterval(exchange.getOpenOrders(so.selector), so.order_poll_time)
+								if (typeof s.exchange.getOpenOrders === 'function') {
+									setInterval(s.exchange.getOpenOrders(so.selector), so.order_poll_time)
 								}
 
 								readline.emitKeypressEvents(process.stdin)
