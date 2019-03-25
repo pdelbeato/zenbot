@@ -1445,6 +1445,11 @@ module.exports = function (program, conf) {
 								//Chiamata alla funzione forwardScan() ogni so.poll_trades
 								//forwardScan()
 								setInterval(forwardScan, so.poll_trades)
+								
+								//Se esiste , chiamata alla funzione getOpenOrders() ogni so.order_poll_time
+								if (typeof s.exchange.getOpenOrders === 'function') {
+									setInterval(s.exchange.getOpenOrders(so.selector), so.order_poll_time)
+								}
 
 								readline.emitKeypressEvents(process.stdin)
 								if (!so.non_interactive && process.stdin.setRawMode) {
@@ -1555,8 +1560,7 @@ module.exports = function (program, conf) {
 				session.balance = s.balance
 				session.num_trades = s.my_trades.length
 				session.day_count = s.day_count
-				//Corretto il Deprecation Warning
-				//					if (s.db_valid) sessions.save(session, function (err) {
+				
 				if (s.db_valid) sessions.updateOne({'_id' : session._id}, {$set : session}, {upsert : true}, function (err) {
 					if (err) {
 						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
@@ -1572,7 +1576,6 @@ module.exports = function (program, conf) {
 						process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
 					}
 				})
-				//				})
 			}
 			/* End of saveSession()  */
 

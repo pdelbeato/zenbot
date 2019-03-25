@@ -242,7 +242,10 @@ module.exports = function gdax (conf) {
 				side: update.side,
 				status: 'open',
 				settled: false,
-				filled_size: 0
+				filled_size: 0,
+				executed_value: 0,
+				fill_fees: 0,
+				currency_fees: null
 		}
 	}
 
@@ -1052,47 +1055,47 @@ module.exports = function gdax (conf) {
 				}
 			},
 
-			getAllOrders: function getAllOrders(opts, cb) {
-				if (now() > next_request) {
-					next_request = now() + 1000/max_requests_per_second
-
-					var func_args = [].slice.call(arguments)
-					var client = authedClient()
-
-					debug.msg('getAllOrders - getAllOrders call')
-
-					client.getOrders(opts, function (err, resp, body) {
-						if (!err && resp.statusCode !== 404) {
-							err = statusErr(resp, body)
-							debug.msg('getOrder - !404 (' + resp.statusCode + '):')
-							if (err)
-								debug.obj('err', err, false)
-						}
-
-//						if (body) {
-//						debug.msg('getAllOrders - body: ')
-//						console.log(body)
+//			getAllOrders: function getAllOrders(opts, cb) {
+//				if (now() > next_request) {
+//					next_request = now() + 1000/max_requests_per_second
+//
+//					var func_args = [].slice.call(arguments)
+//					var client = authedClient()
+//
+//					debug.msg('getAllOrders - getAllOrders call')
+//
+//					client.getOrders(opts, function (err, resp, body) {
+//						if (!err && resp.statusCode !== 404) {
+//							err = statusErr(resp, body)
+//							debug.msg('getOrder - !404 (' + resp.statusCode + '):')
+//							if (err)
+//								debug.obj('err', err, false)
 //						}
-
-//						if (resp) {
-//						debug.msg('getAllOrders - resp: ')
-//						console.log(resp)
-//						}
-
-						if (err) {
-							debug.msg('getAllOrders -  err: ')
-							console.log(err)
-							return cb(err)
-						}			
-
-						cb(null, body)
-					})
-				}
-				else {
-					debug.msg('getAllOrders - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { getAllOrders(opts, cb) }, (next_request - now() + 1))
-				}
-			},
+//
+////						if (body) {
+////						debug.msg('getAllOrders - body: ')
+////						console.log(body)
+////						}
+//
+////						if (resp) {
+////						debug.msg('getAllOrders - resp: ')
+////						console.log(resp)
+////						}
+//
+//						if (err) {
+//							debug.msg('getAllOrders -  err: ')
+//							console.log(err)
+//							return cb(err)
+//						}			
+//
+//						cb(null, body)
+//					})
+//				}
+//				else {
+//					debug.msg('getAllOrders - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+//					setTimeout(function() { getAllOrders(opts, cb) }, (next_request - now() + 1))
+//				}
+//			},
 
 			// return the property used for range querying.
 			getCursor: function (trade) {
