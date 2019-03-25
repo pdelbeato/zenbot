@@ -18,7 +18,7 @@
   {
     "asset": "BCH",
     "currency": "USD",
-    "min_size": "0.05",
+    "min_size": "0.1",
     "max_size": "30",
     "increment": "0.01",
     "label": "BCH/USD"
@@ -90,7 +90,7 @@
   {
     "asset": "BCH",
     "currency": "EUR",
-    "min_size": "0.05",
+    "min_size": "0.1",
     "max_size": null,
     "increment": "0.01",
     "label": "BCH/EUR"
@@ -154,7 +154,7 @@
   {
     "asset": "BCH",
     "currency": "GBP",
-    "min_size": "0.05",
+    "min_size": "0.1",
     "max_size": null,
     "increment": "0.01",
     "label": "BCH/GBP"
@@ -246,5 +246,37 @@
     "max_size": null,
     "increment": "0.000001",
     "label": "ZEC/BTC"
+  },
+  {
+    "asset": "QASH",
+    "currency": "BTC",
+    "min_size": "40",
+    "max_size": null,
+    "increment": "0.000001",
+    "label": "QASH/BTC"
+  },
+  {
+    "asset": "QASH",
+    "currency": "ETH",
+    "min_size": "40",
+    "max_size": null,
+    "increment": "0.01",
+    "label": "QASH/ETH"
+  },
+  {
+    "asset": "GUSD",
+    "currency": "USD",
+    "min_size": "100",
+    "max_size": null,
+    "increment": "0.01",
+    "label": "GUSD/USD"
+  },
+  {
+    "asset": "GUSD",
+    "currency": "EUR",
+    "min_size": "100",
+    "max_size": null,
+    "increment": "0.01",
+    "label": "GUSD/EUR"
   }
 ]
