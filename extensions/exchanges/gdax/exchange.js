@@ -469,8 +469,8 @@ module.exports = function gdax (conf) {
 	var exchange = {
 			name: 'gdax',
 			historyScan: 'backward',
-			makerFee: 0,
-			takerFee: 0.3,
+			makerFee: 0.15,
+			takerFee: 0.25,
 			backfillRateLimit: 335,
 			
 			debug_exchange: false,
