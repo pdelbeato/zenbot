@@ -1035,8 +1035,8 @@ module.exports = function gdax (conf) {
 						if (resp && resp.statusCode === 404) {
 							// order was cancelled. recall from cache
 							body = orders['~' + opts.order_id]
-							body.status = 'done'
-								body.done_reason = 'canceled'
+							body.status = 'done';
+							body.done_reason = 'canceled';
 						}
 
 						if (err) {
