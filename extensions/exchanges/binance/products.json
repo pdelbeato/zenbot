@@ -5300,5 +5300,115 @@
     "increment": "0.01000000",
     "asset_increment": "0.00001000",
     "label": "XMR/USDT"
+  },
+  {
+    "id": "ZECBNB",
+    "asset": "ZEC",
+    "currency": "BNB",
+    "min_size": "0.00100000",
+    "max_size": "10000000.00000000",
+    "min_total": "1.00000000",
+    "increment": "0.00100000",
+    "asset_increment": "0.00100000",
+    "label": "ZEC/BNB"
+  },
+  {
+    "id": "ZECUSDT",
+    "asset": "ZEC",
+    "currency": "USDT",
+    "min_size": "0.00001000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.01000000",
+    "asset_increment": "0.00001000",
+    "label": "ZEC/USDT"
+  },
+  {
+    "id": "ZECPAX",
+    "asset": "ZEC",
+    "currency": "PAX",
+    "min_size": "0.00001000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.01000000",
+    "asset_increment": "0.00001000",
+    "label": "ZEC/PAX"
+  },
+  {
+    "id": "ZECTUSD",
+    "asset": "ZEC",
+    "currency": "TUSD",
+    "min_size": "0.00001000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.01000000",
+    "asset_increment": "0.00001000",
+    "label": "ZEC/TUSD"
+  },
+  {
+    "id": "ZECUSDC",
+    "asset": "ZEC",
+    "currency": "USDC",
+    "min_size": "0.00001000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.01000000",
+    "asset_increment": "0.00001000",
+    "label": "ZEC/USDC"
+  },
+  {
+    "id": "IOSTBNB",
+    "asset": "IOST",
+    "currency": "BNB",
+    "min_size": "1.00000000",
+    "max_size": "90000000.00000000",
+    "min_total": "1.00000000",
+    "increment": "0.00000010",
+    "asset_increment": "1.00000000",
+    "label": "IOST/BNB"
+  },
+  {
+    "id": "IOSTUSDT",
+    "asset": "IOST",
+    "currency": "USDT",
+    "min_size": "1.00000000",
+    "max_size": "90000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00000100",
+    "asset_increment": "1.00000000",
+    "label": "IOST/USDT"
+  },
+  {
+    "id": "CELRBNB",
+    "asset": "CELR",
+    "currency": "BNB",
+    "min_size": "1.00000000",
+    "max_size": "90000000.00000000",
+    "min_total": "1.00000000",
+    "increment": "0.00000100",
+    "asset_increment": "1.00000000",
+    "label": "CELR/BNB"
+  },
+  {
+    "id": "CELRBTC",
+    "asset": "CELR",
+    "currency": "BTC",
+    "min_size": "1.00000000",
+    "max_size": "90000000.00000000",
+    "min_total": "0.00100000",
+    "increment": "0.00000001",
+    "asset_increment": "1.00000000",
+    "label": "CELR/BTC"
+  },
+  {
+    "id": "CELRUSDT",
+    "asset": "CELR",
+    "currency": "USDT",
+    "min_size": "0.10000000",
+    "max_size": "90000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00001000",
+    "asset_increment": "0.10000000",
+    "label": "CELR/USDT"
   }
 ]
