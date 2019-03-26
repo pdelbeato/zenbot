@@ -430,7 +430,8 @@ module.exports = function binance (conf) {
 									filled_size: body.filled,
 									executed_value: body.cost,
 									fill_fees: body.fee.cost,
-									currency_fees: body.fee.currency
+									currency_fees: body.fee.currency,
+									rate_fees: body.fee.rate
 							}
 							
 							if (order_tmp.status !== 'open' && order_tmp.status !== 'canceled') {
