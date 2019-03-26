@@ -406,8 +406,7 @@ module.exports = function (program, conf) {
 						if (s.positions_index > (s.positions.length - 1)) {
 							s.positions_index = 0
 						}
-						console.log('\nPosition in control:'.yellow)
-						console.log(s.positions[s.positions_index].id)
+						console.log('\nPosition in control:'.yellow + s.positions[s.positions_index].id)
 					}
 					else {
 						console.log('No position opened.')
