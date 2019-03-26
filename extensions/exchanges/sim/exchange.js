@@ -140,12 +140,15 @@ module.exports = function sim (conf, s) {
 							remaining_size: opts.size,
 							post_only: !!opts.post_only,
 							filled_size: 0,
-//							executed_value: 0,
+							executed_value: 0,
 							ordertype: opts.order_type,
 							tradetype: 'buy',
 							orig_time: now,
 							time: now,
-							created_at: now
+							created_at: now,
+							done_at: null,
+							fill_fees: 0,
+							currency_fees: null
 					}
 
 					orders['~' + result.id] = order
@@ -177,13 +180,17 @@ module.exports = function sim (conf, s) {
 							remaining_size: opts.size,
 							post_only: !!opts.post_only,
 							filled_size: 0,
-//							executed_value: 0,
+							executed_value: 0,
 							ordertype: opts.order_type,
 							tradetype: 'sell',
 							orig_time: now,
 							time: now,
-							created_at: now
+							created_at: now,
+							done_at: null,
+							fill_fees: 0,
+							currency_fees: null
 					}
+					
 					orders['~' + result.id] = order
 					openOrders['~' + result.id] = order
 					recalcHold(function() {
@@ -283,7 +290,7 @@ module.exports = function sim (conf, s) {
 		if (so.order_type === 'maker' && exchange.makerFee) {
 			fee = n(size).multiply(exchange.makerFee / 100).value()
 		}
-		else if (so.order_type === 'taker' && s.exchange.takerFee) {
+		else if (so.order_type === 'taker' && exchange.takerFee) {
 			fee = n(size).multiply(exchange.takerFee / 100).value()
 		}
 
@@ -292,11 +299,11 @@ module.exports = function sim (conf, s) {
 		balance.currency = n(balance.currency).subtract(total).format('0.00000000')
 
 		// Process existing order size changes
-//		let order = buy_order
 		buy_order.filled_size = n(buy_order.filled_size).add(size).format('0.00000000')
 		buy_order.remaining_size = n(buy_order.size).subtract(buy_order.filled_size).format('0.00000000')
-//		order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
+		buy_order.executed_value = n(size).multiply(price).add(buy_order.executed_value).format(s.product.increment)
 		buy_order.done_at = new Date(trade.done_at).getTime()
+		buy_order.fill_fees = n(buy_order.fill_fees).add(fee).format(s.product.increment)
 
 		if (buy_order.remaining_size <= s.product.min_size) {
 			if (debug) {
@@ -339,11 +346,11 @@ module.exports = function sim (conf, s) {
 		balance.currency = n(balance.currency).add(total).subtract(fee).format('0.00000000')
 
 		// Process existing order size changes
-//		let order = sell_order
 		sell_order.filled_size = n(sell_order.filled_size).add(size).format('0.00000000')
 		sell_order.remaining_size = n(sell_order.size).subtract(sell_order.filled_size).format('0.00000000')
-//		order.executed_value = n(size).multiply(price).add(order.executed_value).format(s.product.increment)
+		sell_order.executed_value = n(size).multiply(price).add(sell_order.executed_value).format(s.product.increment)
 		sell_order.done_at = new Date(trade.done_at).getTime()
+		sell_order.fill_fees = n(sell_order.fill_fees).add(fee).format(s.product.increment)
 
 		if (sell_order.remaining_size <= s.product.min_size) {
 			if (debug) {
