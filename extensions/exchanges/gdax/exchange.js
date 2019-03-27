@@ -1051,7 +1051,7 @@ module.exports = function gdax (conf) {
 				}
 				else {
 					debug.msg('getOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { getOrder(opts, cb) }, (next_request - now() + 1))
+					setTimeout(function() { getOrder(opts, forced, cb) }, (next_request - now() + 1))
 				}
 			},
 
