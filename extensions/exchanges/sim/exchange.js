@@ -295,9 +295,9 @@ module.exports = function sim (conf, s) {
 		}
 
 		// Update balance
-		balance.asset = n(balance.asset).add(size).subtract(fee).format('0.00000000')
+		balance.asset = n(balance.asset).add(size).subtract(so.use_fee_asset ? 0 : fee).format('0.00000000')
 		balance.currency = n(balance.currency).subtract(total).format('0.00000000')
-
+		 
 		// Process existing order size changes
 		buy_order.filled_size = n(buy_order.filled_size).add(size).format('0.00000000')
 		buy_order.remaining_size = n(buy_order.size).subtract(buy_order.filled_size).format('0.00000000')
@@ -343,7 +343,7 @@ module.exports = function sim (conf, s) {
 
 		// Update balance
 		balance.asset = n(balance.asset).subtract(size).format('0.00000000')
-		balance.currency = n(balance.currency).add(total).subtract(fee).format('0.00000000')
+		balance.currency = n(balance.currency).add(total).subtract(so.use_fee_asset ? 0 : fee).format('0.00000000')
 
 		// Process existing order size changes
 		sell_order.filled_size = n(sell_order.filled_size).add(size).format('0.00000000')
