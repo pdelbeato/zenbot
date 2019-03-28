@@ -1003,8 +1003,8 @@ module.exports = function (program, conf) {
 				output_lines.push('Last capital in asset: ' + n(tmp_capital_asset).format('0.00000000').yellow + ' (' + profit_asset.format('0.00%') + ')')
 				output_lines.push('SellHold: ' + sell_hold.format('0.00000000').yellow + ' (' + n(sell_hold_profit).format('0.00%') + ')')
 				output_lines.push('vs. SellHold: ' + n(tmp_capital_asset).subtract(sell_hold).divide(sell_hold).format('0.00%').yellow)
-				//output_lines.push((s.my_prev_trades.length ? s.my_trades.length + s.my_prev_trades.length : s.my_trades.length) + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 				output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
+				output_lines.push('Total fees: ' + formatCurrency(s.total_fees, s.currency).yellow)
 				output_lines.push(s.positions.length + ' positions opened.')
 				output_lines.push(s.orders.length + ' orders opened.')
 				output_lines.push(sizeof(s) + ' size of s')
@@ -1023,6 +1023,7 @@ module.exports = function (program, conf) {
 					buy_hold: buy_hold.format('0.00'),
 					buy_hold_profit: n(buy_hold_profit).format('0.00%'),
 					day_count: s.day_count,
+					total_fees: s.total_fees,
 					trade_per_day: n(s.my_trades.length / s.day_count).format('0.00')
 			}
 
@@ -1160,6 +1161,7 @@ module.exports = function (program, conf) {
 				buy_hold: buy_hold.format('0.00000000'),
 				buy_hold_profit: n(buy_hold_profit).format('0.00%'),
 				day_count: s.day_count,
+				total_fees: s.total_fees,
 				trade_per_day: n(s.my_trades.length / s.day_count).format('0.00')
 			}
 
@@ -1400,6 +1402,7 @@ module.exports = function (program, conf) {
 									orig_capital_asset: s.start_capital_asset,
 									orig_price: s.start_price,
 									day_count: s.day_count,
+									total_fees: s.total_fees,
 									num_trades: s.my_trades.length
 							}
 														
@@ -1420,6 +1423,7 @@ module.exports = function (program, conf) {
 									s.start_currency = s.balance.currency
 									s.start_asset = s.balance.asset
 									s.day_count = session.day_count = (prev_session.day_count ? prev_session.day_count : 1)
+									s.total_fees = session.total_fees = (prev_session.total_fees ? prev_session.total_fees : 0)
 									session.num_trades = prev_session.num_trades
 									debug.obj('getNext() - prev_session', session)
 									if (so.mode === 'paper') {
@@ -1559,6 +1563,7 @@ module.exports = function (program, conf) {
 				session.balance = s.balance
 				session.num_trades = s.my_trades.length
 				session.day_count = s.day_count
+				session.total_fee = s.total_fee
 				
 				if (s.db_valid) sessions.updateOne({'_id' : session._id}, {$set : session}, {upsert : true}, function (err) {
 					if (err) {
