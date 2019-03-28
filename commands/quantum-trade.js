@@ -1451,7 +1451,9 @@ module.exports = function (program, conf) {
 								
 								//Se esiste , chiamata alla funzione getOpenOrders() ogni so.order_poll_time
 								if (typeof s.exchange.getOpenOrders === 'function') {
-									setInterval(s.exchange.getOpenOrders(so.selector), so.order_poll_time)
+									setInterval(function() {
+										s.exchange.getOpenOrders(so.selector)
+									}, so.order_poll_time)
 								}
 
 								readline.emitKeypressEvents(process.stdin)
@@ -1493,8 +1495,8 @@ module.exports = function (program, conf) {
 
 		var prev_timeout = null
 		//forwardScan() viene chiamata ogni so.poll_trades
-		function forwardScan () {
-			function saveSession () {
+		function forwardScan() {
+			function saveSession() {
 				//				engine.syncBalance(function (err) {
 				//					if (!err && s.balance.asset === undefined) {
 				//						// TODO not the nicest place to verify the state, but did not found a better one
