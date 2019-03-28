@@ -449,7 +449,7 @@ module.exports = function binance (conf) {
 				}
 			},
 
-			getOpenOrders: function (opts, cb) {
+			getOpenOrders: function (opts, cb = function() {}) {
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
