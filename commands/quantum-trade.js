@@ -1459,7 +1459,7 @@ module.exports = function (program, conf) {
 								setInterval(forwardScan, so.poll_trades)
 								
 								//Se non esiste websocketClient, chiamata alla funzione getAllOrders() ogni so.order_poll_time
-								if (typeof s.exchange.websocketClient !== 'function') { // && typeof s.exchange.getAllOrders === 'function') {
+								if (!(typeof s.exchange.websocketClient === 'function')) { // && typeof s.exchange.getAllOrders === 'function') {
 									console.log('Attivo chiamata a s.exchange.getAllOrders')
 									setInterval(function() {
 										s.exchange.getAllOrders(so.selector)
