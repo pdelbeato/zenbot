@@ -456,8 +456,8 @@ module.exports = function binance (conf) {
 					var func_args = [].slice.call(arguments)
 					var client = authedClient()
 					client.fetchOpenOrders(joinProduct(opts.product_id)).then(function (body) {
-						console.log('exchange.getOpenOrders - body:')
-						console.log(body)
+//						console.log('exchange.getOpenOrders - body:')
+//						console.log(body)
 						//Azzero la cache e la riscrivo con i valori ricevuti
 						exchange_cache.openOrders = {}
 						body.forEach(function(order, index) {
