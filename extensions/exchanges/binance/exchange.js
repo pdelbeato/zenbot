@@ -482,7 +482,7 @@ module.exports = function binance (conf) {
 			},
 			
 			getMemory: function() {
-				return sizeof(websocket_cache)
+				return sizeof(exchange_cache)
 			}
 	}
 	return exchange
