@@ -475,6 +475,7 @@ module.exports = function gdax (conf) {
 			makerFee: 0.15,
 			takerFee: 0.25,
 			backfillRateLimit: 335,
+			websocket: true,
 			
 			debug_exchange: false,
 

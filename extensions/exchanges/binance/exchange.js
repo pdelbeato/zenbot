@@ -67,6 +67,7 @@ module.exports = function binance (conf) {
 			historyScanUsesTime: true,
 			makerFee: 0.1,
 			takerFee: 0.1,
+			websocket: false,
 
 			getProducts: function () {
 				return require('./products.json')
