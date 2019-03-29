@@ -164,7 +164,7 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.getQuote - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { getBalance(opts, cb) }, (next_request - now() + 1))
+					setTimeout(function() { getQuote(opts, cb) }, (next_request - now() + 1))
 				}
 			},
 
@@ -214,7 +214,7 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.cancelOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { getBalance(opts, cb) }, (next_request - now() + 1))
+					setTimeout(function() { cancelOrder(opts, cb) }, (next_request - now() + 1))
 				}
 			},
 			
@@ -285,7 +285,7 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.buy - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { cancelAllOrders(opts, cb) }, (next_request - now() + 1))
+					setTimeout(function() { buy(opts, cb) }, (next_request - now() + 1))
 				}
 			},
 
@@ -349,7 +349,7 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.sell - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { cancelAllOrders(opts, cb) }, (next_request - now() + 1))
+					setTimeout(function() { sell(opts, cb) }, (next_request - now() + 1))
 				}
 			},
 
@@ -446,19 +446,19 @@ module.exports = function binance (conf) {
 					}
 					else {
 						debug.msg('exchange.getOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-						setTimeout(function() { cancelAllOrders(opts, cb) }, (next_request - now() + 1))
+						setTimeout(function() { getOrders(opts, cb) }, (next_request - now() + 1))
 					}
 				}
 			},
 
-			getOpenOrders: function (opts, cb = function() {}) {
+			getAllOrders: function (opts, cb = function() {}) {
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
 					var func_args = [].slice.call(arguments)
 					var client = authedClient()
 					client.fetchOpenOrders(joinProduct(opts.product_id)).then(function (body) {
-//						console.log('exchange.getOpenOrders - body:')
+//						console.log('exchange.getAllOrders - body:')
 //						console.log(body)
 						//Azzero la cache e la riscrivo con i valori ricevuti
 						exchange_cache.openOrders = {}
@@ -468,12 +468,12 @@ module.exports = function binance (conf) {
 						})
 						cb(null)
 					}, function(err) {
-						return retry('getOpenOrders', func_args, err)
+						return retry('getAllOrders', func_args, err)
 					})
 				}
 				else {
-					debug.msg('exchange.getOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { cancelAllOrders(opts, cb) }, (next_request - now() + 1))
+					debug.msg('exchange.getAllOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					setTimeout(function() { getAllOrders(opts, cb) }, (next_request - now() + 1))
 				}
 			},
 

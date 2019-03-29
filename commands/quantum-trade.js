@@ -1458,10 +1458,10 @@ module.exports = function (program, conf) {
 								//forwardScan()
 								setInterval(forwardScan, so.poll_trades)
 								
-								//Se esiste , chiamata alla funzione getOpenOrders() ogni so.order_poll_time
-								if (typeof s.exchange.getOpenOrders === 'function') {
+								//Se esiste , chiamata alla funzione getAllOrders() ogni so.order_poll_time
+								if (typeof s.exchange.websocketClient !== 'function' && typeof s.exchange.getAllOrders === 'function') {
 									setInterval(function() {
-										s.exchange.getOpenOrders(so.selector)
+										s.exchange.getAllOrders(so.selector)
 									}, so.order_poll_time)
 								}
 
