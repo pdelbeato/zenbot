@@ -467,7 +467,7 @@ module.exports = function binance (conf) {
 //							delete order.info
 							exchange_cache.openOrders['~' + order.id] = order
 						})
-						cb(null)
+						cb(null, body)
 					}, function(err) {
 						return retry('getAllOrders', func_args, err)
 					})
