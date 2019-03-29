@@ -4,6 +4,8 @@ const ccxt = require('ccxt')
 , colors = require('colors')
 , _ = require('lodash')
 , debug = require('../../../lib/debug')
+//Se funziona la gestione della memoria, si può cancellare insieme alla funzione getMemory()
+, sizeof = require('object-sizeof')
 
 
 module.exports = function binance (conf) {
@@ -477,6 +479,10 @@ module.exports = function binance (conf) {
 
 			getCursor: function (trade) {
 				return (trade.time || trade)
+			},
+			
+			getMemory: function() {
+				return sizeof(websocket_cache)
 			}
 	}
 	return exchange
