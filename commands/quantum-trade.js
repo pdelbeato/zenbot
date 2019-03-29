@@ -298,6 +298,15 @@ module.exports = function (program, conf) {
 			}
 			case 3: {
 				//Modo EXCHANGE
+				keyMap.set('B', {desc: ('Balance on Exchange'.grey), action: function() {
+					console.log('\nGetting balance from Exchange'.yellow)
+					engine.syncBalance( function() {
+						console.log('s.balance:')
+						console.log(s.balance)
+						console.log('s.available_balance:')
+						console.log(s.available_balance)
+					})
+				}})
 				keyMap.set('o', {desc: ('list orders on exchange'.grey), action: function() {
 					s.exchange_orders_index = null
 					s.exchange_orders = []
