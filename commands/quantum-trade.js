@@ -1023,7 +1023,7 @@ module.exports = function (program, conf) {
 				Object.keys(so.strategy).forEach(function (strategy_name, index) {
 					output_lines.push(sizeof(s.options.strategy[strategy_name].calc_lookback) + ' size of ' + strategy_name + ' calc_lookback')
 				})
-				output_lines.push(s.exchange.getMemory() + ' size of websocket_cache in exchange')
+				output_lines.push(s.exchange.getMemory() + ' size of cache in exchange')
 			}
 			// Build stats for UI
 			s.stats = {
