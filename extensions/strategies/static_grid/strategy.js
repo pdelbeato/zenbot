@@ -83,9 +83,9 @@ module.exports = {
 
 		onReport: function (s) {
 			var cols = []
-			cols.push('Lane ') 
+			cols.push('Lane') 
 			cols.push(z(3, s.options.strategy.static_grid.data.old_lane, ' '))
-			cols.push(('-> ')[(s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red')])
+			cols.push((' ->')[(s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red')])
 			cols.push(z(3, s.options.strategy.static_grid.data.actual_lane, ' '))
 			cols.push(z(6, (s.options.active_long_position ? 'Long' : 'Short'), ' '))
 			return cols
