@@ -1,5 +1,5 @@
 var z = require('zero-fill')
-, n = require('numbro'),
+, n = require('numbro')
 , debug = require('../../../lib/debug')
 
 //Parte da includere nel file di configurazione
@@ -38,10 +38,10 @@ module.exports = {
 			var lane_width = s.options.strategy.static_grid.opts.pivot * s.options.strategy.static_grid.opts.grid_pct / 100
 			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
 			for (var i = 0; i <= (2 * central_lane); i++) {
-				s.options.strategy.static_grid.data.boundary[i] = s.options.strategy.static_grid.opts.pivot + ((i - central_lane) * lane_width)
-				if (s.period.close > s.options.strategy.static_grid.data.boundary[i]) {
-					s.options.strategy.static_grid.data.actual_lane = s.options.strategy.static_grid.data.old_lane = i + 1
-				}
+				s.options.strategy.static_grid.data.boundary[i] = n(s.options.strategy.static_grid.opts.pivot).add((i - central_lane) * lane_width).format(s.product.increment ? s.product.increment : '0.00000000')
+//				if (s.period.close > s.options.strategy.static_grid.data.boundary[i]) {
+//					s.options.strategy.static_grid.data.actual_lane = s.options.strategy.static_grid.data.old_lane = i + 1
+//				}
 			}
 			console.log('Static Grid:')
 			console.log(s.options.strategy.static_grid.data.boundary)
@@ -49,7 +49,6 @@ module.exports = {
 
 		calculate: function (s) {
 			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
-			
 			for (var i = 0; i <= (2 * central_lane); i++) {
 				if (s.period.close > s.options.strategy.static_grid.data.boundary[i]) {
 					s.options.strategy.static_grid.data.actual_lane = i + 1
@@ -63,23 +62,32 @@ module.exports = {
 		},
 
 		onPeriod: function (s, cb) {
+			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
+
 			if (!s.options.strategy.static_grid.data.trade_in_lane) {
-				if (s.options.strategy.static_grid.data.trend > 0) {
+				var side = (s.options.strategy.static_grid.data.actual_lane > central_lane)
+
+				s.options.so.active_long_position = !side
+				s.options.so.active_short_position = side
+
+				if (s.options.strategy.static_grid.data.trend < 0) {
 					s.eventBus.emit('static_grid', 'sell')
 				}
-				else if (s.options.strategy.static_grid.data.trend < 0) {
+				else if (s.options.strategy.static_grid.data.trend > 0) {
 					s.eventBus.emit('static_grid', 'buy')
 				}
+				s.options.strategy.static_grid.data.old_lane = s.options.strategy.static_grid.data.actual_lane
+				cb()
 			}
-			
-			cb()
 		},
 
 		onReport: function (s) {
 			var cols = []
-			cols.push(z(10, 'Actual ' + n(s.options.strategy.static_grid.data.actual_lane), ' '))
-			cols.push(z(7, 'Old ' + n(s.options.strategy.static_grid.data.old_lane), ' '))
-			cols.push(z(9, 'Trend ' + n(s.options.strategy.static_grid.data.trend), ' ')[(s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red')])
+			cols.push('Lane ') 
+			cols.push(z(3, s.options.strategy.static_grid.data.old_lane, ' ')
+			cols.push('-> ')[(s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red')])
+			cols.push(z(3, s.options.strategy.static_grid.data.actual_lane, ' ')
+			cols.push(z(6,  (s.options.so.active_long_position ? 'Long' : 'Short'), ' '))
 			return cols
 		},
 		

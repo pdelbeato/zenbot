@@ -212,7 +212,7 @@ module.exports = function sim (conf, s) {
 				}, latency)
 			},
 
-			getAllOrders: function (opts, cb) {
+			getAllOrders: function (opts, cb = function() {}) {
 				setTimeout(function() {
 					cb(null, orders)
 				}, latency)
