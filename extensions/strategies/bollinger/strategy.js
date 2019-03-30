@@ -5,13 +5,35 @@ var z = require('zero-fill')
 , debug = require('../../../lib/debug')
 , crypto = require('crypto')
 
+//Parte da includere nel file di configurazione
+//---------------------------------------------
+//c.strategy['bollinger'] = {
+//	name: 'bollinger',
+//	opts: {
+//		period_calc: '15m',			//calculate Bollinger Bands every period_calc time
+//		min_periods: 301, 			//min. number of history periods (timeframe period_length)
+//		size: 20,					//period size
+//		time: 2,					//times of standard deviation between the upper/lower band and the moving averages
+//		min_bandwidth_pct: 0.50,	//minimum pct bandwidth to emit a signal
+//		upper_bound_pct: 0,			//pct the current price should be near the bollinger upper bound before we sell
+//		lower_bound_pct: 0,			//pct the current price should be near the bollinger lower bound before we buy
+//		upper_watchdog_pct: 200,	//pct the current price should be over the bollinger upper bound to activate watchdog
+//		lower_watchdog_pct: 200,	//pct the current price should be under the bollinger lower bound to activate watchdog
+//		calmdown_watchdog_pct: 0,	//pct the current price should be far from the bollinger bands to calmdown the watchdog
+//	},
+//	data: {							//to storage calculated data
+//		upperBound: null,
+//		midBound: null,
+//		lowerBound : null
+//	},	
+//}
+
+
 module.exports = {
 	name: 'bollinger',
 	description: 'Buy when (Signal ≤ Lower Bollinger Band) and sell when (Signal ≥ Upper Bollinger Band).',
 
 	getOptions: function () {
-//		this.option('bollinger', 'period_length', 'period length, ', String, '15m')
-//		this.option('bollinger', 'period_calc', 'calculate Bollinger Bands every period_calc time period_length (or period)', Number, 1)
 		this.option('bollinger', 'period_calc', 'calculate Bollinger Bands every period_calc time', String, '15m')
 		this.option('bollinger', 'min_periods', 'min. number of history periods', Number, 301)
 		this.option('bollinger', 'size', 'period size', Number, 20)
