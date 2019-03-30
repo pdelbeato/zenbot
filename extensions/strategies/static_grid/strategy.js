@@ -38,7 +38,7 @@ module.exports = {
 			var lane_width = s.options.strategy.static_grid.opts.pivot * s.options.strategy.static_grid.opts.grid_pct / 100
 			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
 			for (var i = 0; i <= (2 * central_lane); i++) {
-				s.options.strategy.static_grid.data.boundary[i] = n(s.options.strategy.static_grid.opts.pivot).add((i - central_lane) * lane_width).format(s.product.increment ? s.product.increment : '0.00000000')
+				s.options.strategy.static_grid.data.boundary[i] = n(s.options.strategy.static_grid.opts.pivot).add((i - central_lane) * lane_width).value()
 //				if (s.period.close > s.options.strategy.static_grid.data.boundary[i]) {
 //					s.options.strategy.static_grid.data.actual_lane = s.options.strategy.static_grid.data.old_lane = i + 1
 //				}
@@ -67,8 +67,8 @@ module.exports = {
 			if (!s.options.strategy.static_grid.data.trade_in_lane) {
 				var side = (s.options.strategy.static_grid.data.actual_lane > central_lane)
 
-				s.options.so.active_long_position = !side
-				s.options.so.active_short_position = side
+				s.options.active_long_position = !side
+				s.options.active_short_position = side
 
 				if (s.options.strategy.static_grid.data.trend < 0) {
 					s.eventBus.emit('static_grid', 'sell')
@@ -87,7 +87,7 @@ module.exports = {
 			cols.push(z(3, s.options.strategy.static_grid.data.old_lane, ' '))
 			cols.push(('-> ')[(s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red')])
 			cols.push(z(3, s.options.strategy.static_grid.data.actual_lane, ' '))
-			cols.push(z(6, (s.options.so.active_long_position ? 'Long' : 'Short'), ' '))
+			cols.push(z(6, (s.options.active_long_position ? 'Long' : 'Short'), ' '))
 			return cols
 		},
 		
