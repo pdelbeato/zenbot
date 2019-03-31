@@ -4,6 +4,7 @@ var z = require('zero-fill')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
+//Per questa strategia, attivare catching order e disattivare profit_stop e buy/sell_gain_pct
 //c.strategy['static_grid'] = {
 //name: 'static_grid',
 //opts: {
@@ -62,12 +63,9 @@ module.exports = {
 			s.options.strategy.static_grid.data.trend = s.options.strategy.static_grid.data.actual_lane - s.options.strategy.static_grid.data.old_lane
 			
 			if (s.options.strategy.static_grid.data.trend != 0) {
-				s.options.strategy.static_grid.data.trade_in_lane = false
-			}
-			
-			if (s.options.strategy.static_grid.data.trend != 0) {
 				var side = (s.options.strategy.static_grid.data.actual_lane > central_lane)
 
+				s.options.strategy.static_grid.data.trade_in_lane = false
 				s.options.active_long_position = !side
 				s.options.active_short_position = side
 
@@ -78,8 +76,8 @@ module.exports = {
 					s.eventBus.emit('static_grid', 'buy')
 				}
 				s.options.strategy.static_grid.data.old_lane = s.options.strategy.static_grid.data.actual_lane
-				cb()
 			}
+			cb()
 		},
 
 		onReport: function (s) {
