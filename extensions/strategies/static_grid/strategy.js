@@ -7,7 +7,7 @@ var z = require('zero-fill')
 //c.strategy['static_grid'] = {
 //name: 'static_grid',
 //opts: {
-//	period_calc: '1m',				//calculate Bollinger Bands every period_calc time
+//	period_calc: '15m',				//Calculate actual lane every period_calc time
 //	min_periods: 2, 				//min. number of history periods (timeframe period_length)
 //	pivot: 2.70,					//Pivot price
 //	grid_pct: 1, 					//% delta between grid lines
@@ -28,7 +28,7 @@ module.exports = {
 		description: 'Static Grid Strategy',
 
 		getOptions: function (s) {
-			this.option('static_grid', 'period_calc', 'Calculate actual lane every period_calc time', String, '1m')
+			this.option('static_grid', 'period_calc', 'Calculate actual lane every period_calc time', String, '15m')
 			this.option('static_grid', 'min_periods', 'Min. number of history periods', Number, 2)
 			this.option('static_grid', 'pivot','Pivot price', Number, 0)
 			this.option('static_grid', 'grid_pct','% grid lines', Number, 1)
@@ -54,17 +54,18 @@ module.exports = {
 					s.options.strategy.static_grid.data.actual_lane = i + 1
 				}
 			}
-			s.options.strategy.static_grid.data.trend = s.options.strategy.static_grid.data.actual_lane - s.options.strategy.static_grid.data.old_lane
-			
-			if (s.options.strategy.static_grid.data.trend != 0) {
-				s.options.strategy.static_grid.data.trade_in_lane = false
-			}
 		},
 
 		onPeriod: function (s, cb) {
 			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
 
-			if (!s.options.strategy.static_grid.data.trade_in_lane) {
+			s.options.strategy.static_grid.data.trend = s.options.strategy.static_grid.data.actual_lane - s.options.strategy.static_grid.data.old_lane
+			
+			if (s.options.strategy.static_grid.data.trend != 0) {
+				s.options.strategy.static_grid.data.trade_in_lane = false
+			}
+			
+			if (s.options.strategy.static_grid.data.trend != 0) {
 				var side = (s.options.strategy.static_grid.data.actual_lane > central_lane)
 
 				s.options.active_long_position = !side
@@ -84,9 +85,7 @@ module.exports = {
 		onReport: function (s) {
 			var cols = []
 			cols.push('Lane') 
-			cols.push(z(3, s.options.strategy.static_grid.data.old_lane, ' '))
-			cols.push((' ->')[(s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red')])
-			cols.push(z(3, s.options.strategy.static_grid.data.actual_lane, ' '))
+			cols.push(z(3, s.options.strategy.static_grid.data.actual_lane, ' ')[(s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red')])
 			cols.push(z(6, (s.options.active_long_position ? 'Long' : 'Short'), ' '))
 			return cols
 		},
