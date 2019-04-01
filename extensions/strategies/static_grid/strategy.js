@@ -40,9 +40,6 @@ module.exports = {
 			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
 			for (var i = 0; i <= (2 * central_lane); i++) {
 				s.options.strategy.static_grid.data.boundary[i] = n(s.options.strategy.static_grid.opts.pivot).add((i - central_lane) * lane_width).value()
-//				if (s.period.close > s.options.strategy.static_grid.data.boundary[i]) {
-//					s.options.strategy.static_grid.data.actual_lane = s.options.strategy.static_grid.data.old_lane = i + 1
-//				}
 			}
 			console.log('Static Grid:')
 			console.log(s.options.strategy.static_grid.data.boundary)
@@ -82,8 +79,9 @@ module.exports = {
 
 		onReport: function (s) {
 			var cols = []
+			var color = (s.options.strategy.static_grid.data.trend = 0 ? 'white': (s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red'))
 			cols.push('Lane') 
-			cols.push(z(3, s.options.strategy.static_grid.data.actual_lane, ' ')[(s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red')])
+			cols.push(z(3, s.options.strategy.static_grid.data.actual_lane, ' ')[color])
 			cols.push(z(6, (s.options.active_long_position ? 'Long' : 'Short'), ' '))
 			return cols
 		},
