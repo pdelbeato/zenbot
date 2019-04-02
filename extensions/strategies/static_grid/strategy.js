@@ -23,6 +23,24 @@ var z = require('zero-fill')
 //	},	
 //}
 
+function calculate(s, cb = function() {}) {
+	var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
+
+	//Se il prezzo è sotto il minimo delle odd lanes, allora entra nelle pair lanes.
+	if (s.period.close < s.options.strategy.static_grid.data.boundary.odd[0]) {
+		s.options.strategy.static_grid.data.pair = true
+	}
+
+	var pair_odd = (s.options.strategy.static_grid.data.pair ? 'pair' : 'odd')
+	s.options.strategy.static_grid.data.actual_lane = 0
+
+	for (var i = 0; i <= (2 * central_lane); i++) {
+		if (s.period.close > s.options.strategy.static_grid.data.boundary[pair_odd][i]) {
+			s.options.strategy.static_grid.data.actual_lane = i
+		}
+	}
+	cb()
+}
 
 module.exports = {
 		name: 'static_grid',
@@ -47,24 +65,7 @@ module.exports = {
 			console.log(s.options.strategy.static_grid.data.boundary.odd)
 		},
 
-		calculate: function (s, cb = function() {}) {
-			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
-			
-			//Se il prezzo è sotto il minimo delle odd lanes, allora entra nelle pair lanes.
-			if (s.period.close < s.options.strategy.static_grid.data.boundary.odd[0]) {
-				s.options.strategy.static_grid.data.pair = true
-			}
-			
-			var pair_odd = (s.options.strategy.static_grid.data.pair ? 'pair' : 'odd')
-			s.options.strategy.static_grid.data.actual_lane = 0
-			
-			for (var i = 0; i <= (2 * central_lane); i++) {
-				if (s.period.close > s.options.strategy.static_grid.data.boundary[pair_odd][i]) {
-					s.options.strategy.static_grid.data.actual_lane = i
-				}
-			}
-			cb()
-		},
+		calculate: calculate,
 
 		onPeriod: function (s, cb) {
 			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
