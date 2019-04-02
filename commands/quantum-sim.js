@@ -112,7 +112,7 @@ module.exports = function (program, conf) {
       if (!so.min_periods) so.min_periods = 1
       var cursor, reversing, reverse_point
       var query_start = (so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null)
-    
+
       function exitSim () {
 
         if (!s.period) {
@@ -143,22 +143,28 @@ module.exports = function (program, conf) {
         }
         //s.balance.currency = n(s.net_currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00000000')
 
-        s.balance.asset = 0
+        //s.balance.asset = 0
         s.lookback.unshift(s.period)
         //var profit = s.start_capital ? n(s.balance.currency).subtract(s.start_capital).divide(s.start_capital) : n(0)
-							
-        var profit = s.start_capital_currency ? n(s.currency_capital).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
 
-        output_lines.push('end balance: ' + n(s.capital_currency).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
-        console.log('start_capital', s.start_capital_currency)
-        console.log('start_price', n(s.start_price).format('0.00000000'))
-        console.log('close', n(s.period.close).format('0.00000000'))
+
+        var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
+        var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
+
+
+        var profit = s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
+
+        output_lines.push('end balance:     capital currency: ' + n(tmp_capital_currency).format('0.00000000').yellow + '   capital asset: ' + n(tmp_capital_asset).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
+        console.log('\nstart_capital', n(s.start_capital_currency).format('0.00000000').yellow)
+        console.log('start_price', n(s.start_price).format('0.00000000').yellow)
+        console.log('close', n(s.period.close).format('0.00000000').yellow)
         var buy_hold = s.start_price ? n(s.period.close).multiply(n(s.start_capital_currency).divide(s.start_price)) : n(s.balance.currency)
         //console.log('buy hold', buy_hold.format('0.00000000'))
         var buy_hold_profit = s.start_capital_currency ? n(buy_hold).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
+
         output_lines.push('buy hold: ' + buy_hold.format('0.00000000').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
         output_lines.push('vs. buy hold: ' + n(s.currency_capital).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
-        output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
+        output_lines.push(n(s.my_trades.length).format('0').yellow + ' trades over ' + n(s.day_count).format('0').yellow + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00').yellow + ' trades/day)')
 
 
         var losses = 0
@@ -176,7 +182,7 @@ module.exports = function (program, conf) {
         })
         if (s.my_trades.length) {
           //output_lines.push('win/loss: ' + (sells - losses) + '/' + losses)
-          output_lines.push('win/loss for each quantum: ' + wins + '/' + losses )
+          output_lines.push('win/loss for each quantum: ' + n(wins).format('0').yellow + '/' + n(losses).format('0').yellow )
           output_lines.push('error rate: ' + (wins ? n(losses).divide(wins).format('0.00%') : '0.00%').yellow)
         }
         options_output.simresults.start_capital = s.start_capital
@@ -232,7 +238,7 @@ module.exports = function (program, conf) {
 
           var code = 'var data = ' + JSON.stringify(data) + ';\n'
           code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
-          
+
           code += 'var options = ' + JSON.stringify(s.options) + ';\n'
           // console.log(code)
           var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '13sim_result.html.tpl'), {encoding: 'utf8'})
@@ -307,14 +313,14 @@ module.exports = function (program, conf) {
           // emit per ogni trade -> va alla funzione   queueTrade che mette in coda il tradeProcessing e quindi onTrade
           eventBus.emit('trade', trade)
           if (!s.orig_currency) {
-        	  s.orig_currency = s.start_currency = so.currency_capital | s.balance.currency | 0
-    		  s.orig_asset = s.start_asset = so.asset_capital | s.balance.asset | 0
-        	  engine.syncBalance(function () {        		  
-        		  s.orig_price = s.start_price
-        		  s.orig_capital_currency = s.orig_currency + (s.orig_asset * s.orig_price)
-        		  s.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
-        		  debug.msg('s.orig_currency= ' + s.orig_currency + ' ; s.orig_capital_currency= ' + s.orig_capital_currency)
-        	  })
+            s.orig_currency = s.start_currency = so.currency_capital | s.balance.currency | 0
+            s.orig_asset = s.start_asset = so.asset_capital | s.balance.asset | 0
+            engine.syncBalance(function () {
+              s.orig_price = s.start_price
+              s.orig_capital_currency = s.orig_currency + (s.orig_asset * s.orig_price)
+              s.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
+              debug.msg('s.orig_currency= ' + s.orig_currency + ' ; s.orig_capital_currency= ' + s.orig_capital_currency)
+            })
           }
         })
 
