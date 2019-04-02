@@ -73,7 +73,7 @@ module.exports = {
 			s.options.strategy.static_grid.data.trend = s.options.strategy.static_grid.data.actual_lane - s.options.strategy.static_grid.data.old_lane
 			
 			if (s.options.strategy.static_grid.data.trend != 0) {
-				var side = (s.options.strategy.static_grid.data.actual_lane > central_lane)
+				var side = (s.period.close > s.options.strategy.static_grid.opts.pivot)
 
 				s.options.strategy.static_grid.data.trade_in_lane = false
 				s.options.strategy.static_grid.data.pair = !s.options.strategy.static_grid.data.pair
