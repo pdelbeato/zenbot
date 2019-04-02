@@ -145,7 +145,7 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.getBalance - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { getBalance(opts, cb) }, (next_request - now() + 1))
+					setTimeout(function() { this.getBalance(opts, cb) }, (next_request - now() + 1))
 				}
 			},
 
@@ -165,7 +165,7 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.getQuote - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { getQuote(opts, cb) }, (next_request - now() + 1))
+					setTimeout(function() { this.getQuote(opts, cb) }, (next_request - now() + 1))
 				}
 			},
 
@@ -215,7 +215,7 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.cancelOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { cancelOrder(opts, cb) }, (next_request - now() + 1))
+					setTimeout(function() { this.cancelOrder(opts, cb) }, (next_request - now() + 1))
 				}
 			},
 			
@@ -286,7 +286,7 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.buy - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { buy(opts, cb) }, (next_request - now() + 1))
+					setTimeout(function() { this.buy(opts, cb) }, (next_request - now() + 1))
 				}
 			},
 
@@ -350,7 +350,7 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.sell - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { sell(opts, cb) }, (next_request - now() + 1))
+					setTimeout(function() { this.sell(opts, cb) }, (next_request - now() + 1))
 				}
 			},
 
@@ -447,7 +447,7 @@ module.exports = function binance (conf) {
 					}
 					else {
 						debug.msg('exchange.getOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-						setTimeout(function() { getOrders(opts, cb) }, (next_request - now() + 1))
+						setTimeout(function() { this.getOrders(opts, cb) }, (next_request - now() + 1))
 					}
 				}
 			},
@@ -474,7 +474,7 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.getAllOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { getAllOrders(opts, cb) }, (next_request - now() + 1))
+					setTimeout(function() { this.getAllOrders(opts, cb) }, (next_request - now() + 1))
 				}
 			},
 
