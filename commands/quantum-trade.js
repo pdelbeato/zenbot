@@ -1384,9 +1384,7 @@ module.exports = function (program, conf) {
 
 						//Inizializzo i comandi dell'interfaccia
 						changeModeCommand()
-						
-						s.day_count = session.day_count = (prev_session.day_count ? prev_session.day_count : 1)
-
+					
 						engine.syncBalance(function (err) {
 							if (err) {
 								if (err.desc) console.error(err.desc)
