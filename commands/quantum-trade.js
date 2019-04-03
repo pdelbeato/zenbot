@@ -1417,7 +1417,7 @@ module.exports = function (program, conf) {
 							sessions.find({selector: so.selector.normalized}).limit(1).sort({started: -1}).toArray(function (err, prev_sessions) {
 								if (err) throw err
 								var prev_session = prev_sessions[0]
-								//                  if (prev_session && !cmd.reset) {
+								
 								if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
 									//									debug.msg('getNext() - prev_session')
 									//                    if (prev_session.orig_capital_currency && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
@@ -1438,11 +1438,11 @@ module.exports = function (program, conf) {
 								}
 								else {
 									debug.msg('getNext() - no prev_session')
-									s.orig_currency = session.orig_currency = s.start_currency = raw_opts.currency_capital | s.balance.currency | 0
-									s.orig_asset = session.orig_asset = s.start_asset = raw_opts.asset_capital | s.balance.asset | 0
+									s.orig_currency = session.orig_currency = s.balance.currency //raw_opts.currency_capital | s.balance.currency | 0
+									s.orig_asset = session.orig_asset = s.balance.asset //raw_opts.asset_capital | s.balance.asset | 0
 									s.orig_price = session.orig_price = s.start_price
-									s.orig_capital_currency = session.orig_capital_currency =s.orig_currency + (s.orig_asset * s.orig_price)
-									s.orig_capital_asset = session.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
+									s.orig_capital_currency = session.orig_capital_currency = s.start_capital_currency
+									s.orig_capital_asset = session.orig_capital_asset = s.balance.asset
 									debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital_currency = ' + s.orig_capital_currency + ' ; s.orig_capital_asset = ' + s.orig_capital_asset + ' ; s.orig_price = ' + s.orig_price)
 								}
 								s.start_currency = session.start_currency = s.balance.currency
