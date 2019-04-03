@@ -1380,8 +1380,7 @@ module.exports = function (program, conf) {
 							if (so.mode === 'paper') {
 								console.log('!!! Paper mode enabled. No real trades are performed until you remove --paper from the startup command.')
 							}
-						//						console.log('Press ' + ' l '.inverse + ' to list available commands.')
-
+						
 						//Inizializzo i comandi dell'interfaccia
 						changeModeCommand()
 					
@@ -1399,20 +1398,19 @@ module.exports = function (program, conf) {
 									started: new Date().getTime(),
 									mode: so.mode,
 									options: so_tmp,
-									//Spostati qui da forwardScan()
-									start_currency: s.start_currency,
-									start_asset: s.start_asset,
-									start_capital_currency: s.start_capital_currency,
-									start_capital_asset: s.start_capital_asset,
-									start_price: s.start_price,
-									orig_currency: s.orig_currency,
-									orig_asset: s.orig_asset,
-									orig_capital_currency: s.start_capital_currency,
-									orig_capital_asset: s.start_capital_asset,
-									orig_price: s.start_price,
-									day_count: s.day_count,
-									total_fees: s.total_fees,
-									num_trades: s.my_trades.length
+//									start_currency: s.start_currency,
+//									start_asset: s.start_asset,
+//									start_capital_currency: s.start_capital_currency,
+//									start_capital_asset: s.start_capital_asset,
+//									start_price: s.start_price,
+//									orig_currency: s.orig_currency,
+//									orig_asset: s.orig_asset,
+//									orig_capital_currency: s.start_capital_currency,
+//									orig_capital_asset: s.start_capital_asset,
+//									orig_price: s.start_price,
+//									day_count: s.day_count,
+//									total_fees: s.total_fees,
+//									num_trades: s.my_trades.length
 							}
 														
 							session._id = session.id
@@ -1429,8 +1427,6 @@ module.exports = function (program, conf) {
 									s.orig_price = session.orig_price = prev_session.orig_price
 									s.orig_capital_currency = session.orig_capital_currency = prev_session.orig_capital_currency
 									s.orig_capital_asset = session.orig_capital_asset = prev_session.orig_capital_asset
-									s.start_currency = s.balance.currency
-									s.start_asset = s.balance.asset
 									s.day_count = session.day_count = (prev_session.day_count ? prev_session.day_count : 1)
 									s.total_fees = session.total_fees = (prev_session.total_fees ? prev_session.total_fees : 0)
 									session.num_trades = prev_session.num_trades
@@ -1442,20 +1438,24 @@ module.exports = function (program, conf) {
 								}
 								else {
 									debug.msg('getNext() - no prev_session')
-									s.orig_currency = s.start_currency = raw_opts.currency_capital | s.balance.currency | 0
-									s.orig_asset = s.start_asset = raw_opts.asset_capital | s.balance.asset | 0
-									s.orig_price = s.start_price
-									s.orig_capital_currency = s.orig_currency + (s.orig_asset * s.orig_price)
-									s.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
+									s.orig_currency = session.orig_currency = s.start_currency = raw_opts.currency_capital | s.balance.currency | 0
+									s.orig_asset = session.orig_asset = s.start_asset = raw_opts.asset_capital | s.balance.asset | 0
+									s.orig_price = session.orig_price = s.start_price
+									s.orig_capital_currency = session.orig_capital_currency =s.orig_currency + (s.orig_asset * s.orig_price)
+									s.orig_capital_asset = session.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
 									debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital_currency = ' + s.orig_capital_currency + ' ; s.orig_capital_asset = ' + s.orig_capital_asset + ' ; s.orig_price = ' + s.orig_price)
 								}
-								//                  }
+								s.start_currency = session.start_currency = s.balance.currency
+								s.start_asset = session.start_asset = s.balance.asset
+								session.start_capital_currency = s.start_capital_currency
+								session.start_capital_asset = s.start_capital_asset
+								session.start_price = s.start_price
+								
 								if (s.lookback.length > so.keep_lookback_periods) {
 									s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 								}
 
 								//Chiamata alla funzione forwardScan() ogni so.poll_trades
-								//forwardScan()
 								setInterval(forwardScan, so.poll_trades)
 								
 								//Se l'exchange non ha websocket, chiamata alla funzione getAllOrders() ogni so.order_poll_time
@@ -1507,18 +1507,6 @@ module.exports = function (program, conf) {
 		//forwardScan() viene chiamata ogni so.poll_trades
 		function forwardScan() {
 			function saveSession() {
-				//				engine.syncBalance(function (err) {
-				//					if (!err && s.balance.asset === undefined) {
-				//						// TODO not the nicest place to verify the state, but did not found a better one
-				//						throw new Error('Error during syncing balance. Please check your API-Key')
-				//					}
-				//					if (err) {
-				//						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error syncing balance')
-				//						if (err.desc) console.error(err.desc)
-				//						if (err.body) console.error(err.body)
-				//						console.error(err)
-				//					}
-
 				//Check sul run_for
 				if (botStartTime && botStartTime - moment() < 0 ) {
 					// Not sure if I should just handle exit code directly or thru printTrade.  Decided on printTrade being if code is added there for clean exits this can just take advantage of it.
@@ -1570,7 +1558,7 @@ module.exports = function (program, conf) {
 					//Con questo, memorizzo valori inutili dentro session.balance.
 					//              session.balance = b
 				}
-
+				
 				session.updated = new Date().getTime()
 				session.balance = s.balance
 				session.num_trades = s.my_trades.length
