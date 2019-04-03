@@ -23,29 +23,17 @@ var z = require('zero-fill')
 //	},	
 //}
 
-function calculate(s, cb = function() {}) {
-	var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
-
-	//Se il prezzo è sotto il minimo delle odd lanes, allora entra nelle pair lanes.
-	if (s.period.close < s.options.strategy.static_grid.data.boundary.odd[0]) {
-		s.options.strategy.static_grid.data.pair = true
-	}
-
-	var pair_odd = (s.options.strategy.static_grid.data.pair ? 'pair' : 'odd')
-	s.options.strategy.static_grid.data.actual_lane = 0
-
-	for (var i = 0; i <= (2 * central_lane); i++) {
-		if (s.period.close > s.options.strategy.static_grid.data.boundary[pair_odd][i]) {
-			s.options.strategy.static_grid.data.actual_lane = i
-		}
-	}
-	cb()
-}
-
 module.exports = {
 		name: 'static_grid',
 		description: 'Static Grid Strategy',
 
+		roundToNearest: function(numToRound, s) {
+			var numToRoundTo = (s.product.increment ? s.product.increment : 0.00000001)
+			numToRoundTo = 1 / (numToRoundTo)
+
+			return Math.floor(numToRound * numToRoundTo) / numToRoundTo
+		},
+		
 		getOptions: function (s) {
 			this.option('static_grid', 'period_calc', 'Calculate actual lane every period_calc time', String, '15m')
 			this.option('static_grid', 'min_periods', 'Min. number of history periods', Number, 2)
@@ -57,15 +45,32 @@ module.exports = {
 			var lane_width = s.options.strategy.static_grid.opts.pivot * s.options.strategy.static_grid.opts.grid_pct / 100
 			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
 			for (var i = 0; i <= (2 * central_lane); i++) {
-				s.options.strategy.static_grid.data.boundary.pair[i] = n(s.options.strategy.static_grid.opts.pivot).add((i - central_lane) * lane_width).value()
-				s.options.strategy.static_grid.data.boundary.odd[i] = n(s.options.strategy.static_grid.data.boundary.pair[i]).add(lane_width / 2).value()
+				s.options.strategy.static_grid.data.boundary.pair[i] = this.roundToNearest(n(s.options.strategy.static_grid.opts.pivot).add((i - central_lane) * lane_width).value(), s)
+				s.options.strategy.static_grid.data.boundary.odd[i] = this.roundToNearest(n(s.options.strategy.static_grid.data.boundary.pair[i]).add(lane_width / 2).value(), s)
 			}
 			console.log('Static Grid:')
 			console.log(s.options.strategy.static_grid.data.boundary.pair)
 			console.log(s.options.strategy.static_grid.data.boundary.odd)
 		},
 
-		calculate: calculate,
+		calculate: function (s, cb = function() {}) {
+			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
+
+			//Se il prezzo è sotto il minimo delle odd lanes, allora entra nelle pair lanes.
+			if (s.period.close < s.options.strategy.static_grid.data.boundary.odd[0]) {
+				s.options.strategy.static_grid.data.pair = true
+			}
+
+			var pair_odd = (s.options.strategy.static_grid.data.pair ? 'pair' : 'odd')
+			s.options.strategy.static_grid.data.actual_lane = 0
+
+			for (var i = 0; i <= (2 * central_lane); i++) {
+				if (s.period.close > s.options.strategy.static_grid.data.boundary[pair_odd][i]) {
+					s.options.strategy.static_grid.data.actual_lane = i
+				}
+			}
+			cb()
+		},
 
 		onPeriod: function (s, cb) {
 			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
@@ -80,7 +85,7 @@ module.exports = {
 				s.options.active_long_position = !side
 				s.options.active_short_position = side
 
-				calculate(s, function() {
+				this.calculate(s, function() {
 					if (s.options.strategy.static_grid.data.trend < 0) {
 						s.eventBus.emit('static_grid', 'sell')
 					}
