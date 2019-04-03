@@ -650,7 +650,8 @@ module.exports = function gdax (conf) {
 				}
 				else {
 					debug.msg('getQuote forced - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.getQuote(opts, cb, forced) }, (next_request - now() + 1))
+//					setTimeout(function() { this.getQuote(opts, cb, forced) }, (next_request - now() + 1))
+					retry('getQuote', func_args, (next_request - now() + 1), err)
 				}
 			},
 
