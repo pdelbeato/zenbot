@@ -611,7 +611,7 @@ module.exports = function gdax (conf) {
 					})}
 				else {
 					debug.msg('getBalance - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					retry('getBalance', func_args, (next_request - now() + 1), err)
+					retry('getBalance', func_args, (next_request - now() + 1))
 //					setTimeout(function() { this.getBalance(opts, cb) }, (next_request - now() + 1))
 				}
 			},
@@ -651,7 +651,7 @@ module.exports = function gdax (conf) {
 				else {
 					debug.msg('getQuote forced - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
 //					setTimeout(function() { this.getQuote(opts, cb, forced) }, (next_request - now() + 1))
-					retry('getQuote', func_args, (next_request - now() + 1), err)
+					retry('getQuote', func_args, (next_request - now() + 1))
 				}
 			},
 
@@ -717,7 +717,7 @@ module.exports = function gdax (conf) {
 				else {
 					debug.msg('cancelOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
 //					setTimeout(function() { this.cancelOrder(opts, cb) }, (next_request - now() + 1))
-					retry('cancelOrder', func_args, (next_request - now() + 1), err)
+					retry('cancelOrder', func_args, (next_request - now() + 1))
 				}
 			},
 
@@ -759,7 +759,7 @@ module.exports = function gdax (conf) {
 				else {
 					debug.msg('cancelAllOrders - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
 //					setTimeout(function() { this.cancelAllOrders(opts, cb) }, (next_request - now() + 1))
-					retry('cancelAllOrders', func_args, (next_request - now() + 1), err)
+					retry('cancelAllOrders', func_args, (next_request - now() + 1))
 				}
 			},
 
@@ -843,7 +843,7 @@ module.exports = function gdax (conf) {
 				else {
 					debug.msg('buy - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
 //					setTimeout(function() { this.buy(opts, cb) }, (next_request - now() + 1))
-					retry('buy', func_args, (next_request - now() + 1), err)
+					retry('buy', func_args, (next_request - now() + 1))
 				}
 			},
 
@@ -923,7 +923,7 @@ module.exports = function gdax (conf) {
 				else {
 					debug.msg('sell - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
 //					setTimeout(function() { this.sell(opts, cb) }, (next_request - now() + 1))
-					retry('sell', func_args, (next_request - now() + 1), err)
+					retry('sell', func_args, (next_request - now() + 1))
 				}
 			},
 
@@ -1068,7 +1068,7 @@ module.exports = function gdax (conf) {
 				else {
 					debug.msg('getOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
 //					setTimeout(function() { this.getOrder(opts, forced, cb) }, (next_request - now() + 1))
-					retry('getOrder', func_args, (next_request - now() + 1), err)
+					retry('getOrder', func_args, (next_request - now() + 1))
 				}
 			},
 
@@ -1112,7 +1112,7 @@ module.exports = function gdax (conf) {
 				else {
 					debug.msg('getAllOrders - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
 //					setTimeout(function() { this.getAllOrders(opts, cb) }, (next_request - now() + 1))
-					retry('getAllOrders', func_args, (next_request - now() + 1), err)
+					retry('getAllOrders', func_args, (next_request - now() + 1))
 				}
 			},
 
