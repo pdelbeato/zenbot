@@ -48,15 +48,17 @@ module.exports = function binance (conf) {
 		return split[0] + '/' + split[1]
 	}
 
-	function retry (method, args, err) {
-		if (method !== 'getTrades') {
-			console.error(('\nBinance API is down! unable to call ' + method + ', retrying in 10s').red)
-			if (err) console.error(err)
-			console.error(args.slice(0, -1))
+	//Da sistemare bene
+	function retry (method, args, waiting_time = 10000, err) {
+		if (method !== 'getTrades' && waiting_time === 10000) {
+			console.error(('\nretry - Binance API is down! unable to call ' + method + ', retrying in ' + (waiting_time/1000) + 's').red)
+			if (err) console.error('retry - err= \n\n' + err)
+			console.error('\nretry - args.slice')
+			console.error(args.slice(0, -1)) //slice prende l'ultimo valore di args
 		}
 		setTimeout(function () {
 			exchange[method].apply(exchange, args)
-		}, 10000)
+		}, waiting_time)
 	}
 
 	var orders = {}
@@ -119,10 +121,11 @@ module.exports = function binance (conf) {
 			},
 
 			getBalance: function (opts, cb) {
+				var func_args = [].slice.call(arguments)
+				
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
-					var func_args = [].slice.call(arguments)
 					var client = authedClient()
 					client.fetchBalance().then(result => {
 						var balance = {asset: 0, currency: 0}
@@ -145,15 +148,17 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.getBalance - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.getBalance(opts, cb) }, (next_request - now() + 1))
+//					setTimeout(function() { this.getBalance(opts, cb) }, (next_request - now() + 1))
+					retry('getBalance', func_args, (next_request - now() + 1), err)
 				}
 			},
 
 			getQuote: function (opts, cb) {
+				var func_args = [].slice.call(arguments)
+				
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
-					var func_args = [].slice.call(arguments)
 					var client = publicClient()
 					client.fetchTicker(joinProduct(opts.product_id)).then(result => {
 						cb(null, { bid: result.bid, ask: result.ask })
@@ -165,7 +170,8 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.getQuote - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.getQuote(opts, cb) }, (next_request - now() + 1))
+//					setTimeout(function() { this.getQuote(opts, cb) }, (next_request - now() + 1))
+					retry('getQuote', func_args, (next_request - now() + 1), err)
 				}
 			},
 
@@ -182,10 +188,11 @@ module.exports = function binance (conf) {
 			},
 
 			cancelOrder: function (opts, cb) {
+				var func_args = [].slice.call(arguments)
+				
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
-					var func_args = [].slice.call(arguments)
 					var client = authedClient()
 					client.cancelOrder(opts.order_id, joinProduct(opts.product_id)).then(function (body) {
 						if (body) {
@@ -215,7 +222,8 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.cancelOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.cancelOrder(opts, cb) }, (next_request - now() + 1))
+//					setTimeout(function() { this.cancelOrder(opts, cb) }, (next_request - now() + 1))
+					retry('cancelOrder', func_args, (next_request - now() + 1), err)
 				}
 			},
 			
@@ -227,10 +235,11 @@ module.exports = function binance (conf) {
 			},
 
 			buy: function (opts, cb) {
+				var func_args = [].slice.call(arguments)
+				
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
-					var func_args = [].slice.call(arguments)
 					var client = authedClient()
 					if (typeof opts.post_only === 'undefined') {
 						opts.post_only = true
@@ -286,15 +295,17 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.buy - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.buy(opts, cb) }, (next_request - now() + 1))
+//					setTimeout(function() { this.buy(opts, cb) }, (next_request - now() + 1))
+					retry('buy', func_args, (next_request - now() + 1), err)
 				}
 			},
 
 			sell: function (opts, cb) {
+				var func_args = [].slice.call(arguments)
+				
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
-					var func_args = [].slice.call(arguments)
 					var client = authedClient()
 					if (typeof opts.post_only === 'undefined') {
 						opts.post_only = true
@@ -350,7 +361,8 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.sell - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.sell(opts, cb) }, (next_request - now() + 1))
+//					setTimeout(function() { this.sell(opts, cb) }, (next_request - now() + 1))
+					retry('sell', func_args, (next_request - now() + 1), err)
 				}
 			},
 
@@ -362,6 +374,8 @@ module.exports = function binance (conf) {
 			},
 			
 			getOrder: function (opts, forced = false, cb) {
+				var func_args = [].slice.call(arguments)
+				
 				if (typeof forced == 'function') {
 					cb = forced
 					forced = false
@@ -395,7 +409,6 @@ module.exports = function binance (conf) {
 					if (now() > next_request) {
 						next_request = now() + 1000/max_requests_per_second
 
-						var func_args = [].slice.call(arguments)
 						var client = authedClient()
 						client.fetchOrder(opts.order_id, joinProduct(opts.product_id)).then(function (body) {
 //							{
@@ -447,16 +460,18 @@ module.exports = function binance (conf) {
 					}
 					else {
 						debug.msg('exchange.getOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-						setTimeout(function() { this.getOrders(opts, cb) }, (next_request - now() + 1))
+//						setTimeout(function() { this.getOrders(opts, cb) }, (next_request - now() + 1))
+						retry('getOrder', func_args, (next_request - now() + 1), err)
 					}
 				}
 			},
 
 			getAllOrders: function (opts, cb = function() {}) {
+				var func_args = [].slice.call(arguments)
+				
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
-					var func_args = [].slice.call(arguments)
 					var client = authedClient()
 					client.fetchOpenOrders(joinProduct(opts.product_id)).then(function (body) {
 //						console.log('exchange.getAllOrders - body:')
@@ -474,7 +489,8 @@ module.exports = function binance (conf) {
 				}
 				else {
 					debug.msg('exchange.getAllOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.getAllOrders(opts, cb) }, (next_request - now() + 1))
+//					setTimeout(function() { this.getAllOrders(opts, cb) }, (next_request - now() + 1))
+					retry('getAllOrders', func_args, (next_request - now() + 1), err)
 				}
 			},
 

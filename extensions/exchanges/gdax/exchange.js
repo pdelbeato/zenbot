@@ -221,16 +221,17 @@ module.exports = function gdax (conf) {
 		}
 	}
 
-	function retry (method, args, err) {
-		if (method !== 'getTrades') {
-			console.error(('\nretry - GDAX API is down! unable to call ' + method + ', retrying in 10s').red)
+	//Da sistemare bene
+	function retry (method, args, waiting_time = 10000, err) {
+		if (method !== 'getTrades' && waiting_time === 10000) {
+			console.error(('\nretry - GDAX API is down! unable to call ' + method + ', retrying in ' + (waiting_time/1000) + 's').red)
 			if (err) console.error('retry - err= \n\n' + err)
 			console.error('\nretry - args.slice')
 			console.error(args.slice(0, -1)) //slice prende l'ultimo valore di args
 		}
 		setTimeout(function () {
 			exchange[method].apply(exchange, args)
-		}, 10000)
+		}, waiting_time)
 	}
 
 	function handleOrderOpen(update, product_id) {
@@ -610,11 +611,14 @@ module.exports = function gdax (conf) {
 					})}
 				else {
 					debug.msg('getBalance - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.getBalance(opts, cb) }, (next_request - now() + 1))
+					retry('getBalance', func_args, (next_request - now() + 1), err)
+//					setTimeout(function() { this.getBalance(opts, cb) }, (next_request - now() + 1))
 				}
 			},
 
 			getQuote: function getQuote(opts, cb, forced = false) {
+				var func_args = [].slice.call(arguments)
+				
 				// check websocket cache first, if it is not forced
 				if (!forced && websocket_cache[opts.product_id]) {
 					var ticker = websocket_cache[opts.product_id].ticker
@@ -623,10 +627,10 @@ module.exports = function gdax (conf) {
 						return
 					}
 				}
+				
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
-					var func_args = [].slice.call(arguments)
 					var client = publicClient(opts.product_id)
 					debug.msg('getQuote - forced getProductTicker call')
 					client.getProductTicker(opts.product_id, function (err, resp, body) {
@@ -658,6 +662,8 @@ module.exports = function gdax (conf) {
 			},
 
 			cancelOrder: function cancelOrder(opts, cb) {
+				var func_args = [].slice.call(arguments)
+				
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
@@ -709,15 +715,17 @@ module.exports = function gdax (conf) {
 				}
 				else {
 					debug.msg('cancelOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.cancelOrder(opts, cb) }, (next_request - now() + 1))
+//					setTimeout(function() { this.cancelOrder(opts, cb) }, (next_request - now() + 1))
+					retry('cancelOrder', func_args, (next_request - now() + 1), err)
 				}
 			},
 
 			cancelAllOrders: function cancelAllOrders(opts, cb) {
+				var func_args = [].slice.call(arguments)
+				
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
-					var func_args = [].slice.call(arguments)
 					var client = authedClient()
 
 					debug.msg('cancelAllOrders - cancelAllOrders call')
@@ -749,15 +757,17 @@ module.exports = function gdax (conf) {
 				}
 				else {
 					debug.msg('cancelAllOrders - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.cancelAllOrders(opts, cb) }, (next_request - now() + 1))
+//					setTimeout(function() { this.cancelAllOrders(opts, cb) }, (next_request - now() + 1))
+					retry('cancelAllOrders', func_args, (next_request - now() + 1), err)
 				}
 			},
 
 			buy: function buy(opts, cb) {
+				var func_args = [].slice.call(arguments)
+				
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
-					var func_args = [].slice.call(arguments)
 					var client = authedClient()
 					if (typeof opts.post_only === 'undefined') {
 						opts.post_only = true
@@ -831,15 +841,17 @@ module.exports = function gdax (conf) {
 				}
 				else {
 					debug.msg('buy - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.buy(opts, cb) }, (next_request - now() + 1))
+//					setTimeout(function() { this.buy(opts, cb) }, (next_request - now() + 1))
+					retry('buy', func_args, (next_request - now() + 1), err)
 				}
 			},
 
 			sell: function sell(opts, cb) {
+				var func_args = [].slice.call(arguments)
+				
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
-					var func_args = [].slice.call(arguments)
 					var client = authedClient()
 
 					if (typeof opts.post_only === 'undefined') {
@@ -909,11 +921,14 @@ module.exports = function gdax (conf) {
 				}
 				else {
 					debug.msg('sell - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.sell(opts, cb) }, (next_request - now() + 1))
+//					setTimeout(function() { this.sell(opts, cb) }, (next_request - now() + 1))
+					retry('sell', func_args, (next_request - now() + 1), err)
 				}
 			},
 
 			getOrder: function getOrder(opts, forced = false, cb) {
+				var func_args = [].slice.call(arguments)
+				
 				//Per accettare cb come secondo argomento
 				if (typeof forced === 'function') {
 					cb = forced
@@ -933,7 +948,6 @@ module.exports = function gdax (conf) {
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
-					var func_args = [].slice.call(arguments)
 					var client = authedClient()
 
 					debug.msg('getOrder - getOrder call')
@@ -1052,15 +1066,17 @@ module.exports = function gdax (conf) {
 				}
 				else {
 					debug.msg('getOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.getOrder(opts, forced, cb) }, (next_request - now() + 1))
+//					setTimeout(function() { this.getOrder(opts, forced, cb) }, (next_request - now() + 1))
+					retry('getOrder', func_args, (next_request - now() + 1), err)
 				}
 			},
 
 			getAllOrders: function getAllOrders(opts, cb) {
+				var func_args = [].slice.call(arguments)
+				
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
-					var func_args = [].slice.call(arguments)
 					var client = authedClient()
 
 					debug.msg('getAllOrders - getAllOrders call')
@@ -1094,7 +1110,8 @@ module.exports = function gdax (conf) {
 				}
 				else {
 					debug.msg('getAllOrders - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					setTimeout(function() { this.getAllOrders(opts, cb) }, (next_request - now() + 1))
+//					setTimeout(function() { this.getAllOrders(opts, cb) }, (next_request - now() + 1))
+					retry('getAllOrders', func_args, (next_request - now() + 1), err)
 				}
 			},
 
