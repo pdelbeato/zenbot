@@ -38,8 +38,8 @@ module.exports = {
 			var lane_width = s.options.strategy.static_grid.opts.pivot * s.options.strategy.static_grid.opts.grid_pct / 100
 			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
 			for (var i = 0; i <= (2 * central_lane); i++) {
-				s.options.strategy.static_grid.data.boundary.pair[i] = this.roundToNearest(n(s.options.strategy.static_grid.opts.pivot).add((i - central_lane) * lane_width).value())
-				s.options.strategy.static_grid.data.boundary.odd[i] = this.roundToNearest(n(s.options.strategy.static_grid.data.boundary.pair[i]).add(lane_width / 2).value())
+				s.options.strategy.static_grid.data.boundary.pair[i] = roundToNearest(n(s.options.strategy.static_grid.opts.pivot).add((i - central_lane) * lane_width).value())
+				s.options.strategy.static_grid.data.boundary.odd[i] = roundToNearest(n(s.options.strategy.static_grid.data.boundary.pair[i]).add(lane_width / 2).value())
 			}
 			console.log('Static Grid:')
 			console.log(s.options.strategy.static_grid.data.boundary.pair)
