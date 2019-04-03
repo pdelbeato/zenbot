@@ -26,13 +26,6 @@ var z = require('zero-fill')
 module.exports = {
 		name: 'static_grid',
 		description: 'Static Grid Strategy',
-
-		roundToNearest: function(numToRound, s) {
-			var numToRoundTo = (s.product.increment ? s.product.increment : 0.00000001)
-			numToRoundTo = 1 / (numToRoundTo)
-
-			return Math.floor(numToRound * numToRoundTo) / numToRoundTo
-		},
 		
 		getOptions: function (s) {
 			this.option('static_grid', 'period_calc', 'Calculate actual lane every period_calc time', String, '15m')
@@ -41,16 +34,23 @@ module.exports = {
 			this.option('static_grid', 'grid_pct','% grid lines', Number, 1)
 			this.option('static_grid', 'lanes_per_side','Number of lanes per side', Number, 5)
 
-			//Calcola la griglia e l'attuale posizione
+			//Calcola la griglia
 			var lane_width = s.options.strategy.static_grid.opts.pivot * s.options.strategy.static_grid.opts.grid_pct / 100
 			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
 			for (var i = 0; i <= (2 * central_lane); i++) {
-				s.options.strategy.static_grid.data.boundary.pair[i] = this.roundToNearest((n(s.options.strategy.static_grid.opts.pivot).add((i - central_lane) * lane_width).value()), s)
-				s.options.strategy.static_grid.data.boundary.odd[i] = this.roundToNearest(n(s.options.strategy.static_grid.data.boundary.pair[i]).add(lane_width / 2).value(), s)
+				s.options.strategy.static_grid.data.boundary.pair[i] = this.roundToNearest(n(s.options.strategy.static_grid.opts.pivot).add((i - central_lane) * lane_width).value())
+				s.options.strategy.static_grid.data.boundary.odd[i] = this.roundToNearest(n(s.options.strategy.static_grid.data.boundary.pair[i]).add(lane_width / 2).value())
 			}
 			console.log('Static Grid:')
 			console.log(s.options.strategy.static_grid.data.boundary.pair)
 			console.log(s.options.strategy.static_grid.data.boundary.odd)
+			
+			function roundToNearest(numToRound) {
+				var numToRoundTo = (s.product.increment ? s.product.increment : 0.00000001)
+				numToRoundTo = 1 / (numToRoundTo)
+
+				return Math.floor(numToRound * numToRoundTo) / numToRoundTo
+			}
 		},
 
 		calculate: function (s, cb = function() {}) {
