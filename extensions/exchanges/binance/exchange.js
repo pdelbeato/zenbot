@@ -341,7 +341,34 @@ module.exports = function binance (conf) {
 						if (result) {
 							debug.obj('exchange.sell - result:', result)
 						}
-						
+					
+//						Dall'exchange:
+//						{ info:
+//						   { symbol: 'WAVESUSDT',
+//						     orderId: 6186416,
+//						     clientOrderId: 'WeKLBHrUQNPG7KmFHSsXnR',
+//						     transactTime: 1554365500879,
+//						     price: '2.60290000',
+//						     origQty: '96.04000000',
+//						     executedQty: '0.00000000',
+//						     cummulativeQuoteQty: '0.00000000',
+//						     status: 'NEW',
+//						     timeInForce: 'GTC',
+//						     type: 'LIMIT',
+//						     side: 'BUY' },
+//						  id: '6186416',
+//						  timestamp: 1554365500879,
+//						  datetime: '2019-04-04T08:11:40.879Z',
+//						  symbol: 'WAVES/USDT',
+//						  type: 'limit',
+//						  side: 'buy',
+//						  price: 2.6029,
+//						  amount: 96.04,
+//						  cost: 0,
+//						  filled: 0,
+//						  remaining: 96.04,
+//						  status: 'open' }
+
 						order = {
 							id: result ? result.id : null,
 							status: 'open',
@@ -410,8 +437,8 @@ module.exports = function binance (conf) {
 //							settled: false,
 							filled_size: order_tmp.filled,
 							executed_value: order_tmp.cost,
-							fill_fees: order_tmp.fee.cost,
-							currency_fees: order_tmp.fee.currency
+							fill_fees: order_tmp.fee ? order_tmp.fee.cost : 0,
+							currency_fees: order_tmp.fee ? order_tmp.fee.currency : 0
 					}
 					
 					debug.msg('exchange.getOrder - exchange_cache:')
@@ -463,9 +490,9 @@ module.exports = function binance (conf) {
 //								settled: false,
 								filled_size: body.filled,
 								executed_value: body.cost,
-								fill_fees: body.fee.cost,
-								currency_fees: body.fee.currency,
-								rate_fees: body.fee.rate
+								fill_fees: body.fee ? body.fee.cost : 0,
+								currency_fees: body.fee ? body.fee.currency : 0,
+								rate_fees: body.fee ? body.fee.rate : 0
 						}
 
 						if (order_tmp.status !== 'open' && order_tmp.status !== 'canceled') {
