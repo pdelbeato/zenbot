@@ -422,7 +422,7 @@ module.exports = function binance (conf) {
 
 				if (!forced && exchange_cache && exchange_cache.openOrders['~' + opts.order_id]) {
 					let order_tmp = exchange_cache.openOrders['~' + opts.order_id]
-					debug.obj('exchange.getOrder - exchange_cache.openOrders:', order_tmp)
+//					debug.obj('exchange.getOrder - exchange_cache.openOrders:', order_tmp)
 					
 					let order_cache = {
 							id: order_tmp.id,
@@ -440,7 +440,7 @@ module.exports = function binance (conf) {
 							currency_fees: order_tmp.fee ? order_tmp.fee.currency : 0
 					}
 					
-					debug.obj('exchange.getOrder - exchange_cache:', order_cache, false)
+//					debug.obj('exchange.getOrder - exchange_cache:', order_cache, false)
 
 					cb(null, order_cache)
 					return
@@ -521,7 +521,7 @@ module.exports = function binance (conf) {
 						exchange_cache.openOrders = {}
 						body.forEach(function(order, index) {
 //							delete order.info
-							debug.obj('exchange.getAllOrder - order ' + order.id, order, false)
+//							debug.obj('exchange.getAllOrder - order ' + order.id, order, false)
 							exchange_cache.openOrders['~' + order.id] = order
 						})
 						cb(null, body)
