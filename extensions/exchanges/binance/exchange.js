@@ -264,6 +264,12 @@ module.exports = function binance (conf) {
 							}
 							return cb(null, order)
 						}
+						
+						//Debug. Da togliere se funziona
+						if (result) {
+							debug.obj('exchange.sell - result:', result)
+						}
+						
 						order = {
 							id: result ? result.id : null,
 							status: 'open',
@@ -330,6 +336,12 @@ module.exports = function binance (conf) {
 							}
 							return cb(null, order)
 						}
+						
+						//Debug. Da togliere se funziona
+						if (result) {
+							debug.obj('exchange.sell - result:', result)
+						}
+						
 						order = {
 							id: result ? result.id : null,
 							status: 'open',
@@ -383,6 +395,9 @@ module.exports = function binance (conf) {
 
 				if (!forced && exchange_cache && exchange_cache.openOrders['~' + opts.order_id]) {
 					let order_tmp = exchange_cache.openOrders['~' + opts.order_id]
+					debug.msg('exchange.getOrder - exchange_cache.openOrders:')
+					debug.msg(order_cache, false)
+					
 					let order_cache = {
 							id: order_tmp.id,
 							created_at: order_tmp.timestamp,
@@ -405,64 +420,66 @@ module.exports = function binance (conf) {
 					cb(null, order_cache)
 					return
 				}				
-				else {
-					if (now() > next_request) {
-						next_request = now() + 1000/max_requests_per_second
+				else if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
 
-						var client = authedClient()
-						client.fetchOrder(opts.order_id, joinProduct(opts.product_id)).then(function (body) {
-//							{
-//						    'id':                '12345-67890:09876/54321', // string
-//						    'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
-//						    'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
-//						    'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
-//						    'status':     'open',         // 'open', 'closed', 'canceled'
-//						    'symbol':     'ETH/BTC',      // symbol
-//						    'type':       'limit',        // 'market', 'limit'
-//						    'side':       'buy',          // 'buy', 'sell'
-//						    'price':       0.06917684,    // float price in quote currency
-//						    'amount':      1.5,           // ordered amount of base currency
-//						    'filled':      1.1,           // filled amount of base currency
-//						    'remaining':   0.4,           // remaining amount to fill
-//						    'cost':        0.076094524,   // 'filled' * 'price' (filling price used where available)
-//						    'trades':    [ ... ],         // a list of order trades/executions
-//						    'fee': {                      // fee info, if available
-//						        'currency': 'BTC',        // which currency the fee is (usually quote)
-//						        'cost': 0.0009,           // the fee amount in that currency
-//						        'rate': 0.002,            // the fee rate (if available)
-//						    },
-//						    'info': { ... },              // the original unparsed order structure as is
+					var client = authedClient()
+					client.fetchOrder(opts.order_id, joinProduct(opts.product_id)).then(function (body) {
+//						{
+//						'id':                '12345-67890:09876/54321', // string
+//						'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
+//						'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
+//						'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
+//						'status':     'open',         // 'open', 'closed', 'canceled'
+//						'symbol':     'ETH/BTC',      // symbol
+//						'type':       'limit',        // 'market', 'limit'
+//						'side':       'buy',          // 'buy', 'sell'
+//						'price':       0.06917684,    // float price in quote currency
+//						'amount':      1.5,           // ordered amount of base currency
+//						'filled':      1.1,           // filled amount of base currency
+//						'remaining':   0.4,           // remaining amount to fill
+//						'cost':        0.076094524,   // 'filled' * 'price' (filling price used where available)
+//						'trades':    [ ... ],         // a list of order trades/executions
+//						'fee': {                      // fee info, if available
+//							'currency': 'BTC',        // which currency the fee is (usually quote)
+//							'cost': 0.0009,           // the fee amount in that currency
+//							'rate': 0.002,            // the fee rate (if available)
+//						},
+//						'info': { ... },              // the original unparsed order structure as is
 //						}
-							let order_tmp = {
-									id: body.id,
-									created_at: body.timestamp,
-									done_at: body.lastTradeTimestamp,
-									price: body.price,
-									size: body.amount,
-									product_id: body.symbol,
-									side: body.side,
-									status: body.status,
-//									settled: false,
-									filled_size: body.filled,
-									executed_value: body.cost,
-									fill_fees: body.fee.cost,
-									currency_fees: body.fee.currency,
-									rate_fees: body.fee.rate
-							}
-							
-							if (order_tmp.status !== 'open' && order_tmp.status !== 'canceled') {
-								order_tmp.status = 'done'
-							}
-							cb(null, order)
-						}, function(err) {
-							return retry('getOrder', func_args, err)
-						})
-					}
-					else {
-						debug.msg('exchange.getOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-//						setTimeout(function() { this.getOrders(opts, cb) }, (next_request - now() + 1))
-						retry('getOrder', func_args, (next_request - now() + 1))
-					}
+						
+						debug.msg('exchange.getOrder - fetchOrder:')
+						debug.msg(order_cache, false)
+						
+						let order_tmp = {
+								id: body.id,
+								created_at: body.timestamp,
+								done_at: body.lastTradeTimestamp,
+								price: body.price,
+								size: body.amount,
+								product_id: body.symbol,
+								side: body.side,
+								status: body.status,
+//								settled: false,
+								filled_size: body.filled,
+								executed_value: body.cost,
+								fill_fees: body.fee.cost,
+								currency_fees: body.fee.currency,
+								rate_fees: body.fee.rate
+						}
+
+						if (order_tmp.status !== 'open' && order_tmp.status !== 'canceled') {
+							order_tmp.status = 'done'
+						}
+						cb(null, order)
+					}, function(err) {
+						return retry('getOrder', func_args, err)
+					})
+				}
+				else {
+					debug.msg('exchange.getOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+//					setTimeout(function() { this.getOrders(opts, cb) }, (next_request - now() + 1))
+					retry('getOrder', func_args, (next_request - now() + 1))
 				}
 			},
 
