@@ -99,13 +99,16 @@ module.exports = function (program, conf) {
 
       so.days = moment(so.end).diff(moment(so.start), 'days')
 
-
+      // s.flag_up=false
+      // s.flag_down=false
 
       so.stats = !!cmd.enable_stats
       so.show_options = !cmd.disable_options
       so.verbose = !!cmd.verbose
       so.selector = objectifySelector(selector || conf.selector)
       so.mode = 'sim'
+
+
 
       // richiama quantum-engine
       var engine = engineFactory(s, conf)
