@@ -493,6 +493,7 @@ module.exports = function binance (conf) {
 						}
 
 						if (order_tmp.status !== 'open' && order_tmp.status !== 'canceled') {
+							console.log('getOrder - fetchOrder: order done!')
 							order_tmp.status = 'done'
 						}
 						cb(null, order)
@@ -515,8 +516,8 @@ module.exports = function binance (conf) {
 
 					var client = authedClient()
 					client.fetchOpenOrders(joinProduct(opts.product_id)).then(function (body) {
-//						console.log('exchange.getAllOrders - body:')
-//						console.log(body)
+						console.log('exchange.getAllOrders - body:')
+						console.log(body)
 						//Azzero la cache e la riscrivo con i valori ricevuti
 						exchange_cache.openOrders = {}
 						body.forEach(function(order, index) {
