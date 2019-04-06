@@ -276,7 +276,7 @@ module.exports = function binance (conf) {
 							price: opts.price,
 							size: this.roundToNearest(opts.size, opts),
 							post_only: !!opts.post_only,
-							created_at: new Date().getTime(),
+							created_at: result.timestamp, //new Date().getTime(),
 							filled_size: '0',
 							ordertype: opts.order_type
 						}
@@ -375,7 +375,7 @@ module.exports = function binance (conf) {
 							price: opts.price,
 							size: this.roundToNearest(opts.size, opts),
 							post_only: !!opts.post_only,
-							created_at: new Date().getTime(),
+							created_at: result.timestamp, //new Date().getTime(),
 							filled_size: '0',
 							ordertype: opts.order_type
 						}
@@ -427,7 +427,7 @@ module.exports = function binance (conf) {
 					let order_cache = {
 							id: order_tmp.id,
 							created_at: order_tmp.timestamp,
-							done_at: order_tmp.lastTradeTimestamp,
+							done_at: order_tmp.info.updateTime,
 							price: order_tmp.price,
 							size: order_tmp.amount,
 							product_id: order_tmp.symbol,
@@ -478,7 +478,7 @@ module.exports = function binance (conf) {
 						let order_tmp = {
 								id: body.id,
 								created_at: body.timestamp,
-								done_at: body.lastTradeTimestamp,
+								done_at: body.info.updateTime,
 								price: body.price,
 								size: body.amount,
 								product_id: body.symbol,
@@ -493,10 +493,10 @@ module.exports = function binance (conf) {
 						}
 
 						if (order_tmp.status !== 'open' && order_tmp.status !== 'canceled') {
-							console.log('getOrder - fetchOrder: order done!')
+//							console.log('getOrder - fetchOrder: order done!')
 							order_tmp.status = 'done'
 						}
-						cb(null, order)
+						cb(null, order_tmp)
 					}, function(err) {
 						return retry('getOrder', func_args, err)
 					})
@@ -516,8 +516,8 @@ module.exports = function binance (conf) {
 
 					var client = authedClient()
 					client.fetchOpenOrders(joinProduct(opts.product_id)).then(function (body) {
-						console.log('exchange.getAllOrders - body:')
-						console.log(body)
+//						console.log('exchange.getAllOrders - body:')
+//						console.log(body)
 						//Azzero la cache e la riscrivo con i valori ricevuti
 						exchange_cache.openOrders = {}
 						body.forEach(function(order, index) {
