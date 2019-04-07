@@ -67,7 +67,6 @@ module.exports = function binance (conf) {
 			name: 'binance',
 			historyScan: 'forward',
 			historyScanUsesTime: true,
-			makerFee: 0.075,
 			takerFee: 0.075,
 			websocket: false,
 
@@ -223,6 +222,56 @@ module.exports = function binance (conf) {
 				else {
 					debug.msg('exchange.cancelOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
 //					setTimeout(function() { this.cancelOrder(opts, cb) }, (next_request - now() + 1))
+					retry('cancelOrder', func_args, (next_request - now() + 1))
+				}
+			},
+			
+			//Cancella tutti gli ordini dall'exchange
+			cancelAllOrders: function (opts, cb) {
+				var func_args = [].slice.call(arguments)
+
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
+
+					var client = authedClient()
+					client.fetchOpenOrders(joinProduct(opts.product_id)).then(function (body) {
+						console.log('exchange.cancelAllOrders - body:')
+
+						//Azzero la cache
+						exchange_cache.openOrders = {}
+						body.forEach(function(order, index) {
+							client.cancelOrder(order.id, joinProduct(opts.product_id)).then(function (body) {
+								if (body) {
+									console.log('exchange.cancelAllOrders - cancelOrder - body:')
+									console.log(body)
+								}
+								if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
+									console.log('exchange.cancelAllOrders - Qualcosa non quadra. Body:')
+									console.log(body)
+								}
+							}, function(err) {
+								// match error against string:
+								// "binance {"code":-2011,"msg":"UNKNOWN_ORDER"}"
+
+								if (err) {
+									// decide if this error is allowed for a retry
+
+									if (err.message && err.message.match(new RegExp(/-2011|UNKNOWN_ORDER/))) {
+										console.error(('\ncancelOrder retry - unknown Order: ' + JSON.stringify(opts) + ' - ' + err).cyan)
+									} else {
+										// retry is allowed for this error
+										retry('cancelOrder', func_args, err)
+									}
+								}
+							})
+						})
+						cb(null, body)
+					}, function(err) {
+						return retry('getAllOrders', func_args, err)
+					})		
+				}
+				else {
+					debug.msg('exchange.cancelOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
 					retry('cancelOrder', func_args, (next_request - now() + 1))
 				}
 			},
