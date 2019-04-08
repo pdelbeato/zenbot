@@ -1,26 +1,32 @@
 var z = require('zero-fill')
 , n = require('numbro')
+, sma = require('../../../lib/sma')
 , debug = require('../../../lib/debug')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
 //Per questa strategia, attivare catching order e disattivare profit_stop e buy/sell_gain_pct
 //c.strategy['static_grid'] = {
-//name: 'static_grid',
-//opts: {
-//	period_calc: '15m',				//Calculate actual lane every period_calc time
-//	min_periods: 2, 				//min. number of history periods (timeframe period_length)
-//	pivot: 2.70,					//Pivot price
-//	grid_pct: 2, 					//% delta between grid lines
-//	lanes_per_side: 10,				//Number of lanes per side
+//	name: 'static_grid',
+//	opts: {							//****** To store options
+//		period_calc: '15m',			//****** Calculate actual lane every period_calc time
+//		min_periods: 1000, 			//****** Minimum number of history periods (timeframe period_length). It is the number of values to calculate Pivot price (SMA) too.
+//		grid_pct: 4, 				//% delta between grid lines
+//		lanes_per_side: 10,			//Number of lanes per side
 //	},
-//	data: {							//to storage calculated data
-//		boundary: [],				//Boundary between lanes
+//	data: {							//****** To store calculated data
+//		sma: null,					//Actual Pivot price
+//		boundary: {					//Boundary between lanes
+//			pair: [],
+//			odd: [],
+//		},
 //		actual_lane: 0,				//Lane of actual price
 //		old_lane: 0,				//Former lane
 //		trend: 1,					//Trend (1 rising, 0 not moving, -1 falling)
 //		trade_in_lane: false,		//Trade in lane done or not
-//	},	
+//	},
+//	calc_lookback: [],				//****** Old periods for calculation
+//	calc_close_time: 0				//****** Close time for strategy period
 //}
 
 module.exports = {
@@ -29,18 +35,25 @@ module.exports = {
 		
 		getOptions: function (s) {
 			this.option('static_grid', 'period_calc', 'Calculate actual lane every period_calc time', String, '15m')
-			this.option('static_grid', 'min_periods', 'Min. number of history periods', Number, 2)
-			this.option('static_grid', 'pivot','Pivot price', Number, 0)
+			this.option('static_grid', 'min_periods', 'Min. number of history periods (and the number of values to calculate Pivot price (SMA)', Number, 500)
 			this.option('static_grid', 'grid_pct','% grid lines', Number, 1)
 			this.option('static_grid', 'lanes_per_side','Number of lanes per side', Number, 5)
+		},
+
+		calculate: function (s, cb = function() {}) {
+			//Calcolo il pivot price (s.options.strategy.static_grid.data.sma)
+			sma(s, 'static_grid', s.options.strategy.static_grid.opts.min_periods, 'close') 
 
 			//Calcola la griglia
-			var lane_width = s.options.strategy.static_grid.opts.pivot * s.options.strategy.static_grid.opts.grid_pct / 100
+			var pivot = s.options.strategy.static_grid.data.sma
+			var lane_width = pivot * s.options.strategy.static_grid.opts.grid_pct / 100
 			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
+			
 			for (var i = 0; i <= (2 * central_lane); i++) {
-				s.options.strategy.static_grid.data.boundary.pair[i] = roundToNearest(n(s.options.strategy.static_grid.opts.pivot).add((i - central_lane) * lane_width).value())
+				s.options.strategy.static_grid.data.boundary.pair[i] = roundToNearest(n(pivot).add((i - central_lane) * lane_width).value())
 				s.options.strategy.static_grid.data.boundary.odd[i] = roundToNearest(n(s.options.strategy.static_grid.data.boundary.pair[i]).add(lane_width / 2).value())
 			}
+			
 			console.log('Static Grid:')
 			console.log(s.options.strategy.static_grid.data.boundary.pair)
 			console.log(s.options.strategy.static_grid.data.boundary.odd)
@@ -51,12 +64,8 @@ module.exports = {
 
 				return Math.floor(numToRound * numToRoundTo) / numToRoundTo
 			}
-		},
-
-		calculate: function (s, cb = function() {}) {
-			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
-
-			//Se il prezzo è sotto il minimo delle odd lanes, allora entra nelle pair lanes.
+			
+			//Se il prezzo è sotto il minimo fra tutte le odd lanes, allora entra nella pair lanes più bassa.
 			if (s.period.close < s.options.strategy.static_grid.data.boundary.odd[0]) {
 				s.options.strategy.static_grid.data.pair = true
 			}
@@ -108,7 +117,16 @@ module.exports = {
 			return cols
 		},
 		
-		orderExecuted: function (s, type, executeSignal) {
+		printOptions: function(s) {
+			let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.static_grid))
+			delete so_tmp.calc_lookback
+			delete so_tmp.calc_close_time
+			
+			console.log('\n' + cliff.inspect(so_tmp))
+		},
+		
+		orderExecuted: function (s, signal, position_id) {
 			s.options.strategy.static_grid.data.trade_in_lane = true
+			debug.msg('static_grid strategy - orderExecuted - trade_in_lane= ' + s.options.strategy.static_grid.data.trade_in_lane)
 		},
 }

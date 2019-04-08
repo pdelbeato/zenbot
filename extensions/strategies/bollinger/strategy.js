@@ -9,9 +9,9 @@ var z = require('zero-fill')
 //---------------------------------------------
 //c.strategy['bollinger'] = {
 //	name: 'bollinger',
-//	opts: {
-//		period_calc: '15m',			//calculate Bollinger Bands every period_calc time
-//		min_periods: 301, 			//min. number of history periods (timeframe period_length)
+//	opts: {							//****** To store options
+//		period_calc: '15m',			//****** Calculate Bollinger Bands every period_calc time
+//		min_periods: 301, 			//****** Minimum number of history periods (timeframe period_length)
 //		size: 20,					//period size
 //		time: 2,					//times of standard deviation between the upper/lower band and the moving averages
 //		min_bandwidth_pct: 0.50,	//minimum pct bandwidth to emit a signal
@@ -21,13 +21,14 @@ var z = require('zero-fill')
 //		lower_watchdog_pct: 200,	//pct the current price should be under the bollinger lower bound to activate watchdog
 //		calmdown_watchdog_pct: 0,	//pct the current price should be far from the bollinger bands to calmdown the watchdog
 //	},
-//	data: {							//to storage calculated data
+//	data: {							//****** To store calculated data
 //		upperBound: null,
 //		midBound: null,
-//		lowerBound : null
+//		lowerBound: null,
 //	},	
+//	calc_lookback: [],				//****** Old periods for calculation
+//	calc_close_time: 0				//****** Close time for strategy period
 //}
-
 
 module.exports = {
 	name: 'bollinger',
@@ -157,7 +158,14 @@ module.exports = {
 		}
 		return cols
 	},
-
+	
+	printOptions: function(s) {
+		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.static_grid))
+		delete so_tmp.calc_lookback
+		
+		console.log('\n' + cliff.inspect(so_tmp))
+	},
+	
 	orderExecuted: function (s, type, executeSignal) {
 
 	},

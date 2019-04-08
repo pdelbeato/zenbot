@@ -629,6 +629,17 @@ module.exports = function (program, conf) {
 						console.log('\n' + strategy_name + '\n' + cliff.inspect(so.strategy[strategy_name].opts))
 					})
 				}})
+				keyMap.set('O', {desc: ('show current strategies options/data'.grey), action: function() {
+					Object.keys(so.strategy).forEach(function (strategy_name, index) {
+						if (so.strategy[strategy_name].printOptions) {
+							console.log('\nStrategy ' + strategy_name + ' options/data:')
+							so.strategy[strategy_name].printOptions
+						}
+						else {
+							console.log('\nStrategy ' + strategy_name + ' has no printOptions function.')
+						}
+					})
+				}})
 				keyMap.set('w', {desc: ('toggle Dump Watchdog'.grey), action: function() {
 					so.dump_watchdog = !so.dump_watchdog
 					s.is_dump_watchdog = so.dump_watchdog
