@@ -56,9 +56,9 @@ module.exports = {
 				s.options.strategy.static_grid.data.boundary.odd[i] = roundToNearest(n(s.options.strategy.static_grid.data.boundary.pair[i]).add(lane_width / 2).value())
 			}
 			
-			console.log('Static Grid:')
-			console.log(s.options.strategy.static_grid.data.boundary.pair)
-			console.log(s.options.strategy.static_grid.data.boundary.odd)
+//			console.log('Static Grid:')
+//			console.log(s.options.strategy.static_grid.data.boundary.pair)
+//			console.log(s.options.strategy.static_grid.data.boundary.odd)
 			
 			function roundToNearest(numToRound) {
 				var numToRoundTo = (s.product.increment ? s.product.increment : 0.00000001)
@@ -112,9 +112,11 @@ module.exports = {
 		onReport: function (s) {
 			var cols = []
 			var color = (s.options.strategy.static_grid.data.trend = 0 ? 'white': (s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red'))
+			cols.push('Pivot')
+			cols.push(z(7, s.options.strategy.static_grid.data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
 			cols.push('Lane') 
 			cols.push(z(3, s.options.strategy.static_grid.data.actual_lane, ' ')[color])
-			cols.push(z(6, (s.options.active_long_position ? 'Long' : 'Short'), ' '))
+//			cols.push(z(6, (s.options.active_long_position ? 'Long' : 'Short'), ' '))
 			cols.push(z(5, (s.options.strategy.static_grid.data.pair ? 'Pair' : 'Odd'), ' '))
 			return cols
 		},
