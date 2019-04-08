@@ -113,8 +113,8 @@ module.exports = {
 			var cols = []
 			var color = (s.options.strategy.static_grid.data.trend = 0 ? 'white': (s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red'))
 			cols.push('Pivot')
-			cols.push(z(8, s.options.strategy.static_grid.data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
-			cols.push('Lane') 
+			cols.push(z(7, s.options.strategy.static_grid.data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
+			cols.push(' Lane') 
 			cols.push(z(3, s.options.strategy.static_grid.data.actual_lane, ' ')[color])
 //			cols.push(z(6, (s.options.active_long_position ? 'Long' : 'Short'), ' '))
 			cols.push(z(5, (s.options.strategy.static_grid.data.pair ? 'Pair' : 'Odd'), ' '))

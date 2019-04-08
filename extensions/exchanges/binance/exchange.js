@@ -68,6 +68,7 @@ module.exports = function binance (conf) {
 			historyScan: 'forward',
 			historyScanUsesTime: true,
 			takerFee: 0.075,
+		    makerFee: 0.1,			
 			websocket: false,
 
 			getProducts: function () {
