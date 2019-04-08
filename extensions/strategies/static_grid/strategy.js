@@ -1,6 +1,7 @@
 var z = require('zero-fill')
 , n = require('numbro')
 , sma = require('../../../lib/sma')
+, cliff = require('cliff')
 , debug = require('../../../lib/debug')
 
 //Parte da includere nel file di configurazione

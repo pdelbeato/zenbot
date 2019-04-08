@@ -144,7 +144,9 @@ module.exports = function (program, conf) {
 			}
 		}
 
-		if (!so.min_periods) so.min_periods = 301
+		if (!so.min_periods) {
+			so.min_periods = 301
+		}
 
 		so.selector = objectifySelector(selector || conf.selector)
 
@@ -633,7 +635,7 @@ module.exports = function (program, conf) {
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
 						if (so.strategy[strategy_name].lib.printOptions) {
 							console.log('\nStrategy ' + strategy_name + ' options/data:')
-							so.strategy[strategy_name].lib.printOptions
+							so.strategy[strategy_name].lib.printOptions(s)
 						}
 						else {
 							console.log('\nStrategy ' + strategy_name + ' has no printOptions function.')

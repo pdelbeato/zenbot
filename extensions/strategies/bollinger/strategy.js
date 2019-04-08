@@ -2,8 +2,9 @@ var z = require('zero-fill')
 , n = require('numbro')
 , bollinger = require('../../../lib/bollinger')
 , Phenotypes = require('../../../lib/phenotype')
-, debug = require('../../../lib/debug')
+, cliff = require('cliff')
 , crypto = require('crypto')
+, debug = require('../../../lib/debug')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
