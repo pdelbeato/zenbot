@@ -16,7 +16,7 @@ var z = require('zero-fill')
 //		lanes_per_side: 10,			//Number of lanes per side
 //	},
 //	data: {							//****** To store calculated data
-//		pivot_price: null,			//Actual Pivot price
+//		pivot_price: 0,				//Actual Pivot price
 //		boundary: {					//Boundary between lanes
 //			pair: [],
 //			odd: [],
@@ -44,7 +44,7 @@ module.exports = {
 
 		calculate: function (s, cb = function() {}) {
 			//Calcolo il pivot price (s.options.strategy.static_grid.data.sma)
-			s.options.strategy.static_grid.data.pivot_price = sma(s, 'static_grid', s.options.strategy.static_grid.opts.min_periods, 'close') 
+			s.options.strategy.static_grid.data.pivot_price = roundToNearest(sma(s, 'static_grid', s.options.strategy.static_grid.opts.min_periods, 'close')) 
 
 			//Calcola la griglia
 			var pivot_price = s.options.strategy.static_grid.data.pivot_price
@@ -113,7 +113,7 @@ module.exports = {
 			var cols = []
 			var color = (s.options.strategy.static_grid.data.trend = 0 ? 'white': (s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red'))
 			cols.push('Pivot')
-			cols.push(z(7, s.options.strategy.static_grid.data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
+			cols.push(z(8, s.options.strategy.static_grid.data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
 			cols.push('Lane') 
 			cols.push(z(3, s.options.strategy.static_grid.data.actual_lane, ' ')[color])
 //			cols.push(z(6, (s.options.active_long_position ? 'Long' : 'Short'), ' '))
