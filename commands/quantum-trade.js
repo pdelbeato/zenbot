@@ -631,9 +631,9 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('O', {desc: ('show current strategies options/data'.grey), action: function() {
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
-						if (so.strategy[strategy_name].printOptions) {
+						if (so.strategy[strategy_name].lib.printOptions) {
 							console.log('\nStrategy ' + strategy_name + ' options/data:')
-							so.strategy[strategy_name].printOptions
+							so.strategy[strategy_name].lib.printOptions
 						}
 						else {
 							console.log('\nStrategy ' + strategy_name + ' has no printOptions function.')

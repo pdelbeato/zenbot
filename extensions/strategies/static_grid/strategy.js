@@ -15,7 +15,7 @@ var z = require('zero-fill')
 //		lanes_per_side: 10,			//Number of lanes per side
 //	},
 //	data: {							//****** To store calculated data
-//		sma: null,					//Actual Pivot price
+//		pivot_price: null,			//Actual Pivot price
 //		boundary: {					//Boundary between lanes
 //			pair: [],
 //			odd: [],
@@ -26,7 +26,8 @@ var z = require('zero-fill')
 //		trade_in_lane: false,		//Trade in lane done or not
 //	},
 //	calc_lookback: [],				//****** Old periods for calculation
-//	calc_close_time: 0				//****** Close time for strategy period
+//	calc_close_time: 0,				//****** Close time for strategy period
+//	lib: {}							//****** To store all the functions of the strategy
 //}
 
 module.exports = {
@@ -42,15 +43,15 @@ module.exports = {
 
 		calculate: function (s, cb = function() {}) {
 			//Calcolo il pivot price (s.options.strategy.static_grid.data.sma)
-			sma(s, 'static_grid', s.options.strategy.static_grid.opts.min_periods, 'close') 
+			s.options.strategy.static_grid.data.pivot_price = sma(s, 'static_grid', s.options.strategy.static_grid.opts.min_periods, 'close') 
 
 			//Calcola la griglia
-			var pivot = s.options.strategy.static_grid.data.sma
-			var lane_width = pivot * s.options.strategy.static_grid.opts.grid_pct / 100
+			var pivot_price = s.options.strategy.static_grid.data.pivot_price
+			var lane_width = pivot_price * s.options.strategy.static_grid.opts.grid_pct / 100
 			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
 			
 			for (var i = 0; i <= (2 * central_lane); i++) {
-				s.options.strategy.static_grid.data.boundary.pair[i] = roundToNearest(n(pivot).add((i - central_lane) * lane_width).value())
+				s.options.strategy.static_grid.data.boundary.pair[i] = roundToNearest(n(pivot_price).add((i - central_lane) * lane_width).value())
 				s.options.strategy.static_grid.data.boundary.odd[i] = roundToNearest(n(s.options.strategy.static_grid.data.boundary.pair[i]).add(lane_width / 2).value())
 			}
 			
@@ -87,7 +88,7 @@ module.exports = {
 			s.options.strategy.static_grid.data.trend = s.options.strategy.static_grid.data.actual_lane - s.options.strategy.static_grid.data.old_lane
 			
 			if (s.options.strategy.static_grid.data.trend != 0) {
-				var side = (s.period.close > s.options.strategy.static_grid.opts.pivot)
+				var side = (s.period.close > s.options.strategy.static_grid.data.pivot_price)
 
 				s.options.strategy.static_grid.data.trade_in_lane = false
 				s.options.strategy.static_grid.data.pair = !s.options.strategy.static_grid.data.pair
