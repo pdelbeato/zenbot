@@ -926,7 +926,7 @@ module.exports = function (program, conf) {
 					z(10, so.period_length, ' '),
 					z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
 					z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
-					z(17, (so.order_type === 'maker' ? so.order_type + ' ' + n(s.exchange.makerFee/100).format('0.000%')  : so.order_type + ' ' + n(s.exchange.takerFee/100).format('0.000%'), ' ')
+					z(17, (so.order_type === 'maker' ? so.order_type + ' ' + n(s.exchange.makerFee/100).format('0.000%')  : so.order_type + ' ' + n(s.exchange.takerFee/100).format('0.000%'), ' '))
 					].join('') + '\n\n')
 
 					process.stdout.write('')
