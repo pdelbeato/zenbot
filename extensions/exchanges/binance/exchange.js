@@ -70,12 +70,18 @@ module.exports = function binance (conf) {
 			takerFee: 0.075,
 		    makerFee: 0.075,			
 			websocket: false,
+			
+			debug_exchange: false,
 
 			getProducts: function () {
 				return require('./products.json')
 			},
 
 			getTrades: function (opts, cb) {
+				if (exchange.debug_exchange) {
+					debug.msg('exchange.getTrades')
+				}
+				
 				var func_args = [].slice.call(arguments)
 				var client = publicClient()
 				var startTime = null
@@ -112,6 +118,9 @@ module.exports = function binance (conf) {
 						price: parseFloat(trade.price),
 						side: trade.side
 					}))
+					if (exchange.debug_exchange) {
+						debug.obj('exchange.getTrades - trades:', result)
+					}
 					cb(null, trades)
 				}).catch(function (error) {
 					console.error('An error occurred', error)
@@ -122,7 +131,9 @@ module.exports = function binance (conf) {
 
 			getBalance: function (opts, cb) {
 				var func_args = [].slice.call(arguments)
-				
+				if (exchange.debug_exchange) {
+					debug.msg('exchange.getBalance')
+				}
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
@@ -139,6 +150,9 @@ module.exports = function binance (conf) {
 								balance.asset_hold = result[key].used
 							}
 						})
+						if (exchange.debug_exchange) {
+							debug.obj('exchange.getBalance - balance:', result)
+						}
 						cb(null, balance)
 					})
 					.catch(function (error) {
@@ -155,12 +169,17 @@ module.exports = function binance (conf) {
 
 			getQuote: function (opts, cb) {
 				var func_args = [].slice.call(arguments)
-				
+				if (exchange.debug_exchange) {
+					debug.msg('exchange.getQuote')
+				}
 				if (now() > next_request) {
 					next_request = now() + 1000/max_requests_per_second
 
 					var client = publicClient()
 					client.fetchTicker(joinProduct(opts.product_id)).then(result => {
+						if (exchange.debug_exchange) {
+							debug.obj('exchange.getQuote - quote:', result)
+						}
 						cb(null, { bid: result.bid, ask: result.ask })
 					})
 					.catch(function (error) {
@@ -196,8 +215,7 @@ module.exports = function binance (conf) {
 					var client = authedClient()
 					client.cancelOrder(opts.order_id, joinProduct(opts.product_id)).then(function (body) {
 						if (body) {
-							console.log('exchange.cancelOrder - body:')
-							console.log(body)
+							debug.obj('exchange.cancelOrder - body:', body)
 						}
 						if (body && (body.message === 'Order already done' || body.message === 'order not found')) return cb()
 						cb(null)
@@ -317,7 +335,7 @@ module.exports = function binance (conf) {
 						
 						//Debug. Da togliere se funziona
 						if (result) {
-							debug.obj('exchange.sell - result:', result)
+							debug.obj('exchange.buy - result:', result)
 						}
 						
 						order = {
@@ -464,6 +482,9 @@ module.exports = function binance (conf) {
 			
 			getOrder: function (opts, forced = false, cb) {
 				var func_args = [].slice.call(arguments)
+				if (exchange.debug_exchange) {
+					debug.msg('exchange.getOrder')
+				}
 				
 				if (typeof forced == 'function') {
 					cb = forced
@@ -490,7 +511,9 @@ module.exports = function binance (conf) {
 							currency_fees: order_tmp.fee ? order_tmp.fee.currency : 0
 					}
 					
-//					debug.obj('exchange.getOrder - exchange_cache:', order_cache, false)
+					if (exchange.debug_exchange) {
+						debug.obj('exchange.getOrder - exchange_cache:', order_cache)
+					}
 
 					cb(null, order_cache)
 					return
@@ -572,7 +595,9 @@ module.exports = function binance (conf) {
 						exchange_cache.openOrders = {}
 						body.forEach(function(order, index) {
 //							delete order.info
-//							debug.obj('exchange.getAllOrder - order ' + order.id, order, false)
+							if (exchange.debug_exchange) {
+								debug.obj('exchange.getAllOrder - order ' + order.id, order)
+							}
 							exchange_cache.openOrders['~' + order.id] = order
 						})
 						cb(null, body)

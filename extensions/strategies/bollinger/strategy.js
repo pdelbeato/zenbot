@@ -164,6 +164,8 @@ module.exports = {
 	printOptions: function(s) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.bollinger))
 		delete so_tmp.calc_lookback
+		delete so_tmp.calc_close_time
+		delete so_tmp.lib
 		
 		console.log('\n' + cliff.inspect(so_tmp))
 	},
