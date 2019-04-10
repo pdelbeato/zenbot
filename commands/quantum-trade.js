@@ -1576,7 +1576,7 @@ module.exports = function (program, conf) {
 				session.balance = s.balance
 				session.num_trades = s.my_trades.length
 				session.day_count = s.day_count
-				session.total_fee = s.total_fee
+				session.total_fees = s.total_fees
 				
 				if (s.db_valid) sessions.updateOne({'_id' : session._id}, {$set : session}, {upsert : true}, function (err) {
 					if (err) {
