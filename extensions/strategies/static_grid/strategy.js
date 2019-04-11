@@ -122,7 +122,7 @@ module.exports = {
 //			cols.push(z(6, (s.options.active_long_position ? 'Long' : 'Short'), ' '))
 			cols.push(z(5, (s.options.strategy.static_grid.data.pair ? 'Pair' : 'Odd'), ' '))
 			cols.push(' Catch') 
-			cols.push(z(7, n(s.options.catch_order_pct).divide(100).format('0.00%'), ' ').white)
+			cols.push(z(6, n(s.options.catch_order_pct).divide(100).format('0.00%'), ' ').yellow)
 			return cols
 		},
 		
