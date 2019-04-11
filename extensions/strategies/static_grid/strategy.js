@@ -40,6 +40,7 @@ module.exports = {
 			this.option('static_grid', 'min_periods', 'Min. number of history periods (and the number of values to calculate Pivot price (SMA)', Number, 500)
 			this.option('static_grid', 'grid_pct','% grid lines', Number, 1)
 			this.option('static_grid', 'lanes_per_side','Number of lanes per side', Number, 5)
+			this.option('static_grid', 'gain_distance_pct','% of distance between open price and pivot price to be considered as gain for the positions', Number, 50)
 		},
 
 		calculate: function (s, cb = function() {}) {
@@ -60,13 +61,6 @@ module.exports = {
 //			console.log(s.options.strategy.static_grid.data.boundary.pair)
 //			console.log(s.options.strategy.static_grid.data.boundary.odd)
 			
-			function roundToNearest(numToRound) {
-				var numToRoundTo = (s.product.increment ? s.product.increment : 0.00000001)
-				numToRoundTo = 1 / (numToRoundTo)
-
-				return Math.floor(numToRound * numToRoundTo) / numToRoundTo
-			}
-			
 			//Se il prezzo è sotto il minimo fra tutte le odd lanes, allora entra nella pair lanes più bassa.
 			if (s.period.close < s.options.strategy.static_grid.data.boundary.odd[0]) {
 				s.options.strategy.static_grid.data.pair = true
@@ -80,7 +74,16 @@ module.exports = {
 					s.options.strategy.static_grid.data.actual_lane = i
 				}
 			}
+			s.options.catch_order_pct = roundToNearest(Math.abs((s.period.close - pivot_price) / (2 * pivot_price) * 100))
+			
 			cb()
+			
+			function roundToNearest(numToRound) {
+				var numToRoundTo = (s.product.increment ? s.product.increment : 0.00000001)
+				numToRoundTo = 1 / (numToRoundTo)
+
+				return Math.floor(numToRound * numToRoundTo) / numToRoundTo
+			}
 		},
 
 		onPeriod: function (s, cb) {
@@ -96,7 +99,7 @@ module.exports = {
 				s.options.active_long_position = !side
 				s.options.active_short_position = side
 
-				this.calculate(s, function() {
+//				this.calculate(s, function() {
 					if (s.options.strategy.static_grid.data.trend < 0) {
 						s.eventBus.emit('static_grid', 'sell')
 					}
@@ -104,7 +107,7 @@ module.exports = {
 						s.eventBus.emit('static_grid', 'buy')
 					}
 					s.options.strategy.static_grid.data.old_lane = s.options.strategy.static_grid.data.actual_lane
-				})
+//				})
 			}
 			cb()
 		},
@@ -118,6 +121,8 @@ module.exports = {
 			cols.push(z(3, s.options.strategy.static_grid.data.actual_lane, ' ')[color])
 //			cols.push(z(6, (s.options.active_long_position ? 'Long' : 'Short'), ' '))
 			cols.push(z(5, (s.options.strategy.static_grid.data.pair ? 'Pair' : 'Odd'), ' '))
+			cols.push(' Catch') 
+			cols.push(z(7, n(s.options.catch_order_pct).format('0.00%'), ' ').white)
 			return cols
 		},
 		
