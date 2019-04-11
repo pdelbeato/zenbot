@@ -77,7 +77,7 @@ module.exports = {
 					s.options.strategy.static_grid.data.actual_lane = i
 				}
 			}
-			s.options.catch_order_pct = roundToNearest(Math.min(Math.abs(((s.period.close - pivot_price) / pivot_price) * s.options.gain_distance_pct), s.options.strategy.static_grid.opts.minimum_gain_pct))
+			s.options.catch_order_pct = roundToNearest(Math.min(Math.abs(((s.period.close - pivot_price) / pivot_price) * s.options.strategy.static_grid.opts.gain_distance_pct), s.options.strategy.static_grid.opts.minimum_gain_pct))
 			
 			cb()
 			
