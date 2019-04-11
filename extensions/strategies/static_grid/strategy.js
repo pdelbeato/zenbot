@@ -118,13 +118,13 @@ module.exports = {
 		onReport: function (s) {
 			var cols = []
 			var color = (s.options.strategy.static_grid.data.trend = 0 ? 'white': (s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red'))
-			cols.push('Pivot')
+			cols.push('Pvt')
 			cols.push(z(7, s.options.strategy.static_grid.data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
-			cols.push(' Lane') 
+			cols.push('|Lane') 
 			cols.push(z(3, s.options.strategy.static_grid.data.actual_lane, ' ')[color])
 //			cols.push(z(6, (s.options.active_long_position ? 'Long' : 'Short'), ' '))
-			cols.push(z(5, (s.options.strategy.static_grid.data.pair ? 'Pair' : 'Odd'), ' '))
-			cols.push(' Catch') 
+			cols.push(z(5, (s.options.strategy.static_grid.data.pair ? 'P' : 'O'), ' ')[color])
+			cols.push('|Catch') 
 			cols.push(z(6, n(s.options.catch_order_pct).divide(100).format('0.00%'), ' ').yellow)
 			return cols
 		},
