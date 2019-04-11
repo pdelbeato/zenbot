@@ -102,7 +102,9 @@ module.exports = {
 				s.options.active_long_position = !side
 				s.options.active_short_position = side
 
-//				this.calculate(s, function() {
+				//Ricalcola la posizione precisa nelle corsie, perché ha cambiato pair/odd.
+				// Dopodiché emette il segnale
+				this.calculate(s, function() {
 					if (s.options.strategy.static_grid.data.trend < 0) {
 						s.eventBus.emit('static_grid', 'sell')
 					}
@@ -110,7 +112,7 @@ module.exports = {
 						s.eventBus.emit('static_grid', 'buy')
 					}
 					s.options.strategy.static_grid.data.old_lane = s.options.strategy.static_grid.data.actual_lane
-//				})
+				})
 			}
 			cb()
 		},
