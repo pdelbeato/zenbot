@@ -14,6 +14,8 @@ var z = require('zero-fill')
 //		min_periods: 1000, 			//****** Minimum number of history periods (timeframe period_length). It is the number of values to calculate Pivot price (SMA) too.
 //		grid_pct: 4, 				//% delta between grid lines
 //		lanes_per_side: 10,			//Number of lanes per side
+//		gain_distance_pct: 50,		//% of distance between open price and pivot price to be considered as gain for the position
+//		minimum_gain_pct: 3,		//Minimum % of gain for catching position
 //	},
 //	data: {							//****** To store calculated data
 //		pivot_price: 0,				//Actual Pivot price
@@ -41,6 +43,7 @@ module.exports = {
 			this.option('static_grid', 'grid_pct','% grid lines', Number, 1)
 			this.option('static_grid', 'lanes_per_side','Number of lanes per side', Number, 5)
 			this.option('static_grid', 'gain_distance_pct','% of distance between open price and pivot price to be considered as gain for the positions', Number, 50)
+			this.option('static_grid', 'minimum_gain_pct','Minimum % of gain for catching position', Number, 3)
 		},
 
 		calculate: function (s, cb = function() {}) {
@@ -74,7 +77,7 @@ module.exports = {
 					s.options.strategy.static_grid.data.actual_lane = i
 				}
 			}
-			s.options.catch_order_pct = roundToNearest(Math.abs((s.period.close - pivot_price) / (2 * pivot_price) * 100))
+			s.options.catch_order_pct = roundToNearest(Math.min(Math.abs(((s.period.close - pivot_price) / pivot_price) * s.options.gain_distance_pct), s.options.strategy.static_grid.opts.minimum_gain_pct))
 			
 			cb()
 			
