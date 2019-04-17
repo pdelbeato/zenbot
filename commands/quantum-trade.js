@@ -1455,7 +1455,7 @@ module.exports = function (program, conf) {
 									s.orig_asset = session.orig_asset = s.balance.asset //raw_opts.asset_capital | s.balance.asset | 0
 									s.orig_price = session.orig_price = s.start_price
 									s.orig_capital_currency = session.orig_capital_currency = s.start_capital_currency
-									s.orig_capital_asset = session.orig_capital_asset = s.balance.asset
+									s.orig_capital_asset = session.orig_capital_asset = s.start_capital_asset
 									debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital_currency = ' + s.orig_capital_currency + ' ; s.orig_capital_asset = ' + s.orig_capital_asset + ' ; s.orig_price = ' + s.orig_price)
 								}
 								s.start_currency = session.start_currency = s.balance.currency
