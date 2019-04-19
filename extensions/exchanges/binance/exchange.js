@@ -216,8 +216,13 @@ module.exports = function binance (conf) {
 					client.cancelOrder(opts.order_id, joinProduct(opts.product_id)).then(function (body) {
 						if (body) {
 							debug.obj('exchange.cancelOrder - body:', body)
+							if (body.id && exchange_cache && exchange_cache.openOrders['~' + body.id]) {
+								exchange_cache.openOrders['~' + body.id] = body
+							}
 						}
-						if (body && (body.message === 'Order already done' || body.message === 'order not found')) return cb()
+						if (body && (body.message === 'Order already done' || body.message === 'order not found')) {
+							return cb()
+						}
 						cb(null)
 					}, function(err){
 						// match error against string:
