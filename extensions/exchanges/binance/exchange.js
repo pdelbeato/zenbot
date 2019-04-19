@@ -236,7 +236,7 @@ module.exports = function binance (conf) {
 							} else {
 								// retry is allowed for this error
 
-								return retry('cancelOrder', func_args, err)
+								return retry('cancelOrder', func_args, undefined, err)
 							}
 						}
 
@@ -284,7 +284,7 @@ module.exports = function binance (conf) {
 										console.error(('\ncancelOrder retry - unknown Order: ' + JSON.stringify(opts) + ' - ' + err).cyan)
 									} else {
 										// retry is allowed for this error
-										retry('cancelOrder', func_args, err)
+										retry('cancelOrder', func_args, undefined, err)
 									}
 								}
 							})
@@ -576,7 +576,7 @@ module.exports = function binance (conf) {
 						}
 						cb(null, order_tmp)
 					}, function(err) {
-						return retry('getOrder', func_args, err)
+						return retry('getOrder', func_args, undefined, err)
 					})
 				}
 				else {
@@ -610,7 +610,7 @@ module.exports = function binance (conf) {
 						})
 						cb(null, body)
 					}, function(err) {
-						return retry('getAllOrders', func_args, err)
+						return retry('getAllOrders', func_args, undefined, err)
 					})
 				}
 				else {
