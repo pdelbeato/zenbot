@@ -46,6 +46,7 @@ module.exports = function (program, conf) {
 	.option('--asset_capital <amount>', 'for paper trading, amount of start capital in asset', Number, conf.asset_capital)
 	.option('--avg_slippage_pct <pct>', 'avg. amount of slippage to apply to paper trades', Number, conf.avg_slippage_pct)
 	.option('--quantum_value <amount>', 'buy up to this amount of currency every time', Number, conf.quantum_value)
+	.option('--max_positions <amount>', 'maximum number of opened positions', Number, conf.max_positions)
 	.option('--best_bid', 'mark up as little as possible the buy price to be the best bid', Boolean, false)
 	.option('--best_ask', 'mark down as little as possible the sell price to be the best ask', Boolean, false)
 	.option('--dump_watchdog', 'check for dumps. Strategy is in charge', Boolean, false)
