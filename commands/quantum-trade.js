@@ -985,16 +985,16 @@ module.exports = function (program, conf) {
 			var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
 			var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
 			if (quit) {
-				if (s.my_trades.length) {
-					s.my_trades.push({
-						price: s.period.close,
-						size: s.balance.asset,
-						side: 'sell',
-						time: s.period.time
-					})
-				}
-				s.balance.currency = tmp_capital_currency
-				s.balance.asset = 0
+//				if (s.my_trades.length) {
+//					s.my_trades.push({
+//						price: s.period.close,
+//						size: s.balance.asset,
+//						side: 'sell',
+//						time: s.period.time
+//					})
+//				}
+//				s.balance.currency = tmp_capital_currency
+//				s.balance.asset = 0
 				s.lookback.unshift(s.period)
 			}
 			//        var profit = s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
