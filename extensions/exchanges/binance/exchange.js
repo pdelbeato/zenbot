@@ -233,9 +233,9 @@ module.exports = function binance (conf) {
 
 							if (err.message && err.message.match(new RegExp(/-2011|UNKNOWN_ORDER/))) {
 								console.error(('\ncancelOrder retry - unknown Order: ' + JSON.stringify(opts) + ' - ' + err).cyan)
+								return retry('cancelOrder', func_args, undefined, err)
 							} else {
 								// retry is allowed for this error
-
 								return retry('cancelOrder', func_args, undefined, err)
 							}
 						}
@@ -281,22 +281,23 @@ module.exports = function binance (conf) {
 									// decide if this error is allowed for a retry
 
 									if (err.message && err.message.match(new RegExp(/-2011|UNKNOWN_ORDER/))) {
-										console.error(('\ncancelOrder retry - unknown Order: ' + JSON.stringify(opts) + ' - ' + err).cyan)
+										console.error(('\ncancelAllOrder retry - unknown Order: ' + JSON.stringify(opts) + ' - ' + err).cyan)
+										retry('cancelAllOrder', func_args, undefined, err)
 									} else {
 										// retry is allowed for this error
-										retry('cancelOrder', func_args, undefined, err)
+										retry('cancelAllOrder', func_args, undefined, err)
 									}
 								}
 							})
 						})
 						cb(null, body)
 					}, function(err) {
-						return retry('getAllOrders', func_args, err)
+						return retry('cancelAllOrders', func_args, err)
 					})		
 				}
 				else {
-					debug.msg('exchange.cancelOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					retry('cancelOrder', func_args, (next_request - now() + 1))
+					debug.msg('exchange.cancelAllOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					retry('cancelAllOrder', func_args, (next_request - now() + 1))
 				}
 			},
 			
