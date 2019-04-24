@@ -317,8 +317,8 @@ module.exports = function binance (conf) {
 					if (typeof opts.post_only === 'undefined') {
 						opts.post_only = true
 					}
-					opts.type = 'limit'
-						var args = {}
+					opts.type = 'limit';
+					var args = {}
 					if (opts.order_type === 'taker') {
 						delete opts.price
 						delete opts.post_only
@@ -326,9 +326,9 @@ module.exports = function binance (conf) {
 					} else {
 						args.timeInForce = 'GTC'
 					}
-					opts.side = 'buy'
-						delete opts.order_type
-						var order = {}
+					opts.side = 'buy';
+					delete opts.order_type
+					var order = {}
 					client.createOrder(joinProduct(opts.product_id), opts.type, opts.side, this.roundToNearest(opts.size, opts), opts.price, args).then(result => {
 						if (result && result.message === 'Insufficient funds') {
 							order = {
