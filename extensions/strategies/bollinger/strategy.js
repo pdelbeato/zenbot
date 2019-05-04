@@ -95,7 +95,7 @@ module.exports = {
 			//Se non siamo in watchdog, utilizza la normale strategia
 			if (!s.is_dump_watchdog && !s.is_pump_watchdog) {
 				let buy_condition_1 = (s.period.close < (lowerBound + (lowerBandwidth * s.options.strategy.bollinger.opts.lower_bound_pct/100)))
-				let buy_dondition_2 = (rsi > s.options.strategy.bollinger.opts.rsi_buy_threshold)
+				let buy_condition_2 = (rsi > s.options.strategy.bollinger.opts.rsi_buy_threshold)
 				
 				let sell_condition_1 = (s.period.close > (upperBound - (upperBandwidth * s.options.strategy.bollinger.opts.upper_bound_pct/100)))
 				let sell_condition_2 = (rsi < s.options.strategy.bollinger.opts.rsi_sell_threshold)
@@ -174,7 +174,7 @@ module.exports = {
 				cols.push(z(8, n(s.options.strategy.bollinger.data.lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_down])
 				cols.push(' <->')
 				cols.push(z(8, n(s.options.strategy.bollinger.data.upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_up])
-				cols.push('(' + z(4, n(s.options.strategy.bollinger.data.rsi).format('0').substring(0,3), ' ')[color_rsi] + ')')
+				cols.push('(' + z(2, s.options.strategy.bollinger.data.rsi, ' ')[color_rsi] + ')')
 			}
 		}
 		else {
