@@ -1,6 +1,7 @@
 var z = require('zero-fill')
 , n = require('numbro')
 , bollinger = require('../../../lib/bollinger')
+, rsi_strategy = require('../../../lib/rsi')
 , Phenotypes = require('../../../lib/phenotype')
 , cliff = require('cliff')
 , crypto = require('crypto')
@@ -52,6 +53,7 @@ module.exports = {
 	calculate: function (s) {
 		// calculate Bollinger Bands
 		bollinger(s, 'bollinger', s.options.strategy.bollinger.opts.size, 'close')
+		rsi(s, 'rsi', s.options.strategy.bollinger.opts.rsi_size, 'bollinger')
 	},
 
 	onPeriod: function (s, cb) {
@@ -68,6 +70,7 @@ module.exports = {
 			let lowerWatchdogBound = lowerBound - (lowerBandwidth * s.options.strategy.bollinger.opts.lower_watchdog_pct/100)
 			let upperCalmdownWatchdogBound = upperBound - (upperBandwidth * s.options.strategy.bollinger.opts.calmdown_watchdog_pct/100)
 			let lowerCalmdownWatchdogBound = lowerBound + (lowerBandwidth * s.options.strategy.bollinger.opts.calmdown_watchdog_pct/100)
+			let rsi = s.options.strategy.bollinger.data.rsi
 
 			//Controllo la minimum_bandwidth
 			if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
@@ -91,10 +94,16 @@ module.exports = {
 
 			//Se non siamo in watchdog, utilizza la normale strategia
 			if (!s.is_dump_watchdog && !s.is_pump_watchdog) {
-				if (s.period.close > (upperBound - (upperBandwidth * s.options.strategy.bollinger.opts.upper_bound_pct/100))) {
+				let buy_condition_1 = (s.period.close < (lowerBound + (lowerBandwidth * s.options.strategy.bollinger.opts.lower_bound_pct/100)))
+				let buy_dondition_2 = (rsi > s.options.strategy.bollinger.opts.rsi_buy_threshold)
+				
+				let sell_condition_1 = (s.period.close > (upperBound - (upperBandwidth * s.options.strategy.bollinger.opts.upper_bound_pct/100)))
+				let sell_condition_2 = (rsi < s.options.strategy.bollinger.opts.rsi_sell_threshold)
+				
+				if (sell_condition_1 && sell_condition_2) {
 					s.eventBus.emit('bollinger', 'sell')
 				}
-				else if (s.period.close < (lowerBound + (lowerBandwidth * s.options.strategy.bollinger.opts.lower_bound_pct/100))) {
+				else if (buy_condition_1 && buy_condition_2) {
 					s.eventBus.emit('bollinger', 'buy')
 				}
 				else {
@@ -126,9 +135,11 @@ module.exports = {
 				let min_bandwidth_pct = s.options.strategy.bollinger.opts.min_bandwidth_pct
 				let upperWatchdogBound = s.options.strategy.bollinger.data.upperBound + (upperBandwidth * s.options.strategy.bollinger.opts.upper_watchdog_pct/100)
 				let lowerWatchdogBound = s.options.strategy.bollinger.data.lowerBound - (lowerBandwidth * s.options.strategy.bollinger.opts.lower_watchdog_pct/100)
-
+				let rsi = s.options.strategy.bollinger.data.rsi
+				
 				var color_up = 'cyan';
 				var color_down = 'cyan';
+				var color_rsi = 'cyan'
 				//Se il prezzo supera un limite del canale, allora il colore del limite è bianco
 				if (s.period.close > (s.options.strategy.bollinger.data.upperBound - (upperBandwidth * s.options.strategy.bollinger.opts.upper_bound_pct/100))) {
 					color_up = 'white'
@@ -144,6 +155,16 @@ module.exports = {
 				if (s.period.close < lowerWatchdogBound) {
 					color_down = 'red'
 				}
+				
+				//Se siamo oversold, il colore di rsi è rosso.
+				//Se siamo in overbought il colore di rsi è verde
+				if (rsi < s.options.strategy.bollinger.opts.rsi_buy_threshold) {
+					color_rsi = 'red'
+				}
+				if (rsi > s.options.strategy.bollinger.opts.rsi_sell_threshold) {
+					color_rsi = 'green'
+				}
+				
 
 				//Controllo la minimum_bandwidth
 				if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
@@ -153,6 +174,7 @@ module.exports = {
 				cols.push(z(8, n(s.options.strategy.bollinger.data.lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_down])
 				cols.push(' <->')
 				cols.push(z(8, n(s.options.strategy.bollinger.data.upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_up])
+				cols.push('(' + z(4, n(s.options.strategy.bollinger.data.rsi).substring(0,3), ' ')[color_rsi] + ')')
 			}
 		}
 		else {
