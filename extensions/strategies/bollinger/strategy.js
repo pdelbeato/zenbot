@@ -174,7 +174,7 @@ module.exports = {
 				cols.push(z(8, n(s.options.strategy.bollinger.data.lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_down])
 				cols.push(' <->')
 				cols.push(z(8, n(s.options.strategy.bollinger.data.upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_up])
-				cols.push('(' + z(4, n(s.options.strategy.bollinger.data.rsi).substring(0,3), ' ')[color_rsi] + ')')
+				cols.push('(' + z(4, n(s.options.strategy.bollinger.data.rsi).format('0').substring(0,3), ' ')[color_rsi] + ')')
 			}
 		}
 		else {
