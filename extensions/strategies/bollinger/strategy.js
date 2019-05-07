@@ -16,6 +16,7 @@ var z = require('zero-fill')
 //		min_periods: 301, 			//****** Minimum number of history periods (timeframe period_length)
 //		size: 20,					//period size
 //		time: 2,					//times of standard deviation between the upper/lower band and the moving averages
+//		rsi_size: 15,				//period size rsi
 //		min_bandwidth_pct: 0.50,	//minimum pct bandwidth to emit a signal
 //		upper_bound_pct: 0,			//pct the current price should be near the bollinger upper bound before we sell
 //		lower_bound_pct: 0,			//pct the current price should be near the bollinger lower bound before we buy
@@ -47,6 +48,7 @@ module.exports = {
 		this.option('bollinger', 'min_periods', 'min. number of history periods', Number, 301)
 		this.option('bollinger', 'size', 'period size', Number, 20)
 		this.option('bollinger', 'time', 'times of standard deviation between the upper/lower band and the moving averages', Number, 1.5)
+		this.option('bollinger', 'rsi_size', 'period size rsi', Number, 15)
 		this.option('bollinger', 'min_bandwidth_pct', 'minimum pct bandwidth to emit a signal', Number, null)
 		this.option('bollinger', 'upper_bound_pct', 'pct the current price should be near the bollinger upper bound before we sell', Number, 0)
 		this.option('bollinger', 'lower_bound_pct', 'pct the current price should be near the bollinger lower bound before we buy', Number, 0)
