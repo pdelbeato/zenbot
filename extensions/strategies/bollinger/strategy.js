@@ -22,11 +22,16 @@ var z = require('zero-fill')
 //		upper_watchdog_pct: 200,	//pct the current price should be over the bollinger upper bound to activate watchdog
 //		lower_watchdog_pct: 200,	//pct the current price should be under the bollinger lower bound to activate watchdog
 //		calmdown_watchdog_pct: 0,	//pct the current price should be far from the bollinger bands to calmdown the watchdog
+//		rsi_buy_threshold: 30,		//minimum rsi to buy
+//		rsi_sell_threshold: 100,	//maximum rsi to sell
 //	},
 //	data: {							//****** To store calculated data
 //		upperBound: null,
 //		midBound: null,
 //		lowerBound: null,
+//		rsi: null,
+//		rsi_avg_gain: null,
+//		rsi_avg_loss: null,
 //	},	
 //	calc_lookback: [],				//****** Old periods for calculation
 //	calc_close_time: 0				//****** Close time for strategy period
@@ -35,7 +40,7 @@ var z = require('zero-fill')
 
 module.exports = {
 	name: 'bollinger',
-	description: 'Buy when (Signal ≤ Lower Bollinger Band) and sell when (Signal ≥ Upper Bollinger Band).',
+	description: 'Buy when [(Signal ≤ Lower Bollinger Band) && (rsi > rsi_buy_threshold)] and sell when [(Signal ≥ Upper Bollinger Band) && (rsi < rsi_sell_threshold)].',
 
 	getOptions: function () {
 		this.option('bollinger', 'period_calc', 'calculate Bollinger Bands every period_calc time', String, '15m')
@@ -48,10 +53,14 @@ module.exports = {
 		this.option('bollinger', 'upper_watchdog_pct', 'pct the current price should be over the bollinger upper bound to activate watchdog', Number, 50)
 		this.option('bollinger', 'lower_watchdog_pct', 'pct the current price should be under the bollinger lower bound to activate watchdog', Number, 50)
 		this.option('bollinger', 'calmdown_watchdog_pct', 'pct the current price should be far from the bollinger bands to calmdown the watchdog', Number, 50)
+		this.option('bollinger', 'rsi_buy_threshold', 'minimum rsi to buy', Number, 30)
+		this.option('bollinger', 'rsi_sell_threshold', 'maximum rsi to sell', Number, 70)
 	},
 
-	calculate: function (s) {
-		// calculate Bollinger Bands
+	calculate: function () {
+	},
+	
+	calculateCloseTime: function (s) {
 		bollinger(s, 'bollinger', s.options.strategy.bollinger.opts.size, 'close')
 		rsi(s, 'rsi', s.options.strategy.bollinger.opts.rsi_size, 'bollinger')
 	},
