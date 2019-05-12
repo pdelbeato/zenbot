@@ -89,14 +89,14 @@
   },
   {
     "id": "BCCBTC",
-    "asset": "BCH",
+    "asset": "BCC",
     "currency": "BTC",
     "min_size": "0.00100000",
     "max_size": "100000.00000000",
     "min_total": "0.00100000",
     "increment": "0.00000100",
     "asset_increment": "0.00100000",
-    "label": "BCH/BTC"
+    "label": "BCC/BTC"
   },
   {
     "id": "GASBTC",
@@ -1365,36 +1365,36 @@
   },
   {
     "id": "BCCETH",
-    "asset": "BCH",
+    "asset": "BCC",
     "currency": "ETH",
     "min_size": "0.00100000",
     "max_size": "10000000.00000000",
     "min_total": "0.01000000",
     "increment": "0.00001000",
     "asset_increment": "0.00100000",
-    "label": "BCH/ETH"
+    "label": "BCC/ETH"
   },
   {
     "id": "BCCUSDT",
-    "asset": "BCH",
+    "asset": "BCC",
     "currency": "USDT",
     "min_size": "0.00001000",
     "max_size": "10000000.00000000",
     "min_total": "10.00000000",
     "increment": "0.01000000",
     "asset_increment": "0.00001000",
-    "label": "BCH/USDT"
+    "label": "BCC/USDT"
   },
   {
     "id": "BCCBNB",
-    "asset": "BCH",
+    "asset": "BCC",
     "currency": "BNB",
     "min_size": "0.00001000",
     "max_size": "10000000.00000000",
     "min_total": "1.00000000",
     "increment": "0.01000000",
     "asset_increment": "0.00001000",
-    "label": "BCH/BNB"
+    "label": "BCC/BNB"
   },
   {
     "id": "BATBTC",
@@ -5476,5 +5476,236 @@
     "increment": "0.01000000",
     "asset_increment": "0.00001000",
     "label": "DASH/USDT"
+  },
+  {
+    "id": "NANOUSDT",
+    "asset": "NANO",
+    "currency": "USDT",
+    "min_size": "0.01000000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00010000",
+    "asset_increment": "0.01000000",
+    "label": "NANO/USDT"
+  },
+  {
+    "id": "OMGBNB",
+    "asset": "OMG",
+    "currency": "BNB",
+    "min_size": "0.10000000",
+    "max_size": "90000000.00000000",
+    "min_total": "1.00000000",
+    "increment": "0.00001000",
+    "asset_increment": "0.10000000",
+    "label": "OMG/BNB"
+  },
+  {
+    "id": "OMGUSDT",
+    "asset": "OMG",
+    "currency": "USDT",
+    "min_size": "0.01000000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00010000",
+    "asset_increment": "0.01000000",
+    "label": "OMG/USDT"
+  },
+  {
+    "id": "THETAUSDT",
+    "asset": "THETA",
+    "currency": "USDT",
+    "min_size": "0.10000000",
+    "max_size": "90000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00001000",
+    "asset_increment": "0.10000000",
+    "label": "THETA/USDT"
+  },
+  {
+    "id": "ENJUSDT",
+    "asset": "ENJ",
+    "currency": "USDT",
+    "min_size": "0.10000000",
+    "max_size": "90000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00001000",
+    "asset_increment": "0.10000000",
+    "label": "ENJ/USDT"
+  },
+  {
+    "id": "MITHUSDT",
+    "asset": "MITH",
+    "currency": "USDT",
+    "min_size": "0.10000000",
+    "max_size": "90000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00001000",
+    "asset_increment": "0.10000000",
+    "label": "MITH/USDT"
+  },
+  {
+    "id": "MATICBNB",
+    "asset": "MATIC",
+    "currency": "BNB",
+    "min_size": "1.00000000",
+    "max_size": "90000000.00000000",
+    "min_total": "1.00000000",
+    "increment": "0.00000100",
+    "asset_increment": "1.00000000",
+    "label": "MATIC/BNB"
+  },
+  {
+    "id": "MATICBTC",
+    "asset": "MATIC",
+    "currency": "BTC",
+    "min_size": "1.00000000",
+    "max_size": "90000000.00000000",
+    "min_total": "0.00100000",
+    "increment": "0.00000001",
+    "asset_increment": "1.00000000",
+    "label": "MATIC/BTC"
+  },
+  {
+    "id": "MATICUSDT",
+    "asset": "MATIC",
+    "currency": "USDT",
+    "min_size": "0.10000000",
+    "max_size": "90000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00001000",
+    "asset_increment": "0.10000000",
+    "label": "MATIC/USDT"
+  },
+  {
+    "id": "ATOMBNB",
+    "asset": "ATOM",
+    "currency": "BNB",
+    "min_size": "0.01000000",
+    "max_size": "10000000.00000000",
+    "min_total": "1.00000000",
+    "increment": "0.00010000",
+    "asset_increment": "0.01000000",
+    "label": "ATOM/BNB"
+  },
+  {
+    "id": "ATOMBTC",
+    "asset": "ATOM",
+    "currency": "BTC",
+    "min_size": "0.01000000",
+    "max_size": "90000000.00000000",
+    "min_total": "0.00100000",
+    "increment": "0.00000010",
+    "asset_increment": "0.01000000",
+    "label": "ATOM/BTC"
+  },
+  {
+    "id": "ATOMUSDT",
+    "asset": "ATOM",
+    "currency": "USDT",
+    "min_size": "0.00100000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00100000",
+    "asset_increment": "0.00100000",
+    "label": "ATOM/USDT"
+  },
+  {
+    "id": "ATOMUSDC",
+    "asset": "ATOM",
+    "currency": "USDC",
+    "min_size": "0.00100000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00100000",
+    "asset_increment": "0.00100000",
+    "label": "ATOM/USDC"
+  },
+  {
+    "id": "ATOMPAX",
+    "asset": "ATOM",
+    "currency": "PAX",
+    "min_size": "0.00100000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00100000",
+    "asset_increment": "0.00100000",
+    "label": "ATOM/PAX"
+  },
+  {
+    "id": "ATOMTUSD",
+    "asset": "ATOM",
+    "currency": "TUSD",
+    "min_size": "0.00100000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00100000",
+    "asset_increment": "0.00100000",
+    "label": "ATOM/TUSD"
+  },
+  {
+    "id": "ETCUSDC",
+    "asset": "ETC",
+    "currency": "USDC",
+    "min_size": "0.00100000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00100000",
+    "asset_increment": "0.00100000",
+    "label": "ETC/USDC"
+  },
+  {
+    "id": "ETCPAX",
+    "asset": "ETC",
+    "currency": "PAX",
+    "min_size": "0.00100000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00100000",
+    "asset_increment": "0.00100000",
+    "label": "ETC/PAX"
+  },
+  {
+    "id": "ETCTUSD",
+    "asset": "ETC",
+    "currency": "TUSD",
+    "min_size": "0.00100000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00100000",
+    "asset_increment": "0.00100000",
+    "label": "ETC/TUSD"
+  },
+  {
+    "id": "BATUSDC",
+    "asset": "BAT",
+    "currency": "USDC",
+    "min_size": "0.01000000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00010000",
+    "asset_increment": "0.01000000",
+    "label": "BAT/USDC"
+  },
+  {
+    "id": "BATPAX",
+    "asset": "BAT",
+    "currency": "PAX",
+    "min_size": "0.01000000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00010000",
+    "asset_increment": "0.01000000",
+    "label": "BAT/PAX"
+  },
+  {
+    "id": "BATTUSD",
+    "asset": "BAT",
+    "currency": "TUSD",
+    "min_size": "0.01000000",
+    "max_size": "10000000.00000000",
+    "min_total": "10.00000000",
+    "increment": "0.00010000",
+    "asset_increment": "0.01000000",
+    "label": "BAT/TUSD"
   }
 ]
