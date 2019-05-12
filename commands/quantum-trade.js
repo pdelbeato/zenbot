@@ -468,6 +468,7 @@ module.exports = function (program, conf) {
 						console.log('\nFreeing the position (cancelling all orders connected with the position) '.yellow + s.positions[s.positions_index].id)
 						engine.positionStatus(s.positions[s.positions_index], 'Free')
 						s.positions[s.positions_index].locked = false
+						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
 					else {
 						console.log('No position in control.')
@@ -477,6 +478,7 @@ module.exports = function (program, conf) {
 					if (s.positions_index != null) {
 						console.log('\nLocking the position '.yellow + s.positions[s.positions_index].id)
 						s.positions[s.positions_index].locked = true
+						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
 					else {
 						console.log('No position in control.')
@@ -486,6 +488,7 @@ module.exports = function (program, conf) {
 					if (s.positions_index != null) {
 						console.log('\nUnlocking the position '.yellow + s.positions[s.positions_index].id)
 						s.positions[s.positions_index].locked = false
+						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
 					else {
 						console.log('No position in control.')
