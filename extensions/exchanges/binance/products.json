@@ -4869,7 +4869,7 @@
     "max_size": "10000000.00000000",
     "min_total": "10.00000000",
     "increment": "0.0001",
-    "asset_increment": "0.01,
+    "asset_increment": "0.01",
     "label": "WAVES/TUSD"
   },
   {
