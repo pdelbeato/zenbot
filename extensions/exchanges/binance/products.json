@@ -2140,8 +2140,8 @@
     "min_size": "0.01000000",
     "max_size": "90000000.00000000",
     "min_total": "0.00100000",
-    "increment": "0.00000010",
-    "asset_increment": "0.01000000",
+    "increment": "0.0000001",
+    "asset_increment": "0.01",
     "label": "WAVES/BTC"
   },
   {
@@ -4868,8 +4868,8 @@
     "min_size": "0.01000000",
     "max_size": "10000000.00000000",
     "min_total": "10.00000000",
-    "increment": "0.00010000",
-    "asset_increment": "0.01000000",
+    "increment": "0.0001",
+    "asset_increment": "0.01,
     "label": "WAVES/TUSD"
   },
   {
