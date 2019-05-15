@@ -13,7 +13,7 @@ module.exports = function binance (conf) {
 	var max_requests_per_second = 5
 	var next_request = 0
 
-	// initialize a cache for the echange connection (if it does not exist)
+	// initialize a cache for the exchange connection (if it does not exist)
 	exchange_cache = {
 		openOrders: {},
 	}
@@ -259,7 +259,7 @@ module.exports = function binance (conf) {
 
 					var client = authedClient()
 					client.fetchOpenOrders(joinProduct(opts.product_id)).then(function (body) {
-						console.log('exchange.cancelAllOrders - body:')
+//						console.log('exchange.cancelAllOrders - body:')
 
 						//Azzero la cache
 						exchange_cache.openOrders = {}
