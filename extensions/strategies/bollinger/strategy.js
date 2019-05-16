@@ -68,7 +68,7 @@ module.exports = {
 	},
 
 	onPeriod: function (s, cb) {
-		if (s.options.strategy.bollinger.data.midbound) {
+		if (s.options.strategy.bollinger.data.midBound) {
 //			if (s.options.strategy.bollinger.data.upperBound && s.options.strategy.bollinger.data.lowerBound) {
 			let upperBound = s.options.strategy.bollinger.data.upperBound
 			let lowerBound = s.options.strategy.bollinger.data.lowerBound
