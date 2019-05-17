@@ -590,7 +590,7 @@ module.exports = function binance (conf) {
 			getAllOrders: function (opts, cb = function() {}) {
 				var func_args = [].slice.call(arguments)
 				if (exchange.debug_exchange) {
-					debug.msg('exchange.getAllOrder - order ')
+					debug.msg('exchange.getAllOrder - init')
 				}
 
 				if (now() > next_request) {
