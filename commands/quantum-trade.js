@@ -1658,6 +1658,7 @@ module.exports = function (program, conf) {
 						if (s.my_trades.length > my_trades_size) {
 							s.my_trades.slice(my_trades_size).forEach(function (my_trade) {
 								my_trade._id = my_trade.id
+								my_trade.session_id = session.id
 								//Corretto il Deprecation Warning
 								if (s.db_valid) {
 									my_trades.updateOne({'_id' : my_trade._id}, {$set: my_trade}, {upsert: true}, function (err) {
