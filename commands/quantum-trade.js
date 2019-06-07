@@ -1436,10 +1436,13 @@ module.exports = function (program, conf) {
 								if (err) throw err
 								var prev_session = prev_sessions[0]
 								
-								if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
-									//									debug.msg('getNext() - prev_session')
-									//                    if (prev_session.orig_capital_currency && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
-									//                      s.orig_capital_currency = session.orig_capital_currency = so.currency_capital || prev_session.orig_capital_currency
+								//Il controllo sulla precedente sessione, soprattutto quando ci sono più bot che lavorano sullo stesso balance, è destinato la maggior
+								// parte delle volte a fallire. Quindi lo tolgo, anche perchè in ogni caso serve a poco.
+//								if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
+								if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || so.mode === 'live')) {
+//									debug.msg('getNext() - prev_session')
+//                    				if (prev_session.orig_capital_currency && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
+//                      			s.orig_capital_currency = session.orig_capital_currency = so.currency_capital || prev_session.orig_capital_currency
 									s.orig_currency = session.orig_currency = prev_session.orig_currency
 									s.orig_asset = session.orig_asset = prev_session.orig_asset
 									s.orig_price = session.orig_price = prev_session.orig_price
