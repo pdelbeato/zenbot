@@ -3,7 +3,10 @@ var KrakenClient = require('kraken-api'),
   moment = require('moment'),
   n = require('numbro'),
   // eslint-disable-next-line no-unused-vars
-  colors = require('colors')
+  colors = require('colors'),
+  debug = require('../../../lib/debug')
+  //Se funziona la gestione della memoria, si può cancellare insieme alla funzione getMemory()
+  sizeof = require('object-sizeof')
 
 module.exports = function container(conf) {
   var s = {
@@ -16,6 +19,14 @@ module.exports = function container(conf) {
   var recoverableErrors = new RegExp(/(ESOCKETTIMEDOUT|ETIMEDOUT|ECONNRESET|ECONNREFUSED|ENOTFOUND|API:Invalid nonce|between Cloudflare and the origin web server|The web server reported a gateway time-out|The web server reported a bad gateway|525: SSL handshake failed|Service:Unavailable|api.kraken.com \| 522:)/)
   var silencedRecoverableErrors = new RegExp(/(ESOCKETTIMEDOUT|ETIMEDOUT)/)
 
+  var max_requests_per_second = 5
+	var next_request = 0
+	
+  //Serve?
+  function now() {
+		return new Date().getTime()
+	}
+  
   function publicClient() {
     if (!public_client) {
       public_client = new KrakenClient()
@@ -46,13 +57,14 @@ module.exports = function container(conf) {
     return asset + currency
   }
 
-  function retry(method, args, error) {
-    let timeout, errorMsg
+  function retry(method, args, waiting_time = 10000, error) {
+    let errorMsg
     if (error.message.match(/API:Rate limit exceeded/)) {
-      timeout = 10000
-    } else {
-      timeout = 150
-    }
+    	waiting_time = 10000
+    } 
+//    else {
+//    	waiting_time = 150
+//    }
 
     // silence common timeout errors
     if (so.debug || !error.message.match(silencedRecoverableErrors)) {
@@ -78,11 +90,11 @@ module.exports = function container(conf) {
       else {
         errorMsg = error
       }
-      console.warn(('\nKraken API warning - unable to call ' + method + ' (' + errorMsg + '), retrying in ' + timeout / 1000 + 's').yellow)
+      console.warn(('\nKraken API warning - unable to call ' + method + ' (' + errorMsg + '), retrying in ' + waiting_time / 1000 + 's').yellow)
     }
     setTimeout(function() {
       exchange[method].apply(exchange, args)
-    }, timeout)
+    }, waiting_time)
   }
 
   var orders = {}
@@ -94,12 +106,19 @@ module.exports = function container(conf) {
     takerFee: 0.26,
     // The limit for the public API is not documented, 1750 ms between getTrades in backfilling seems to do the trick to omit warning messages.
     backfillRateLimit: 3500,
+    websocket: false,
+	
+	debug_exchange: false,
 
     getProducts: function() {
       return require('./products.json')
     },
 
     getTrades: function(opts, cb) {
+    	if (exchange.debug_exchange) {
+			debug.msg('exchange.getTrades')
+		}
+    	
       var func_args = [].slice.call(arguments)
       var client = publicClient()
       var args = {
@@ -111,7 +130,7 @@ module.exports = function container(conf) {
 
       client.api('Trades', args, function(error, data) {
         if (error && error.message.match(recoverableErrors)) {
-          return retry('getTrades', func_args, error)
+          return retry('getTrades', func_args, undefined, error)
         }
         if (error) {
           console.error(('\nTrades error:').red)
@@ -135,13 +154,23 @@ module.exports = function container(conf) {
             })
           }
         })
-
+        
+        if (exchange.debug_exchange) {
+						debug.obj('exchange.getTrades - trades:', result)
+					}
+        
         cb(null, trades)
       })
     },
 
     getBalance: function(opts, cb) {
-      var args = [].slice.call(arguments)
+    	var func_args = [].slice.call(arguments)
+    	if (exchange.debug_exchange) {
+			debug.msg('exchange.getBalance')
+		}
+    	if (now() > next_request) {
+    		next_request = now() + 1000/max_requests_per_second
+      
       var client = authedClient()
       client.api('Balance', null, function(error, data) {
         var balance = {
@@ -153,7 +182,7 @@ module.exports = function container(conf) {
 
         if (error) {
           if (error.message.match(recoverableErrors)) {
-            return retry('getBalance', args, error)
+            return retry('getBalance', func_args, undefined, error)
           }
           console.error(('\ngetBalance error:').red)
           console.error(error)
@@ -176,10 +205,21 @@ module.exports = function container(conf) {
 
         cb(null, balance)
       })
+    }
+	else {
+		debug.msg('exchange.getBalance - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+//		setTimeout(function() { this.getBalance(opts, cb) }, (next_request - now() + 1))
+		retry('getBalance', func_args, (next_request - now() + 1))
+	}
     },
 
     getQuote: function(opts, cb) {
-      var args = [].slice.call(arguments)
+      var func_args = [].slice.call(arguments)
+      if (exchange.debug_exchange) {
+					debug.msg('exchange.getQuote')
+				}
+				if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
       var client = publicClient()
       var pair = joinProductFormatted(opts.product_id)
       client.api('Ticker', {
@@ -201,10 +241,18 @@ module.exports = function container(conf) {
           ask: data.result[pair].a[0],
         })
       })
+    }
+				else {
+					debug.msg('exchange.getQuote - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+//					setTimeout(function() { this.getQuote(opts, cb) }, (next_request - now() + 1))
+					retry('getQuote', func_args, (next_request - now() + 1))
+				}
     },
 
     cancelOrder: function(opts, cb) {
-      var args = [].slice.call(arguments)
+      var func_args = [].slice.call(arguments)
+      if (now() > next_request) {
+					next_request = now() + 1000/max_requests_per_second
       var client = authedClient()
       client.api('CancelOrder', {
         txid: opts.order_id
@@ -226,7 +274,57 @@ module.exports = function container(conf) {
         }
         cb(error)
       })
-    },
+    }
+      else {
+			debug.msg('exchange.cancelOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+//			setTimeout(function() { this.cancelOrder(opts, cb) }, (next_request - now() + 1))
+			retry('cancelOrder', func_args, (next_request - now() + 1))
+		}
+      },
+      
+    //Cancella tutti gli ordini dall'exchange
+		cancelAllOrders: function (opts, cb) {
+			var func_args = [].slice.call(arguments)
+
+			if (now() > next_request) {
+				next_request = now() + 1000/max_requests_per_second
+
+				var client = authedClient()
+				client.api('OpenOrders', {}).then(function (body) {
+					console.log('exchange.cancelAllOrders - body:')
+
+//					//Azzero la cache
+//					exchange_cache.openOrders = {}
+					body.forEach(function(order, index) {
+						client.api('CancelOrder', {
+					        txid: order.refid
+					      }, function(error, data) {
+					          if (error) {
+					              if (error.message.match(recoverableErrors)) {
+					                return retry('cancelOrder', args, error)
+					              }
+					              console.error(('exchange.cancelAllOrders - cancelOrder error:').red)
+					              console.error(error)
+					              return cb(error)
+					            }
+					            if (data.error.length) {
+					              return cb(data.error.join(','))
+					            }
+					            if (data && (data.status === 'closed' || data.status === 'canceled' || data.status === 'expired')) {
+					            	console.log('exchange.cancelAllOrders - Qualcosa non quadra. Body:')
+									console.log(data)
+					            }
+					            debug.msg('Function: cancelOrder')
+					              debug.msg(data, false)
+					            }
+					            cb(error)
+					          })
+			}
+			else {
+				debug.msg('exchange.cancelAllOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+				retry('cancelAllOrder', func_args, (next_request - now() + 1))
+			}
+		},
 
     trade: function(type, opts, cb) {
       var args = [].slice.call(arguments)
