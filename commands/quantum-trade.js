@@ -1387,17 +1387,17 @@ module.exports = function (program, conf) {
 
 					//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco
 					if (!trades.length) {
-						var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------'
-							console.log(head)
+						var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
+						console.log(head)
 
-							//A che diavolo serve?
-							output(conf).initializeOutput(s)
+						//A che diavolo serve?
+						output(conf).initializeOutput(s)
 
-							var minuses = Math.floor((head.length - so.mode.length - 19) / 2)
-							console.log('-'.repeat(minuses) + ' STARTING ' + so.mode.toUpperCase() + ' TRADING ' + '-'.repeat(minuses + (minuses % 2 == 0 ? 0 : 1)))
-							if (so.mode === 'paper') {
-								console.log('!!! Paper mode enabled. No real trades are performed until you remove --paper from the startup command.')
-							}
+						var minuses = Math.floor((head.length - so.mode.length - 19) / 2)
+						console.log('-'.repeat(minuses) + ' STARTING ' + so.mode.toUpperCase() + ' TRADING ' + '-'.repeat(minuses + (minuses % 2 == 0 ? 0 : 1)))
+						if (so.mode === 'paper') {
+							console.log('!!! Paper mode enabled. No real trades are performed until you remove --paper from the startup command.')
+						}
 						
 						//Inizializzo i comandi dell'interfaccia
 						changeModeCommand()
@@ -1411,24 +1411,24 @@ module.exports = function (program, conf) {
 							let so_tmp = JSON.parse(JSON.stringify(so))
 							delete so_tmp.strategy
 							session = {
-									id: crypto.randomBytes(4).toString('hex'),
-									selector: so.selector.normalized,
-									started: new Date().getTime(),
-									mode: so.mode,
-									options: so_tmp,
-//									start_currency: s.start_currency,
-//									start_asset: s.start_asset,
-//									start_capital_currency: s.start_capital_currency,
-//									start_capital_asset: s.start_capital_asset,
-//									start_price: s.start_price,
-//									orig_currency: s.orig_currency,
-//									orig_asset: s.orig_asset,
-//									orig_capital_currency: s.start_capital_currency,
-//									orig_capital_asset: s.start_capital_asset,
-//									orig_price: s.start_price,
-//									day_count: s.day_count,
-//									total_fees: s.total_fees,
-//									num_trades: s.my_trades.length
+								id: crypto.randomBytes(4).toString('hex'),
+								selector: so.selector.normalized,
+								started: new Date().getTime(),
+								mode: so.mode,
+								options: so_tmp,
+//								start_currency: s.start_currency,
+//								start_asset: s.start_asset,
+//								start_capital_currency: s.start_capital_currency,
+//								start_capital_asset: s.start_capital_asset,
+//								start_price: s.start_price,
+//								orig_currency: s.orig_currency,
+//								orig_asset: s.orig_asset,
+//								orig_capital_currency: s.start_capital_currency,
+//								orig_capital_asset: s.start_capital_asset,
+//								orig_price: s.start_price,
+//								day_count: s.day_count,
+//								total_fees: s.total_fees,
+//								num_trades: s.my_trades.length
 							}
 														
 							session._id = session.id
@@ -1457,6 +1457,7 @@ module.exports = function (program, conf) {
 										s.balance = prev_session.balance
 									}
 								}
+								//Non esiste una precedente sessione
 								else {
 									debug.msg('getNext() - no prev_session')
 									s.orig_currency = session.orig_currency = s.balance.currency //raw_opts.currency_capital | s.balance.currency | 0
@@ -1466,6 +1467,7 @@ module.exports = function (program, conf) {
 									s.orig_capital_asset = session.orig_capital_asset = s.start_capital_asset
 									debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital_currency = ' + s.orig_capital_currency + ' ; s.orig_capital_asset = ' + s.orig_capital_asset + ' ; s.orig_price = ' + s.orig_price)
 								}
+								
 								s.start_currency = session.start_currency = s.balance.currency
 								s.start_asset = session.start_asset = s.balance.asset
 								session.start_capital_currency = s.start_capital_currency
@@ -1503,6 +1505,27 @@ module.exports = function (program, conf) {
 											console.log()
 											process.exit()
 										}
+									})
+								}
+								
+								//Attivazione del bot di Telegram
+								if (so.telegramBot && so.telegramBot.on) {
+									const Telegram = require('node-telegram-bot-api')
+									const options = {
+										polling: true,
+									};
+									const telegramBot = new TelegramBot(so.telegramBot.bot_token, options);
+									
+									telegramBot.onText(/\/long/, function(msg) {
+										debug.msg('TelegramBot - ' + msg.text.toString())
+										so.active_long_position = !so.active_long_position
+										telegramBot.sendMessage(so.telegramBot.chat_id, (so.active_long_position? 'Long' : 'No long'))
+									})
+									
+									telegramBot.onText(/\/short/, function(msg) {
+										debug.msg('TelegramBot - ' + msg.text.toString())
+										so.active_short_position = !so.active_short_position
+										telegramBot.sendMessage(so.telegramBot.chat_id, (so.active_short_position? 'Short' : 'No short'))
 									})
 								}
 							})
