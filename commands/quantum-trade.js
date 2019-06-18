@@ -1514,7 +1514,7 @@ module.exports = function (program, conf) {
 									const options = {
 										polling: true,
 									};
-									const telegramBot = new TelegramBot(so.telegramBot.bot_token, options);
+									const telegramBot = new Telegram(so.telegramBot.bot_token, options);
 									
 									telegramBot.onText(/\/long/, function(msg) {
 										debug.msg('TelegramBot - ' + msg.text.toString())
@@ -1526,6 +1526,11 @@ module.exports = function (program, conf) {
 										debug.msg('TelegramBot - ' + msg.text.toString())
 										so.active_short_position = !so.active_short_position
 										telegramBot.sendMessage(so.telegramBot.chat_id, (so.active_short_position? 'Short' : 'No short'))
+									})
+									
+									telegramBot.onText(/\/status/, function(msg) {
+										debug.msg('TelegramBot - ' + msg.text.toString())
+										engine.updateMessage()
 									})
 								}
 							})
