@@ -59,15 +59,11 @@ module.exports = {
 		this.option('bollinger', 'rsi_sell_threshold', 'maximum rsi to sell', Number, 70)
 	},
 
-	calculate: function () {
+	onTrade: function (s, cb) {
+		cb()
 	},
 	
-	calculateCloseTime: function (s) {
-		bollinger(s, 'bollinger', s.options.strategy.bollinger.opts.size, 'close')
-		rsi(s, 'rsi', s.options.strategy.bollinger.opts.rsi_size, 'bollinger')
-	},
-
-	onPeriod: function (s, cb) {
+	onTradePeriod: function (s, cb) {
 		if (s.options.strategy.bollinger.data.midBound) {
 //			if (s.options.strategy.bollinger.data.upperBound && s.options.strategy.bollinger.data.lowerBound) {
 			let upperBound = s.options.strategy.bollinger.data.upperBound
@@ -132,6 +128,13 @@ module.exports = {
 //		}
 		cb()
 	},
+	
+	onStrategyPeriod: function (s, cb) {
+		bollinger(s, 'bollinger', s.options.strategy.bollinger.opts.size, 'close')
+		rsi(s, 'rsi', s.options.strategy.bollinger.opts.rsi_size, 'bollinger')
+		cb()
+	},
+
 
 	onReport: function (s) {
 		var cols = []
