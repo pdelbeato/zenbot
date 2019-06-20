@@ -43,8 +43,8 @@ module.exports = {
 			s.positions.forEach( function (position, index) {
 				position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 				position_stop = position[position_opposite_signal + '_stop']				
-					
-				if (position_stop && !position.locked && !positionStatus(position, 'Check', 'stoploss') && ((position.side == 'buy' ? +1 : -1) * (s.options.strategy.stoploss.calc_lookback[0].close - position_stop) < 0)) {
+
+				if (position_stop && !position.locked && !(position.status & s.orderFlag.stoploss) && ((position.side == 'buy' ? +1 : -1) * (s.options.strategy.stoploss.calc_lookback[0].close - position_stop) < 0)) {
 					console.log(('\n' + position_opposite_signal.toUpperCase() + ' stop loss triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').red)
 					pushMessage('Stop Loss Protection', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 //					executeSignal(position_opposite_signal, 'stoploss', position.id, undefined, undefined, false, true)
