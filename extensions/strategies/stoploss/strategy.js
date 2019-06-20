@@ -16,7 +16,7 @@ var debug = require('../../../lib/debug')
 //	data: {							//****** To store calculated data
 //	},	
 //	calc_lookback: [],				//****** Old periods for calculation
-//	calc_close_time: 0				//****** Close time for strategy period
+//	calc_close_time: 0,				//****** Close time for strategy period
 //	lib: {}							//****** To store all the functions of the strategy
 //}
 
@@ -29,16 +29,16 @@ module.exports = {
 		this.option('stoploss', 'order_type', 'Order type (maker/taker)', String, 'maker')
 	},
 
-	onTrade: function (s, cb) {
+	onTrade: function (s, cb = function() {}) {
 		cb()
 	},
 	
 
-	onTradePeriod: function (s, cb) {
+	onTradePeriod: function (s, cb = function() {}) {
 		cb()
 	},
 	
-	onStrategyPeriod: function (s, cb) {
+	onStrategyPeriod: function (s, cb = function() {}) {
 		if (s.options.strategy.stoploss.calc_lookback[0].close) {
 			s.positions.forEach( function (position, index) {
 				position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
@@ -50,7 +50,7 @@ module.exports = {
 //					executeSignal(position_opposite_signal, 'stoploss', position.id, undefined, undefined, false, true)
 					s.eventBus.emit('stoploss', position_opposite_signal, position.id, undefined, undefined, false, s.options.strategy.stoploss.opts.order_type)
 				}
-			}
+			})
 		}
 		cb()
 	},
