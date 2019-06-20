@@ -1,4 +1,5 @@
 var debug = require('../../../lib/debug')
+, { formatPercent } = require('./format')
 //, z = require('zero-fill')
 //, n = require('numbro')
 , Phenotypes = require('../../../lib/phenotype')
@@ -55,8 +56,8 @@ module.exports = {
 		cb()
 	},
 
-	onReport: function (s) {
-	},
+//	onReport: function (s) {
+//	},
 	
 	printOptions: function(s) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.stoploss))
