@@ -1,6 +1,5 @@
 var debug = require('../../../lib/debug')
 , { formatPercent } = require('../../../lib/format')
-, { pushMessage } = require('../../../lib/quantum-engine')
 //, z = require('zero-fill')
 //, n = require('numbro')
 , Phenotypes = require('../../../lib/phenotype')
@@ -48,7 +47,7 @@ module.exports = {
 
 				if (position_stop && !position.locked && !(position.status & s.orderFlag.stoploss) && ((position.side == 'buy' ? +1 : -1) * (s.options.strategy.stoploss.calc_lookback[0].close - position_stop) < 0)) {
 					console.log(('\n' + position_opposite_signal.toUpperCase() + ' stop loss triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').red)
-					pushMessage('Stop Loss Protection', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
+//					pushMessage('Stop Loss Protection', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 //					executeSignal(position_opposite_signal, 'stoploss', position.id, undefined, undefined, false, true)
 					s.eventBus.emit('stoploss', position_opposite_signal, position.id, undefined, undefined, false, s.options.strategy.stoploss.opts.order_type)
 				}
