@@ -3,7 +3,7 @@ var debug = require('../../../lib/debug')
 //, z = require('zero-fill')
 //, n = require('numbro')
 , Phenotypes = require('../../../lib/phenotype')
-//, cliff = require('cliff')
+, cliff = require('cliff')
 
 
 //Parte da includere nel file di configurazione
@@ -40,6 +40,7 @@ module.exports = {
 	},
 	
 	onStrategyPeriod: function (s, opts= {}, cb= function() {}) {
+		debug.msg('stoploss strategy - onStrategyPeriod')
 		if (s.options.strategy.stoploss.calc_lookback[0].close) {
 			s.positions.forEach( function (position, index) {
 				position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')

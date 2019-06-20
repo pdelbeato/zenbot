@@ -59,9 +59,9 @@ module.exports = {
 		this.option('bollinger', 'rsi_sell_threshold', 'maximum rsi to sell', Number, 70)
 	},
 
-	onTrade: function (s, opts= {}, cb = function() {}) {
-		cb()
-	},
+//	onTrade: function (s, opts= {}, cb = function() {}) {
+//		cb()
+//	},
 	
 	onTradePeriod: function (s, opts= {}, cb = function() {}) {
 		if (s.options.strategy.bollinger.data.midBound) {
