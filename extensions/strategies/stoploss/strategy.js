@@ -30,16 +30,16 @@ module.exports = {
 		this.option('stoploss', 'order_type', 'Order type (maker/taker)', String, 'maker')
 	},
 
-	onTrade: function (s, cb = function() {}) {
+	onTrade: function (s, opts= {}, cb= function() {}) {
 		cb()
 	},
 	
 
-	onTradePeriod: function (s, cb = function() {}) {
+	onTradePeriod: function (s, opts= {}, cb= function() {}) {
 		cb()
 	},
 	
-	onStrategyPeriod: function (s, cb = function() {}) {
+	onStrategyPeriod: function (s, opts= {}, cb= function() {}) {
 		if (s.options.strategy.stoploss.calc_lookback[0].close) {
 			s.positions.forEach( function (position, index) {
 				position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
