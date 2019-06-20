@@ -1,5 +1,6 @@
 var debug = require('../../../lib/debug')
-, { formatPercent } = require('./format')
+, { formatPercent } = require('../../../lib/format')
+, { pushMessage } = require('../../../lib/quantum-engine')
 //, z = require('zero-fill')
 //, n = require('numbro')
 , Phenotypes = require('../../../lib/phenotype')
