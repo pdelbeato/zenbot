@@ -1593,7 +1593,9 @@ module.exports = function (program, conf) {
 					}
 					if (s.period) {
 						Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
-							engine.writeReport(strategy_name, true)
+							if (strategy_name && so.strategy[strategy_name].lib.onReport) {
+								engine.writeReport(strategy_name, true)
+							}
 						})
 					} else {
 						readline.clearLine(process.stdout)
