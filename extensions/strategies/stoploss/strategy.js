@@ -1,6 +1,6 @@
 var debug = require('../../../lib/debug')
 , { formatPercent } = require('../../../lib/format')
-//, z = require('zero-fill')
+, z = require('zero-fill')
 //, n = require('numbro')
 , Phenotypes = require('../../../lib/phenotype')
 , cliff = require('cliff')
@@ -11,8 +11,10 @@ var debug = require('../../../lib/debug')
 //c.strategy['stoploss'] = {
 //	name: 'stoploss',
 //	opts: {							//****** To store options
-//		period_calc: '15m',			//****** Calculate Bollinger Bands every period_calc time
-//		order_type: 'maker', 			//****** Minimum number of history periods (timeframe period_length)
+//		period_calc: '15m',			//****** Execute profitstop every period_calc time
+//		order_type: 'maker', 		//****** Order type
+//		buy_stop_pct: 10,			//****** For a SELL position, buy if price rise above this % of bought price
+//		sell_stop_pct: 10,			//****** For a BUY position, sell if price drops below this % of bought price
 //	},
 //	data: {							//****** To store calculated data
 //	},	
@@ -28,29 +30,37 @@ module.exports = {
 	getOptions: function () {
 		this.option('stoploss', 'period_calc', 'calculate closing price every period_calc time', String, '15m')
 		this.option('stoploss', 'order_type', 'Order type (maker/taker)', String, 'maker')
+		this.option('stoploss', 'buy_stop_pct', 'For a SELL position, buy if price rise above this % of bought price', Number, 10)
+		this.option('stoploss', 'sell_stop_pct', 'For a BUY position, sell if price drops below this % of bought price', Number, 10)
 	},
 
-	onTrade: function (s, opts= {}, cb= function() {}) {
-		cb()
-	},
+	let strat_opts = s.options.strategy.stoploss.opts,
+	
+//	onTrade: function (s, opts= {}, cb= function() {}) {
+//		cb()
+//	},
 	
 
-	onTradePeriod: function (s, opts= {}, cb= function() {}) {
-		cb()
-	},
+//	onTradePeriod: function (s, opts= {}, cb= function() {}) {
+//		cb()
+//	},
 	
 	onStrategyPeriod: function (s, opts= {}, cb= function() {}) {
 		debug.msg('stoploss strategy - onStrategyPeriod')
 		if (s.options.strategy.stoploss.calc_lookback[0].close) {
 			s.positions.forEach( function (position, index) {
 				position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
-				position_stop = position[position_opposite_signal + '_stop']				
+				position_stop = position.strategy_parameters.stoploss[position_opposite_signal + '_stop']				
 
-				if (position_stop && !position.locked && !(position.status & s.orderFlag.stoploss) && ((position.side == 'buy' ? +1 : -1) * (s.options.strategy.stoploss.calc_lookback[0].close - position_stop) < 0)) {
+				if (position_stop && !position.locked && !(position.status & s.strategyFlag.stoploss) && ((position.side == 'buy' ? +1 : -1) * (s.options.strategy.stoploss.calc_lookback[0].close - position_stop) < 0)) {
 					console.log(('\n' + position_opposite_signal.toUpperCase() + ' stop loss triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').red)
 //					pushMessage('Stop Loss Protection', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 //					executeSignal(position_opposite_signal, 'stoploss', position.id, undefined, undefined, false, true)
-					s.eventBus.emit('stoploss', position_opposite_signal, position.id, undefined, undefined, false, s.options.strategy.stoploss.opts.order_type)
+					s.signal = 'stoploss'
+					s.eventBus.emit('stoploss', position_opposite_signal, position.id, undefined, undefined, false, strat_opts.order_type)
+				}
+				else {
+					s.signal = null
 				}
 			})
 		}
@@ -60,6 +70,29 @@ module.exports = {
 //	onReport: function (s) {
 //	},
 	
+//	onUpdateMessage: function (s) {
+//	},
+	
+	onPositionOpened: function (s, opts= {}) {
+		var position = s.positions.find(x => x.id === opts.position_id)
+		position.strategy_parameters.stoploss = {}
+		position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat_opts.buy_stop_pct/100).format(s.product.increment) : null)
+		position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat_opts.sell_stop_pct/100).format(s.product.increment) : null)
+	},
+	
+	onPositionUpdated: function (s, opts= {}) {
+		var position = s.positions.find(x => x.id === opts.position_id)
+		
+		position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat_opts.buy_stop_pct/100).format(s.product.increment) : null)
+		position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat_opts.sell_stop_pct/100).format(s.product.increment) : null)
+	},
+//	
+//	onPositionClosed: function (s, opts= {}) {
+//	},
+//	
+//	onOrderExecuted: function (s, signal, position_id) {
+//	},
+	
 	printOptions: function(s) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.stoploss))
 		delete so_tmp.calc_lookback
@@ -67,9 +100,6 @@ module.exports = {
 		delete so_tmp.lib
 		
 		console.log('\n' + cliff.inspect(so_tmp))
-	},
-	
-	orderExecuted: function (s, type, executeSignal) {
 	},
 
 	//TOTALMENTE da sistemare, se dovessero servire

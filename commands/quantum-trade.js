@@ -466,7 +466,7 @@ module.exports = function (program, conf) {
 				keyMap.set('F', {desc: ('Free the position (cancel ALL orders connected to the position and let it be used)'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nFreeing the position (cancelling all orders connected with the position) '.yellow + s.positions[s.positions_index].id)
-						engine.positionStatus(s.positions[s.positions_index], 'Free')
+						engine.positionFlags(s.positions[s.positions_index], 'status', 'Free')
 						s.positions[s.positions_index].locked = false
 						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
@@ -497,9 +497,9 @@ module.exports = function (program, conf) {
 				keyMap.set('c', {desc: ('cancel ALL orders connected to the position, leaving it locked/unlocked'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nCanceling all orders connected with the position '.yellow + s.positions[s.positions_index].id)
-						//						status_tmp = ~(s.positions[s.positions_index].status & engine.orderFlag.locked)
+						//						status_tmp = ~(s.positions[s.positions_index].status & engine.strategyFlag.locked)
 						//						engine.positionStatus(s.positions[s.positions_index], 'Unset', status_tmp)
-						engine.positionStatus(s.positions[s.positions_index], 'Free')
+						engine.positionFlags(s.positions[s.positions_index], 'status', 'Free')
 					}
 					else {
 						console.log('No position in control.')
@@ -509,7 +509,7 @@ module.exports = function (program, conf) {
 					if (s.positions_index != null) {
 						console.log('\nCanceling the position '.yellow + s.positions[s.positions_index].id)
 
-						engine.positionStatus(s.positions[s.positions_index], 'Free')
+						engine.positionFlags(s.positions[s.positions_index], 'status', 'Free')
 						setTimeout(function() {
 							s.positionProcessingQueue.push({mode: 'delete', id: s.positions[s.positions_index].id})
 							s.positions_index = null
@@ -1594,7 +1594,7 @@ module.exports = function (program, conf) {
 					if (s.period) {
 						Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
 							if (strategy_name && so.strategy[strategy_name].lib.onReport) {
-								engine.writeReport(strategy_name, true)
+								engine.writeReport(true)
 							}
 						})
 					} else {
