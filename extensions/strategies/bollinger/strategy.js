@@ -32,12 +32,16 @@ var z = require('zero-fill')
 //		buy_min_pct: 5,				//avoid buying at a profit below this pct (for short positions)
 //	},
 //	data: {							//****** To store calculated data
-//		upperBound: null,
-//		midBound: null,
-//		lowerBound: null,
-//		rsi: null,
-//		rsi_avg_gain: null,
-//		rsi_avg_loss: null,
+//		bollinger: {
+//			upperBound: null,
+//			midBound: null,
+//			lowerBound: null,
+//		}
+//		rsi: {
+//			rsi: null,
+//			rsi_avg_gain: null,
+//			rsi_avg_loss: null,
+//		}
 //		is_pump_watchdog: false,
 //		is_dump_watchdog: false,
 //		max_profit_position: {		//****** Positions with max profit
@@ -178,8 +182,10 @@ module.exports = {
 	},
 	
 	onStrategyPeriod: function (s, opts= {}, cb = function() {}) {
-		bollinger(s, 'bollinger', s.options.strategy.bollinger.opts.size, 'close')
-		rsi(s, 'rsi', s.options.strategy.bollinger.opts.rsi_size, 'bollinger')
+		let strat_data = s.options.strategy.bollinger.data
+		
+		strat_data.bollinger = bollinger(s, 'bollinger', s.options.strategy.bollinger.opts.size, 'close')
+		strat_data.rsi = rsi(s, 'rsi', s.options.strategy.bollinger.opts.rsi_size, 'bollinger')
 		cb()
 	},
 
