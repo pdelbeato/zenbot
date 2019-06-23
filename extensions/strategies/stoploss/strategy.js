@@ -34,8 +34,6 @@ module.exports = {
 		this.option('stoploss', 'sell_stop_pct', 'For a BUY position, sell if price drops below this % of bought price', Number, 10)
 	},
 
-	let strat_opts = s.options.strategy.stoploss.opts,
-	
 //	onTrade: function (s, opts= {}, cb= function() {}) {
 //		cb()
 //	},
@@ -46,6 +44,8 @@ module.exports = {
 //	},
 	
 	onStrategyPeriod: function (s, opts= {}, cb= function() {}) {
+		let strat_opts = s.options.strategy.stoploss.opts
+		
 		debug.msg('stoploss strategy - onStrategyPeriod')
 		if (s.options.strategy.stoploss.calc_lookback[0].close) {
 			s.positions.forEach( function (position, index) {
@@ -74,6 +74,8 @@ module.exports = {
 //	},
 	
 	onPositionOpened: function (s, opts= {}) {
+		let strat_opts = s.options.strategy.stoploss.opts
+		
 		var position = s.positions.find(x => x.id === opts.position_id)
 		position.strategy_parameters.stoploss = {}
 		position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat_opts.buy_stop_pct/100).format(s.product.increment) : null)
@@ -81,6 +83,8 @@ module.exports = {
 	},
 	
 	onPositionUpdated: function (s, opts= {}) {
+		let strat_opts = s.options.strategy.stoploss.opts
+
 		var position = s.positions.find(x => x.id === opts.position_id)
 		
 		position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat_opts.buy_stop_pct/100).format(s.product.increment) : null)

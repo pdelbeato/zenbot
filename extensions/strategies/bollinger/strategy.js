@@ -73,8 +73,6 @@ module.exports = {
 		this.option('bollinger', 'sell_min_pct', 'avoid selling at a profit below this pct (for long positions)', Number, 1)
 		this.option('bollinger', 'buy_min_pct', 'avoid buying at a profit below this pct (for short positions)', Number, 1)
 	},
-	
-	let strat_opts = s.options.strategy.bollinger.opts,
 
 //	onTrade: function (s, opts= {}, cb = function() {}) {
 //		if (opts.trade) {
@@ -83,6 +81,9 @@ module.exports = {
 //	},
 	
 	onTradePeriod: function (s, opts= {}, cb = function() {}) {
+		let strat_opts = s.options.strategy.bollinger.opts
+		let strat_data = s.options.strategy.bollinger.data
+		
 		let max_profit = -100
 
 		s.positions.forEach(function (position, index) {
@@ -90,26 +91,26 @@ module.exports = {
 			if (!position.locked) {						
 				if (position.profit_net_pct >= max_profit) {
 					max_profit = position.profit_net_pct
-					s.options.strategy.bollinger.data.max_profit_position[position.side] = position
+					strat_data.max_profit_position[position.side] = position
 //					debug.msg('Bollinger - onTradePeriod - position_max_profit_index= ' + index, false)
 				}
 			}						
 		})
 
-		if (s.options.strategy.bollinger.data.midBound) {
-//			if (s.options.strategy.bollinger.data.upperBound && s.options.strategy.bollinger.data.lowerBound) {
-			let upperBound = s.options.strategy.bollinger.data.upperBound
-			let lowerBound = s.options.strategy.bollinger.data.lowerBound
-			let midBound = s.options.strategy.bollinger.data.midBound
-			let upperBandwidth = (s.options.strategy.bollinger.data.upperBound - s.options.strategy.bollinger.data.midBound)
-			let lowerBandwidth = (s.options.strategy.bollinger.data.midBound - s.options.strategy.bollinger.data.lowerBound)
+		if (strat_data.midBound) {
+//			if (strat_data.upperBound && strat_data.lowerBound) {
+			let upperBound = strat_data.upperBound
+			let lowerBound = strat_data.lowerBound
+			let midBound = strat_data.midBound
+			let upperBandwidth = (strat_data.upperBound - strat_data.midBound)
+			let lowerBandwidth = (strat_data.midBound - strat_data.lowerBound)
 			let bandwidth_pct = (upperBound - lowerBound) / midBound * 100
-			let min_bandwidth_pct = s.options.strategy.bollinger.opts.min_bandwidth_pct
-			let upperWatchdogBound = upperBound + (upperBandwidth * s.options.strategy.bollinger.opts.upper_watchdog_pct/100)
-			let lowerWatchdogBound = lowerBound - (lowerBandwidth * s.options.strategy.bollinger.opts.lower_watchdog_pct/100)
-			let upperCalmdownWatchdogBound = upperBound - (upperBandwidth * s.options.strategy.bollinger.opts.calmdown_watchdog_pct/100)
-			let lowerCalmdownWatchdogBound = lowerBound + (lowerBandwidth * s.options.strategy.bollinger.opts.calmdown_watchdog_pct/100)
-			let rsi = s.options.strategy.bollinger.data.rsi
+			let min_bandwidth_pct = strat_opts.min_bandwidth_pct
+			let upperWatchdogBound = upperBound + (upperBandwidth * strat_opts.upper_watchdog_pct/100)
+			let lowerWatchdogBound = lowerBound - (lowerBandwidth * strat_opts.lower_watchdog_pct/100)
+			let upperCalmdownWatchdogBound = upperBound - (upperBandwidth * strat_opts.calmdown_watchdog_pct/100)
+			let lowerCalmdownWatchdogBound = lowerBound + (lowerBandwidth * strat_opts.calmdown_watchdog_pct/100)
+			let rsi = strat_data.rsi
 
 			//Controllo la minimum_bandwidth
 			if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
@@ -122,38 +123,38 @@ module.exports = {
 			//Se sono attive le opzioni watchdog, controllo se dobbiamo attivare il watchdog
 			if (strat_opts.pump_watchdog && s.period.close > upperWatchdogBound) {
 				s.signal = 'pump';
-				s.options.strategy.bollinger.data.is_pump_watchdog = true
-				s.options.strategy.bollinger.data.is_dump_watchdog = false
+				strat_data.is_pump_watchdog = true
+				strat_data.is_dump_watchdog = false
 			}
 			else if (strat_opts.dump_watchdog && s.period.close < lowerWatchdogBound) {
 				s.signal = 'dump';
-				s.options.strategy.bollinger.data.is_pump_watchdog = false
-				s.options.strategy.bollinger.data.is_dump_watchdog = true
+				strat_data.is_pump_watchdog = false
+				strat_data.is_dump_watchdog = true
 			}
 			//Non siamo in watchdog, ma siamo in calmdown
-			else if (!s.options.strategy.bollinger.data.is_dump_watchdog && !s.options.strategy.bollinger.data.is_pump_watchdog) {
+			else if (!strat_data.is_dump_watchdog && !strat_data.is_pump_watchdog) {
 				s.signal = 'P/D Calm'
 			}
 			//Il calmdown è passato
 			else if (s.period.close > lowerCalmdownWatchdogBound && s.period.close < upperCalmdownWatchdogBound) {
 				s.signal = null
-				s.options.strategy.bollinger.data.is_pump_watchdog = false
-				s.options.strategy.bollinger.data.is_dump_watchdog = false
+				strat_data.is_pump_watchdog = false
+				strat_data.is_dump_watchdog = false
 			}
 			//Se non siamo in watchdog, utilizza la normale strategia
 			else {
-				let buy_condition_1 = (s.period.close < (lowerBound + (lowerBandwidth * s.options.strategy.bollinger.opts.lower_bound_pct/100)))
-				let buy_condition_2 = (rsi > s.options.strategy.bollinger.opts.rsi_buy_threshold)
+				let buy_condition_1 = (s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100)))
+				let buy_condition_2 = (rsi > strat_opts.rsi_buy_threshold)
 				
-				let sell_condition_1 = (s.period.close > (upperBound - (upperBandwidth * s.options.strategy.bollinger.opts.upper_bound_pct/100)))
-				let sell_condition_2 = (rsi < s.options.strategy.bollinger.opts.rsi_sell_threshold)
+				let sell_condition_1 = (s.period.close > (upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100)))
+				let sell_condition_2 = (rsi < strat_opts.rsi_sell_threshold)
 				
 //				s.eventBus.emit(sig_kind, signal, position_id, fixed_size, fixed_price, is_reorder, is_taker)
 
 				if (sell_condition_1 && sell_condition_2) {
 					s.signal = 'sell'
-					if (s.options.strategy.bollinger.data.max_profit_position.buy.profit_net_pct >= strat_opts.sell_min_pct) {
-						s.eventBus.emit('bollinger', 'sell', s.options.strategy.bollinger.data.max_profit_position.buy.id)
+					if (strat_data.max_profit_position.buy.profit_net_pct >= strat_opts.sell_min_pct) {
+						s.eventBus.emit('bollinger', 'sell', strat_data.max_profit_position.buy.id)
 					}
 					else {
 						s.eventBus.emit('bollinger', 'sell')
@@ -161,8 +162,8 @@ module.exports = {
 				}
 				else if (buy_condition_1 && buy_condition_2) {
 					s.signal = 'buy'
-					if (s.options.strategy.bollinger.data.max_profit_position.sell.profit_net_pct >= strat_opts.buy_min_pct) {
-						s.eventBus.emit('bollinger', 'buy', s.options.strategy.bollinger.data.max_profit_position.sell.id)
+					if (strat_data.max_profit_position.sell.profit_net_pct >= strat_opts.buy_min_pct) {
+						s.eventBus.emit('bollinger', 'buy', strat_data.max_profit_position.sell.id)
 					}
 					else {
 						s.eventBus.emit('bollinger', 'buy')
@@ -184,28 +185,31 @@ module.exports = {
 
 
 	onReport: function (s) {
+		let strat_opts = s.options.strategy.bollinger.opts
+		let strat_data = s.options.strategy.bollinger.data
+		
 		var cols = []
-		if (s.options.strategy.bollinger.data) {
-			if (s.options.strategy.bollinger.data.upperBound && s.options.strategy.bollinger.data.lowerBound) {
-				let upperBound = s.options.strategy.bollinger.data.upperBound
-				let lowerBound = s.options.strategy.bollinger.data.lowerBound
-				let midBound = s.options.strategy.bollinger.data.midBound
-				let upperBandwidth = (s.options.strategy.bollinger.data.upperBound - s.options.strategy.bollinger.data.midBound)
-				let lowerBandwidth = (s.options.strategy.bollinger.data.midBound - s.options.strategy.bollinger.data.lowerBound)
+		if (strat_data) {
+			if (strat_data.upperBound && strat_data.lowerBound) {
+				let upperBound = strat_data.upperBound
+				let lowerBound = strat_data.lowerBound
+				let midBound = strat_data.midBound
+				let upperBandwidth = (strat_data.upperBound - strat_data.midBound)
+				let lowerBandwidth = (strat_data.midBound - strat_data.lowerBound)
 				let bandwidth_pct = (upperBound - lowerBound) / midBound * 100
-				let min_bandwidth_pct = s.options.strategy.bollinger.opts.min_bandwidth_pct
-				let upperWatchdogBound = s.options.strategy.bollinger.data.upperBound + (upperBandwidth * s.options.strategy.bollinger.opts.upper_watchdog_pct/100)
-				let lowerWatchdogBound = s.options.strategy.bollinger.data.lowerBound - (lowerBandwidth * s.options.strategy.bollinger.opts.lower_watchdog_pct/100)
-				let rsi = s.options.strategy.bollinger.data.rsi
+				let min_bandwidth_pct = strat_opts.min_bandwidth_pct
+				let upperWatchdogBound = strat_data.upperBound + (upperBandwidth * strat_opts.upper_watchdog_pct/100)
+				let lowerWatchdogBound = strat_data.lowerBound - (lowerBandwidth * strat_opts.lower_watchdog_pct/100)
+				let rsi = strat_data.rsi
 				
 				var color_up = 'cyan';
 				var color_down = 'cyan';
 				var color_rsi = 'cyan'
 				//Se il prezzo supera un limite del canale, allora il colore del limite è bianco
-				if (s.period.close > (s.options.strategy.bollinger.data.upperBound - (upperBandwidth * s.options.strategy.bollinger.opts.upper_bound_pct/100))) {
+				if (s.period.close > (strat_data.upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100))) {
 					color_up = 'white'
 				}
-				else if (s.period.close < (s.options.strategy.bollinger.data.lowerBound + (lowerBandwidth * s.options.strategy.bollinger.opts.lower_bound_pct/100))) {
+				else if (s.period.close < (strat_data.lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100))) {
 					color_down = 'white'
 				}
 
@@ -219,10 +223,10 @@ module.exports = {
 				
 				//Se siamo oversold, il colore di rsi è rosso.
 				//Se siamo in overbought il colore di rsi è verde
-				if (rsi < s.options.strategy.bollinger.opts.rsi_buy_threshold) {
+				if (rsi < strat_opts.rsi_buy_threshold) {
 					color_rsi = 'red'
 				}
-				if (rsi > s.options.strategy.bollinger.opts.rsi_sell_threshold) {
+				if (rsi > strat_opts.rsi_sell_threshold) {
 					color_rsi = 'green'
 				}
 				
@@ -232,25 +236,25 @@ module.exports = {
 					cols.push('*')
 				}
 
-				cols.push(z(8, n(s.options.strategy.bollinger.data.lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_down])
+				cols.push(z(8, n(strat_data.lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_down])
 				cols.push(' <->')
-				cols.push(z(8, n(s.options.strategy.bollinger.data.upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_up])
-				cols.push('(' + z(2, n(s.options.strategy.bollinger.data.rsi).format('0'), ' ')[color_rsi] + ')')
+				cols.push(z(8, n(strat_data.upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_up])
+				cols.push('(' + z(2, n(strat_data.rsi).format('0'), ' ')[color_rsi] + ')')
 			}
 		}
 		else {
 			cols.push(z(8, '', ' '))
 		}
 		
-		if (s.options.strategy.bollinger.data.max_profit_position.buy != null || s.options.strategy.bollinger.data.max_profit_position.sell != null) {
+		if (strat_data.max_profit_position.buy != null || strat_data.max_profit_position.sell != null) {
 			let position_buy_profit = -1
 			let position_sell_profit = -1
 
-			if (s.options.strategy.bollinger.data.max_profit_position.buy != null)
-				position_buy_profit = s.options.strategy.bollinger.data.max_profit_position.buy.profit_net_pct/100
+			if (strat_data.max_profit_position.buy != null)
+				position_buy_profit = strat_data.max_profit_position.buy.profit_net_pct/100
 
-			if (s.options.strategy.bollinger.data.max_profit_position.sell != null)	
-				position_sell_profit = s.options.strategy.bollinger.data.max_profit_position.sell.profit_net_pct/100
+			if (strat_data.max_profit_position.sell != null)	
+				position_sell_profit = strat_data.max_profit_position.sell.profit_net_pct/100
 
 			buysell = (position_buy_profit > position_sell_profit ? 'B' : 'S')
 			buysell_profit = (position_buy_profit > position_sell_profit ? formatPercent(position_buy_profit) : formatPercent(position_sell_profit))

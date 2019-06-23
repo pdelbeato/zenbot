@@ -37,8 +37,6 @@ module.exports = {
 		this.option('trailing_stop', 'trailing_stop_enable_pct', 'Enable trailing stop when reaching this % profit', Number, 2)
 		this.option('trailing_stop', 'trailingt_stop_pct', 'Maintain a trailing stop this % below the high-water mark of profit', Number, 0.5)
 	},
-	
-	let strat_opts = s.options.strategy.trailing_stop.opts,
 
 //	onTrade: function (s, opts= {}, cb= function() {}) {
 //		cb()
@@ -46,6 +44,9 @@ module.exports = {
 
 
 	onTradePeriod: function (s, opts= {}, cb= function() {}) {
+		let strat_opts = s.options.strategy.trailing_stop.opts
+		let strat_data = s.options.strategy.trailing_stop.data
+		
 		if (opts.trade) {
 			let max_trail_profit = -100
 			s.positions.forEach( function (position, index) {
@@ -54,7 +55,7 @@ module.exports = {
 					position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.side === 'buy' ? -1 : +1) * (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
 					if (position.profit_net_pct >= max_trail_profit) {
 						max_trail_profit = position.profit_net_pct
-						s.options.strategy.stoploss.data.max_trail_profit_position[position.side] = position
+						strat_data.max_trail_profit_position[position.side] = position
 //						debug.msg('updatePositions - max_profit_position_id.trail.' + position.side + ' = ' + position.id, false)
 					}
 				} 
@@ -64,6 +65,9 @@ module.exports = {
 	},
 	
 	onStrategyPeriod: function (s, opts= {}, cb= function() {}) {
+		let strat_opts = s.options.strategy.trailing_stop.opts
+		let strat_data = s.options.strategy.trailing_stop.data
+		
 		debug.msg('trailing_stop strategy - onStrategyPeriod')
 //		if (s.options.strategy.trailing_stop.calc_lookback[0].close) {
 //		s.positions.forEach( function (position, index) {
@@ -98,17 +102,20 @@ module.exports = {
 	},
 
 	onReport: function (s) {
+		let strat_opts = s.options.strategy.trailing_stop.opts
+		let strat_data = s.options.strategy.trailing_stop.data
+		
 		var cols = []
 
-		if (s.options.strategy.stoploss.data.max_trail_profit_position.buy != null || s.options.strategy.stoploss.data.max_trail_profit_position.sell != null) {
+		if (strat_data.max_trail_profit_position.buy != null || strat_data.max_trail_profit_position.sell != null) {
 			position_buy_profit = -1
 			position_sell_profit = -1
 
-			if (s.options.strategy.stoploss.data.max_trail_profit_position.buy != null)
-				position_buy_profit = s.options.strategy.stoploss.data.max_trail_profit_position.buy.profit_net_pct/100;
+			if (strat_data.max_trail_profit_position.buy != null)
+				position_buy_profit = strat_data.max_trail_profit_position.buy.profit_net_pct/100;
 
-			if (s.options.strategy.stoploss.data.max_trail_profit_position.buy != null)	
-				position_sell_profit = s.options.strategy.stoploss.data.max_trail_profit_position.sell.profit_net_pct/100;
+			if (strat_data.max_trail_profit_position.buy != null)	
+				position_sell_profit = strat_data.max_trail_profit_position.sell.profit_net_pct/100;
 
 			buysell = (position_buy_profit > position_sell_profit ? 'B' : 'S')
 			buysell_profit = (position_buy_profit > position_sell_profit ? formatPercent(position_buy_profit) : formatPercent(position_sell_profit))
@@ -125,6 +132,9 @@ module.exports = {
 	},
 	
 	onUpdateMessage: function (s) {
+		let strat_opts = s.options.strategy.trailing_stop.opts
+		let strat_data = s.options.strategy.trailing_stop.data
+		
 		let max_profit_positions = s.options.strategy.trailing_stop.data.max_profit_position
 		let side_max_profit = null
 		let pct_max_profit = null
