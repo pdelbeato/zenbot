@@ -908,14 +908,20 @@ module.exports = function (program, conf) {
 			Object.keys(so.strategy).forEach(function (strategy_name, index) {
 				process.stdout.write(z(22, 'STRATEGY'.grey, ' ') + '\t' + strategy_name + '\t' + (require(`../extensions/strategies/${strategy_name}/strategy`).description).grey)
 
-				let opts_name = '';
-				let opts_value = '';
+//				let opts_name = '';
+//				let opts_value = '';
+				let opts_rows = '';
 				Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
-					opts_name += z((key.length + 3), key, ' ')
-					opts_value += z((key.length + 3), so.strategy[strategy_name].opts[key], ' ')
+//					opts_name += z((key.length + 3), key, ' ')
+//					opts_value += z((key.length + 3), so.strategy[strategy_name].opts[key], ' ')
+					opts_rows += (key + '\t\t\t' + o.strategy[strategy_name].opts[key])
 				})
-				process.stdout.write('\n' + opts_name.grey)
-				process.stdout.write('\n' + opts_value + '\n\n')
+//				process.stdout.write('\n' + opts_name.grey)
+//				process.stdout.write('\n' + opts_value + '\n\n')
+				
+				opts_rows.forEach(function (row) {
+					process.stdout.write(row)
+				})
 			})
 
 			process.stdout.write([
