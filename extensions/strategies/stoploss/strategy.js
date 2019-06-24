@@ -22,6 +22,13 @@ var debug = require('../../../lib/debug')
 //	calc_close_time: 0,				//****** Close time for strategy period
 //	lib: {}							//****** To store all the functions of the strategy
 //}
+//---------------------------------------------
+
+
+//position.strategy_parameter.stoploss: {
+//		buy_stop: null,				**** Buy stop price (short position)
+//		sell_stop: null,			**** Sell stop price (long position)
+//}
 
 module.exports = {
 	name: 'stoploss',

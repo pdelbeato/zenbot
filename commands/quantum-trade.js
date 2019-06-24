@@ -467,7 +467,7 @@ module.exports = function (program, conf) {
 					if (s.positions_index != null) {
 						console.log('\nFreeing the position (cancelling all orders connected with the position) '.yellow + s.positions[s.positions_index].id)
 						engine.positionFlags(s.positions[s.positions_index], 'status', 'Free')
-						s.positions[s.positions_index].locked = false
+						engine.positionFlags(s.positions[s.positions_index], 'locked', 'Free')
 						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
 					else {
@@ -477,7 +477,7 @@ module.exports = function (program, conf) {
 				keyMap.set('L', {desc: ('Lock the position (does not cancel orders connected to the position)'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nLocking the position '.yellow + s.positions[s.positions_index].id)
-						s.positions[s.positions_index].locked = true
+						engine.positionFlags(s.positions[s.positions_index], 'locked', 'Set', 'manual')
 						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
 					else {
@@ -487,7 +487,7 @@ module.exports = function (program, conf) {
 				keyMap.set('U', {desc: ('Unlock the position (does not cancel orders connected to the position)'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nUnlocking the position '.yellow + s.positions[s.positions_index].id)
-						s.positions[s.positions_index].locked = false
+						engine.positionFlags(s.positions[s.positions_index], 'locked', 'Free')
 						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
 					else {

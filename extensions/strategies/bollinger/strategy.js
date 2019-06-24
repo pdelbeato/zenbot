@@ -195,27 +195,27 @@ module.exports = {
 		let strat_data = s.options.strategy.bollinger.data
 		
 		var cols = []
-		if (strat_data) {
-			if (strat_data.upperBound && strat_data.lowerBound) {
-				let upperBound = strat_data.upperBound
-				let lowerBound = strat_data.lowerBound
-				let midBound = strat_data.midBound
-				let upperBandwidth = (strat_data.upperBound - strat_data.midBound)
-				let lowerBandwidth = (strat_data.midBound - strat_data.lowerBound)
+		if (strat_data.bollinger && strat_data.rsi) {
+			if (strat_data.bollinger.upperBound && strat_data.bollinger.lowerBound) {
+				let upperBound = strat_data.bollinger.upperBound
+				let lowerBound = strat_data.bollinger.lowerBound
+				let midBound = strat_data.bollinger.midBound
+				let upperBandwidth = (strat_data.bollinger.upperBound - strat_data.bollinger.midBound)
+				let lowerBandwidth = (strat_data.bollinger.midBound - strat_data.bollinger.lowerBound)
 				let bandwidth_pct = (upperBound - lowerBound) / midBound * 100
 				let min_bandwidth_pct = strat_opts.min_bandwidth_pct
-				let upperWatchdogBound = strat_data.upperBound + (upperBandwidth * strat_opts.upper_watchdog_pct/100)
-				let lowerWatchdogBound = strat_data.lowerBound - (lowerBandwidth * strat_opts.lower_watchdog_pct/100)
-				let rsi = strat_data.rsi
+				let upperWatchdogBound = strat_data.bollinger.upperBound + (upperBandwidth * strat_opts.upper_watchdog_pct/100)
+				let lowerWatchdogBound = strat_data.bollinger.lowerBound - (lowerBandwidth * strat_opts.lower_watchdog_pct/100)
+				let rsi = strat_data.rsi.rsi
 				
 				var color_up = 'cyan';
 				var color_down = 'cyan';
 				var color_rsi = 'cyan'
 				//Se il prezzo supera un limite del canale, allora il colore del limite è bianco
-				if (s.period.close > (strat_data.upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100))) {
+				if (s.period.close > (upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100))) {
 					color_up = 'white'
 				}
-				else if (s.period.close < (strat_data.lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100))) {
+				else if (s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100))) {
 					color_down = 'white'
 				}
 
@@ -236,16 +236,15 @@ module.exports = {
 					color_rsi = 'green'
 				}
 				
-
 				//Controllo la minimum_bandwidth
 				if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
 					cols.push('*')
 				}
 
-				cols.push(z(8, n(strat_data.lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_down])
+				cols.push(z(8, n(lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_down])
 				cols.push(' <->')
-				cols.push(z(8, n(strat_data.upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_up])
-				cols.push('(' + z(2, n(strat_data.rsi).format('0'), ' ')[color_rsi] + ')')
+				cols.push(z(8, n(upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_up])
+				cols.push('(' + z(2, n(rsi).format('0'), ' ')[color_rsi] + ')')
 			}
 		}
 		else {
