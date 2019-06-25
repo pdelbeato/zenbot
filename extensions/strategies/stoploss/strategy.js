@@ -43,11 +43,11 @@ module.exports = {
 
 	getCommands: function (s, opts = {}) {
 		
-		this.command('stoploss', 'w', {desc: 'provo'.grey, action: function() {
+		this.command('w', {desc: 'Stoploss - provo'.grey, action: function() {
 			
 			console.log('\nprovo: ' )
 		}})
-		this.command('stoploss', 'W', {desc: 'prova'.grey, action: function() {
+		this.command('W', {desc: 'Stoploss - prova'.grey, action: function() {
 			
 			console.log('\nprova: ' )
 		}})

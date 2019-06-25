@@ -526,8 +526,8 @@ module.exports = function (program, conf) {
 				let actual_code = 97; //'a'
 
 				key_assign = {
-					command: function (strategy_name, key, desc_action) {
-						keyMap.set(strategy_name, key, desc_action)
+					command: function (key, desc_action) {
+						keyMap.set(key, desc_action)
 					}
 				};
 
@@ -538,6 +538,7 @@ module.exports = function (program, conf) {
 							so.strategy[strategy_name].lib.getCommands.call(key_assign, s)
 							listKeys()
 						}})
+						actual_code++
 					}
 				})
 				
