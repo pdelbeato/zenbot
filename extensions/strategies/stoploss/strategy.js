@@ -41,7 +41,7 @@ module.exports = {
 		this.option('stoploss', 'sell_stop_pct', 'For a BUY position, sell if price drops below this % of bought price', Number, 10)
 	},
 
-	getCommands: function () {
+	getCommands: function (s, opts = {}) {
 		
 		this.command('w', 'provo'.grey, function() {
 			

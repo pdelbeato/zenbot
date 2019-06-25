@@ -78,7 +78,7 @@ module.exports = {
 		this.option('bollinger', 'buy_min_pct', 'avoid buying at a profit below this pct (for short positions)', Number, 1)
 	},
 	
-	getCommands: function () {
+	getCommands: function (s, opts = {}) {
 		let strat_opts = s.options.strategy.bollinger.opts
 		let strat_data = s.options.strategy.bollinger.data
 		
