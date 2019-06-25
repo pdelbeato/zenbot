@@ -86,6 +86,7 @@ module.exports = {
 	
 	onTradePeriod: function (s, opts= {}, cb = function() {}) {
 		let strat_opts = s.options.strategy.bollinger.opts
+		let strat_data = s.options.strategy.bollinger.data
 		let strat_data_boll = s.options.strategy.bollinger.data.bollinger
 		let strat_data_rsi = s.options.strategy.bollinger.data.rsi
 		
