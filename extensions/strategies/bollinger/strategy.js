@@ -56,7 +56,7 @@ var z = require('zero-fill')
 
 module.exports = {
 	name: 'bollinger',
-	description: 'Buy when [(Signal ≤ Lower Bollinger Band) && (rsi > rsi_buy_threshold)] and sell when [(Signal ≥ Upper Bollinger Band) && (rsi < rsi_sell_threshold)].',
+	description: 'Buy when [(Price ≤ Lower Bollinger Band) && (rsi > rsi_buy_threshold)] and sell when [(Price ≥ Upper Bollinger Band) && (rsi < rsi_sell_threshold)].',
 
 	getOptions: function () {
 		this.option('bollinger', 'period_calc', 'calculate Bollinger Bands every period_calc time', String, '15m')
@@ -86,7 +86,8 @@ module.exports = {
 	
 	onTradePeriod: function (s, opts= {}, cb = function() {}) {
 		let strat_opts = s.options.strategy.bollinger.opts
-		let strat_data = s.options.strategy.bollinger.data
+		let strat_data_boll = s.options.strategy.bollinger.data.bollinger
+		let strat_data_rsi = s.options.strategy.bollinger.data.rsi
 		
 		let max_profit = -100
 
@@ -101,20 +102,20 @@ module.exports = {
 			}						
 		})
 
-		if (strat_data.midBound) {
+		if (strat_data_boll.midBound) {
 //			if (strat_data.upperBound && strat_data.lowerBound) {
-			let upperBound = strat_data.upperBound
-			let lowerBound = strat_data.lowerBound
-			let midBound = strat_data.midBound
-			let upperBandwidth = (strat_data.upperBound - strat_data.midBound)
-			let lowerBandwidth = (strat_data.midBound - strat_data.lowerBound)
+			let upperBound = strat_data_boll.upperBound
+			let lowerBound = strat_data_boll.lowerBound
+			let midBound = strat_data_boll.midBound
+			let upperBandwidth = (strat_data_boll.upperBound - strat_data_boll.midBound)
+			let lowerBandwidth = (strat_data_boll.midBound - strat_data_boll.lowerBound)
 			let bandwidth_pct = (upperBound - lowerBound) / midBound * 100
 			let min_bandwidth_pct = strat_opts.min_bandwidth_pct
 			let upperWatchdogBound = upperBound + (upperBandwidth * strat_opts.upper_watchdog_pct/100)
 			let lowerWatchdogBound = lowerBound - (lowerBandwidth * strat_opts.lower_watchdog_pct/100)
 			let upperCalmdownWatchdogBound = upperBound - (upperBandwidth * strat_opts.calmdown_watchdog_pct/100)
 			let lowerCalmdownWatchdogBound = lowerBound + (lowerBandwidth * strat_opts.calmdown_watchdog_pct/100)
-			let rsi = strat_data.rsi
+			let rsi = strat_data_rsi.rsi
 
 			//Controllo la minimum_bandwidth
 			if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
