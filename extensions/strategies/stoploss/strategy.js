@@ -41,6 +41,18 @@ module.exports = {
 		this.option('stoploss', 'sell_stop_pct', 'For a BUY position, sell if price drops below this % of bought price', Number, 10)
 	},
 
+	getCommands: function () {
+		
+		this.command('w', 'provo'.grey, function() {
+			
+			console.log('\nprovo: ' )
+		})
+		this.command('W', 'prova'.grey, function() {
+			
+			console.log('\nprova: ' )
+		})
+	},
+	
 //	onTrade: function (s, opts= {}, cb= function() {}) {
 //		cb()
 //	},
@@ -103,20 +115,7 @@ module.exports = {
 //	
 //	onOrderExecuted: function (s, signal, position_id) {
 //	},
-	
-	commandMenu: function (s, opts= {}) {
-		let strat_opts = s.options.strategy.bollinger.opts
-		let strat_data = s.options.strategy.bollinger.data
-		
-		keyMap.set('w', {desc: ('prova'.grey), action: function() {
-			
-			console.log('\nProva: ')
-		}})
-		keyMap.set('W', {desc: ('provo'.grey), action: function() {
-			console.log('\nProvo)
-		}})
-	},
-	
+
 	printOptions: function(s) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.stoploss))
 		delete so_tmp.calc_lookback

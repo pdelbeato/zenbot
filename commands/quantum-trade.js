@@ -527,15 +527,22 @@ module.exports = function (program, conf) {
 //				value_key = actual_key.charCodeAt()
 //				next= String.fromCharCode(value)
 
-				Object.keys(s.options.strategy).forEach(function (strategy_name, index, array) {
-					if (so.strategy[strategy_name].lib.commandMenu) {
-						let actual_key = String.fromCharCode(actual_code)
-						keyMap.set(actual_key, {desc: ('Strategia/t'.grey + strategy_name.white, action: function() {
-							so.strategy[strategy_name].lib.commandMenu()
-							listKeys()
-						})})
+				s.key_assign = {
+					command: function (key, description, action) {
+						keyMap.set(key, description, action)
 					}
-				}
+				};
+
+				Object.keys(s.options.strategy).forEach(function (strategy_name, index, array) {
+					
+					if (so.strategy[strategy_name].lib.getCommands) {
+						let actual_key = String.fromCharCode(actual_code)
+						keyMap.set(actual_key, {desc: ('Strategia\t'.grey + strategy_name.white), action: function() {
+							so.strategy[strategy_name].lib.getCommands.call(key_assign)
+							listKeys()
+						}})
+					}
+				})
 //					functionStrategies (s, 'commands', opts = {}, callbackStrategy = function() {}, callbackFinal = function() {}) {
 
 				
