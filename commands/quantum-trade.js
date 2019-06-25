@@ -183,7 +183,7 @@ module.exports = function (program, conf) {
 			keyMap.set('2', {desc: ('Modo '.grey + 'CATCH'.yellow), 		action: function() { changeModeCommand(2)}})
 			keyMap.set('3', {desc: ('Modo '.grey + 'EXCHANGE'.yellow), 		action:	function() { changeModeCommand(3)}})
 			keyMap.set('4', {desc: ('Modo '.grey + 'POSITIONS'.yellow),		action:	function() { changeModeCommand(4)}})
-			keyMap.set('5', {desc: ('Modo '.grey + 'LIMITS'.yellow), 		action: function() { changeModeCommand(5)}})
+			keyMap.set('5', {desc: ('Modo '.grey + 'STRATEGIES'.yellow),	action: function() { changeModeCommand(5)}})
 			keyMap.set('6', {desc: ('Modo '.grey + 'OPTIONS'.yellow), 		action: function() { changeModeCommand(6)}})
 			keyMap.set('7', {desc: ('Modo '.grey + 'DEBUG TOOLS'.yellow), 	action: function() { changeModeCommand(7)}})
 
@@ -522,106 +522,125 @@ module.exports = function (program, conf) {
 				break
 			}
 			case 5: {
-				//Modo LIMITS
-				keyMap.set('q', {desc: ('Buy price limit'.grey + ' INCREASE'.green), action: function() {
-					if (!so.buy_price_limit) {
-						so.buy_price_limit = Number(s.quote.bid)
-					}
-					so.buy_price_limit += 10
-					console.log('\n' + 'Buy price limit' + ' INCREASE'.green + ' -> ' + so.buy_price_limit)
-				}})
-				keyMap.set('a', {desc: ('Buy price limit'.grey + ' DECREASE'.red), action: function() {
-					if (!so.buy_price_limit) {
-						so.buy_price_limit = Number(s.quote.bid)
-					}
-					so.buy_price_limit -= 10
-					console.log('\n' + 'Buy price limit' + ' DECREASE'.red + ' -> ' + so.buy_price_limit)
-				}})
-				keyMap.set('w', {desc: ('Sell price limit'.grey + ' INCREASE'.green), action: function() {
-					if (!so.sell_price_limit) {
-						so.sell_price_limit = Number(s.quote.ask)
-					}
-					so.sell_price_limit += 10
-					console.log('\n' + 'Sell price limit' + ' INCREASE'.green + ' -> ' + so.sell_price_limit)
-				}})
-				keyMap.set('s', {desc: ('Sell price limit'.grey + ' DECREASE'.red), action: function() {
-					if (!so.sell_price_limit) {
-						so.sell_price_limit = Number(s.quote.ask)
-					}
-					so.sell_price_limit -= 10
-					console.log('\n' + 'Sell price limit' + ' DECREASE'.red + ' -> ' + so.sell_price_limit)
-				}})
-				keyMap.set('z', {desc: ('Buy/Sell price limit'.grey + ' CANCEL'.yellow), action: function() {
-					so.buy_price_limit = null
-					so.sell_price_limit = null
-					console.log('\n' + 'Buy/Sell price limit' + ' CANCELED'.yellow)
-				}})
-				//				keyMap.set('e', {desc: ('Buy stop pct (buy if price go over)'.grey + ' INCREASE'.green), action: function() {
-				//					so.buy_stop_pct++
-				//					console.log('\n' + 'Buy stop pct' + 'INCREASE'.green + ' -> ' + so.buy_stop_pct)
-				//				}})
-				//				keyMap.set('d', {desc: ('Buy stop pct (buy if price go over)'.grey + ' DECREASE'.red), action: function() {
-				//					so.buy_stop_pct--
-				//					console.log('\n' + 'Buy stop pct ' + 'DECREASE'.red + ' -> ' + so.buy_stop_pct)
-				//				}})
-				//				keyMap.set('r', {desc: ('Sell stop pct (sell is price go under)'.grey + ' INCREASE'.green), action: function() {
-				//					so.sell_stop_pct++
-				//					console.log('\n' + 'Sell stop pct ' + 'INCREASE'.green + ' -> ' + so.sell_price_limit)
-				//				}})
-				//				keyMap.set('f', {desc: ('Sell stop pct (sell if price go under)'.grey + ' DECREASE'.red), action: function() {
-				//					so.sell_stop_pct--
-				//					console.log('\n' + 'Sell stop pct ' + 'DECREASE'.red + ' -> ' + so.sell_price_limit)
-				//				}})
-				keyMap.set('t', {desc: ('Profit stop enable pct'.grey + ' INCREASE'.green), action: function() {
-					so.profit_stop_enable_pct = Number((so.profit_stop_enable_pct + 0.1).toFixed(2))
-					console.log('\n' + 'Profit stop enable pct' + ' INCREASE'.green + ' -> ' + so.profit_stop_enable_pct)
-				}})
-				keyMap.set('g', {desc: ('Profit stop enable pct'.grey + ' DECREASE'.red), action: function() {
-					so.profit_stop_enable_pct = Number((so.profit_stop_enable_pct - 0.1).toFixed(2))
-					if (so.profit_stop_enable_pct <= 0) {
-						so.profit_stop_enable_pct= null
-					}
-					console.log('\n' + 'Profit stop enable pct' + ' DECREASE'.red + ' -> ' + so.profit_stop_enable_pct)
-				}})
-				keyMap.set('y', {desc: ('Profit stop pct'.grey + ' INCREASE'.green), action: function() {
-					so.profit_stop_pct = Number((so.profit_stop_pct + 0.05).toFixed(2))
-					console.log('\n' + 'Profit stop pct' + ' INCREASE'.green + ' -> ' + so.profit_stop_pct)
-				}})
-				keyMap.set('h', {desc: ('Profit stop pct'.grey + ' DECREASE'.red), action: function() {
-					so.profit_stop_pct = Number((so.profit_stop_pct - 0.05).toFixed(2))
-					if (so.profit_stop_pct <= 0) {
-						so.profit_stop_pct= 0
-					}
-					console.log('\n' + 'Profit stop pct' + ' DECREASE'.red + ' -> ' + so.profit_stop_pct)
-				}})
-				keyMap.set('u', {desc: ('Sell gain pct (min profit in long position)'.grey + ' INCREASE'.green), action: function() {
-					so.sell_gain_pct = Number((so.sell_gain_pct + 0.05).toFixed(2))
-					console.log('\n' + 'Sell gain pct' + ' INCREASE'.green + ' -> ' + so.sell_gain_pct)
-				}})
-				keyMap.set('j', {desc: ('Sell gain pct (min profit in long position)'.grey + ' DECREASE'.red), action: function() {
-					so.sell_gain_pct = Number((so.sell_gain_pct - 0.05).toFixed(2))
-					console.log('\n' + 'Max sell loss pct' + ' DECREASE'.red + ' -> ' + so.sell_gain_pct)
-				}})
-				keyMap.set('i', {desc: ('Buy gain pct (min profit in short position)'.grey + ' INCREASE'.green), action: function() {
-					so.buy_gain_pct = Number((so.buy_gain_pct + 0.05).toFixed(2))
-					console.log('\n' + 'Buy gain pct' + ' INCREASE'.green + ' -> ' + so.buy_gain_pct)
-				}})
-				keyMap.set('k', {desc: ('Buy gain pct (min profit in short position)'.grey + ' DECREASE'.red), action: function() {
-					so.buy_gain_pct = Number((so.buy_gain_pct - 0.05).toFixed(2))
-					console.log('\n' + 'Buy gain pct' + ' DECREASE'.red + ' -> ' + so.buy_gain_pct)
-				}})
-				keyMap.set('o', {desc: ('Actual values for limits'.grey), action: function() {
-					actual_values = '\nActual values for limits:'
-						actual_values += '\n-------------------------'
-							actual_values += '\nBuy price limit= ' + so.buy_price_limit
-							actual_values += '\nSell price limit= ' + so.sell_price_limit
-							actual_values += '\nProfit stop enable pct= ' + so.profit_stop_enable_pct
-							actual_values += '\nProfit stop pct= ' + so.profit_stop_pct
-							actual_values += '\nSell gain pct= ' + so.sell_gain_pct
-							actual_values += '\nBuy gain pct= ' + so.buy_gain_pct
+				//Modo STRATEGIES
+				let actual_code = 97; //'a'
+//				value_key = actual_key.charCodeAt()
+//				next= String.fromCharCode(value)
 
-							console.log(actual_values)
-				}})
+				Object.keys(s.options.strategy).forEach(function (strategy_name, index, array) {
+					if (so.strategy[strategy_name].lib.commandMenu) {
+						let actual_key = String.fromCharCode(actual_code)
+						keyMap.set(actual_key, {desc: ('Strategia/t'.grey + strategy_name.white, action: function() {
+							so.strategy[strategy_name].lib.commandMenu()
+							listKeys()
+						})})
+					}
+				}
+//					functionStrategies (s, 'commands', opts = {}, callbackStrategy = function() {}, callbackFinal = function() {}) {
+
+				
+				
+// Tutta questa roba deve entrare nei comandi per le strategie!!!
+//				//Modo LIMITS
+//				keyMap.set('q', {desc: ('Buy price limit'.grey + ' INCREASE'.green), action: function() {
+//					if (!so.buy_price_limit) {
+//						so.buy_price_limit = Number(s.quote.bid)
+//					}
+//					so.buy_price_limit += 10
+//					console.log('\n' + 'Buy price limit' + ' INCREASE'.green + ' -> ' + so.buy_price_limit)
+//				}})
+//				keyMap.set('a', {desc: ('Buy price limit'.grey + ' DECREASE'.red), action: function() {
+//					if (!so.buy_price_limit) {
+//						so.buy_price_limit = Number(s.quote.bid)
+//					}
+//					so.buy_price_limit -= 10
+//					console.log('\n' + 'Buy price limit' + ' DECREASE'.red + ' -> ' + so.buy_price_limit)
+//				}})
+//				keyMap.set('w', {desc: ('Sell price limit'.grey + ' INCREASE'.green), action: function() {
+//					if (!so.sell_price_limit) {
+//						so.sell_price_limit = Number(s.quote.ask)
+//					}
+//					so.sell_price_limit += 10
+//					console.log('\n' + 'Sell price limit' + ' INCREASE'.green + ' -> ' + so.sell_price_limit)
+//				}})
+//				keyMap.set('s', {desc: ('Sell price limit'.grey + ' DECREASE'.red), action: function() {
+//					if (!so.sell_price_limit) {
+//						so.sell_price_limit = Number(s.quote.ask)
+//					}
+//					so.sell_price_limit -= 10
+//					console.log('\n' + 'Sell price limit' + ' DECREASE'.red + ' -> ' + so.sell_price_limit)
+//				}})
+//				keyMap.set('z', {desc: ('Buy/Sell price limit'.grey + ' CANCEL'.yellow), action: function() {
+//					so.buy_price_limit = null
+//					so.sell_price_limit = null
+//					console.log('\n' + 'Buy/Sell price limit' + ' CANCELED'.yellow)
+//				}})
+//				//				keyMap.set('e', {desc: ('Buy stop pct (buy if price go over)'.grey + ' INCREASE'.green), action: function() {
+//				//					so.buy_stop_pct++
+//				//					console.log('\n' + 'Buy stop pct' + 'INCREASE'.green + ' -> ' + so.buy_stop_pct)
+//				//				}})
+//				//				keyMap.set('d', {desc: ('Buy stop pct (buy if price go over)'.grey + ' DECREASE'.red), action: function() {
+//				//					so.buy_stop_pct--
+//				//					console.log('\n' + 'Buy stop pct ' + 'DECREASE'.red + ' -> ' + so.buy_stop_pct)
+//				//				}})
+//				//				keyMap.set('r', {desc: ('Sell stop pct (sell is price go under)'.grey + ' INCREASE'.green), action: function() {
+//				//					so.sell_stop_pct++
+//				//					console.log('\n' + 'Sell stop pct ' + 'INCREASE'.green + ' -> ' + so.sell_price_limit)
+//				//				}})
+//				//				keyMap.set('f', {desc: ('Sell stop pct (sell if price go under)'.grey + ' DECREASE'.red), action: function() {
+//				//					so.sell_stop_pct--
+//				//					console.log('\n' + 'Sell stop pct ' + 'DECREASE'.red + ' -> ' + so.sell_price_limit)
+//				//				}})
+//				keyMap.set('t', {desc: ('Profit stop enable pct'.grey + ' INCREASE'.green), action: function() {
+//					so.profit_stop_enable_pct = Number((so.profit_stop_enable_pct + 0.1).toFixed(2))
+//					console.log('\n' + 'Profit stop enable pct' + ' INCREASE'.green + ' -> ' + so.profit_stop_enable_pct)
+//				}})
+//				keyMap.set('g', {desc: ('Profit stop enable pct'.grey + ' DECREASE'.red), action: function() {
+//					so.profit_stop_enable_pct = Number((so.profit_stop_enable_pct - 0.1).toFixed(2))
+//					if (so.profit_stop_enable_pct <= 0) {
+//						so.profit_stop_enable_pct= null
+//					}
+//					console.log('\n' + 'Profit stop enable pct' + ' DECREASE'.red + ' -> ' + so.profit_stop_enable_pct)
+//				}})
+//				keyMap.set('y', {desc: ('Profit stop pct'.grey + ' INCREASE'.green), action: function() {
+//					so.profit_stop_pct = Number((so.profit_stop_pct + 0.05).toFixed(2))
+//					console.log('\n' + 'Profit stop pct' + ' INCREASE'.green + ' -> ' + so.profit_stop_pct)
+//				}})
+//				keyMap.set('h', {desc: ('Profit stop pct'.grey + ' DECREASE'.red), action: function() {
+//					so.profit_stop_pct = Number((so.profit_stop_pct - 0.05).toFixed(2))
+//					if (so.profit_stop_pct <= 0) {
+//						so.profit_stop_pct= 0
+//					}
+//					console.log('\n' + 'Profit stop pct' + ' DECREASE'.red + ' -> ' + so.profit_stop_pct)
+//				}})
+//				keyMap.set('u', {desc: ('Sell gain pct (min profit in long position)'.grey + ' INCREASE'.green), action: function() {
+//					so.sell_gain_pct = Number((so.sell_gain_pct + 0.05).toFixed(2))
+//					console.log('\n' + 'Sell gain pct' + ' INCREASE'.green + ' -> ' + so.sell_gain_pct)
+//				}})
+//				keyMap.set('j', {desc: ('Sell gain pct (min profit in long position)'.grey + ' DECREASE'.red), action: function() {
+//					so.sell_gain_pct = Number((so.sell_gain_pct - 0.05).toFixed(2))
+//					console.log('\n' + 'Max sell loss pct' + ' DECREASE'.red + ' -> ' + so.sell_gain_pct)
+//				}})
+//				keyMap.set('i', {desc: ('Buy gain pct (min profit in short position)'.grey + ' INCREASE'.green), action: function() {
+//					so.buy_gain_pct = Number((so.buy_gain_pct + 0.05).toFixed(2))
+//					console.log('\n' + 'Buy gain pct' + ' INCREASE'.green + ' -> ' + so.buy_gain_pct)
+//				}})
+//				keyMap.set('k', {desc: ('Buy gain pct (min profit in short position)'.grey + ' DECREASE'.red), action: function() {
+//					so.buy_gain_pct = Number((so.buy_gain_pct - 0.05).toFixed(2))
+//					console.log('\n' + 'Buy gain pct' + ' DECREASE'.red + ' -> ' + so.buy_gain_pct)
+//				}})
+//				keyMap.set('o', {desc: ('Actual values for limits'.grey), action: function() {
+//					actual_values = '\nActual values for limits:'
+//						actual_values += '\n-------------------------'
+//							actual_values += '\nBuy price limit= ' + so.buy_price_limit
+//							actual_values += '\nSell price limit= ' + so.sell_price_limit
+//							actual_values += '\nProfit stop enable pct= ' + so.profit_stop_enable_pct
+//							actual_values += '\nProfit stop pct= ' + so.profit_stop_pct
+//							actual_values += '\nSell gain pct= ' + so.sell_gain_pct
+//							actual_values += '\nBuy gain pct= ' + so.buy_gain_pct
+//
+//							console.log(actual_values)
+//				}})
 				break
 			}
 			case 6: {
@@ -647,16 +666,16 @@ module.exports = function (program, conf) {
 						}
 					})
 				}})
-				keyMap.set('w', {desc: ('toggle Dump Watchdog'.grey), action: function() {
-					so.dump_watchdog = !so.dump_watchdog
-					s.is_dump_watchdog = so.dump_watchdog
-					console.log('\nToggle Dump Watchdog: ' + (so.dump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
-				}})
-				keyMap.set('W', {desc: ('toggle Pump Watchdog'.grey), action: function() {
-					so.pump_watchdog = !so.pump_watchdog
-					s.is_pump_watchdog = so.pump_watchdog
-					console.log('\nToggle Pump Watchdog: ' + (so.pump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
-				}})
+//				keyMap.set('w', {desc: ('toggle Dump Watchdog'.grey), action: function() {
+//					so.dump_watchdog = !so.dump_watchdog
+//					s.is_dump_watchdog = so.dump_watchdog
+//					console.log('\nToggle Dump Watchdog: ' + (so.dump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
+//				}})
+//				keyMap.set('W', {desc: ('toggle Pump Watchdog'.grey), action: function() {
+//					so.pump_watchdog = !so.pump_watchdog
+//					s.is_pump_watchdog = so.pump_watchdog
+//					console.log('\nToggle Pump Watchdog: ' + (so.pump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
+//				}})
 				keyMap.set('z', {desc: ('toggle Long Position'.grey), action: function() {
 					so.active_long_position = !so.active_long_position
 					console.log('\nToggle Long position: ' + (so.active_long_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
@@ -906,19 +925,13 @@ module.exports = function (program, conf) {
 			console.log('\n' + s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey + '\n')
 
 			Object.keys(so.strategy).forEach(function (strategy_name, index) {
-				process.stdout.write(z(22, 'STRATEGY'.grey, ' ') + '\t' + strategy_name + '\t' + (require(`../extensions/strategies/${strategy_name}/strategy`).description).grey + '\n')
+				process.stdout.write('\nSTRATEGY'.grey + '\t' + strategy_name + '\t' + (require(`../extensions/strategies/${strategy_name}/strategy`).description).grey + '\n')
 
-//				let opts_name = '';
-//				let opts_value = '';
 				let opts_rows = [];
 				Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
-//					opts_name += z((key.length + 3), key, ' ')
-//					opts_value += z((key.length + 3), so.strategy[strategy_name].opts[key], ' ')
-					opts_rows.push(key + '\t' + so.strategy[strategy_name].opts[key])
+					opts_rows.push(z(25, key.grey, ' ') + '\t' + so.strategy[strategy_name].opts[key])
 				})
-//				process.stdout.write('\n' + opts_name.grey)
-//				process.stdout.write('\n' + opts_value + '\n\n')
-				
+
 				opts_rows.forEach(function (row) {
 					process.stdout.write(row + '\n')
 				})
@@ -930,48 +943,62 @@ module.exports = function (program, conf) {
 				z(25, 'ORDER TYPE'.grey, ' '),
 				z(25, 'SLIPPAGE'.grey, ' '),
 				z(30, 'EXCHANGE FEES'.grey, ' ')
-				].join('') + '\n')
+				].join('') + '\n');
 
-				process.stdout.write([
-					z(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
-					z(10, so.period_length, ' '),
-					z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
-					z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
-					z(17, (so.order_type + ' ' + n((so.order_type === 'maker' ?  s.exchange.makerFee : s.exchange.takerFee)).divide(100).format('0.000%')), ' ')
-					].join('') + '\n\n')
+			process.stdout.write([
+				z(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
+				z(10, so.period_length, ' '),
+				z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
+				z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
+				z(17, (so.order_type + ' ' + n((so.order_type === 'maker' ?  s.exchange.makerFee : s.exchange.takerFee)).divide(100).format('0.000%')), ' ')
+				].join('') + '\n\n');
 
-					process.stdout.write('')
+			process.stdout.write('');
 
-					process.stdout.write([
-						z(30, 'TRAILING STOP %'.grey, ' '),
-						z(34, 'TRAILING DISTANCE %'.grey, ' '),
-						z(35, 'DUMP / PUMP WATCHDOG'.grey, ' '),
-						z(36, 'LONG / SHORT POSITION'.grey, ' ')
-						].join('') + '\n')
+			process.stdout.write([
+//				z(30, 'TRAILING STOP %'.grey, ' '),
+//				z(34, 'TRAILING DISTANCE %'.grey, ' '),
+//				z(35, 'DUMP / PUMP WATCHDOG'.grey, ' '),
+				z(30, '', ' '),
+				z(34, '', ' '),
+				z(35, '', ' '),
+				z(36, 'LONG / SHORT POSITION'.grey, ' ')
+				].join('') + '\n');
 
-						process.stdout.write([
-							z(12, so.profit_stop_enable_pct + '%', ' '),
-							z(24, so.profit_stop_pct + '%', ' '),
-							z(20, so.dump_watchdog, ' '),
-							z(8, so.pump_watchdog, ' '),
-							z(16, so.active_long_position, ' '),
-							z(8, so.active_short_position, ' ')
-							].join('') + '\n\n')
-							process.stdout.write('')
-							process.stdout.write([
-								z(37, 'BUY / SELL STOP LOSS %'.grey, ' '),
-								z(35, 'CATCH ORDER DEFAULT %'.grey, ' '),
-								z(33, 'CATCH ORDER MANUAL %'.grey, ' '),
-								z(30, 'CATCH FIXED VALUE'.grey, ' '),
-								].join('') + '\n')
-								process.stdout.write([
-									z(9, (so.buy_stop_pct || '--') + '%', ' '),
-									z(6, (so.sell_stop_pct || '--') + '%', ' '),
-									z(25, so.catch_order_pct + '%', ' '),
-									z(23, so.catch_manual_pct + '%', ' '),
-									z(25, formatCurrency(so.catch_fixed_value, s.currency), ' '),
-									].join('') + '\n\n')
-									process.stdout.write('')
+			process.stdout.write([
+//				z(12, so.profit_stop_enable_pct + '%', ' '),
+//				z(24, so.profit_stop_pct + '%', ' '),
+//				z(20, so.dump_watchdog, ' '),
+//				z(8, so.pump_watchdog, ' '),
+				z(12, '', ' '),
+				z(24, '', ' '),
+				z(20, '', ' '),
+				z(8, '', ' '),
+				z(16, so.active_long_position, ' '),
+				z(8, so.active_short_position, ' ')
+				].join('') + '\n\n');
+			
+			process.stdout.write('');
+			
+			process.stdout.write([
+//				z(37, 'BUY / SELL STOP LOSS %'.grey, ' '),
+				z(37, ''.grey, ' '),
+				z(35, 'CATCH ORDER DEFAULT %'.grey, ' '),
+				z(33, 'CATCH ORDER MANUAL %'.grey, ' '),
+				z(30, 'CATCH FIXED VALUE'.grey, ' '),
+				].join('') + '\n');
+			
+			process.stdout.write([
+//				z(9, (so.buy_stop_pct || '--') + '%', ' '),
+//				z(6, (so.sell_stop_pct || '--') + '%', ' '),
+				z(9, '', ' '),
+				z(6, '', ' '),
+				z(25, so.catch_order_pct + '%', ' '),
+				z(23, so.catch_manual_pct + '%', ' '),
+				z(25, formatCurrency(so.catch_fixed_value, s.currency), ' '),
+				].join('') + '\n\n');
+			
+			process.stdout.write('');
 		}
 		/* End listOptions() */
 

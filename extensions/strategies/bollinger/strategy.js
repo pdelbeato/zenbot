@@ -307,6 +307,22 @@ module.exports = {
 //	onOrderExecuted: function (s, signal, position_id) {
 //	},
 	
+	commandMenu: function (s, opts= {}) {
+		let strat_opts = s.options.strategy.bollinger.opts
+		let strat_data = s.options.strategy.bollinger.data
+		
+		keyMap.set('w', {desc: ('toggle Dump Watchdog'.grey), action: function() {
+			strat_opts.dump_watchdog = !strat_opts.dump_watchdog
+			strat_data.is_dump_watchdog = strat_opts.dump_watchdog
+			console.log('\nToggle Dump Watchdog: ' + (strat_opts.dump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
+		}})
+		keyMap.set('W', {desc: ('toggle Pump Watchdog'.grey), action: function() {
+			strat_opts.pump_watchdog = !strat_opts.pump_watchdog
+			strat_data.is_pump_watchdog = strat_opts.pump_watchdog
+			console.log('\nToggle Pump Watchdog: ' + (strat_opts.pump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
+		}})
+	},
+	
 	printOptions: function(s) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.bollinger))
 		delete so_tmp.calc_lookback

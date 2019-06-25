@@ -104,6 +104,19 @@ module.exports = {
 //	onOrderExecuted: function (s, signal, position_id) {
 //	},
 	
+	commandMenu: function (s, opts= {}) {
+		let strat_opts = s.options.strategy.bollinger.opts
+		let strat_data = s.options.strategy.bollinger.data
+		
+		keyMap.set('w', {desc: ('prova'.grey), action: function() {
+			
+			console.log('\nProva: ')
+		}})
+		keyMap.set('W', {desc: ('provo'.grey), action: function() {
+			console.log('\nProvo)
+		}})
+	},
+	
 	printOptions: function(s) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.stoploss))
 		delete so_tmp.calc_lookback
