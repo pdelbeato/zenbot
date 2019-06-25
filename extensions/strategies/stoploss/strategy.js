@@ -43,14 +43,14 @@ module.exports = {
 
 	getCommands: function (s, opts = {}) {
 		
-		this.command('w', 'provo'.grey, function() {
+		this.command('w', {desc: 'provo'.grey, action: function() {
 			
 			console.log('\nprovo: ' )
-		})
-		this.command('W', 'prova'.grey, function() {
+		}})
+		this.command('W', {desc: 'prova'.grey, action: function() {
 			
 			console.log('\nprova: ' )
-		})
+		}})
 	},
 	
 //	onTrade: function (s, opts= {}, cb= function() {}) {

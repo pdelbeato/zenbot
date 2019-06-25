@@ -529,7 +529,7 @@ module.exports = function (program, conf) {
 
 				key_assign = {
 					command: function (key, description, action) {
-						keyMap.set(key, description, action)
+						keyMap.set(key, desc_action)
 					}
 				};
 
