@@ -164,7 +164,7 @@ module.exports = function (program, conf) {
 		modeMap.set(2, 'CATCH')
 		modeMap.set(3, 'EXCHANGE')
 		modeMap.set(4, 'POSITIONS')
-		modeMap.set(5, 'LIMITS')
+		modeMap.set(5, 'STRATEGIES')
 		modeMap.set(6, 'OPTIONS')
 		modeMap.set(7, 'DEBUG TOOLS')
 
@@ -524,17 +524,14 @@ module.exports = function (program, conf) {
 			case 5: {
 				//Modo STRATEGIES
 				let actual_code = 97; //'a'
-//				value_key = actual_key.charCodeAt()
-//				next= String.fromCharCode(value)
 
 				key_assign = {
-					command: function (key, description, action) {
-						keyMap.set(key, desc_action)
+					command: function (strategy_name, key, desc_action) {
+						keyMap.set(strategy_name, key, desc_action)
 					}
 				};
 
-				Object.keys(s.options.strategy).forEach(function (strategy_name, index, array) {
-					
+				Object.keys(s.options.strategy).forEach(function (strategy_name, index, array) {			
 					if (so.strategy[strategy_name].lib.getCommands) {
 						let actual_key = String.fromCharCode(actual_code)
 						keyMap.set(actual_key, {desc: ('Strategia\t'.grey + strategy_name.white), action: function() {
@@ -543,8 +540,6 @@ module.exports = function (program, conf) {
 						}})
 					}
 				})
-//					functionStrategies (s, 'commands', opts = {}, callbackStrategy = function() {}, callbackFinal = function() {}) {
-
 				
 				
 // Tutta questa roba deve entrare nei comandi per le strategie!!!
@@ -582,6 +577,11 @@ module.exports = function (program, conf) {
 //					so.sell_price_limit = null
 //					console.log('\n' + 'Buy/Sell price limit' + ' CANCELED'.yellow)
 //				}})
+				
+				
+				
+				
+				
 //				//				keyMap.set('e', {desc: ('Buy stop pct (buy if price go over)'.grey + ' INCREASE'.green), action: function() {
 //				//					so.buy_stop_pct++
 //				//					console.log('\n' + 'Buy stop pct' + 'INCREASE'.green + ' -> ' + so.buy_stop_pct)
@@ -598,6 +598,10 @@ module.exports = function (program, conf) {
 //				//					so.sell_stop_pct--
 //				//					console.log('\n' + 'Sell stop pct ' + 'DECREASE'.red + ' -> ' + so.sell_price_limit)
 //				//				}})
+				
+				
+				
+				
 //				keyMap.set('t', {desc: ('Profit stop enable pct'.grey + ' INCREASE'.green), action: function() {
 //					so.profit_stop_enable_pct = Number((so.profit_stop_enable_pct + 0.1).toFixed(2))
 //					console.log('\n' + 'Profit stop enable pct' + ' INCREASE'.green + ' -> ' + so.profit_stop_enable_pct)
@@ -620,6 +624,9 @@ module.exports = function (program, conf) {
 //					}
 //					console.log('\n' + 'Profit stop pct' + ' DECREASE'.red + ' -> ' + so.profit_stop_pct)
 //				}})
+
+				
+				
 //				keyMap.set('u', {desc: ('Sell gain pct (min profit in long position)'.grey + ' INCREASE'.green), action: function() {
 //					so.sell_gain_pct = Number((so.sell_gain_pct + 0.05).toFixed(2))
 //					console.log('\n' + 'Sell gain pct' + ' INCREASE'.green + ' -> ' + so.sell_gain_pct)
@@ -636,6 +643,9 @@ module.exports = function (program, conf) {
 //					so.buy_gain_pct = Number((so.buy_gain_pct - 0.05).toFixed(2))
 //					console.log('\n' + 'Buy gain pct' + ' DECREASE'.red + ' -> ' + so.buy_gain_pct)
 //				}})
+				
+				
+				
 //				keyMap.set('o', {desc: ('Actual values for limits'.grey), action: function() {
 //					actual_values = '\nActual values for limits:'
 //						actual_values += '\n-------------------------'
