@@ -198,20 +198,24 @@ module.exports = {
 
 				if (sell_condition_1 && sell_condition_2) {
 					s.signal = 'sell';
-					if (strat_data.max_profit_position.buy && strat_data.max_profit_position.buy.profit_net_pct >= strat_opts.sell_min_pct) {
-						s.eventBus.emit('bollinger', 'sell', strat_data.max_profit_position.buy.id)
-					}
-					else {
-						s.eventBus.emit('bollinger', 'sell')
+					if (!opts.is_preroll) {
+						if (strat_data.max_profit_position.buy && strat_data.max_profit_position.buy.profit_net_pct >= strat_opts.sell_min_pct) {
+							s.eventBus.emit('bollinger', 'sell', strat_data.max_profit_position.buy.id)
+						}
+						else {
+							s.eventBus.emit('bollinger', 'sell')
+						}
 					}
 				}
 				else if (buy_condition_1 && buy_condition_2) {
 					s.signal = 'buy';
-					if (strat_data.max_profit_position.sell && strat_data.max_profit_position.sell.profit_net_pct >= strat_opts.buy_min_pct) {
-						s.eventBus.emit('bollinger', 'buy', strat_data.max_profit_position.sell.id)
-					}
-					else {
-						s.eventBus.emit('bollinger', 'buy')
+					if (!opts.is_preroll) {
+						if (strat_data.max_profit_position.sell && strat_data.max_profit_position.sell.profit_net_pct >= strat_opts.buy_min_pct) {
+							s.eventBus.emit('bollinger', 'buy', strat_data.max_profit_position.sell.id)
+						}
+						else {
+							s.eventBus.emit('bollinger', 'buy')
+						}
 					}
 				}
 			}
