@@ -1643,11 +1643,11 @@ module.exports = function (program, conf) {
 						console.error(err)
 					}
 					if (s.period) {
-						Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
-							if (strategy_name && so.strategy[strategy_name].lib.onReport) {
+//						Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
+//							if (strategy_name && so.strategy[strategy_name].lib.onReport) {
 								engine.writeReport(true)
-							}
-						})
+//							}
+//						})
 					} else {
 						readline.clearLine(process.stdout)
 						readline.cursorTo(process.stdout, 0)
