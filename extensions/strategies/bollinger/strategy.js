@@ -103,7 +103,7 @@ module.exports = {
 			}						
 		})
 
-		if (strat_data_boll.midBound) {
+		if (strat_data_boll) {
 //			if (strat_data.upperBound && strat_data.lowerBound) {
 			let upperBound = strat_data_boll.upperBound
 			let lowerBound = strat_data_boll.lowerBound
@@ -140,13 +140,13 @@ module.exports = {
 			//Non siamo in watchdog, ma siamo in calmdown
 			else if (!strat_data.is_dump_watchdog && !strat_data.is_pump_watchdog) {
 				s.signal = 'P/D Calm'
-			}
-			//Il calmdown è passato
-			else if (s.period.close > lowerCalmdownWatchdogBound && s.period.close < upperCalmdownWatchdogBound) {
-				s.signal = null
-				strat_data.is_pump_watchdog = false
-				strat_data.is_dump_watchdog = false
-			}
+				//Il calmdown è passato
+				if (s.period.close > lowerCalmdownWatchdogBound && s.period.close < upperCalmdownWatchdogBound) {
+					s.signal = null
+					strat_data.is_pump_watchdog = false
+					strat_data.is_dump_watchdog = false
+				}
+			}			
 			//Se non siamo in watchdog, utilizza la normale strategia
 			else {
 				let buy_condition_1 = (s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100)))
