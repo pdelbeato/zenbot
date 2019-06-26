@@ -193,7 +193,7 @@ module.exports = {
 			if (strat_data.max_trail_profit_position.buy != null)
 				position_buy_profit = strat_data.max_trail_profit_position.buy.profit_net_pct/100;
 
-			if (strat_data.max_trail_profit_position.buy != null)	
+			if (strat_data.max_trail_profit_position.sell != null)	
 				position_sell_profit = strat_data.max_trail_profit_position.sell.profit_net_pct/100;
 
 			buysell = (position_buy_profit > position_sell_profit ? 'B' : 'S')
