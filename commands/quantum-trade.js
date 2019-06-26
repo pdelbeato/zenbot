@@ -31,6 +31,30 @@ var exec = require('child_process').exec
 //function puts(error, stdout, stderr) { console.log(stdout) }
 function puts(error, stdout) { console.log(stdout) }
 
+// Cambia i colori di cliff
+//styles: {                 // Styles applied to stdout
+//    all:     'cyan',      // Overall style applied to everything
+//    label:   'underline', // Inspection labels, like 'array' in `array: [1, 2, 3]`
+//    other:   'inverted',  // Objects which don't have a literal representation, such as functions
+//    key:     'bold',      // The keys in object literals, like 'a' in `{a: 1}`
+//    special: 'grey',      // null, undefined...
+//    string:  'green',
+//    number:  'magenta',
+//    bool:    'blue',      // true false
+//    regexp:  'green',     // /\d+/
+//},
+//
+//pretty: true,             // Indent object literals
+//hideFunctions: false,     // Don't output functions at all
+//stream: process.stdout,   // Stream to write to, or null
+//maxLength: 2048           // Truncate output if longer
+
+cliff.inspect({
+    styles: {
+        number: 'yellow'
+    },
+});
+
 module.exports = function (program, conf) {
 	program
 	.command('quantum-trade [selector]')
@@ -909,7 +933,7 @@ module.exports = function (program, conf) {
 
 		/* To list options*/
 		function listOptions () {
-			console.log('\n' + s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey + '\n')
+			process.stdout.write('\n' + s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey + '\n')
 
 			Object.keys(so.strategy).forEach(function (strategy_name, index) {
 				process.stdout.write('\nSTRATEGY'.grey + '\t' + strategy_name + '\t' + (require(`../extensions/strategies/${strategy_name}/strategy`).description).grey + '\n')
@@ -924,6 +948,8 @@ module.exports = function (program, conf) {
 				})
 			})
 
+			process.stdout.write('\n')
+			
 			process.stdout.write([
 				z(25, so.mode.toUpperCase() + ' MODE'.grey, ' '),
 				z(25, 'PERIOD LENGTH'.grey, ' '),

@@ -31,6 +31,30 @@ var debug = require('../../../lib/debug')
 //		sell_stop: null,			**** Sell stop price (long position)
 //}
 
+// Cambia i colori di cliff
+//styles: {                 // Styles applied to stdout
+//    all:     'cyan',      // Overall style applied to everything
+//    label:   'underline', // Inspection labels, like 'array' in `array: [1, 2, 3]`
+//    other:   'inverted',  // Objects which don't have a literal representation, such as functions
+//    key:     'bold',      // The keys in object literals, like 'a' in `{a: 1}`
+//    special: 'grey',      // null, undefined...
+//    string:  'green',
+//    number:  'magenta',
+//    bool:    'blue',      // true false
+//    regexp:  'green',     // /\d+/
+//},
+//
+//pretty: true,             // Indent object literals
+//hideFunctions: false,     // Don't output functions at all
+//stream: process.stdout,   // Stream to write to, or null
+//maxLength: 2048           // Truncate output if longer
+
+cliff.inspect({
+    styles: {
+        number: 'yellow'
+    },
+});
+
 module.exports = {
 	name: 'stoploss',
 	description: 'Stoploss strategy',
