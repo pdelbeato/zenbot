@@ -131,9 +131,9 @@ module.exports = {
 	},
 
 
-//	onTradePeriod: function (s, opts= {}, cb= function() {}) {
-//	cb()
-//	},
+	onTradePeriod: function (s, opts= {}, cb= function() {}) {
+		cb()
+	},
 
 	onStrategyPeriod: function (s, opts= {}, cb= function() {}) {
 		let strat_opts = s.options.strategy.trailing_stop.opts
