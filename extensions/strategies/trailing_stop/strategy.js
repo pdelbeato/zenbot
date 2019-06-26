@@ -11,15 +11,15 @@ var debug = require('../../../lib/debug')
 //c.strategy['trailing_stop'] = {
 //name: 'trailing_stop',
 //opts: {								//****** To store options
-//period_calc: '15m',				//****** Execute trailing stop every period_calc time ('null' -> execute every trade)
-//order_type: 'taker', 			//****** Order type
-//trailing_stop_enable_pct: 2,	//****** Enable trailing stop when reaching this % profit
-//trailing_stop_pct: 0.5,			//****** Maintain a trailing stop this % below the high-water mark of profit
+//		period_calc: '15m',				//****** Execute trailing stop every period_calc time ('null' -> execute every trade)
+//		order_type: 'taker', 			//****** Order type
+//		trailing_stop_enable_pct: 2,	//****** Enable trailing stop when reaching this % profit
+//		trailing_stop_pct: 0.5,			//****** Maintain a trailing stop this % below the high-water mark of profit
 //},
 //data: {								//****** To store calculated data
-//max_trail_profit_position: {	//****** Positions with max trailing profit
-//buy: null,
-//sell: null,
+//		max_trail_profit_position: {	//****** Positions with max trailing profit
+//			buy: null,
+//			sell: null,
 //}
 //},	
 //calc_lookback: [],					//****** Old periods for calculation
@@ -60,7 +60,7 @@ module.exports = {
 		this.option('trailing_stop', 'period_calc', 'Execute trailing stop every period_calc time', String, '15m')
 		this.option('trailing_stop', 'order_type', 'Order type (maker/taker)', String, 'maker')
 		this.option('trailing_stop', 'trailing_stop_enable_pct', 'Enable trailing stop when reaching this % profit', Number, 2)
-		this.option('trailing_stop', 'trailingt_stop_pct', 'Maintain a trailing stop this % below the high-water mark of profit', Number, 0.5)
+		this.option('trailing_stop', 'trailing_stop_pct', 'Maintain a trailing stop this % below the high-water mark of profit', Number, 0.5)
 	},
 
 	getCommands: function (s, opts = {}) {
@@ -94,7 +94,7 @@ module.exports = {
 			if (opts.trade) {
 				let max_trail_profit = -100
 				s.positions.forEach(function (position, index) {
-					if (position.profit_net_pct >= strat_opts.profit_stop_enable_pct) {
+					if (position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = (position.side === 'buy' ? (Math.max(position.strategy_parameters.trailing_stop.trailing_stop_limit || opts.trade.price, opts.trade.price)) : (Math.min(position.strategy_parameters.trailing_stop.trailing_stop_limit || opts.trade.price, opts.trade.price)))
 						position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.side === 'buy' ? -1 : +1) * (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
 						position.locked = s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
@@ -145,7 +145,7 @@ module.exports = {
 			if (strat.calc_lookback[0]) {
 				let max_trail_profit = -100
 				s.positions.forEach(function (position, index) {
-					if (position.profit_net_pct >= strat_opts.profit_stop_enable_pct) {
+					if (position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = (position.side === 'buy' ? (Math.max(position.strategy_parameters.trailing_stop.trailing_stop_limit || strat.calc_lookback[0].close, strat.calc_lookback[0].close)) : (Math.min(position.strategy_parameters.trailing_stop.trailing_stop_limit || strat.calc_lookback[0].close, strat.calc_lookback[0].close)))
 						position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.side === 'buy' ? -1 : +1) * (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
 						position.locked = s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
