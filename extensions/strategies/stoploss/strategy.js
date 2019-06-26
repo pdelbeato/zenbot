@@ -82,14 +82,14 @@ module.exports = {
 		}})
 	},
 	
-//	onTrade: function (s, opts= {}, cb= function() {}) {
-//		cb()
-//	},
+	onTrade: function (s, opts= {}, cb= function() {}) {
+		cb()
+	},
 	
 
-//	onTradePeriod: function (s, opts= {}, cb= function() {}) {
-//		cb()
-//	},
+	onTradePeriod: function (s, opts= {}, cb= function() {}) {
+		cb()
+	},
 	
 	onStrategyPeriod: function (s, opts= {}, cb= function() {}) {
 		let strat_opts = s.options.strategy.stoploss.opts
@@ -115,11 +115,11 @@ module.exports = {
 		cb()
 	},
 
-//	onReport: function (s) {
-//	},
+	onReport: function (s) {
+	},
 	
-//	onUpdateMessage: function (s) {
-//	},
+	onUpdateMessage: function (s) {
+	},
 	
 	onPositionOpened: function (s, opts= {}) {
 		let strat_opts = s.options.strategy.stoploss.opts
@@ -138,12 +138,12 @@ module.exports = {
 		position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat_opts.buy_stop_pct/100).format(s.product.increment) : null)
 		position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat_opts.sell_stop_pct/100).format(s.product.increment) : null)
 	},
-//	
-//	onPositionClosed: function (s, opts= {}) {
-//	},
-//	
-//	onOrderExecuted: function (s, signal, position_id) {
-//	},
+	
+	onPositionClosed: function (s, opts= {}) {
+	},
+	
+	onOrderExecuted: function (s, signal, position_id) {
+	},
 
 	printOptions: function(s) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.stoploss))

@@ -129,9 +129,9 @@ module.exports = {
 	},
 
 
-//	onTradePeriod: function (s, opts= {}, cb= function() {}) {
-//	cb()
-//	},
+	onTradePeriod: function (s, opts= {}, cb= function() {}) {
+	cb()
+	},
 
 	onStrategyPeriod: function (s, opts= {}, cb= function() {}) {
 		let strat_opts = s.options.strategy.trailing_stop.opts
@@ -233,14 +233,14 @@ module.exports = {
 
 	},
 
-//	onPositionUpdated: function (s, opts= {}) {
-//	},
+	onPositionUpdated: function (s, opts= {}) {
+	},
 
-//	onPositionClosed: function (s, opts= {}) {
-//	},
+	onPositionClosed: function (s, opts= {}) {
+	},
 
-//	onOrderExecuted: function (s, signal, position_id) {
-//	},
+	onOrderExecuted: function (s, signal, position_id) {
+	},
 
 	printOptions: function(s) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.stoploss))

@@ -128,11 +128,11 @@ module.exports = {
 		}})
 	},
 
-//	onTrade: function (s, opts= {}, cb = function() {}) {
-//		if (opts.trade) {
-//		}
-//		cb()
-//	},
+	onTrade: function (s, opts= {}, cb = function() {}) {
+		if (opts.trade) {
+		}
+		cb()
+	},
 	
 	onTradePeriod: function (s, opts= {}, cb = function() {}) {
 		let strat_opts = s.options.strategy.bollinger.opts
@@ -349,17 +349,17 @@ module.exports = {
 		return (side_max_profit ? ('/n Bollinger position:' + side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit/100)) : '')
 	},
 	
-//	onPositionOpened: function (s, opts= {}) {
-//	},
-//	
-//	onPositionUpdated: function (s, opts= {}) {
-//	},
-//	
-//	onPositionClosed: function (s, opts= {}) {
-//	},
-//	
-//	onOrderExecuted: function (s, signal, position_id) {
-//	},
+	onPositionOpened: function (s, opts= {}) {
+	},
+	
+	onPositionUpdated: function (s, opts= {}) {
+	},
+	
+	onPositionClosed: function (s, opts= {}) {
+	},
+	
+	onOrderExecuted: function (s, signal, position_id) {
+	},
 	
 	printOptions: function(s) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.bollinger))
