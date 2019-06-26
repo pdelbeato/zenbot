@@ -1,7 +1,7 @@
 var debug = require('../../../lib/debug')
 , { formatPercent } = require('../../../lib/format')
 , z = require('zero-fill')
-//, n = require('numbro')
+, n = require('numbro')
 , Phenotypes = require('../../../lib/phenotype')
 , cliff = require('cliff')
 
