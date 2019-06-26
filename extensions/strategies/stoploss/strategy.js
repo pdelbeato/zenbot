@@ -6,6 +6,7 @@ var debug = require('../../../lib/debug')
 , cliff = require('cliff')
 
 
+
 //Parte da includere nel file di configurazione
 //---------------------------------------------
 //c.strategy['stoploss'] = {
@@ -42,14 +43,24 @@ module.exports = {
 	},
 
 	getCommands: function (s, opts = {}) {
+		let strat_opts = s.options.strategy.stoploss.opts
+		let strat_data = s.options.strategy.stoploss.data
 		
-		this.command('w', {desc: 'Stoploss - provo'.grey, action: function() {
-			
-			console.log('\nprovo: ' )
+		this.command('u', {desc: ('Stoploss - Buy stop price (short position)'.grey + ' INCREASE'.green), action: function() {
+			strat_opts.buy_stop_pct = Number((strat_opts.buy_stop_pct + 0.05).toFixed(2))
+			console.log('\n' + 'Stoploss - Buy stop price' + ' INCREASE'.green + ' -> ' + strat_opts.buy_stop_pct)
 		}})
-		this.command('W', {desc: 'Stoploss - prova'.grey, action: function() {
-			
-			console.log('\nprova: ' )
+		this.command('j', {desc: ('Stoploss - Buy stop price (short position)'.grey + ' DECREASE'.red), action: function() {
+			strat_opts.buy_stop_pct = Number((strat_opts.buy_stop_pct - 0.05).toFixed(2))
+			console.log('\n' + 'Stoploss - Buy stop price' + ' DECREASE'.red + ' -> ' + strat_opts.buy_stop_pct)
+		}})
+		this.command('i', {desc: ('Stoploss - Sell stop price (long position)'.grey + ' INCREASE'.green), action: function() {
+			strat_opts.sell_stop_pct = Number((strat_opts.sell_stop_pct + 0.05).toFixed(2))
+			console.log('\n' + 'Stoploss - Sell stop price' + ' INCREASE'.green + ' -> ' + strat_opts.sell_stop_pct)
+		}})
+		this.command('k', {desc: ('Stoploss - Sell stop price (long position)'.grey + ' DECREASE'.red), action: function() {
+			strat_opts.sell_stop_pct = Number((strat_opts.sell_stop_pct - 0.05).toFixed(2))
+			console.log('\n' + 'Stoploss - Sell stop price' + ' DECREASE'.green + ' -> ' + strat_opts.sell_stop_pct)
 		}})
 	},
 	
@@ -71,9 +82,9 @@ module.exports = {
 				position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 				position_stop = position.strategy_parameters.stoploss[position_opposite_signal + '_stop']				
 
-				if (position_stop && !position.locked && !(position.status & s.strategyFlag.stoploss) && ((position.side == 'buy' ? +1 : -1) * (s.options.strategy.stoploss.calc_lookback[0].close - position_stop) < 0)) {
+				if (position_stop && !position.locked && !s.tools.positionFlags(position, 'status', 'Check', 'stoploss') && ((position.side == 'buy' ? +1 : -1) * (s.options.strategy.stoploss.calc_lookback[0].close - position_stop) < 0)) {
 					console.log(('\n' + position_opposite_signal.toUpperCase() + ' stop loss triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').red)
-//					pushMessage('Stop Loss Protection', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
+					s.tools.pushMessage('Stop Loss Protection', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 //					executeSignal(position_opposite_signal, 'stoploss', position.id, undefined, undefined, false, true)
 					s.signal = 'stoploss'
 					s.eventBus.emit('stoploss', position_opposite_signal, position.id, undefined, undefined, false, strat_opts.order_type)

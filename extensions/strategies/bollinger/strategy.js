@@ -82,17 +82,16 @@ module.exports = {
 		let strat_opts = s.options.strategy.bollinger.opts
 		let strat_data = s.options.strategy.bollinger.data
 		
-		this.command('w', {desc: 'Bollinger - Toggle Dump Watchdog'.grey, action: function() {
+		this.command('k', {desc: 'Bollinger - Toggle Dump Watchdog'.grey, action: function() {
 			strat_opts.dump_watchdog = !strat_opts.dump_watchdog
 			strat_data.is_dump_watchdog = strat_opts.dump_watchdog
 			console.log('\nToggle Dump Watchdog: ' + (strat_opts.dump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
 		}})
-		this.command('W', {desc: 'Bollinger - Toggle Pump Watchdog'.grey, action: function() {
+		this.command('K', {desc: 'Bollinger - Toggle Pump Watchdog'.grey, action: function() {
 			strat_opts.pump_watchdog = !strat_opts.pump_watchdog
 			strat_data.is_pump_watchdog = strat_opts.pump_watchdog
 			console.log('\nToggle Pump Watchdog: ' + (strat_opts.pump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
 		}})
-
 		this.command('u', {desc: ('Bollinger - Avoid selling at a profit below this pct (for long positions)'.grey + ' INCREASE'.green), action: function() {
 			strat_opts.sell_min_pct = Number((strat_opts.sell_min_pct + 0.05).toFixed(2))
 			console.log('\n' + 'Bollinger - Sell min pct' + ' INCREASE'.green + ' -> ' + strat_opts.sell_min_pct)

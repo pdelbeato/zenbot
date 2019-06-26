@@ -19,6 +19,7 @@ var tb = require('timebucket')
 , debug = require('../lib/debug')
 , sizeof = require('object-sizeof')
 , async = require('async')
+, tools = require('./quantum-tools')
 
 //Per eseguire comandi da bash
 //var sys = require('util')
@@ -207,7 +208,7 @@ module.exports = function (program, conf) {
 			keyMap.set('Q', {desc: ('exit program with statistical output'.grey), action: function() {
 				console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
 				so.manual = true
-				engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
+				s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 				exit()
 			}})
 
@@ -234,12 +235,12 @@ module.exports = function (program, conf) {
 					engine.emitSignal('manual', 'sell', null, null, null, false, true)
 				}})
 				keyMap.set('c', {desc: ('cancel manual orders'.grey), action: function() {
-					engine.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
+					s.tools.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
 					console.log('\nmanual'.grey + ' orders cancel' + ' command executed'.grey)
 				}})
 				keyMap.set('C', {desc: ('cancel ALL order'.grey), action: function() {
 					console.log('\nmanual'.grey + ' canceling ALL orders')
-					engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
+					s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 				}})
 				keyMap.set('M', {desc: ('switch between \'Maker\' and \'Taker\' order type'.grey), action: function() {
 					(so.order_type === 'maker' ? so.order_type = 'taker' : so.order_type = 'maker')
@@ -290,7 +291,7 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('C', {desc: ('cancel all manual catch orders'.grey), action: function() {
 					console.log('\nmanual'.grey + ' canceling ALL catch orders')
-					engine.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
+					s.tools.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
 				}})
 				keyMap.set('A', {desc: ('insert catch order for all free position'.grey), action: function() {
 					console.log('\n' + 'Insert catch order for all free positions'.grey)
@@ -466,8 +467,8 @@ module.exports = function (program, conf) {
 				keyMap.set('F', {desc: ('Free the position (cancel ALL orders connected to the position and let it be used)'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nFreeing the position (cancelling all orders connected with the position) '.yellow + s.positions[s.positions_index].id)
-						engine.positionFlags(s.positions[s.positions_index], 'status', 'Free')
-						engine.positionFlags(s.positions[s.positions_index], 'locked', 'Free')
+						s.tools.positionflags(s.positions[s.positions_index], 'status', 'Free')
+						s.tools.positionflags(s.positions[s.positions_index], 'locked', 'Free')
 						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
 					else {
@@ -477,7 +478,7 @@ module.exports = function (program, conf) {
 				keyMap.set('L', {desc: ('Lock the position (does not cancel orders connected to the position)'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nLocking the position '.yellow + s.positions[s.positions_index].id)
-						engine.positionFlags(s.positions[s.positions_index], 'locked', 'Set', 'manual')
+						s.tools.positionflags(s.positions[s.positions_index], 'locked', 'Set', 'manual')
 						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
 					else {
@@ -487,7 +488,7 @@ module.exports = function (program, conf) {
 				keyMap.set('U', {desc: ('Unlock the position (does not cancel orders connected to the position)'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nUnlocking the position '.yellow + s.positions[s.positions_index].id)
-						engine.positionFlags(s.positions[s.positions_index], 'locked', 'Free')
+						s.tools.positionflags(s.positions[s.positions_index], 'locked', 'Free')
 						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
 					else {
@@ -499,7 +500,7 @@ module.exports = function (program, conf) {
 						console.log('\nCanceling all orders connected with the position '.yellow + s.positions[s.positions_index].id)
 						//						status_tmp = ~(s.positions[s.positions_index].status & engine.strategyFlag.locked)
 						//						engine.positionStatus(s.positions[s.positions_index], 'Unset', status_tmp)
-						engine.positionFlags(s.positions[s.positions_index], 'status', 'Free')
+						s.tools.positionflags(s.positions[s.positions_index], 'status', 'Free')
 					}
 					else {
 						console.log('No position in control.')
@@ -509,7 +510,7 @@ module.exports = function (program, conf) {
 					if (s.positions_index != null) {
 						console.log('\nCanceling the position '.yellow + s.positions[s.positions_index].id)
 
-						engine.positionFlags(s.positions[s.positions_index], 'status', 'Free')
+						s.tools.positionflags(s.positions[s.positions_index], 'status', 'Free')
 						setTimeout(function() {
 							s.positionProcessingQueue.push({mode: 'delete', id: s.positions[s.positions_index].id})
 							s.positions_index = null
@@ -535,6 +536,7 @@ module.exports = function (program, conf) {
 					if (so.strategy[strategy_name].lib.getCommands) {
 						let actual_key = String.fromCharCode(actual_code)
 						keyMap.set(actual_key, {desc: ('Strategia\t'.grey + strategy_name.white), action: function() {
+							clearStrategyKeys()
 							so.strategy[strategy_name].lib.getCommands.call(key_assign, s)
 							listKeys()
 						}})
@@ -744,6 +746,14 @@ module.exports = function (program, conf) {
 			keyMap.forEach((value, key) => {
 				console.log(' ' + key + ' - ' + value.desc)
 			})
+		}
+		
+		/* Clear keys normally used by strategy menu */
+		function clearKeys() {
+			let group = ['+', '-', '*', '_', 'b', 'B', 's', 'S', 'i', 'I', 'k', 'K', 'u', 'U', 'j', 'J', 'y', 'Y', 'h', 'H']
+			group.forEach((key) => {
+				keyMap.delete(key)
+			}
 		}
 
 		/* Trying to recover MongoDB connection */
