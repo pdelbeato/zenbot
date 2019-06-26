@@ -217,11 +217,11 @@ module.exports = function (program, conf) {
 			keyMap.set('x', {desc: ('print statistical output'.grey), action: function() { printTrade(false)}})
 			keyMap.set('P', {desc: ('list positions opened'.grey), action: function() {
 				console.log('\nListing positions opened...'.grey)
-				debug.printPosition(s.positions, true)
+				debug.printObject(s.positions, true)
 			}})
 			keyMap.set('O', {desc: ('list orders opened'.grey), action: function() {
 				console.log('\nListing orders opened...'.grey)
-				debug.printPosition(s.orders, true)
+				debug.printObject(s.orders, true)
 			}})
 			keyMap.set('Q', {desc: ('exit program with statistical output'.grey), action: function() {
 				console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
@@ -655,7 +655,7 @@ module.exports = function (program, conf) {
 				keyMap.set('O', {desc: ('show current strategies options/data'.grey), action: function() {
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
 						if (so.strategy[strategy_name].lib.printOptions) {
-							console.log('\nStrategy ' + strategy_name + ' options/data:')
+							console.log('\nStrategy ' + strategy_name.yellow + ' options/data:')
 							so.strategy[strategy_name].lib.printOptions(s)
 						}
 						else {
