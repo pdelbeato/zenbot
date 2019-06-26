@@ -115,7 +115,7 @@ module.exports = {
 					console.log(('\nStrategy trailing_stop - Profit stop triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').green)
 					s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 					s.signal = 'trailing stop';
-					s.eventBus.emit('stoploss', position_opposite_signal, position.id, undefined, undefined, false, false)
+					s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, false, false)
 					position.strategy_parameters.trailing_stop.profit_stop = null
 					position.strategy_parameters.trailing_stop.profit_stop_limit = null
 					strat_data.max_trail_profit_position[position.side] = null
@@ -166,7 +166,7 @@ module.exports = {
 					console.log(('\nStrategy trailing_stop - Profit stop triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').green)
 					s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 					s.signal = 'trailing stop';
-					s.eventBus.emit('stoploss', position_opposite_signal, position.id, undefined, undefined, false, false)
+					s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, false, false)
 					position.strategy_parameters.trailing_stop.profit_stop = null
 					position.strategy_parameters.trailing_stop.profit_stop_limit = null
 					strat_data.max_trail_profit_position[position.side] = null
@@ -244,7 +244,7 @@ module.exports = {
 //	},
 
 	printOptions: function(s) {
-		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.stoploss))
+		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.trailing_stop))
 		delete so_tmp.calc_lookback
 		delete so_tmp.calc_close_time
 		delete so_tmp.lib
