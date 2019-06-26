@@ -68,10 +68,11 @@ module.exports = {
 	},
 
 	onTrade: function (s, opts= {}, cb= function() {}) {
-		if (!strat.opts.period_calc) {
-			let strat_opts = s.options.strategy.trailing_stop.opts
-			let strat_data = s.options.strategy.trailing_stop.data
-			let strat = s.options.strategy.trailing_stop
+		let strat_opts = s.options.strategy.trailing_stop.opts
+		let strat_data = s.options.strategy.trailing_stop.data
+		let strat = s.options.strategy.trailing_stop
+		
+		if (!strat_opts.period_calc) {
 			if (opts.trade) {
 				let max_trail_profit = -100
 				s.positions.forEach(function (position, index) {
@@ -116,11 +117,11 @@ module.exports = {
 //	},
 
 	onStrategyPeriod: function (s, opts= {}, cb= function() {}) {
-		if (strat.opts.period_calc) {
-			let strat_opts = s.options.strategy.trailing_stop.opts
-			let strat_data = s.options.strategy.trailing_stop.data
-			let strat = s.options.strategy.trailing_stop
-
+		let strat_opts = s.options.strategy.trailing_stop.opts
+		let strat_data = s.options.strategy.trailing_stop.data
+		let strat = s.options.strategy.trailing_stop
+		
+		if (strat_opts.period_calc) {
 			debug.msg('trailing_stop strategy - onStrategyPeriod')
 
 			if (strat.calc_lookback[0]) {
