@@ -135,7 +135,7 @@ module.exports = {
 			}						
 		})
 
-		if (strat_data_boll,midBound) {
+		if (strat_data_boll && strat_data_boll.midBound) {
 //			if (strat_data.upperBound && strat_data.lowerBound) {
 			let upperBound = strat_data_boll.upperBound
 			let lowerBound = strat_data_boll.lowerBound

@@ -585,48 +585,7 @@ module.exports = function (program, conf) {
 				
 				
 				
-//				//				keyMap.set('e', {desc: ('Buy stop pct (buy if price go over)'.grey + ' INCREASE'.green), action: function() {
-//				//					so.buy_stop_pct++
-//				//					console.log('\n' + 'Buy stop pct' + 'INCREASE'.green + ' -> ' + so.buy_stop_pct)
-//				//				}})
-//				//				keyMap.set('d', {desc: ('Buy stop pct (buy if price go over)'.grey + ' DECREASE'.red), action: function() {
-//				//					so.buy_stop_pct--
-//				//					console.log('\n' + 'Buy stop pct ' + 'DECREASE'.red + ' -> ' + so.buy_stop_pct)
-//				//				}})
-//				//				keyMap.set('r', {desc: ('Sell stop pct (sell is price go under)'.grey + ' INCREASE'.green), action: function() {
-//				//					so.sell_stop_pct++
-//				//					console.log('\n' + 'Sell stop pct ' + 'INCREASE'.green + ' -> ' + so.sell_price_limit)
-//				//				}})
-//				//				keyMap.set('f', {desc: ('Sell stop pct (sell if price go under)'.grey + ' DECREASE'.red), action: function() {
-//				//					so.sell_stop_pct--
-//				//					console.log('\n' + 'Sell stop pct ' + 'DECREASE'.red + ' -> ' + so.sell_price_limit)
-//				//				}})
-				
-				
-				
-				
-//				keyMap.set('t', {desc: ('Profit stop enable pct'.grey + ' INCREASE'.green), action: function() {
-//					so.profit_stop_enable_pct = Number((so.profit_stop_enable_pct + 0.1).toFixed(2))
-//					console.log('\n' + 'Profit stop enable pct' + ' INCREASE'.green + ' -> ' + so.profit_stop_enable_pct)
-//				}})
-//				keyMap.set('g', {desc: ('Profit stop enable pct'.grey + ' DECREASE'.red), action: function() {
-//					so.profit_stop_enable_pct = Number((so.profit_stop_enable_pct - 0.1).toFixed(2))
-//					if (so.profit_stop_enable_pct <= 0) {
-//						so.profit_stop_enable_pct= null
-//					}
-//					console.log('\n' + 'Profit stop enable pct' + ' DECREASE'.red + ' -> ' + so.profit_stop_enable_pct)
-//				}})
-//				keyMap.set('y', {desc: ('Profit stop pct'.grey + ' INCREASE'.green), action: function() {
-//					so.profit_stop_pct = Number((so.profit_stop_pct + 0.05).toFixed(2))
-//					console.log('\n' + 'Profit stop pct' + ' INCREASE'.green + ' -> ' + so.profit_stop_pct)
-//				}})
-//				keyMap.set('h', {desc: ('Profit stop pct'.grey + ' DECREASE'.red), action: function() {
-//					so.profit_stop_pct = Number((so.profit_stop_pct - 0.05).toFixed(2))
-//					if (so.profit_stop_pct <= 0) {
-//						so.profit_stop_pct= 0
-//					}
-//					console.log('\n' + 'Profit stop pct' + ' DECREASE'.red + ' -> ' + so.profit_stop_pct)
-//				}})
+
 
 				
 				
@@ -957,7 +916,7 @@ module.exports = function (program, conf) {
 
 				let opts_rows = [];
 				Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
-					opts_rows.push(z(25, key.grey, ' ') + '\t' + so.strategy[strategy_name].opts[key])
+					opts_rows.push(z(40, key.grey, ' ') + '\t' + so.strategy[strategy_name].opts[key])
 				})
 
 				opts_rows.forEach(function (row) {
