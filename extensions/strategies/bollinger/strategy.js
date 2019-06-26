@@ -3,7 +3,7 @@ var z = require('zero-fill')
 , bollinger = require('../../../lib/bollinger')
 , rsi = require('../../../lib/rsi')
 , Phenotypes = require('../../../lib/phenotype')
-, cliff = require('cliff')
+, inspect = require('eyes')
 , crypto = require('crypto')
 , { formatPercent } = require('../../../lib/format')
 , debug = require('../../../lib/debug')
@@ -71,12 +71,6 @@ var z = require('zero-fill')
 //hideFunctions: false,     // Don't output functions at all
 //stream: process.stdout,   // Stream to write to, or null
 //maxLength: 2048           // Truncate output if longer
-
-cliff.inspect({
-    styles: {
-        number: 'yellow'
-    },
-});
 
 module.exports = {
 	name: 'bollinger',
@@ -373,7 +367,7 @@ module.exports = {
 		delete so_tmp.calc_close_time
 		delete so_tmp.lib
 		
-		console.log('\n' + cliff.inspect(so_tmp))
+		console.log('\n' + inspect(so_tmp))
 	},
 
 	phenotypes: {

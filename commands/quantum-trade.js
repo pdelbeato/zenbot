@@ -9,7 +9,7 @@ var tb = require('timebucket')
 , readline = require('readline')
 , colors = require('colors')
 , z = require('zero-fill')
-, cliff = require('cliff')
+, inspect = require('eyes')
 , output = require('../lib/output')
 , objectifySelector = require('../lib/objectify-selector')
 , engineFactory = require('../lib/quantum-engine')
@@ -48,12 +48,6 @@ function puts(error, stdout) { console.log(stdout) }
 //hideFunctions: false,     // Don't output functions at all
 //stream: process.stdout,   // Stream to write to, or null
 //maxLength: 2048           // Truncate output if longer
-
-cliff.inspect({
-    styles: {
-        number: 'yellow'
-    },
-});
 
 module.exports = function (program, conf) {
 	program
@@ -652,10 +646,10 @@ module.exports = function (program, conf) {
 				keyMap.set('a', {desc: ('show current trade options in a dirty view (full list)'.grey), action: function() {
 					let so_tmp = JSON.parse(JSON.stringify(so))
 					delete so_tmp.strategy
-					console.log('\n' + cliff.inspect(so_tmp))
+					console.log('\n' + inspect(so_tmp))
 
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
-						console.log('\n' + strategy_name + '\n' + cliff.inspect(so.strategy[strategy_name].opts))
+						console.log('\n' + strategy_name + '\n' + inspect(so.strategy[strategy_name].opts))
 					})
 				}})
 				keyMap.set('O', {desc: ('show current strategies options/data'.grey), action: function() {
@@ -782,7 +776,7 @@ module.exports = function (program, conf) {
 					var db = client.db(so.mongo.db)
 					//conf.db = {mongo: db}
 					conf.db.mongo = db
-					//console.log('\n' + cliff.inspect(so))
+					//console.log('\n' + inspect(so))
 					//    		cb(null)
 
 					//Recupera tutti i vecchi database

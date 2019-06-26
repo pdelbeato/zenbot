@@ -3,7 +3,7 @@ var debug = require('../../../lib/debug')
 , z = require('zero-fill')
 //, n = require('numbro')
 , Phenotypes = require('../../../lib/phenotype')
-, cliff = require('cliff')
+, inspect = require('eyes')
 
 
 //Parte da includere nel file di configurazione
@@ -51,12 +51,6 @@ var debug = require('../../../lib/debug')
 //hideFunctions: false,     // Don't output functions at all
 //stream: process.stdout,   // Stream to write to, or null
 //maxLength: 2048           // Truncate output if longer
-
-cliff.inspect({
-    styles: {
-        number: 'yellow'
-    },
-});
 
 module.exports = {
 	name: 'trailing_stop',
@@ -255,7 +249,7 @@ module.exports = {
 		delete so_tmp.calc_close_time
 		delete so_tmp.lib
 
-		console.log('\n' + cliff.inspect(so_tmp))
+		console.log('\n' + inspect(so_tmp))
 	},
 
 	//TOTALMENTE da sistemare, se dovessero servire
