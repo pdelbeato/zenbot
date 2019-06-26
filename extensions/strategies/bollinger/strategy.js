@@ -215,7 +215,7 @@ module.exports = {
 
 				if (sell_condition_1 && sell_condition_2) {
 					s.signal = 'sell';
-					if (!opts.is_preroll) {
+					if (!s.in_preroll) {
 						if (strat_data.max_profit_position.buy && strat_data.max_profit_position.buy.profit_net_pct >= strat_opts.sell_min_pct) {
 							s.eventBus.emit('bollinger', 'sell', strat_data.max_profit_position.buy.id)
 						}
@@ -226,7 +226,7 @@ module.exports = {
 				}
 				else if (buy_condition_1 && buy_condition_2) {
 					s.signal = 'buy';
-					if (!opts.is_preroll) {
+					if (!s.in_preroll) {
 						if (strat_data.max_profit_position.sell && strat_data.max_profit_position.sell.profit_net_pct >= strat_opts.buy_min_pct) {
 							s.eventBus.emit('bollinger', 'buy', strat_data.max_profit_position.sell.id)
 						}
@@ -310,7 +310,7 @@ module.exports = {
 			cols.push(z(8, '', ' '))
 		}
 		
-		if (!opts.is_preroll && (strat_data.max_profit_position.buy != null || strat_data.max_profit_position.sell != null)) {
+		if (!s.in_preroll && (strat_data.max_profit_position.buy != null || strat_data.max_profit_position.sell != null)) {
 			let position_buy_profit = -1
 			let position_sell_profit = -1
 
