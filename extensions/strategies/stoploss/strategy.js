@@ -26,7 +26,7 @@ var debug = require('../../../lib/debug')
 //---------------------------------------------
 
 
-//position.strategy_parameter.stoploss: {
+//position.strategy_parameters.stoploss: {
 //		buy_stop: null,				**** Buy stop price (short position)
 //		sell_stop: null,			**** Sell stop price (long position)
 //}

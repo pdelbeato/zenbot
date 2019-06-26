@@ -29,9 +29,9 @@ var debug = require('../../../lib/debug')
 //---------------------------------------------
 
 
-//position.strategy_parameter.trailing_stop: {
-//trailing_stop_limit: null,		**** Maximum price (long position) / minimum price (short position) reached
-//trailing_stop: null,			**** Lower price (long position) / higher price (short position) to close the position
+//position.strategy_parameters.trailing_stop: {
+//	trailing_stop_limit: null,				//**** Maximum price (long position) / minimum price (short position) reached
+//	trailing_stop: null,					//**** Lower price (long position) / higher price (short position) to close the position
 //}
 
 module.exports = {
