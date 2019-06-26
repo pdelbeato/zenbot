@@ -217,11 +217,11 @@ module.exports = function (program, conf) {
 			keyMap.set('x', {desc: ('print statistical output'.grey), action: function() { printTrade(false)}})
 			keyMap.set('P', {desc: ('list positions opened'.grey), action: function() {
 				console.log('\nListing positions opened...'.grey)
-				debug.printObject(s.positions, true)
+				console.log(inspect(s.positions))
 			}})
 			keyMap.set('O', {desc: ('list orders opened'.grey), action: function() {
 				console.log('\nListing orders opened...'.grey)
-				debug.printObject(s.orders, true)
+				console.log(inspect(s.orders))
 			}})
 			keyMap.set('Q', {desc: ('exit program with statistical output'.grey), action: function() {
 				console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
