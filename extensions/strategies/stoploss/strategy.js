@@ -3,7 +3,7 @@ var debug = require('../../../lib/debug')
 , z = require('zero-fill')
 , n = require('numbro')
 , Phenotypes = require('../../../lib/phenotype')
-, inspect = require('eyes')
+, inspect = require('eyes').inspector()
 
 
 
