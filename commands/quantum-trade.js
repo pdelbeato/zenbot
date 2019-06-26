@@ -19,7 +19,7 @@ var tb = require('timebucket')
 , debug = require('../lib/debug')
 , sizeof = require('object-sizeof')
 , async = require('async')
-, tools = require('./quantum-tools')
+//, tools = require('./quantum-tools')
 
 //Per eseguire comandi da bash
 //var sys = require('util')
@@ -749,11 +749,11 @@ module.exports = function (program, conf) {
 		}
 		
 		/* Clear keys normally used by strategy menu */
-		function clearKeys() {
-			let group = ['+', '-', '*', '_', 'b', 'B', 's', 'S', 'i', 'I', 'k', 'K', 'u', 'U', 'j', 'J', 'y', 'Y', 'h', 'H']
+		function clearStrategyKeys() {
+			let group = ['+', '-', '*', '_', 'i', 'I', 'k', 'K', 'u', 'U', 'j', 'J', 'y', 'Y', 'h', 'H', 't', 'T', 'g', 'G']
 			group.forEach((key) => {
 				keyMap.delete(key)
-			}
+			})
 		}
 
 		/* Trying to recover MongoDB connection */

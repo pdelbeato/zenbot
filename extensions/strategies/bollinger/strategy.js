@@ -100,11 +100,11 @@ module.exports = {
 			strat_opts.sell_min_pct = Number((strat_opts.sell_min_pct - 0.05).toFixed(2))
 			console.log('\n' + 'Bollinger - Sell min pct' + ' DECREASE'.red + ' -> ' + strat_opts.sell_min_pct)
 		}})
-		this.command('i', {desc: ('Bollinger - Avoid buying at a profit below this pct (for short positions)'.grey + ' INCREASE'.green), action: function() {
+		this.command('y', {desc: ('Bollinger - Avoid buying at a profit below this pct (for short positions)'.grey + ' INCREASE'.green), action: function() {
 			strat_opts.buy_min_pct = Number((strat_opts.buy_min_pct + 0.05).toFixed(2))
 			console.log('\n' + 'Bollinger- Buy min pct' + ' INCREASE'.green + ' -> ' + strat_opts.buy_min_pct)
 		}})
-		this.command('k', {desc: ('Bollinger - Avoid buying at a profit below this pct (for short positions)'.grey + ' DECREASE'.red), action: function() {
+		this.command('h', {desc: ('Bollinger - Avoid buying at a profit below this pct (for short positions)'.grey + ' DECREASE'.red), action: function() {
 			strat_opts.buy_min_pct = Number((strat_opts.buy_min_pct - 0.05).toFixed(2))
 			console.log('\n' + 'Bollinger - Buy min pct' + ' DECREASE'.red + ' -> ' + strat_opts.buy_min_pct)
 		}})
@@ -135,7 +135,7 @@ module.exports = {
 			}						
 		})
 
-		if (strat_data_boll) {
+		if (strat_data_boll,midBound) {
 //			if (strat_data.upperBound && strat_data.lowerBound) {
 			let upperBound = strat_data_boll.upperBound
 			let lowerBound = strat_data_boll.lowerBound
