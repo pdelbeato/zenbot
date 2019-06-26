@@ -9,7 +9,7 @@ var tb = require('timebucket')
 , readline = require('readline')
 , colors = require('colors')
 , z = require('zero-fill')
-, inspect = require('eyes').inspector()
+, inspect = require('eyes').inspector({maxLength: 10000 })
 , output = require('../lib/output')
 , objectifySelector = require('../lib/objectify-selector')
 , engineFactory = require('../lib/quantum-engine')
@@ -192,7 +192,7 @@ module.exports = function (program, conf) {
 		s.positions_index = null
 
 		function changeModeCommand(mode = 0) {
-			//			debug.msg('changeModeCommand')
+//			debug.msg('changeModeCommand')
 			modeCommand = mode
 
 			keyMap.clear()
@@ -459,7 +459,7 @@ module.exports = function (program, conf) {
 				keyMap.set('i', {desc: ('get information on the position'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nInformation on position: '.yellow + s.positions[s.positions_index].id)
-						console.log(s.positions[s.positions_index])
+						console.log(inspect(s.positions[s.positions_index]))
 					}
 					else {
 						console.log('No position in control.')
@@ -516,8 +516,6 @@ module.exports = function (program, conf) {
 				keyMap.set('c', {desc: ('cancel ALL orders connected to the position, leaving it locked/unlocked'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nCanceling all orders connected with the position '.yellow + s.positions[s.positions_index].id)
-						//						status_tmp = ~(s.positions[s.positions_index].status & engine.strategyFlag.locked)
-						//						engine.positionStatus(s.positions[s.positions_index], 'Unset', status_tmp)
 						s.tools.positionflags(s.positions[s.positions_index], 'status', 'Free')
 					}
 					else {

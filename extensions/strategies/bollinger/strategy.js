@@ -310,7 +310,7 @@ module.exports = {
 			cols.push(z(8, '', ' '))
 		}
 		
-		if (strat_data.max_profit_position.buy != null || strat_data.max_profit_position.sell != null) {
+		if (if (!opts.is_preroll && (strat_data.max_profit_position.buy != null || strat_data.max_profit_position.sell != null)) {
 			let position_buy_profit = -1
 			let position_sell_profit = -1
 
