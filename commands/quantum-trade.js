@@ -923,7 +923,7 @@ module.exports = function (program, conf) {
 
 			process.stdout.write([
 				z(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
-				z(10, so.period_length, ' '),
+				z(12, so.period_length, ' '),
 				z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
 				z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
 				z(17, (so.order_type + ' ' + n((so.order_type === 'maker' ?  s.exchange.makerFee : s.exchange.takerFee)).divide(100).format('0.000%')), ' ')
@@ -936,7 +936,7 @@ module.exports = function (program, conf) {
 				].join('') + '\n');
 
 			process.stdout.write([
-				z(16, so.active_long_position, ' '),
+				z(10, so.active_long_position, ' '),
 				z(8, so.active_short_position, ' ')
 				].join('') + '\n\n');
 
