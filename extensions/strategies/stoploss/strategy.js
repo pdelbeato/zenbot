@@ -95,8 +95,8 @@ module.exports = {
 	onStrategyPeriod: function (s, opts= {}, cb= function() {}) {
 		let strat_opts = s.options.strategy.stoploss.opts
 		
-		debug.msg('stoploss strategy - onStrategyPeriod')
-		if (s.options.strategy.stoploss.calc_lookback[0].close) {
+//		debug.msg('stoploss strategy - onStrategyPeriod')
+		if (!s.in_preroll && s.options.strategy.stoploss.calc_lookback[0].close) {
 			s.positions.forEach( function (position, index) {
 				position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 				position_stop = position.strategy_parameters.stoploss[position_opposite_signal + '_stop']				
