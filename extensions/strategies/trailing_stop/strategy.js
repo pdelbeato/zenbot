@@ -146,7 +146,7 @@ module.exports = {
 			let strat = s.options.strategy.trailing_stop
 
 			if (strat_opts.period_calc) {
-				debug.msg('trailing_stop strategy - onStrategyPeriod')
+//				debug.msg('trailing_stop strategy - onStrategyPeriod')
 
 				if (strat.calc_lookback[0]) {
 					let max_trail_profit = -100

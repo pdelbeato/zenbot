@@ -238,19 +238,19 @@ module.exports = function (program, conf) {
 				//Modo MARKET
 				keyMap.set('b', {desc: ('limit'.grey + ' BUY'.green), action: function() {
 					console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command inserted'.grey)
-					engine.emitSignal('manual', 'buy')
+					s.eventBus.emit('manual', 'buy')
 				}})
 				keyMap.set('B', {desc: ('market'.grey + ' BUY'.green), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command inserted'.grey)
-					engine.emitSignal('manual', 'buy', null, null, null, false, true)
+					s.eventBus.emit('manual', 'buy', null, null, null, false, true)
 				}})
 				keyMap.set('s', {desc: ('limit'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command inserted'.grey)
-					engine.emitSignal('manual', 'sell')
+					s.eventBus.emit('manual', 'sell')
 				}})
 				keyMap.set('S', {desc: ('market'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command inserted'.grey)
-					engine.emitSignal('manual', 'sell', null, null, null, false, true)
+					s.eventBus.emit('manual', 'sell', null, null, null, false, true)
 				}})
 				keyMap.set('+', {desc: ('Buy gain pct (short position)'.grey + ' INCREASE'.green), action: function() {
 					so.buy_gain_pct = Number((so.buy_gain_pct + 0.5).toFixed(2))
@@ -284,55 +284,55 @@ module.exports = function (program, conf) {
 			}
 			case 2: {
 				//Modo CATCH
-				keyMap.set('b', {desc: ('manual catch order'.grey + ' BUY'.green), action: function() {
-					console.log('\nmanual'.grey + ' catch ' + 'BUY'.green + ' command inserted'.grey)
-					var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-					engine.emitSignal('manual', 'buy', null, target_size, target_price)
-				}})
-				keyMap.set('s', {desc: ('manual catch order'.grey + ' SELL'.red), action: function() {
-					console.log('\nmanual'.grey + ' catch ' + 'SELL'.red + ' command inserted'.grey)
-					var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-					engine.emitSignal('manual', 'sell', null, target_size, target_price)
-				}})
-				keyMap.set('+', {desc: ('manual catch pct'.grey + ' INCREASE'.green), action: function() {
-					so.catch_manual_pct = Number((so.catch_manual_pct + 0.5).toFixed(2))
-					console.log('\n' + 'Manual catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_manual_pct)
-				}})
-				keyMap.set('-', {desc: ('manual catch pct'.grey + ' DECREASE'.red), action: function() {
-					so.catch_manual_pct = Number((so.catch_manual_pct - 0.5).toFixed(2))
-					console.log('\n' + 'Manual catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_manual_pct)
-				}})
-				keyMap.set('*', {desc: ('manual catch value'.grey + ' INCREASE'.green), action: function() {
-					so.catch_fixed_value += so.quantum_value
-					console.log('\n' + 'Manual catch order value ' + 'INCREASE'.green + ' -> ' + so.catch_fixed_value)
-				}})
-				keyMap.set('_', {desc: ('manual catch value'.grey + ' DECREASE'.red), action: function() {
-					so.catch_fixed_value -= so.quantum_value
-					if (so.catch_fixed_value < so.quantum_value) {
-						so.catch_fixed_value = so.quantum_value
-					}
-					console.log('\n' + 'Manual catch order value ' + 'DECREASE'.red + ' -> ' + so.catch_fixed_value)
-				}})
-				keyMap.set('q', {desc: ('catch order pct'.grey + ' INCREASE'.green), action: function() {
-					so.catch_order_pct = Number((so.catch_order_pct + 0.5).toFixed(2))
-					console.log('\n' + 'Catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_order_pct)
-				}})
-				keyMap.set('a', {desc: ('catch order pct'.grey + ' DECREASE'.red), action: function() {
-					so.catch_order_pct = Number((so.catch_order_pct - 0.5).toFixed(2))
-					console.log('\n' + 'Catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_order_pct)
-				}})
-				keyMap.set('C', {desc: ('cancel all manual catch orders'.grey), action: function() {
-					console.log('\nmanual'.grey + ' canceling ALL catch orders')
-					s.tools.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
-				}})
-				keyMap.set('A', {desc: ('insert catch order for all free position'.grey), action: function() {
-					console.log('\n' + 'Insert catch order for all free positions'.grey)
-					s.positions.forEach(function (position, index) {
-						engine.emitSignal('orderExecuted', position.side, 'manual', position.id)
-					})
-				}})
+//				keyMap.set('b', {desc: ('manual catch order'.grey + ' BUY'.green), action: function() {
+//					console.log('\nmanual'.grey + ' catch ' + 'BUY'.green + ' command inserted'.grey)
+//					var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+//					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+//					s.eventBus.emit('manual', 'buy', null, target_size, target_price)
+//				}})
+//				keyMap.set('s', {desc: ('manual catch order'.grey + ' SELL'.red), action: function() {
+//					console.log('\nmanual'.grey + ' catch ' + 'SELL'.red + ' command inserted'.grey)
+//					var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+//					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+//					s.eventBus.emit('manual', 'sell', null, target_size, target_price)
+//				}})
+//				keyMap.set('+', {desc: ('manual catch pct'.grey + ' INCREASE'.green), action: function() {
+//					so.catch_manual_pct = Number((so.catch_manual_pct + 0.5).toFixed(2))
+//					console.log('\n' + 'Manual catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_manual_pct)
+//				}})
+//				keyMap.set('-', {desc: ('manual catch pct'.grey + ' DECREASE'.red), action: function() {
+//					so.catch_manual_pct = Number((so.catch_manual_pct - 0.5).toFixed(2))
+//					console.log('\n' + 'Manual catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_manual_pct)
+//				}})
+//				keyMap.set('*', {desc: ('manual catch value'.grey + ' INCREASE'.green), action: function() {
+//					so.catch_fixed_value += so.quantum_value
+//					console.log('\n' + 'Manual catch order value ' + 'INCREASE'.green + ' -> ' + so.catch_fixed_value)
+//				}})
+//				keyMap.set('_', {desc: ('manual catch value'.grey + ' DECREASE'.red), action: function() {
+//					so.catch_fixed_value -= so.quantum_value
+//					if (so.catch_fixed_value < so.quantum_value) {
+//						so.catch_fixed_value = so.quantum_value
+//					}
+//					console.log('\n' + 'Manual catch order value ' + 'DECREASE'.red + ' -> ' + so.catch_fixed_value)
+//				}})
+//				keyMap.set('q', {desc: ('catch order pct'.grey + ' INCREASE'.green), action: function() {
+//					so.catch_order_pct = Number((so.catch_order_pct + 0.5).toFixed(2))
+//					console.log('\n' + 'Catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_order_pct)
+//				}})
+//				keyMap.set('a', {desc: ('catch order pct'.grey + ' DECREASE'.red), action: function() {
+//					so.catch_order_pct = Number((so.catch_order_pct - 0.5).toFixed(2))
+//					console.log('\n' + 'Catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_order_pct)
+//				}})
+//				keyMap.set('C', {desc: ('cancel all manual catch orders'.grey), action: function() {
+//					console.log('\nmanual'.grey + ' canceling ALL catch orders')
+//					s.tools.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
+//				}})
+//				keyMap.set('A', {desc: ('insert catch order for all free position'.grey), action: function() {
+//					console.log('\n' + 'Insert catch order for all free positions'.grey)
+//					s.positions.forEach(function (position, index) {
+//						s.eventBus.emit('orderExecuted', position.side, 'manual', position.id)
+//					})
+//				}})
 				break
 			}
 			case 3: {
@@ -486,12 +486,12 @@ module.exports = function (program, conf) {
 						if (s.positions[s.positions_index].side === 'buy') {
 							console.log('\nSet a manual close catch SELL order on the position: '.yellow + s.positions[s.positions_index].id)
 							var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-							engine.emitSignal('manual', 'sell', s.positions[s.positions_index].id, null, target_price)
+							s.eventBus.emit('manual', 'sell', s.positions[s.positions_index].id, null, target_price)
 						}
 						else {
 							console.log('\nSet a manual close catch BUY order on the position: '.yellow + s.positions[s.positions_index].id)
 							var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-							engine.emitSignal('manual', 'buy', s.positions[s.positions_index].id, null, target_price)
+							s.eventBus.emit('manual', 'buy', s.positions[s.positions_index].id, null, target_price)
 						}
 					}
 					else {
