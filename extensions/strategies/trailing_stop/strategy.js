@@ -11,15 +11,15 @@ var debug = require('../../../lib/debug')
 //c.strategy['trailing_stop'] = {
 //name: 'trailing_stop',
 //opts: {								//****** To store options
-//		period_calc: '15m',				//****** Execute trailing stop every period_calc time ('null' -> execute every trade)
-//		order_type: 'taker', 			//****** Order type
-//		trailing_stop_enable_pct: 2,	//****** Enable trailing stop when reaching this % profit
-//		trailing_stop_pct: 0.5,			//****** Maintain a trailing stop this % below the high-water mark of profit
+//period_calc: '15m',				//****** Execute trailing stop every period_calc time ('null' -> execute every trade)
+//order_type: 'taker', 			//****** Order type
+//trailing_stop_enable_pct: 2,	//****** Enable trailing stop when reaching this % profit
+//trailing_stop_pct: 0.5,			//****** Maintain a trailing stop this % below the high-water mark of profit
 //},
 //data: {								//****** To store calculated data
-//		max_trail_profit_position: {	//****** Positions with max trailing profit
-//			buy: null,
-//			sell: null,
+//max_trail_profit_position: {	//****** Positions with max trailing profit
+//buy: null,
+//sell: null,
 //}
 //},	
 //calc_lookback: [],					//****** Old periods for calculation
@@ -30,23 +30,23 @@ var debug = require('../../../lib/debug')
 
 
 //position.strategy_parameters.trailing_stop: {
-//	trailing_stop_limit: null,				//**** Maximum price (long position) / minimum price (short position) reached
-//	trailing_stop: null,					//**** Lower price (long position) / higher price (short position) to close the position
+//trailing_stop_limit: null,				//**** Maximum price (long position) / minimum price (short position) reached
+//trailing_stop: null,					//**** Lower price (long position) / higher price (short position) to close the position
 //}
 
-// Cambia i colori di cliff
+//Cambia i colori di cliff
 //styles: {                 // Styles applied to stdout
-//    all:     'cyan',      // Overall style applied to everything
-//    label:   'underline', // Inspection labels, like 'array' in `array: [1, 2, 3]`
-//    other:   'inverted',  // Objects which don't have a literal representation, such as functions
-//    key:     'bold',      // The keys in object literals, like 'a' in `{a: 1}`
-//    special: 'grey',      // null, undefined...
-//    string:  'green',
-//    number:  'magenta',
-//    bool:    'blue',      // true false
-//    regexp:  'green',     // /\d+/
+//all:     'cyan',      // Overall style applied to everything
+//label:   'underline', // Inspection labels, like 'array' in `array: [1, 2, 3]`
+//other:   'inverted',  // Objects which don't have a literal representation, such as functions
+//key:     'bold',      // The keys in object literals, like 'a' in `{a: 1}`
+//special: 'grey',      // null, undefined...
+//string:  'green',
+//number:  'magenta',
+//bool:    'blue',      // true false
+//regexp:  'green',     // /\d+/
 //},
-//
+
 //pretty: true,             // Indent object literals
 //hideFunctions: false,     // Don't output functions at all
 //stream: process.stdout,   // Stream to write to, or null
@@ -86,48 +86,51 @@ module.exports = {
 	},
 
 	onTrade: function (s, opts= {}, cb= function() {}) {
-		let strat_opts = s.options.strategy.trailing_stop.opts
-		let strat_data = s.options.strategy.trailing_stop.data
-		let strat = s.options.strategy.trailing_stop
-		
-		if (!strat_opts.period_calc) {
-			if (opts.trade) {
-				let max_trail_profit = -100
+		if (!s.in_preroll) {
+			let strat_opts = s.options.strategy.trailing_stop.opts
+
+			let strat_data = s.options.strategy.trailing_stop.data
+			let strat = s.options.strategy.trailing_stop
+
+			if (!strat_opts.period_calc) {
+				if (opts.trade) {
+					let max_trail_profit = -100
+					s.positions.forEach(function (position, index) {
+						if (position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
+							position.strategy_parameters.trailing_stop.trailing_stop_limit = (position.side === 'buy' ? (Math.max(position.strategy_parameters.trailing_stop.trailing_stop_limit || opts.trade.price, opts.trade.price)) : (Math.min(position.strategy_parameters.trailing_stop.trailing_stop_limit || opts.trade.price, opts.trade.price)))
+							position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.side === 'buy' ? -1 : +1) * (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
+							position.locked = s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
+							if (position.profit_net_pct >= max_trail_profit) {
+								max_trail_profit = position.profit_net_pct
+								strat_data.max_trail_profit_position[position.side] = position
+								debug.msg('Strategy Trailing Stop - onTrade - max_profit_position_id.trail.' + position.side + ' = ' + position.id, false)
+							}
+						} 
+					})
+				}
+
 				s.positions.forEach(function (position, index) {
-					if (position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
-						position.strategy_parameters.trailing_stop.trailing_stop_limit = (position.side === 'buy' ? (Math.max(position.strategy_parameters.trailing_stop.trailing_stop_limit || opts.trade.price, opts.trade.price)) : (Math.min(position.strategy_parameters.trailing_stop.trailing_stop_limit || opts.trade.price, opts.trade.price)))
-						position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.side === 'buy' ? -1 : +1) * (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
-						position.locked = s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
-						if (position.profit_net_pct >= max_trail_profit) {
-							max_trail_profit = position.profit_net_pct
-							strat_data.max_trail_profit_position[position.side] = position
-							debug.msg('Strategy Trailing Stop - onTrade - max_profit_position_id.trail.' + position.side + ' = ' + position.id, false)
-						}
-					} 
+					position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
+					position_stop = position[position_opposite_signal + '_stop']
+					position_locking = (position.locked & ~s.strategyFlag['trailing_stop'])
+					if (position.strategy_parameters.trailing_stop.profit_stop && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && ((position.side == 'buy' ? +1 : -1) * (s.period.close - position.strategy_parameters.trailing_stop.profit_stop) < 0)) { // && position.profit_net_pct > 0) {
+						console.log(('\nStrategy trailing_stop - Profit stop triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').green)
+						s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
+						s.signal = 'trailing stop';
+						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, false, false)
+						position.strategy_parameters.trailing_stop.profit_stop = null
+						position.strategy_parameters.trailing_stop.profit_stop_limit = null
+						strat_data.max_trail_profit_position[position.side] = null
+						s.tools.positionFlags(position, 'locked', 'Unset', 'trailing_stop')
+						return
+					}
+					else {
+						s.signal = null
+					}
 				})
 			}
-
-			s.positions.forEach(function (position, index) {
-				position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
-				position_stop = position[position_opposite_signal + '_stop']
-				position_locking = (position.locked & ~s.strategyFlag['trailing_stop'])
-				if (position.strategy_parameters.trailing_stop.profit_stop && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && ((position.side == 'buy' ? +1 : -1) * (s.period.close - position.strategy_parameters.trailing_stop.profit_stop) < 0)) { // && position.profit_net_pct > 0) {
-					console.log(('\nStrategy trailing_stop - Profit stop triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').green)
-					s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
-					s.signal = 'trailing stop';
-					s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, false, false)
-					position.strategy_parameters.trailing_stop.profit_stop = null
-					position.strategy_parameters.trailing_stop.profit_stop_limit = null
-					strat_data.max_trail_profit_position[position.side] = null
-					s.tools.positionFlags(position, 'locked', 'Unset', 'trailing_stop')
-					return
-				}
-				else {
-					s.signal = null
-				}
-			})
-			cb()
 		}
+		cb()
 	},
 
 
@@ -136,50 +139,52 @@ module.exports = {
 	},
 
 	onStrategyPeriod: function (s, opts= {}, cb= function() {}) {
-		let strat_opts = s.options.strategy.trailing_stop.opts
-		let strat_data = s.options.strategy.trailing_stop.data
-		let strat = s.options.strategy.trailing_stop
-		
-		if (strat_opts.period_calc) {
-			debug.msg('trailing_stop strategy - onStrategyPeriod')
+		if (!s.in_preroll) {
+			let strat_opts = s.options.strategy.trailing_stop.opts
+			let strat_data = s.options.strategy.trailing_stop.data
+			let strat = s.options.strategy.trailing_stop
 
-			if (strat.calc_lookback[0]) {
-				let max_trail_profit = -100
+			if (strat_opts.period_calc) {
+				debug.msg('trailing_stop strategy - onStrategyPeriod')
+
+				if (strat.calc_lookback[0]) {
+					let max_trail_profit = -100
+					s.positions.forEach(function (position, index) {
+						if (position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
+							position.strategy_parameters.trailing_stop.trailing_stop_limit = (position.side === 'buy' ? (Math.max(position.strategy_parameters.trailing_stop.trailing_stop_limit || strat.calc_lookback[0].close, strat.calc_lookback[0].close)) : (Math.min(position.strategy_parameters.trailing_stop.trailing_stop_limit || strat.calc_lookback[0].close, strat.calc_lookback[0].close)))
+							position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.side === 'buy' ? -1 : +1) * (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
+							s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
+							if (position.profit_net_pct >= max_trail_profit) {
+								max_trail_profit = position.profit_net_pct
+								strat_data.max_trail_profit_position[position.side] = position
+								debug.msg('Strategy Trailing Stop - onStrategyPeriod - max_profit_position_id.trail.' + position.side + ' = ' + position.id, false)
+							}
+						} 
+					})
+				}
+
 				s.positions.forEach(function (position, index) {
-					if (position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
-						position.strategy_parameters.trailing_stop.trailing_stop_limit = (position.side === 'buy' ? (Math.max(position.strategy_parameters.trailing_stop.trailing_stop_limit || strat.calc_lookback[0].close, strat.calc_lookback[0].close)) : (Math.min(position.strategy_parameters.trailing_stop.trailing_stop_limit || strat.calc_lookback[0].close, strat.calc_lookback[0].close)))
-						position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.side === 'buy' ? -1 : +1) * (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
-						position.locked = s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
-						if (position.profit_net_pct >= max_trail_profit) {
-							max_trail_profit = position.profit_net_pct
-							strat_data.max_trail_profit_position[position.side] = position
-							debug.msg('Strategy Trailing Stop - onStrategyPeriod - max_profit_position_id.trail.' + position.side + ' = ' + position.id, false)
-						}
-					} 
+					position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
+					position_stop = position[position_opposite_signal + '_stop']
+					position_locking = (position.locked & ~s.strategyFlag['trailing_stop'])
+					if (position.strategy_parameters.trailing_stop.profit_stop && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && ((position.side == 'buy' ? +1 : -1) * (s.period.close - position.strategy_parameters.trailing_stop.profit_stop) < 0)) { // && position.profit_net_pct > 0) {
+						console.log(('\nStrategy trailing_stop - Profit stop triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').green)
+						s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
+						s.signal = 'trailing stop';
+						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, false, false)
+						position.strategy_parameters.trailing_stop.profit_stop = null
+						position.strategy_parameters.trailing_stop.profit_stop_limit = null
+						strat_data.max_trail_profit_position[position.side] = null
+						s.tools.positionFlags(position, 'locked', 'Unset', 'trailing_stop')
+						return
+					}
+					else {
+						s.signal = null
+					}
 				})
 			}
-
-			s.positions.forEach(function (position, index) {
-				position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
-				position_stop = position[position_opposite_signal + '_stop']
-				position_locking = (position.locked & ~s.strategyFlag['trailing_stop'])
-				if (position.strategy_parameters.trailing_stop.profit_stop && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && ((position.side == 'buy' ? +1 : -1) * (s.period.close - position.strategy_parameters.trailing_stop.profit_stop) < 0)) { // && position.profit_net_pct > 0) {
-					console.log(('\nStrategy trailing_stop - Profit stop triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').green)
-					s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
-					s.signal = 'trailing stop';
-					s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, false, false)
-					position.strategy_parameters.trailing_stop.profit_stop = null
-					position.strategy_parameters.trailing_stop.profit_stop_limit = null
-					strat_data.max_trail_profit_position[position.side] = null
-					s.tools.positionFlags(position, 'locked', 'Unset', 'trailing_stop')
-					return
-				}
-				else {
-					s.signal = null
-				}
-			})
-			cb()
 		}
+		cb()
 	},
 
 	onReport: function (s) {
