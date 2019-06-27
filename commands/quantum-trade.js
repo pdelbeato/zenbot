@@ -616,37 +616,11 @@ module.exports = function (program, conf) {
 				
 				
 				
-				
-
-
-				
-				
-//				keyMap.set('u', {desc: ('Sell gain pct (min profit in long position)'.grey + ' INCREASE'.green), action: function() {
-//					so.sell_gain_pct = Number((so.sell_gain_pct + 0.05).toFixed(2))
-//					console.log('\n' + 'Sell gain pct' + ' INCREASE'.green + ' -> ' + so.sell_gain_pct)
-//				}})
-//				keyMap.set('j', {desc: ('Sell gain pct (min profit in long position)'.grey + ' DECREASE'.red), action: function() {
-//					so.sell_gain_pct = Number((so.sell_gain_pct - 0.05).toFixed(2))
-//					console.log('\n' + 'Max sell loss pct' + ' DECREASE'.red + ' -> ' + so.sell_gain_pct)
-//				}})
-//				keyMap.set('i', {desc: ('Buy gain pct (min profit in short position)'.grey + ' INCREASE'.green), action: function() {
-//					so.buy_gain_pct = Number((so.buy_gain_pct + 0.05).toFixed(2))
-//					console.log('\n' + 'Buy gain pct' + ' INCREASE'.green + ' -> ' + so.buy_gain_pct)
-//				}})
-//				keyMap.set('k', {desc: ('Buy gain pct (min profit in short position)'.grey + ' DECREASE'.red), action: function() {
-//					so.buy_gain_pct = Number((so.buy_gain_pct - 0.05).toFixed(2))
-//					console.log('\n' + 'Buy gain pct' + ' DECREASE'.red + ' -> ' + so.buy_gain_pct)
-//				}})
-				
-				
-				
 //				keyMap.set('o', {desc: ('Actual values for limits'.grey), action: function() {
 //					actual_values = '\nActual values for limits:'
 //						actual_values += '\n-------------------------'
 //							actual_values += '\nBuy price limit= ' + so.buy_price_limit
 //							actual_values += '\nSell price limit= ' + so.sell_price_limit
-//							actual_values += '\nProfit stop enable pct= ' + so.profit_stop_enable_pct
-//							actual_values += '\nProfit stop pct= ' + so.profit_stop_pct
 //							actual_values += '\nSell gain pct= ' + so.sell_gain_pct
 //							actual_values += '\nBuy gain pct= ' + so.buy_gain_pct
 //
@@ -677,16 +651,6 @@ module.exports = function (program, conf) {
 						}
 					})
 				}})
-//				keyMap.set('w', {desc: ('toggle Dump Watchdog'.grey), action: function() {
-//					so.dump_watchdog = !so.dump_watchdog
-//					s.is_dump_watchdog = so.dump_watchdog
-//					console.log('\nToggle Dump Watchdog: ' + (so.dump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
-//				}})
-//				keyMap.set('W', {desc: ('toggle Pump Watchdog'.grey), action: function() {
-//					so.pump_watchdog = !so.pump_watchdog
-//					s.is_pump_watchdog = so.pump_watchdog
-//					console.log('\nToggle Pump Watchdog: ' + (so.pump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
-//				}})
 				keyMap.set('z', {desc: ('toggle Long Position'.grey), action: function() {
 					so.active_long_position = !so.active_long_position
 					console.log('\nToggle Long position: ' + (so.active_long_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
@@ -968,48 +932,14 @@ module.exports = function (program, conf) {
 			process.stdout.write('');
 
 			process.stdout.write([
-//				z(30, 'TRAILING STOP %'.grey, ' '),
-//				z(34, 'TRAILING DISTANCE %'.grey, ' '),
-//				z(35, 'DUMP / PUMP WATCHDOG'.grey, ' '),
-				z(30, '', ' '),
-				z(34, '', ' '),
-				z(35, '', ' '),
 				z(36, 'LONG / SHORT POSITION'.grey, ' ')
 				].join('') + '\n');
 
 			process.stdout.write([
-//				z(12, so.profit_stop_enable_pct + '%', ' '),
-//				z(24, so.profit_stop_pct + '%', ' '),
-//				z(20, so.dump_watchdog, ' '),
-//				z(8, so.pump_watchdog, ' '),
-				z(12, '', ' '),
-				z(24, '', ' '),
-				z(20, '', ' '),
-				z(8, '', ' '),
 				z(16, so.active_long_position, ' '),
 				z(8, so.active_short_position, ' ')
 				].join('') + '\n\n');
-			
-			process.stdout.write('');
-			
-			process.stdout.write([
-//				z(37, 'BUY / SELL STOP LOSS %'.grey, ' '),
-				z(37, ''.grey, ' '),
-				z(35, 'CATCH ORDER DEFAULT %'.grey, ' '),
-				z(33, 'CATCH ORDER MANUAL %'.grey, ' '),
-				z(30, 'CATCH FIXED VALUE'.grey, ' '),
-				].join('') + '\n');
-			
-			process.stdout.write([
-//				z(9, (so.buy_stop_pct || '--') + '%', ' '),
-//				z(6, (so.sell_stop_pct || '--') + '%', ' '),
-				z(9, '', ' '),
-				z(6, '', ' '),
-				z(25, so.catch_order_pct + '%', ' '),
-				z(23, so.catch_manual_pct + '%', ' '),
-				z(25, formatCurrency(so.catch_fixed_value, s.currency), ' '),
-				].join('') + '\n\n');
-			
+
 			process.stdout.write('');
 		}
 		/* End listOptions() */
@@ -1034,21 +964,8 @@ module.exports = function (program, conf) {
 			var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
 			var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
 			if (quit) {
-//				if (s.my_trades.length) {
-//					s.my_trades.push({
-//						price: s.period.close,
-//						size: s.balance.asset,
-//						side: 'sell',
-//						time: s.period.time
-//					})
-//				}
-//				s.balance.currency = tmp_capital_currency
-//				s.balance.asset = 0
 				s.lookback.unshift(s.period)
 			}
-			//        var profit = s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
-			//        var buy_hold = s.start_price ? n(s.period.close).multiply(n(s.start_capital_currency).divide(s.start_price)) : n(tmp_capital_currency)
-			//        var buy_hold_profit = s.start_capital_currency ? n(buy_hold).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
 			var profit_currency = n(tmp_capital_currency).subtract(s.orig_capital_currency).divide(s.orig_capital_currency)
 			var profit_asset = n(tmp_capital_asset).subtract(s.orig_capital_asset).divide(s.orig_capital_asset)
 			var buy_hold = n(s.orig_capital_currency).divide(s.orig_price).multiply(s.period.close)
