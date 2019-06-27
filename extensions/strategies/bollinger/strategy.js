@@ -100,7 +100,7 @@ module.exports = {
 		let strat_opts = s.options.strategy.bollinger.opts
 		let strat_data = s.options.strategy.bollinger.data
 		
-		this.command('o', {desc: ('Bollinger - List options'.grey), action: function() { listOptions ()}})
+		this.command('o', {desc: ('Bollinger - List options'.grey), action: function() { s.tools.listStrategyOptions('bollinger')}})
 		this.command('k', {desc: 'Bollinger - Toggle Dump Watchdog'.grey, action: function() {
 			strat_opts.dump_watchdog = !strat_opts.dump_watchdog
 			strat_data.is_dump_watchdog = strat_opts.dump_watchdog

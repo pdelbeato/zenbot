@@ -66,7 +66,7 @@ module.exports = {
 		let strat_opts = s.options.strategy.catching_orders.opts
 		let strat_data = s.options.strategy.catching_orders.data
 
-		this.command('o', {desc: ('Catching Orders - List options'.grey), action: function() { listOptions ()}})
+		this.command('o', {desc: ('Catching Orders - List options'.grey), action: function() { s.tools.listStrategyOptions('catching_orders')}})
 		this.command('u', {desc: ('Catching Orders - Enabling pct'.grey + ' INCREASE'.green), action: function() {
 			strat_opts.catching_orders_enable_pct = Number((strat_opts.catching_orders_enable_pct + 0.05).toFixed(2))
 			console.log('\n' + 'Catching Orders - Enabling pct' + ' INCREASE'.green + ' -> ' + strat_opts.catching_orders_enable_pct)

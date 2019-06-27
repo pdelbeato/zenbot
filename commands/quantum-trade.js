@@ -944,16 +944,7 @@ module.exports = function (program, conf) {
 			process.stdout.write('\n' + s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey + '\n')
 
 			Object.keys(so.strategy).forEach(function (strategy_name, index) {
-				process.stdout.write('\nSTRATEGY'.grey + '\t' + strategy_name + '\t' + (require(`../extensions/strategies/${strategy_name}/strategy`).description).grey + '\n')
-
-				let opts_rows = [];
-				Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
-					opts_rows.push(z(40, key.grey, ' ') + '\t' + so.strategy[strategy_name].opts[key])
-				})
-
-				opts_rows.forEach(function (row) {
-					process.stdout.write(row + '\n')
-				})
+				s.tools.listStrategyOptions(strategy_name)
 			})
 
 			process.stdout.write('\n')
