@@ -67,6 +67,7 @@ module.exports = {
 		let strat_opts = s.options.strategy.trailing_stop.opts
 		let strat_data = s.options.strategy.trailing_stop.data
 
+		this.command('o', {desc: ('Trailing Stop - List options'.grey), action: function() { listOptions ()}})
 		this.command('u', {desc: ('Trailing Stop - Enabling pct'.grey + ' INCREASE'.green), action: function() {
 			strat_opts.trailing_stop_enable_pct = Number((strat_opts.trailing_stop_enable_pct + 0.05).toFixed(2))
 			console.log('\n' + 'Trailing Stop - Enabling pct' + ' INCREASE'.green + ' -> ' + strat_opts.trailing_stop_enable_pct)
@@ -116,7 +117,7 @@ module.exports = {
 					if (position.strategy_parameters.trailing_stop.trailing_stop && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && ((position.side == 'buy' ? +1 : -1) * (s.period.close - position.strategy_parameters.trailing_stop.trailing_stop) < 0)) { // && position.profit_net_pct > 0) {
 						console.log(('\nStrategy trailing_stop - Profit stop triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').green)
 						s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
-						s.signal = 'trailing stop';
+						s.signal = 'TrailingStop';
 						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, false, false)
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null
@@ -170,7 +171,7 @@ module.exports = {
 					if (position.strategy_parameters.trailing_stop.trailing_stop && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && ((position.side == 'buy' ? +1 : -1) * (s.period.close - position.strategy_parameters.trailing_stop.trailing_stop) < 0)) { // && position.profit_net_pct > 0) {
 						console.log(('\nStrategy trailing_stop - Profit stop triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').green)
 						s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
-						s.signal = 'trailing stop';
+						s.signal = 'TrailingStop';
 						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, false, false)
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null

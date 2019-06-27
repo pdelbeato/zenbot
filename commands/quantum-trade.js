@@ -252,6 +252,22 @@ module.exports = function (program, conf) {
 					console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command inserted'.grey)
 					engine.emitSignal('manual', 'sell', null, null, null, false, true)
 				}})
+				keyMap.set('+', {desc: ('Buy gain pct (short position)'.grey + ' INCREASE'.green), action: function() {
+					so.buy_gain_pct = Number((so.buy_gain_pct + 0.5).toFixed(2))
+					console.log('\n' + 'Buy gain pct ' + 'INCREASE'.green + ' -> ' + so.buy_gain_pct)
+				}})
+				keyMap.set('-', {desc: ('Buy gain pct (short position)'.grey + ' DECREASE'.red), action: function() {
+					so.buy_gain_pct = Number((so.buy_gain_pct - 0.5).toFixed(2))
+					console.log('\n' + 'Buy gain pct ' + 'DECREASE'.red + ' -> ' + so.buy_gain_pct)
+				}})
+				keyMap.set('*', {desc: ('Sell gain pct (long position)'.grey + ' INCREASE'.green), action: function() {
+					so.sell_gain_pct = Number((so.sell_gain_pct + 0.5).toFixed(2))
+					console.log('\n' + 'Sell gain pct ' + 'INCREASE'.green + ' -> ' + so.sell_gain_pctt)
+				}})
+				keyMap.set('_', {desc: ('Sell gain pct (long position)'.grey + ' DECREASE'.red), action: function() {
+					so.sell_gain_pct = Number((so.sell_gain_pct - 0.5).toFixed(2))
+					console.log('\n' + 'Sell gain pct ' + 'DECREASE'.red + ' -> ' + so.sell_gain_pct)
+				}})
 				keyMap.set('c', {desc: ('cancel manual orders'.grey), action: function() {
 					s.tools.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
 					console.log('\nmanual'.grey + ' orders cancel' + ' command executed'.grey)
@@ -482,9 +498,9 @@ module.exports = function (program, conf) {
 						console.log('No position in control.')
 					}
 				}})
-				keyMap.set('F', {desc: ('Free the position (cancel ALL orders connected to the position and let it be used)'.grey), action: function() {
+				keyMap.set('F', {desc: ('Free completely the position (cancel ALL orders connected to the position and let it be used)'.grey), action: function() {
 					if (s.positions_index != null) {
-						console.log('\nFreeing the position (cancelling all orders connected with the position) '.yellow + s.positions[s.positions_index].id)
+						console.log('\nFreeing completely the position (cancelling all orders connected with the position) '.yellow + s.positions[s.positions_index].id)
 						s.tools.positionFlags(s.positions[s.positions_index], 'status', 'Free')
 						s.tools.positionFlags(s.positions[s.positions_index], 'locked', 'Free')
 						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
@@ -493,9 +509,9 @@ module.exports = function (program, conf) {
 						console.log('No position in control.')
 					}
 				}})
-				keyMap.set('L', {desc: ('Lock the position (does not cancel orders connected to the position)'.grey), action: function() {
+				keyMap.set('L', {desc: ('Lock (Manual) the position (does not cancel orders connected to the position)'.grey), action: function() {
 					if (s.positions_index != null) {
-						console.log('\nLocking the position '.yellow + s.positions[s.positions_index].id)
+						console.log('\nLocking (Manual) the position '.yellow + s.positions[s.positions_index].id)
 						s.tools.positionFlags(s.positions[s.positions_index], 'locked', 'Set', 'manual')
 						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
@@ -503,10 +519,10 @@ module.exports = function (program, conf) {
 						console.log('No position in control.')
 					}
 				}})
-				keyMap.set('U', {desc: ('Unlock the position (does not cancel orders connected to the position)'.grey), action: function() {
+				keyMap.set('U', {desc: ('Unlock (Manual) the position (does not cancel orders connected to the position)'.grey), action: function() {
 					if (s.positions_index != null) {
-						console.log('\nUnlocking the position '.yellow + s.positions[s.positions_index].id)
-						s.tools.positionFlags(s.positions[s.positions_index], 'locked', 'Free')
+						console.log('\nUnlocking (Manual) the position '.yellow + s.positions[s.positions_index].id)
+						s.tools.positionFlags(s.positions[s.positions_index], 'locked', 'Unset', 'manual')
 						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
 					else {
