@@ -142,7 +142,7 @@ module.exports = {
 		let strat_data_rsi = s.options.strategy.bollinger.data.rsi
 		let max_profit = -100
 		
-		strat_data.max_profit_position: {
+		strat_data.max_profit_position = {
 			buy: null,
 			sell: null,
 		}
