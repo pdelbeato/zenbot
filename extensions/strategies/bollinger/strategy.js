@@ -140,8 +140,12 @@ module.exports = {
 		let strat_data = s.options.strategy.bollinger.data
 		let strat_data_boll = s.options.strategy.bollinger.data.bollinger
 		let strat_data_rsi = s.options.strategy.bollinger.data.rsi
-
 		let max_profit = -100
+		
+		strat_data.max_profit_position: {
+			buy: null,
+			sell: null,
+		}
 
 		s.positions.forEach(function (position, index) {
 			//Aggiorno le posizioni con massimo profitto, tranne che per le posizioni locked

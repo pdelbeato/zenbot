@@ -180,7 +180,7 @@ module.exports = function (program, conf) {
 		const modeMap = new Map()
 		modeMap.set(0, 'NULL')
 		modeMap.set(1, 'MARKET')
-		modeMap.set(2, 'CATCH')
+//		modeMap.set(2, 'CATCH')
 		modeMap.set(3, 'EXCHANGE')
 		modeMap.set(4, 'POSITIONS')
 		modeMap.set(5, 'STRATEGIES')
@@ -199,7 +199,7 @@ module.exports = function (program, conf) {
 
 			keyMap.set('0', {desc: ('Modo '.grey + 'NULL'.yellow),			action: function() { changeModeCommand(0)}})
 			keyMap.set('1', {desc: ('Modo '.grey + 'MARKET'.yellow),		action: function() { changeModeCommand(1)}})
-			keyMap.set('2', {desc: ('Modo '.grey + 'CATCH'.yellow), 		action: function() { changeModeCommand(2)}})
+//			keyMap.set('2', {desc: ('Modo '.grey + 'CATCH'.yellow), 		action: function() { changeModeCommand(2)}})
 			keyMap.set('3', {desc: ('Modo '.grey + 'EXCHANGE'.yellow), 		action:	function() { changeModeCommand(3)}})
 			keyMap.set('4', {desc: ('Modo '.grey + 'POSITIONS'.yellow),		action:	function() { changeModeCommand(4)}})
 			keyMap.set('5', {desc: ('Modo '.grey + 'STRATEGIES'.yellow),	action: function() { changeModeCommand(5)}})
