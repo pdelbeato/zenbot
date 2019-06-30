@@ -242,7 +242,7 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('B', {desc: ('market'.grey + ' BUY'.green), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command inserted'.grey)
-					s.eventBus.emit('manual', 'buy', null, null, null, false, true)
+					s.eventBus.emit('manual', 'buy', null, null, null, s.protectionFlag['all'], false, true)
 				}})
 				keyMap.set('s', {desc: ('limit'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command inserted'.grey)
@@ -250,7 +250,7 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('S', {desc: ('market'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command inserted'.grey)
-					s.eventBus.emit('manual', 'sell', null, null, null, false, true)
+					s.eventBus.emit('manual', 'sell', null, null, null, s.protectionFlag['all'], false, true)
 				}})
 				keyMap.set('+', {desc: ('Buy gain pct (short position)'.grey + ' INCREASE'.green), action: function() {
 					so.buy_gain_pct = Number((so.buy_gain_pct + 0.5).toFixed(2))
@@ -262,7 +262,7 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('*', {desc: ('Sell gain pct (long position)'.grey + ' INCREASE'.green), action: function() {
 					so.sell_gain_pct = Number((so.sell_gain_pct + 0.5).toFixed(2))
-					console.log('\n' + 'Sell gain pct ' + 'INCREASE'.green + ' -> ' + so.sell_gain_pctt)
+					console.log('\n' + 'Sell gain pct ' + 'INCREASE'.green + ' -> ' + so.sell_gain_pct)
 				}})
 				keyMap.set('_', {desc: ('Sell gain pct (long position)'.grey + ' DECREASE'.red), action: function() {
 					so.sell_gain_pct = Number((so.sell_gain_pct - 0.5).toFixed(2))
@@ -485,12 +485,12 @@ module.exports = function (program, conf) {
 					if (s.positions_index != null) {
 						if (s.positions[s.positions_index].side === 'buy') {
 							console.log('\nSet a manual close catch SELL order on the position: '.yellow + s.positions[s.positions_index].id)
-							var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+							let target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
 							s.eventBus.emit('manual', 'sell', s.positions[s.positions_index].id, null, target_price)
 						}
 						else {
 							console.log('\nSet a manual close catch BUY order on the position: '.yellow + s.positions[s.positions_index].id)
-							var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+							let target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
 							s.eventBus.emit('manual', 'buy', s.positions[s.positions_index].id, null, target_price)
 						}
 					}

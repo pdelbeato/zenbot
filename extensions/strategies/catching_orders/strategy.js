@@ -63,15 +63,17 @@ module.exports = {
 		this.command('o', {desc: ('Catching Orders - List options'.grey), action: function() { s.tools.listStrategyOptions('catching_orders')}})
 		this.command('b', {desc: ('Catching Orders - Manual catch order '.grey + 'BUY'.green), action: function() {
 			console.log('\nCatching Orders - Manual catch '.grey + 'BUY'.green + ' command inserted'.grey)
-			var target_price = n(s.quote.bid).multiply(1 - strat_opts.catch_manual_pct/100).format(s.product.increment, Math.floor)
-			var target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-			s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price)
+			let target_price = n(s.quote.bid).multiply(1 - strat_opts.catch_manual_pct/100).format(s.product.increment, Math.floor)
+			let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+			let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
+			s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag)
 		}})
 		this.command('s', {desc: ('Catching Orders - Manual catch order '.grey + 'SELL'.red), action: function() {
 			console.log('\nCatching Orders - Manual catch '.grey + 'SELL'.red + ' command inserted'.grey)
-			var target_price = n(s.quote.bid).multiply(1 + strat_opts.catch_manual_pct/100).format(s.product.increment, Math.floor)
-			var target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-			s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price)
+			let target_price = n(s.quote.bid).multiply(1 + strat_opts.catch_manual_pct/100).format(s.product.increment, Math.floor)
+			let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+			let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
+			s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag)
 		}})
 		this.command('+', {desc: ('Catching Orders - Manual catch pct '.grey + 'INCREASE'.green), action: function() {
 			strat_opts.catch_manual_pct = Number((strat_opts.catch_manual_pct + 0.5).toFixed(2))
@@ -111,7 +113,8 @@ module.exports = {
 			s.positions.forEach(function (position, index) {
 				if (!s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
 					let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
-					s.eventBus.emit('catching_orders', position_opposite_signal, position.id)
+					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
+					s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, undefined, protectionFlag)
 				}
 			})
 		}})
@@ -164,7 +167,8 @@ module.exports = {
 				let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 				let target_price = n(position.price_open).multiply((signal === 'buy' ? (1 + so.catch_order_pct/100) : (1 - so.catch_order_pct/100))).format(s.product.increment, Math.floor)
 					debug.msg('Listener -> catching position ' + signal_opposite + ' ' + sig_kind + ' ' + position_id + ' at ' + target_price)
-					s.eventBus.emit('catching_orders', position_opposite_signal, position.id)  
+					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
+					s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, undefined, protectionFlag)  
 				}
 			})
 		}

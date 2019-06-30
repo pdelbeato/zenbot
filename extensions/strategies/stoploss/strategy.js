@@ -106,7 +106,8 @@ module.exports = {
 					s.tools.pushMessage('Stop Loss Protection', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 //					executeSignal(position_opposite_signal, 'stoploss', position.id, undefined, undefined, false, true)
 					s.signal = 'stoploss'
-					s.eventBus.emit('stoploss', position_opposite_signal, position.id, undefined, undefined, false, strat_opts.order_type)
+					let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
+					s.eventBus.emit('stoploss', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, strat_opts.order_type)
 				}
 				else {
 					s.signal = null

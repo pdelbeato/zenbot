@@ -118,7 +118,8 @@ module.exports = {
 						console.log(('\nStrategy trailing_stop - Profit stop triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').green)
 						s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 						s.signal = 'TrailingStop';
-						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, false, false)
+						let protectionFree = s.protectionFlag['calmdown']
+						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, false)
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null
 						strat_data.max_trail_profit_position[position.side] = null
@@ -172,7 +173,8 @@ module.exports = {
 						console.log(('\nStrategy trailing_stop - Profit stop triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').green)
 						s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 						s.signal = 'TrailingStop';
-						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, false, false)
+						let protectionFree = s.protectionFlag['calmdown']
+						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, false)
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null
 						strat_data.max_trail_profit_position[position.side] = null
