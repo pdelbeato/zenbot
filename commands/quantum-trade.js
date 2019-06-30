@@ -238,19 +238,23 @@ module.exports = function (program, conf) {
 				//Modo MARKET
 				keyMap.set('b', {desc: ('limit'.grey + ' BUY'.green), action: function() {
 					console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command inserted'.grey)
-					s.eventBus.emit('manual', 'buy')
+					let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+					s.eventBus.emit('manual', 'buy', null, null, null, protectionFree)
 				}})
 				keyMap.set('B', {desc: ('market'.grey + ' BUY'.green), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command inserted'.grey)
-					s.eventBus.emit('manual', 'buy', null, null, null, s.protectionFlag['all'], false, true)
+					let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+					s.eventBus.emit('manual', 'buy', null, null, null, protectionFree, false, true)
 				}})
 				keyMap.set('s', {desc: ('limit'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command inserted'.grey)
-					s.eventBus.emit('manual', 'sell')
+					let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+					s.eventBus.emit('manual', 'sell', null, null, null, protectionFree)
 				}})
 				keyMap.set('S', {desc: ('market'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command inserted'.grey)
-					s.eventBus.emit('manual', 'sell', null, null, null, s.protectionFlag['all'], false, true)
+					let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+					s.eventBus.emit('manual', 'sell', null, null, null, protectionFree, false, true)
 				}})
 				keyMap.set('+', {desc: ('Buy gain pct (short position)'.grey + ' INCREASE'.green), action: function() {
 					so.buy_gain_pct = Number((so.buy_gain_pct + 0.5).toFixed(2))
