@@ -97,10 +97,23 @@ module.exports = {
 				if (opts.trade) {
 					let max_trail_profit = -100
 					s.positions.forEach(function (position, index) {
-						if (position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
-							position.strategy_parameters.trailing_stop.trailing_stop_limit = (position.side === 'buy' ? (Math.max(position.strategy_parameters.trailing_stop.trailing_stop_limit || opts.trade.price, opts.trade.price)) : (Math.min(position.strategy_parameters.trailing_stop.trailing_stop_limit || opts.trade.price, opts.trade.price)))
-							position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.side === 'buy' ? -1 : +1) * (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
+						//Se la posizione non ha il flag trailing_stop, controllo se il suo profitto ha superato il limite per attivare il trailin stop
+						if (!s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop') && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
 							s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
+						}
+
+						//Se la posizione ha il flag trailing_stop, aggiorno i valori del trailing stop
+						// (E' un nuovo if, e non un else al precedente, perchè così esegue i calcoli anche se la posizione è appena entrata in trailing stop)
+						if (s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop')) {
+							if (position.side === 'buy') {
+								position.strategy_parameters.trailing_stop.trailing_stop_limit = Math.max(position.strategy_parameters.trailing_stop.trailing_stop_limit || opts.trade.price, opts.trade.price)
+								position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit - (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
+							}
+							else {
+								position.strategy_parameters.trailing_stop.trailing_stop_limit = Math.min(position.strategy_parameters.trailing_stop.trailing_stop_limit || opts.trade.price, opts.trade.price)
+								position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
+							}
+							//Controllo se la posizione sia quella con il maggiore profitto
 							if (position.profit_net_pct >= max_trail_profit) {
 								max_trail_profit = position.profit_net_pct
 								strat_data.max_trail_profit_position[position.side] = position
@@ -114,7 +127,7 @@ module.exports = {
 					position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 					position_stop = position[position_opposite_signal + '_stop']
 					position_locking = (position.locked & ~s.strategyFlag['trailing_stop'])
-					if (position.strategy_parameters.trailing_stop.trailing_stop && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && ((position.side == 'buy' ? +1 : -1) * (s.period.close - position.strategy_parameters.trailing_stop.trailing_stop) < 0)) { // && position.profit_net_pct > 0) {
+					if (position.strategy_parameters.trailing_stop.trailing_stop && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && ((position.side == 'buy' ? +1 : -1) * (s.period.close - position.strategy_parameters.trailing_stop.trailing_stop) < 0)) {
 						console.log(('\nStrategy trailing_stop - Profit stop triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').green)
 						s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 						s.signal = 'TrailingStop';
@@ -152,10 +165,23 @@ module.exports = {
 				if (strat.calc_lookback[0]) {
 					let max_trail_profit = -100
 					s.positions.forEach(function (position, index) {
-						if (position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
-							position.strategy_parameters.trailing_stop.trailing_stop_limit = (position.side === 'buy' ? (Math.max(position.strategy_parameters.trailing_stop.trailing_stop_limit || strat.calc_lookback[0].close, strat.calc_lookback[0].close)) : (Math.min(position.strategy_parameters.trailing_stop.trailing_stop_limit || strat.calc_lookback[0].close, strat.calc_lookback[0].close)))
-							position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.side === 'buy' ? -1 : +1) * (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
+						//Se la posizione non ha il flag trailing_stop, controllo se il suo profitto ha superato il limite per attivare il trailin stop
+						if (!s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop') && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
 							s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
+						}
+
+						//Se la posizione ha il flag trailing_stop, aggiorno i valori del trailing stop
+						// (E' un nuovo if, e non un else al precedente, perchè così esegue i calcoli anche se la posizione è appena entrata in trailing stop)
+						if (s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop')) {
+							if (position.side === 'buy') {
+								position.strategy_parameters.trailing_stop.trailing_stop_limit = Math.max(position.strategy_parameters.trailing_stop.trailing_stop_limit || strat.calc_lookback[0].close, strat.calc_lookback[0].close)
+								position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit - (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
+							}
+							else {
+								position.strategy_parameters.trailing_stop.trailing_stop_limit = Math.min(position.strategy_parameters.trailing_stop.trailing_stop_limit || strat.calc_lookback[0].close, strat.calc_lookback[0].close)
+								position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
+							}
+							//Controllo se la posizione sia quella con il maggiore profitto
 							if (position.profit_net_pct >= max_trail_profit) {
 								max_trail_profit = position.profit_net_pct
 								strat_data.max_trail_profit_position[position.side] = position

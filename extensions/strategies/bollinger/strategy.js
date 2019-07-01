@@ -149,12 +149,11 @@ module.exports = {
 
 		s.positions.forEach(function (position, index) {
 			//Aggiorno le posizioni con massimo profitto, tranne che per le posizioni locked
-			if (!position.locked) {						
-				if (position.profit_net_pct >= max_profit) {
-					max_profit = position.profit_net_pct
-					strat_data.max_profit_position[position.side] = position
-//					debug.msg('Bollinger - onTradePeriod - position_max_profit_index= ' + index, false)
-				}
+			position_locking = (position.locked & ~s.strategyFlag['bollinger'])
+			if (!position_locking && position.profit_net_pct >= max_profit) {
+				max_profit = position.profit_net_pct
+				strat_data.max_profit_position[position.side] = position
+//				debug.msg('Bollinger - onTradePeriod - position_max_profit_index= ' + index, false)
 			}						
 		})
 
