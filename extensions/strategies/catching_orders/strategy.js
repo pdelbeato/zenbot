@@ -49,7 +49,7 @@ module.exports = {
 	name: 'catching_orders',
 	description: 'Catching Orders strategy',
 	noHoldCheck: true,
-	
+
 	getOptions: function () {
 		this.option('catching_orders', 'catch_order_pct', '% for automatic catching orders', Number, 2)
 		this.option('catching_orders', 'catch_manual_pct', '% for manual catching order', Number, 10)
@@ -97,7 +97,6 @@ module.exports = {
 			}
 			console.log('\n' + 'Catching Orders - Manual catch order value ' + 'DECREASE'.green + ' -> ' + strat_opts.catch_fixed_value)
 		}})
-
 		this.command('i', {desc: ('Catching Orders - Catch order pct '.grey + 'INCREASE'.green), action: function() {
 			strat_opts.catch_order_pct = Number((strat_opts.catch_order_pct + 0.5).toFixed(2))
 			console.log('\n' + 'Catching Orders - Catch order pct ' + 'INCREASE'.green + ' -> ' + strat_opts.catch_order_pct)
@@ -109,11 +108,10 @@ module.exports = {
 			}
 			console.log('\n' + 'Catching Orders - Catch order pct ' + 'DECREASE'.green + ' -> ' + strat_opts.catch_order_pct)
 		}})
-
 		this.command('C', {desc: ('Catching Orders - Cancel all manual catch orders'.grey), action: function() {
 			console.log('\nmCancel'.grey + ' ALL manual catch orders')
 			s.tools.orderStatus(undefined, undefined, 'catching_orders', undefined, 'Unset', 'catching_orders')
-		}})
+		}})	
 		this.command('A', {desc: ('Catching Orders - Insert catch order for ALL free position'.grey), action: function() {
 			if (strat_opts.catch_order_pct > 0) {
 				console.log('\n' + 'Catching Orders - Insert catch order for ALL free positions'.grey)
@@ -138,7 +136,7 @@ module.exports = {
 			else {
 				console.log('\n' + 'Catching Orders - Catch order pct =< 0!'.red)
 			}
-		}
+		}})
 	},
 
 	onTrade: function (s, opts= {}, cb= function() {}) {
