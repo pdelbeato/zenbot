@@ -117,15 +117,16 @@ module.exports = {
 				console.log('\n' + 'Catching Orders - Insert catch order for ALL free positions'.grey)
 				s.positions.forEach(function (position, index) {
 					let position_locking = (position.locked & ~s.strategyFlag['catching_orders'])
-
+					let target_price = null
+					
 					if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
 						let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 						let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
 						if (position.side === 'buy') {
-							let target_price = n(position.price_open).multiply(1 + strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
+							target_price = n(position.price_open).multiply(1 + strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
 						}
 						else {
-							let target_price = n(position.price_open).multiply(1 - strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
+							target_price = n(position.price_open).multiply(1 - strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
 						}
 						debug.msg('Strategy catching_orders - Position ' + position.id + ' ' + position_opposite_signal.toUpperCase() + ' at ' + target_price)
 
@@ -182,17 +183,18 @@ module.exports = {
 		let strat_data = s.options.strategy.catching_orders.data
 
 		if (strat_opts.catch_order_pct > 0) {
-			position = s.positions.find(x => x.id === position_id)
+			let position = s.positions.find(x => x.id === position_id)
 			if (position) {
-				position_locking = (position.locked & ~s.strategyFlag['catching_orders'])
+				let position_locking = (position.locked & ~s.strategyFlag['catching_orders'])
+				let target_price = null
 
 				if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
 					let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 					if (position.side === 'buy') {
-						let target_price = n(position.price_open).multiply(1 + strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
+						target_price = n(position.price_open).multiply(1 + strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
 					}
 					else {
-						let target_price = n(position.price_open).multiply(1 - strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
+						target_price = n(position.price_open).multiply(1 - strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
 					}
 					debug.msg('Strategy catching_orders - Position ' + position_id + ' ' + position_opposite_signal.toUpperCase() + ' at ' + target_price)
 					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
