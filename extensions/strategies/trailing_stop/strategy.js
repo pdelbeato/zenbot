@@ -17,7 +17,7 @@ var debug = require('../../../lib/debug')
 //	trailing_stop_pct: 0.5,			//****** Maintain a trailing stop this % below the high-water mark of profit
 //},
 //data: {							//****** To store calculated data
-//	max_trail_profit_position: {	//****** Positions with max trailing profit
+//	max_trail_profit_position_id: {	//****** Position ids with max trailing profit
 //		buy: null,
 //		ell: null,
 //	}
@@ -117,8 +117,8 @@ module.exports = {
 							//Controllo se la posizione sia quella con il maggiore profitto
 							if (position.profit_net_pct >= max_trail_profit) {
 								max_trail_profit = position.profit_net_pct
-								strat_data.max_trail_profit_position[position.side] = position
-								debug.msg('Strategy Trailing Stop - onTrade - max_profit_position_id.trail.' + position.side + ' = ' + position.id, false)
+								strat_data.max_trail_profit_position_id[position.side] = position.id
+//								debug.msg('Strategy Trailing Stop - onTrade - max_trail_profit_position_id.' + position.side + ' = ' + position.id, false)
 							}
 						} 
 					})
@@ -136,7 +136,7 @@ module.exports = {
 						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, false)
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null
-						strat_data.max_trail_profit_position[position.side] = null
+						strat_data.max_trail_profit_position_id[position.side] = null
 						s.tools.positionFlags(position, 'locked', 'Unset', 'trailing_stop')
 						return
 					}
@@ -185,8 +185,8 @@ module.exports = {
 							//Controllo se la posizione sia quella con il maggiore profitto
 							if (position.profit_net_pct >= max_trail_profit) {
 								max_trail_profit = position.profit_net_pct
-								strat_data.max_trail_profit_position[position.side] = position
-								debug.msg('Strategy Trailing Stop - onStrategyPeriod - max_profit_position_id.trail.' + position.side + ' = ' + position.id, false)
+								strat_data.max_trail_profit_position_id[position.side] = position.id
+//								debug.msg('Strategy Trailing Stop - onStrategyPeriod - max_trail_profit_position_id.' + position.side + ' = ' + position.id, false)
 							}
 						} 
 					})
@@ -204,7 +204,7 @@ module.exports = {
 						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, false)
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null
-						strat_data.max_trail_profit_position[position.side] = null
+						strat_data.max_trail_profit_position_id[position.side] = null
 						s.tools.positionFlags(position, 'locked', 'Unset', 'trailing_stop')
 						return
 					}
@@ -223,15 +223,19 @@ module.exports = {
 
 		var cols = []
 
-		if (strat_data.max_trail_profit_position.buy != null || strat_data.max_trail_profit_position.sell != null) {
+		if (strat_data.max_trail_profit_position_id.buy != null || strat_data.max_trail_profit_position_id.sell != null) {
 			position_buy_profit = -1
 			position_sell_profit = -1
+			
+			if (strat_data.max_trail_profit_position_id.buy != null) {
+				let position_buy = s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.buy)
+				position_buy_profit = position_buy.profit_net_pct/100;
+			}
 
-			if (strat_data.max_trail_profit_position.buy != null)
-				position_buy_profit = strat_data.max_trail_profit_position.buy.profit_net_pct/100;
-
-			if (strat_data.max_trail_profit_position.sell != null)	
-				position_sell_profit = strat_data.max_trail_profit_position.sell.profit_net_pct/100;
+			if (strat_data.max_trail_profit_position_id.sell != null) {
+				let position_sell = s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.sell)
+				position_sell_profit = position_sell.profit_net_pct/100;
+			}
 
 			buysell = (position_buy_profit > position_sell_profit ? 'B' : 'S')
 			buysell_profit = (position_buy_profit > position_sell_profit ? formatPercent(position_buy_profit) : formatPercent(position_sell_profit))
@@ -251,12 +255,17 @@ module.exports = {
 		let strat_opts = s.options.strategy.trailing_stop.opts
 		let strat_data = s.options.strategy.trailing_stop.data
 
-		let max_profit_positions = s.options.strategy.trailing_stop.data.max_profit_position
+		let max_profit_positions_id = s.options.strategy.trailing_stop.data.max_profit_position_id
 		let side_max_profit = null
 		let pct_max_profit = null
-		if (max_profit_positions.buy != null || max_profit_positions.sell != null) {
-			side_max_profit =  ((max_profit_positions.buy ? max_profit_positions.buy.profit_net_pct : -100) > (max_profit_positions.sell ? max_profit_positions.sell.profit_net_pct : -100) ? 'buy' : 'sell')
-			pct_max_profit = max_profit_positions[side_max_profit].profit_net_pct
+		if (max_profit_positions_id.buy != null || max_profit_positions_id.sell != null) {
+			let position = {
+				buy: s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.buy),
+				sell: s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.sell),
+			}
+			
+			side_max_profit =  ((position.buy ? position.buy.profit_net_pct : -100) > (position.sell ? position.sell.profit_net_pct : -100) ? 'buy' : 'sell')
+			pct_max_profit = position[side_max_profit].profit_net_pct
 		}
 
 		return (side_max_profit ? ('\nTrailing position: ' + (side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit/100))) : '') 
