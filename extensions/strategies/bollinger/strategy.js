@@ -75,7 +75,8 @@ var z = require('zero-fill')
 module.exports = {
 	name: 'bollinger',
 	description: 'Buy when [(Price ≤ Lower Bollinger Band) && (rsi > rsi_buy_threshold)] and sell when [(Price ≥ Upper Bollinger Band) && (rsi < rsi_sell_threshold)].',
-
+	noHoldCheck: false,
+	
 	getOptions: function () {
 		this.option('bollinger', 'period_calc', 'calculate Bollinger Bands every period_calc time', String, '15m')
 		this.option('bollinger', 'min_periods', 'min. number of history periods', Number, 301)

@@ -52,7 +52,8 @@ var debug = require('../../../lib/debug')
 module.exports = {
 	name: 'stoploss',
 	description: 'Stoploss strategy',
-
+	noHoldCheck: false,
+	
 	getOptions: function () {
 		this.option('stoploss', 'period_calc', 'calculate closing price every period_calc time', String, '15m')
 		this.option('stoploss', 'order_type', 'Order type (maker/taker)', String, 'maker')

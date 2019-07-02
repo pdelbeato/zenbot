@@ -16,7 +16,6 @@ var debug = require('../../../lib/debug')
 //	catch_fixed_value = 1000			//****** Currency value for manual catching order
 //},
 //data: {								//****** To store calculated data
-//}
 //},	
 //calc_lookback: [],					//****** Old periods for calculation
 //calc_close_time: 0,					//****** Close time for strategy period
@@ -49,11 +48,12 @@ var debug = require('../../../lib/debug')
 module.exports = {
 	name: 'catching_orders',
 	description: 'Catching Orders strategy',
-
+	noHoldCheck: true,
+	
 	getOptions: function () {
 		this.option('catching_orders', 'catch_order_pct', '% for automatic catching orders', Number, 2)
 		this.option('catching_orders', 'catch_manual_pct', '% for manual catching order', Number, 10)
-		this.option('catching_orders', 'catch_fixed_value', 'Amount of currency for a manual catching order', Number, 100)
+		this.option('catching_orders', 'catch_fixed_value', 'Amount of currency for a manual catching order', Number, s.options.quantum_value)
 	},
 
 	getCommands: function (s, opts = {}) {
@@ -81,6 +81,9 @@ module.exports = {
 		}})
 		this.command('-', {desc: ('Catching Orders - Manual catch pct '.grey + 'DECREASE'.red), action: function() {
 			strat_opts.catch_manual_pct = Number((strat_opts.catch_manual_pct - 0.5).toFixed(2))
+			if (strat_opts.catch_manual_pctt <= 0) {
+				strat_opts.catch_manual_pct = 0
+			}
 			console.log('\n' + 'Catching Orders - Manual catch order pct ' + 'DECREASE'.red + ' -> ' + strat_opts.catch_manual_pct)
 		}})
 		this.command('*', {desc: ('Catching Orders - Manual catch value '.grey + 'INCREASE'.green), action: function() {
@@ -101,6 +104,9 @@ module.exports = {
 		}})
 		this.command('k', {desc: ('Catching Orders - Catch order pct '.grey + 'DECREASE'.green), action: function() {
 			strat_opts.catch_order_pct = Number((strat_opts.catch_order_pct - 0.5).toFixed(2))
+			if (strat_opts.catch_order_pct <= 0) {
+				strat_opts.catch_order_pct = 0
+			}
 			console.log('\n' + 'Catching Orders - Catch order pct ' + 'DECREASE'.green + ' -> ' + strat_opts.catch_order_pct)
 		}})
 
@@ -161,14 +167,14 @@ module.exports = {
 		
 		if (strat_opts.catch_order_pct > 0) {
 			position = s.positions.find(x => x.id === position_id)
-			position_locking = (position.locked & ~s.strategyFlag['trailing_stop'])
+			position_locking = (position.locked & ~s.strategyFlag['catching_orders'])
 			
 			if (position && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
 				let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 				let target_price = n(position.price_open).multiply((signal === 'buy' ? (1 + so.catch_order_pct/100) : (1 - so.catch_order_pct/100))).format(s.product.increment, Math.floor)
-					debug.msg('Listener -> catching position ' + signal_opposite + ' ' + sig_kind + ' ' + position_id + ' at ' + target_price)
+					debug.msg('Strategy catching_orders - Position ' + position_id + ' ' + position_opposite_signal.toUpperCase() + ' at ' + target_price)
 					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
-					s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, undefined, protectionFlag)  
+					s.eventBus.emit('catching_orders', position_opposite_signal, position_id, undefined, undefined, protectionFlag)  
 				}
 			})
 		}

@@ -10,21 +10,21 @@ var debug = require('../../../lib/debug')
 //---------------------------------------------
 //c.strategy['trailing_stop'] = {
 //name: 'trailing_stop',
-//opts: {								//****** To store options
-//period_calc: '15m',				//****** Execute trailing stop every period_calc time ('null' -> execute every trade)
-//order_type: 'taker', 			//****** Order type
-//trailing_stop_enable_pct: 2,	//****** Enable trailing stop when reaching this % profit
-//trailing_stop_pct: 0.5,			//****** Maintain a trailing stop this % below the high-water mark of profit
+//opts: {							//****** To store options
+//	period_calc: '15m',				//****** Execute trailing stop every period_calc time ('null' -> execute every trade)
+//	order_type: 'taker', 			//****** Order type
+//	trailing_stop_enable_pct: 2,	//****** Enable trailing stop when reaching this % profit
+//	trailing_stop_pct: 0.5,			//****** Maintain a trailing stop this % below the high-water mark of profit
 //},
-//data: {								//****** To store calculated data
-//max_trail_profit_position: {	//****** Positions with max trailing profit
-//buy: null,
-//sell: null,
-//}
+//data: {							//****** To store calculated data
+//	max_trail_profit_position: {	//****** Positions with max trailing profit
+//		buy: null,
+//		ell: null,
+//	}
 //},	
-//calc_lookback: [],					//****** Old periods for calculation
-//calc_close_time: 0,					//****** Close time for strategy period
-//lib: {}								//****** To store all the functions of the strategy
+//calc_lookback: [],				//****** Old periods for calculation
+//calc_close_time: 0,				//****** Close time for strategy period
+//lib: {}							//****** To store all the functions of the strategy
 //}
 //---------------------------------------------
 
@@ -55,7 +55,8 @@ var debug = require('../../../lib/debug')
 module.exports = {
 	name: 'trailing_stop',
 	description: 'Trailing Stop strategy',
-
+	noHoldCheck: false,
+	
 	getOptions: function () {
 		this.option('trailing_stop', 'period_calc', 'Execute trailing stop every period_calc time', String, '15m')
 		this.option('trailing_stop', 'order_type', 'Order type (maker/taker)', String, 'maker')
