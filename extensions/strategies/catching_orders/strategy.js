@@ -1,7 +1,7 @@
 var debug = require('../../../lib/debug')
 , { formatPercent } = require('../../../lib/format')
 , z = require('zero-fill')
-//, n = require('numbro')
+, n = require('numbro')
 , Phenotypes = require('../../../lib/phenotype')
 , inspect = require('eyes').inspector()
 
@@ -122,10 +122,10 @@ module.exports = {
 						let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 						let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
 						if (position.side === 'buy') {
-							let target_price = (position.price_open * (1 + strat_opts.catch_order_pct/100)).format(s.product.increment, Math.floor)
+							let target_price = n(position.price_open).multiply(1 + strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
 						}
 						else {
-							let target_price = (position.price_open * (1 - strat_opts.catch_order_pct/100)).format(s.product.increment, Math.floor)
+							let target_price = n(position.price_open).multiply(1 - strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
 						}
 						debug.msg('Strategy catching_orders - Position ' + position.id + ' ' + position_opposite_signal.toUpperCase() + ' at ' + target_price)
 
@@ -189,10 +189,10 @@ module.exports = {
 				if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
 					let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 					if (position.side === 'buy') {
-						let target_price = (position.price_open * (1 + strat_opts.catch_order_pct/100)).format(s.product.increment, Math.floor)
+						let target_price = n(position.price_open).multiply(1 + strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
 					}
 					else {
-						let target_price = (position.price_open * (1 - strat_opts.catch_order_pct/100)).format(s.product.increment, Math.floor)
+						let target_price = n(position.price_open).multiply(1 - strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
 					}
 					debug.msg('Strategy catching_orders - Position ' + position_id + ' ' + position_opposite_signal.toUpperCase() + ' at ' + target_price)
 					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
