@@ -53,7 +53,7 @@ module.exports = {
 	getOptions: function () {
 		this.option('catching_orders', 'catch_order_pct', '% for automatic catching orders', Number, 2)
 		this.option('catching_orders', 'catch_manual_pct', '% for manual catching order', Number, 10)
-		this.option('catching_orders', 'catch_fixed_value', 'Amount of currency for a manual catching order', Number, s.options.quantum_value)
+		this.option('catching_orders', 'catch_fixed_value', 'Amount of currency for a manual catching order', Number, 0)
 	},
 
 	getCommands: function (s, opts = {}) {
@@ -160,23 +160,27 @@ module.exports = {
 
 	onOrderExecuted: function (s, signal, position_id) {
 //		var opts = {
-//			signal: signal,
-//			sig_kind: sig_kind,
-//			position_id: position_id,
+//		signal: signal,
+//		sig_kind: sig_kind,
+//		position_id: position_id,
 //		};
-		
+
+		let strat_opts = s.options.strategy.catching_orders.opts
+		let strat_data = s.options.strategy.catching_orders.data
+
 		if (strat_opts.catch_order_pct > 0) {
 			position = s.positions.find(x => x.id === position_id)
-			position_locking = (position.locked & ~s.strategyFlag['catching_orders'])
-			
-			if (position && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
-				let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
-				let target_price = n(position.price_open).multiply((signal === 'buy' ? (1 + so.catch_order_pct/100) : (1 - so.catch_order_pct/100))).format(s.product.increment, Math.floor)
+			if (position) {
+				position_locking = (position.locked & ~s.strategyFlag['catching_orders'])
+
+				if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
+					let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
+					let target_price = n(position.price_open).multiply((signal === 'buy' ? (1 + so.catch_order_pct/100) : (1 - so.catch_order_pct/100))).format(s.product.increment, Math.floor)
 					debug.msg('Strategy catching_orders - Position ' + position_id + ' ' + position_opposite_signal.toUpperCase() + ' at ' + target_price)
 					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
 					s.eventBus.emit('catching_orders', position_opposite_signal, position_id, undefined, undefined, protectionFlag)  
 				}
-			})
+			}
 		}
 	},
 
