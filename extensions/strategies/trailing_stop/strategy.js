@@ -98,8 +98,8 @@ module.exports = {
 				if (opts.trade) {
 					let max_trail_profit = -100
 					s.positions.forEach(function (position, index) {
-						//Se la posizione non ha il flag trailing_stop, controllo se il suo profitto ha superato il limite per attivare il trailin stop
-						if (!s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop') && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
+						//Se la posizione non ha ordini aperti in trailing_stop, non è locked in trailing_stop, controllo se il suo profitto ha superato il limite per attivare il trailin stop
+						if (!s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && !s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop') && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
 							s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
 						}
 
@@ -166,8 +166,8 @@ module.exports = {
 				if (strat.calc_lookback[0]) {
 					let max_trail_profit = -100
 					s.positions.forEach(function (position, index) {
-						//Se la posizione non ha il flag trailing_stop, controllo se il suo profitto ha superato il limite per attivare il trailin stop
-						if (!s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop') && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
+						//Se la posizione non ha ordini aperti in trailing_stop, non è locked in trailing_stop, controllo se il suo profitto ha superato il limite per attivare il trailin stop
+						if (!s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && !s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop') && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
 							s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
 						}
 
