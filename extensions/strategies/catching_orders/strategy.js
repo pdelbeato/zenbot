@@ -115,15 +115,30 @@ module.exports = {
 			s.tools.orderStatus(undefined, undefined, 'catching_orders', undefined, 'Unset', 'catching_orders')
 		}})
 		this.command('A', {desc: ('Catching Orders - Insert catch order for ALL free position'.grey), action: function() {
-			console.log('\n' + 'Catching Orders - Insert catch order for ALL free positions'.grey)
-			s.positions.forEach(function (position, index) {
-				if (!s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
-					let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
-					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
-					s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, undefined, protectionFlag)
-				}
-			})
-		}})
+			if (strat_opts.catch_order_pct > 0) {
+				console.log('\n' + 'Catching Orders - Insert catch order for ALL free positions'.grey)
+				s.positions.forEach(function (position, index) {
+					let position_locking = (position.locked & ~s.strategyFlag['catching_orders'])
+
+					if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
+						let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
+						let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
+						if (position.side === 'buy') {
+							let target_price = (position.price_open * (1 + strat_opts.catch_order_pct/100)).format(s.product.increment, Math.floor)
+						}
+						else {
+							let target_price = (position.price_open * (1 - strat_opts.catch_order_pct/100)).format(s.product.increment, Math.floor)
+						}
+						debug.msg('Strategy catching_orders - Position ' + position.id + ' ' + position_opposite_signal.toUpperCase() + ' at ' + target_price)
+
+						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag)  
+					}
+				})
+			}
+			else {
+				console.log('\n' + 'Catching Orders - Catch order pct =< 0!'.red)
+			}
+		}
 	},
 
 	onTrade: function (s, opts= {}, cb= function() {}) {
@@ -175,10 +190,15 @@ module.exports = {
 
 				if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
 					let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
-					let target_price = n(position.price_open).multiply((signal === 'buy' ? (1 + so.catch_order_pct/100) : (1 - so.catch_order_pct/100))).format(s.product.increment, Math.floor)
+					if (position.side === 'buy') {
+						let target_price = (position.price_open * (1 + strat_opts.catch_order_pct/100)).format(s.product.increment, Math.floor)
+					}
+					else {
+						let target_price = (position.price_open * (1 - strat_opts.catch_order_pct/100)).format(s.product.increment, Math.floor)
+					}
 					debug.msg('Strategy catching_orders - Position ' + position_id + ' ' + position_opposite_signal.toUpperCase() + ' at ' + target_price)
 					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
-					s.eventBus.emit('catching_orders', position_opposite_signal, position_id, undefined, undefined, protectionFlag)  
+					s.eventBus.emit('catching_orders', position_opposite_signal, position_id, undefined, target_price, protectionFlag)  
 				}
 			}
 		}
