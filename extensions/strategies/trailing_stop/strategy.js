@@ -19,7 +19,7 @@ var debug = require('../../../lib/debug')
 //data: {							//****** To store calculated data
 //	max_trail_profit_position_id: {	//****** Position ids with max trailing profit
 //		buy: null,
-//		ell: null,
+//		sell: null,
 //	}
 //},	
 //calc_lookback: [],				//****** Old periods for calculation
@@ -95,6 +95,11 @@ module.exports = {
 			let strat = s.options.strategy.trailing_stop
 
 			if (!strat_opts.period_calc) {
+				strat_data.max_trail_profit_position_id: {
+					buy: null,
+					sell: null,
+				}
+			
 				if (opts.trade) {
 					let max_trail_profit = -100
 					s.positions.forEach(function (position, index) {
@@ -136,7 +141,7 @@ module.exports = {
 						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, false)
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null
-						strat_data.max_trail_profit_position_id[position.side] = null
+//						strat_data.max_trail_profit_position_id[position.side] = null
 						s.tools.positionFlags(position, 'locked', 'Unset', 'trailing_stop')
 						return
 					}
@@ -162,7 +167,11 @@ module.exports = {
 
 			if (strat_opts.period_calc) {
 //				debug.msg('trailing_stop strategy - onStrategyPeriod')
-
+				strat_data.max_trail_profit_position_id: {
+					buy: null,
+					sell: null,
+				}
+			
 				if (strat.calc_lookback[0]) {
 					let max_trail_profit = -100
 					s.positions.forEach(function (position, index) {
@@ -204,7 +213,7 @@ module.exports = {
 						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, false)
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null
-						strat_data.max_trail_profit_position_id[position.side] = null
+//						strat_data.max_trail_profit_position_id[position.side] = null
 						s.tools.positionFlags(position, 'locked', 'Unset', 'trailing_stop')
 						return
 					}
