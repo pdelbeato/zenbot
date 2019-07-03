@@ -106,7 +106,7 @@ module.exports = {
 					console.log(('\n' + position_opposite_signal.toUpperCase() + ' stop loss triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').red)
 					s.tools.pushMessage('Stop Loss Protection', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 //					executeSignal(position_opposite_signal, 'stoploss', position.id, undefined, undefined, false, true)
-					s.signal = 'stoploss'
+					s.signal = position_opposite_signal[0].toUpperCase() + ' Stoploss';
 					let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
 					s.eventBus.emit('stoploss', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, strat_opts.order_type)
 				}

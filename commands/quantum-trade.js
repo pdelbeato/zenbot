@@ -485,17 +485,19 @@ module.exports = function (program, conf) {
 						console.log('No position in control.')
 					}
 				}})
-				keyMap.set('K', {desc: ('set a manual close catch order on the position'.grey), action: function() {
+				keyMap.set('K', {desc: ('set a manual close order (using catch orderd pct) on the position'.grey), action: function() {
 					if (s.positions_index != null) {
 						if (s.positions[s.positions_index].side === 'buy') {
-							console.log('\nSet a manual close catch SELL order on the position: '.yellow + s.positions[s.positions_index].id)
+							let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
 							let target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-							s.eventBus.emit('manual', 'sell', s.positions[s.positions_index].id, null, target_price)
+							console.log('\nSet a manual close ' + 'SELL'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at ' + formatCurrency(target_price, s.currency).yellow)
+							s.eventBus.emit('manual', 'sell', s.positions[s.positions_index].id, null, target_price, protectionFree)
 						}
 						else {
-							console.log('\nSet a manual close catch BUY order on the position: '.yellow + s.positions[s.positions_index].id)
+							let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
 							let target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-							s.eventBus.emit('manual', 'buy', s.positions[s.positions_index].id, null, target_price)
+							console.log('\nSet a manual close ' + 'BUY'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at ' + formatCurrency(target_price, s.currency).yellow)
+							s.eventBus.emit('manual', 'buy', s.positions[s.positions_index].id, null, target_price, protectionFree)
 						}
 					}
 					else {

@@ -129,7 +129,7 @@ module.exports = {
 							target_price = n(position.price_open).multiply(1 - strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
 						}
 						debug.msg('Strategy catching_orders - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
-						
+						s.signal = position_opposite_signal[0].toUpperCase() + ' Catching order'
 						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag)  
 					}
 				})
@@ -198,6 +198,7 @@ module.exports = {
 					}
 					debug.msg('Strategy catching_orders - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
 					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
+					s.signal = position_opposite_signal[0].toUpperCase() + ' Catching order'
 					s.eventBus.emit('catching_orders', position_opposite_signal, position_id, undefined, target_price, protectionFlag)  
 				}
 			}

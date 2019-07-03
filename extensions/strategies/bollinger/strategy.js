@@ -186,20 +186,20 @@ module.exports = {
 
 			//Se sono attive le opzioni watchdog, controllo se dobbiamo attivare il watchdog
 			if (strat_opts.pump_watchdog && s.period.close > upperWatchdogBound) {
-				s.signal = 'pump';
+				s.signal = 'Pump Bollinger';
 				strat_data.is_pump_watchdog = true
 				strat_data.is_dump_watchdog = false
 			}
 			else if (strat_opts.dump_watchdog && s.period.close < lowerWatchdogBound) {
-				s.signal = 'dump';
+				s.signal = 'Dump Bollinger';
 				strat_data.is_pump_watchdog = false
 				strat_data.is_dump_watchdog = true
 			}
 			//Non siamo in watchdog
 			else {
 				//Se siamo usciti da un pump/dump, allora siamo in calmdown
-				if (s.signal == 'dump' || s.signal == 'pump') {
-					s.signal = 'P/D Calm';
+				if (s.signal == 'Dump Bollinger' || s.signal == 'Pump Bollinger') {
+					s.signal = 'P/D Calm Boll';
 				}
 				//Il calmdown è passato
 				else if (s.period.close > lowerCalmdownWatchdogBound && s.period.close < upperCalmdownWatchdogBound) {
@@ -219,7 +219,7 @@ module.exports = {
 //				s.eventBus.emit(sig_kind, signal, position_id, fixed_size, fixed_price, is_reorder, is_taker)
 
 				if (sell_condition_1 && sell_condition_2) {
-					s.signal = 'sell';
+					s.signal = 'S Bollinger';
 					if (!s.in_preroll) {
 						if (strat_data.max_profit_position.buy && strat_data.max_profit_position.buy.profit_net_pct >= strat_opts.sell_min_pct) {
 							s.eventBus.emit('bollinger', 'sell', strat_data.max_profit_position.buy.id)
@@ -230,7 +230,7 @@ module.exports = {
 					}
 				}
 				else if (buy_condition_1 && buy_condition_2) {
-					s.signal = 'buy';
+					s.signal = 'B Bollinger';
 					if (!s.in_preroll) {
 						if (strat_data.max_profit_position.sell && strat_data.max_profit_position.sell.profit_net_pct >= strat_opts.buy_min_pct) {
 							s.eventBus.emit('bollinger', 'buy', strat_data.max_profit_position.sell.id)
