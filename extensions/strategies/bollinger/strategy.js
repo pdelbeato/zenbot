@@ -205,38 +205,37 @@ module.exports = {
 			else {
 				s.signal = 'P/D Calm Boll';
 			} 
-		}
 
+			//Utilizzo la normale strategia
+			if (!strat_data.is_pump_watchdog && !strat_data.is_dump_watchdog && !strat_data.is_calmdown) {
+				let buy_condition_1 = (s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100)))
+				let buy_condition_2 = (rsi > strat_opts.rsi_buy_threshold)
 
-		//Utilizzo la normale strategia
-		if (!strat_data.is_pump_watchdog && !strat_data.is_dump_watchdog && !strat_data.is_calmdown) {
-			let buy_condition_1 = (s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100)))
-			let buy_condition_2 = (rsi > strat_opts.rsi_buy_threshold)
+				let sell_condition_1 = (s.period.close > (upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100)))
+				let sell_condition_2 = (rsi < strat_opts.rsi_sell_threshold)
 
-			let sell_condition_1 = (s.period.close > (upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100)))
-			let sell_condition_2 = (rsi < strat_opts.rsi_sell_threshold)
+//				s.eventBus.emit(sig_kind, signal, position_id, fixed_size, fixed_price, is_reorder, is_taker)
 
-//			s.eventBus.emit(sig_kind, signal, position_id, fixed_size, fixed_price, is_reorder, is_taker)
-
-			if (sell_condition_1 && sell_condition_2) {
-				s.signal = 'S Bollinger';
-				if (!s.in_preroll) {
-					if (strat_data.max_profit_position.buy && strat_data.max_profit_position.buy.profit_net_pct >= strat_opts.sell_min_pct) {
-						s.eventBus.emit('bollinger', 'sell', strat_data.max_profit_position.buy.id)
-					}
-					else {
-						s.eventBus.emit('bollinger', 'sell')
+				if (sell_condition_1 && sell_condition_2) {
+					s.signal = 'S Bollinger';
+					if (!s.in_preroll) {
+						if (strat_data.max_profit_position.buy && strat_data.max_profit_position.buy.profit_net_pct >= strat_opts.sell_min_pct) {
+							s.eventBus.emit('bollinger', 'sell', strat_data.max_profit_position.buy.id)
+						}
+						else {
+							s.eventBus.emit('bollinger', 'sell')
+						}
 					}
 				}
-			}
-			else if (buy_condition_1 && buy_condition_2) {
-				s.signal = 'B Bollinger';
-				if (!s.in_preroll) {
-					if (strat_data.max_profit_position.sell && strat_data.max_profit_position.sell.profit_net_pct >= strat_opts.buy_min_pct) {
-						s.eventBus.emit('bollinger', 'buy', strat_data.max_profit_position.sell.id)
-					}
-					else {
-						s.eventBus.emit('bollinger', 'buy')
+				else if (buy_condition_1 && buy_condition_2) {
+					s.signal = 'B Bollinger';
+					if (!s.in_preroll) {
+						if (strat_data.max_profit_position.sell && strat_data.max_profit_position.sell.profit_net_pct >= strat_opts.buy_min_pct) {
+							s.eventBus.emit('bollinger', 'buy', strat_data.max_profit_position.sell.id)
+						}
+						else {
+							s.eventBus.emit('bollinger', 'buy')
+						}
 					}
 				}
 			}
