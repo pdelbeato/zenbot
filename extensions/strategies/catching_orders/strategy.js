@@ -172,7 +172,7 @@ module.exports = {
 	onPositionClosed: function (s, opts= {}) {
 	},
 
-	onOrderExecuted: function (s, signal, position_id) {
+	onOrderExecuted: function (s, opts= {}) {
 //		var opts = {
 //		signal: signal,
 //		sig_kind: sig_kind,
@@ -183,7 +183,7 @@ module.exports = {
 		let strat_data = s.options.strategy.catching_orders.data
 
 		if (strat_opts.catch_order_pct > 0) {
-			let position = s.positions.find(x => x.id === position_id)
+			let position = s.positions.find(x => x.id === opts.position_id)
 			if (position) {
 				let position_locking = (position.locked & ~s.strategyFlag['catching_orders'])
 				let target_price = null
