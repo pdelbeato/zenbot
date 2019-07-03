@@ -140,9 +140,9 @@ module.exports = {
 						s.tools.positionFlags(position, 'locked', 'Unset', 'trailing_stop')
 						return
 					}
-					else {
-						s.signal = null
-					}
+//					else {
+//						s.signal = null
+//					}
 				})
 			}
 		}
@@ -208,9 +208,9 @@ module.exports = {
 						s.tools.positionFlags(position, 'locked', 'Unset', 'trailing_stop')
 						return
 					}
-					else {
-						s.signal = null
-					}
+//					else {
+//						s.signal = null
+//					}
 				})
 			}
 		}

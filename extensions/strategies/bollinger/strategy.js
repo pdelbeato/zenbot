@@ -44,6 +44,7 @@ var z = require('zero-fill')
 //		}
 //		is_pump_watchdog: false,
 //		is_dump_watchdog: false,
+//		is_calmdown: false,
 //		max_profit_position: {		//****** Positions with max profit
 //			buy: null,
 //			sell: null,
@@ -189,27 +190,26 @@ module.exports = {
 				s.signal = 'Pump Bollinger';
 				strat_data.is_pump_watchdog = true
 				strat_data.is_dump_watchdog = false
+				strat_data.is_calmdown = true
 			}
 			else if (strat_opts.dump_watchdog && s.period.close < lowerWatchdogBound) {
 				s.signal = 'Dump Bollinger';
 				strat_data.is_pump_watchdog = false
 				strat_data.is_dump_watchdog = true
+				strat_data.is_calmdown = true
 			}
-			//Non siamo in watchdog
-			else {
-				//Se siamo usciti da un pump/dump, allora siamo in calmdown
-				if (s.signal == 'Dump Bollinger' || s.signal == 'Pump Bollinger') {
+			//Non siamo in watchdog, controlliamo se il calmdown è passato
+			else if (s.period.close > lowerCalmdownWatchdogBound && s.period.close < upperCalmdownWatchdogBound) {
+					strat_data.is_calmdown = false
+				}
+				else {
 					s.signal = 'P/D Calm Boll';
-				}
-				//Il calmdown è passato
-				else if (s.period.close > lowerCalmdownWatchdogBound && s.period.close < upperCalmdownWatchdogBound) {
-					s.signal = null
-				}
+				} 
 			}
 
 
 			//Utilizzo la normale strategia
-			if (!strat_data.is_pump_watchdog && !strat_data.is_dump_watchdog && s.signal == null) {
+			if (!strat_data.is_pump_watchdog && !strat_data.is_dump_watchdog && !strat_data.is_calmdown) {
 				let buy_condition_1 = (s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100)))
 				let buy_condition_2 = (rsi > strat_opts.rsi_buy_threshold)
 
@@ -284,10 +284,7 @@ module.exports = {
 				}
 
 				//Ma se siamo in dump/pump, allora il colore del limite è rosso
-				if (s.period.close > upperWatchdogBound) {
-					color_up = 'red'
-				}
-				if (s.period.close < lowerWatchdogBound) {
+				if (strat_data.is_pump_watchdog || strat_data.is_dump_watchdog) {
 					color_down = 'red'
 				}
 				
