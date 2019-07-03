@@ -95,7 +95,7 @@ module.exports = {
 			let strat = s.options.strategy.trailing_stop
 
 			if (!strat_opts.period_calc) {
-				strat_data.max_trail_profit_position_id: {
+				strat_data.max_trail_profit_position_id = {
 					buy: null,
 					sell: null,
 				}
@@ -167,7 +167,7 @@ module.exports = {
 
 			if (strat_opts.period_calc) {
 //				debug.msg('trailing_stop strategy - onStrategyPeriod')
-				strat_data.max_trail_profit_position_id: {
+				strat_data.max_trail_profit_position_id = {
 					buy: null,
 					sell: null,
 				}
