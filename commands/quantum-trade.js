@@ -546,6 +546,9 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('C', {desc: ('cancel the position'.grey), action: function() {
 					if (s.positions_index != null) {
+						//Attenzione!! Se ordino più cancellazioni in breve lasso di tempo, s.position_index diventa null prima che 
+						// s.positionProcessingQueue possa eseguire le operazioni, quindi non troverà il .id e il programma andrà
+						// in errore.
 						console.log('\nCanceling the position '.yellow + s.positions[s.positions_index].id)
 
 						s.tools.positionFlags(s.positions[s.positions_index], 'status', 'Free')
