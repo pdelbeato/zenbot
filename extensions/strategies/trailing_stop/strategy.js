@@ -238,12 +238,26 @@ module.exports = {
 			
 			if (strat_data.max_trail_profit_position_id.buy != null) {
 				let position_buy = s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.buy)
-				position_buy_profit = position_buy.profit_net_pct/100;
+				//Se per qualche arcano motivo (capita ad esempio se mentre vendo, la posizione viene scelta per essere la max_trail_profit_position)
+				// la posizione non esiste, è meglio azzerare questa variabile
+				if (position_buy) {
+					position_buy_profit = position_buy.profit_net_pct/100
+				}
+				else {
+					strat_data.max_trail_profit_position_id.buy = null
+				}
 			}
 
 			if (strat_data.max_trail_profit_position_id.sell != null) {
 				let position_sell = s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.sell)
-				position_sell_profit = position_sell.profit_net_pct/100;
+				//Se per qualche arcano motivo (capita ad esempio se mentre vendo, la posizione viene scelta per essere la max_trail_profit_position)
+				// la posizione non esiste, è meglio azzerare questa variabile
+				if (position_sell) {
+					position_sell_profit = position_sell.profit_net_pct/100
+				}
+				else {
+					strat_data.max_trail_profit_position_id.sell = null
+				}
 			}
 
 			buysell = (position_buy_profit > position_sell_profit ? 'B' : 'S')
