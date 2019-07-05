@@ -347,7 +347,7 @@ module.exports = {
 			pct_max_profit = max_profit_position[side_max_profit].profit_net_pct
 		}
 		let result = (side_max_profit ? ('/n Bollinger position:' + side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit/100)) : '')
-		debug.msg('Strategy Bollinger - onUpdateMessage: ' + result)
+//		debug.msg('Strategy Bollinger - onUpdateMessage: ' + result)
 		cb(result)		
 	},
 	
