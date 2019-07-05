@@ -294,7 +294,7 @@ module.exports = {
 			side_max_trail_profit =  ((position.buy ? position.buy.profit_net_pct : -100) > (position.sell ? position.sell.profit_net_pct : -100) ? 'buy' : 'sell')
 			pct_max_trail_profit = position[side_max_trail_profit].profit_net_pct
 		}
-		let result = (side_max_trail_profit ? ('\nTrailing position: ' + (side_max_trail_profit[0].toUpperCase() + formatPercent(pct_max_trail_profit/100))) : '')
+		let result = (side_max_trail_profit ? ('Trailing position: ' + (side_max_trail_profit[0].toUpperCase() + formatPercent(pct_max_trail_profit/100))) : '')
 		cb(result)
 	},
 
