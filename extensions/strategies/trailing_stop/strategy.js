@@ -281,7 +281,7 @@ module.exports = {
 		let max_profit_positions_id = s.options.strategy.trailing_stop.data.max_profit_position_id
 		let side_max_profit = null
 		let pct_max_profit = null
-		if (max_profit_positions_id.buy != null || max_profit_positions_id.sell != null) {
+		if (max_trail_profit_positions_id && max_trail_profit_positions_id.buy != null || max_trail_profit_positions_id.sell != null) {
 			let position = {
 				buy: s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.buy),
 				sell: s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.sell),
