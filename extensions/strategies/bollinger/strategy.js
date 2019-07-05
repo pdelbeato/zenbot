@@ -98,7 +98,7 @@ module.exports = {
 		this.option('bollinger', 'buy_min_pct', 'avoid buying at a profit below this pct (for short positions)', Number, 1)
 	},
 	
-	getCommands: function (s, opts = {}) {
+	getCommands: function (s, opts = {}, cb = function() {}) {
 		let strat_opts = s.options.strategy.bollinger.opts
 		let strat_data = s.options.strategy.bollinger.data
 		
@@ -129,6 +129,8 @@ module.exports = {
 			strat_opts.buy_min_pct = Number((strat_opts.buy_min_pct - 0.05).toFixed(2))
 			console.log('\n' + 'Bollinger - Buy min pct' + ' DECREASE'.red + ' -> ' + strat_opts.buy_min_pct)
 		}})
+		
+		cb()
 	},
 
 	onTrade: function (s, opts= {}, cb = function() {}) {
@@ -252,7 +254,7 @@ module.exports = {
 	},
 
 
-	onReport: function (s) {
+	onReport: function (s, opts= {}, cb = function() {}) {
 		let strat_opts = s.options.strategy.bollinger.opts
 		let strat_data = s.options.strategy.bollinger.data
 		
@@ -333,11 +335,10 @@ module.exports = {
 			process.stdout.write(col)
 		})
 		
-		
-		//return cols
+		cb()
 	},
 	
-	onUpdateMessage: function (s) {
+	onUpdateMessage: function (s, opts= {}, cb = function() {}) {
 		let max_profit_position = s.options.strategy.bollinger.data.max_profit_position
 		let side_max_profit = null
 		let pct_max_profit = null
@@ -345,29 +346,35 @@ module.exports = {
 			side_max_profit =  ((max_profit_position.buy ? max_profit_position.buy.profit_net_pct : -100) > (max_profit_position.sell ? max_profit_position.sell.profit_net_pct : -100) ? 'buy' : 'sell')
 			pct_max_profit = max_profit_position[side_max_profit].profit_net_pct
 		}
-		debug.msg('Strategy Bollinger - onUpdateMessage: ' + (side_max_profit ? ('/n Bollinger position:' + side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit/100)) : ''))
-		return (side_max_profit ? ('/n Bollinger position:' + side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit/100)) : '')
+		let result = (side_max_profit ? ('/n Bollinger position:' + side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit/100)) : '')
+		debug.msg('Strategy Bollinger - onUpdateMessage: ' + result)
+		cb(result)		
 	},
 	
-	onPositionOpened: function (s, opts= {}) {
+	onPositionOpened: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 	
-	onPositionUpdated: function (s, opts= {}) {
+	onPositionUpdated: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 	
-	onPositionClosed: function (s, opts= {}) {
+	onPositionClosed: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 	
-	onOrderExecuted: function (s, signal, position_id) {
+	onOrderExecuted: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 	
-	printOptions: function(s) {
+	printOptions: function(s, opts= {}, cb = function() {}) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.bollinger))
 		delete so_tmp.calc_lookback
 		delete so_tmp.calc_close_time
 		delete so_tmp.lib
 		
 		console.log('\n' + inspect(so_tmp))
+		cb()
 	},
 
 	phenotypes: {

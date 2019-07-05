@@ -56,7 +56,7 @@ module.exports = {
 		this.option('catching_orders', 'catch_fixed_value', 'Amount of currency for a manual catching order', Number, 0)
 	},
 
-	getCommands: function (s, opts = {}) {
+	getCommands: function (s, opts= {}, cb = function() {}) {
 		let strat_opts = s.options.strategy.catching_orders.opts
 		let strat_data = s.options.strategy.catching_orders.data
 
@@ -138,6 +138,8 @@ module.exports = {
 				console.log('\n' + 'Catching Orders - Catch order pct =< 0!'.red)
 			}
 		}})
+		
+		cb()
 	},
 
 	onTrade: function (s, opts= {}, cb= function() {}) {
@@ -153,26 +155,30 @@ module.exports = {
 		cb()
 	},
 
-	onReport: function (s) {
+	onReport: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 
-	onUpdateMessage: function (s) {
+	onUpdateMessage: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 
-	onPositionOpened: function (s, opts= {}) {
+	onPositionOpened: function (s, opts= {}, cb = function() {}) {
 //		var opts = {
 //			position_id: position_id,
 //		};
-		
+		cb()
 	},
 
-	onPositionUpdated: function (s, opts= {}) {
+	onPositionUpdated: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 
-	onPositionClosed: function (s, opts= {}) {
+	onPositionClosed: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 
-	onOrderExecuted: function (s, opts= {}) {
+	onOrderExecuted: function (s, opts= {}, cb = function() {}) {
 //		var opts = {
 //		signal: signal,
 //		sig_kind: sig_kind,
@@ -205,15 +211,17 @@ module.exports = {
 				}
 			}
 		}
+		cb()
 	},
 
-	printOptions: function(s) {
+	printOptions: function(s, opts= {}, cb = function() {}) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.stoploss))
 		delete so_tmp.calc_lookback
 		delete so_tmp.calc_close_time
 		delete so_tmp.lib
 
 		console.log('\n' + inspect(so_tmp))
+		cb()
 	},
 
 	//TOTALMENTE da sistemare, se dovessero servire

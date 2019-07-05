@@ -64,7 +64,7 @@ module.exports = {
 		this.option('trailing_stop', 'trailing_stop_pct', 'Maintain a trailing stop this % below the high-water mark of profit', Number, 0.5)
 	},
 
-	getCommands: function (s, opts = {}) {
+	getCommands: function (s, opts= {}, cb = function() {}) {
 		let strat_opts = s.options.strategy.trailing_stop.opts
 		let strat_data = s.options.strategy.trailing_stop.data
 
@@ -85,6 +85,8 @@ module.exports = {
 			strat_opts.trailing_stop_pct = Number((strat_opts.trailing_stop_pct - 0.05).toFixed(2))
 			console.log('\n' + 'Trailing Stop - Trailing stop pct' + ' DECREASE'.red + ' -> ' + strat_opts.trailing_stop_pct)
 		}})
+		
+		cb()
 	},
 
 	onTrade: function (s, opts= {}, cb= function() {}) {
@@ -226,7 +228,7 @@ module.exports = {
 		cb()
 	},
 
-	onReport: function (s) {
+	onReport: function (s, opts= {}, cb = function() {}) {
 		let strat_opts = s.options.strategy.trailing_stop.opts
 		let strat_data = s.options.strategy.trailing_stop.data
 
@@ -272,9 +274,11 @@ module.exports = {
 		cols.forEach(function (col) {
 			process.stdout.write(col)
 		})
+		
+		cb()
 	},
 
-	onUpdateMessage: function (s) {
+	onUpdateMessage: function (s, opts= {}, cb = function() {}) {
 		let strat_opts = s.options.strategy.trailing_stop.opts
 		let strat_data = s.options.strategy.trailing_stop.data
 
@@ -290,35 +294,40 @@ module.exports = {
 			side_max_trail_profit =  ((position.buy ? position.buy.profit_net_pct : -100) > (position.sell ? position.sell.profit_net_pct : -100) ? 'buy' : 'sell')
 			pct_max_trail_profit = position[side_max_trail_profit].profit_net_pct
 		}
-
-		return (side_max_trail_profit ? ('\nTrailing position: ' + (side_max_trail_profit[0].toUpperCase() + formatPercent(pct_max_trail_profit/100))) : '') 
+		let result = (side_max_trail_profit ? ('\nTrailing position: ' + (side_max_trail_profit[0].toUpperCase() + formatPercent(pct_max_trail_profit/100))) : '')
+		cb(result)
 	},
 
-	onPositionOpened: function (s, opts= {}) {
+	onPositionOpened: function (s, opts= {}, cb = function() {}) {
 		var position = s.positions.find(x => x.id === opts.position_id)
 		position.strategy_parameters.trailing_stop = {
 			trailing_stop_limit: null,
 			trailing_stop: null,
 		}
 
+		cb()
 	},
 
-	onPositionUpdated: function (s, opts= {}) {
+	onPositionUpdated: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 
-	onPositionClosed: function (s, opts= {}) {
+	onPositionClosed: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 
-	onOrderExecuted: function (s, signal, position_id) {
+	onOrderExecuted: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 
-	printOptions: function(s) {
+	printOptions: function(s, opts= {}, cb = function() {}) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.trailing_stop))
 		delete so_tmp.calc_lookback
 		delete so_tmp.calc_close_time
 		delete so_tmp.lib
 
 		console.log('\n' + inspect(so_tmp))
+		cb()
 	},
 
 	//TOTALMENTE da sistemare, se dovessero servire

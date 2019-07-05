@@ -61,7 +61,7 @@ module.exports = {
 		this.option('stoploss', 'sell_stop_pct', 'For a BUY position, sell if price drops below this % of bought price', Number, 10)
 	},
 
-	getCommands: function (s, opts = {}) {
+	getCommands: function (s, opts= {}, cb = function() {}) {
 		let strat_opts = s.options.strategy.stoploss.opts
 		let strat_data = s.options.strategy.stoploss.data
 		
@@ -82,6 +82,8 @@ module.exports = {
 			strat_opts.sell_stop_pct = Number((strat_opts.sell_stop_pct - 0.05).toFixed(2))
 			console.log('\n' + 'Stoploss - Sell stop price' + ' DECREASE'.green + ' -> ' + strat_opts.sell_stop_pct)
 		}})
+		
+		cb()
 	},
 	
 	onTrade: function (s, opts= {}, cb= function() {}) {
@@ -118,43 +120,52 @@ module.exports = {
 		cb()
 	},
 
-	onReport: function (s) {
+	onReport: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 	
-	onUpdateMessage: function (s) {
+	onUpdateMessage: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 	
-	onPositionOpened: function (s, opts= {}) {
+	onPositionOpened: function (s, opts= {}, cb = function() {}) {
 		let strat_opts = s.options.strategy.stoploss.opts
 		
 		var position = s.positions.find(x => x.id === opts.position_id)
 		position.strategy_parameters.stoploss = {}
 		position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat_opts.buy_stop_pct/100).format(s.product.increment) : null)
 		position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat_opts.sell_stop_pct/100).format(s.product.increment) : null)
+		
+		cb()
 	},
 	
-	onPositionUpdated: function (s, opts= {}) {
+	onPositionUpdated: function (s, opts= {}, cb = function() {}) {
 		let strat_opts = s.options.strategy.stoploss.opts
 
 		var position = s.positions.find(x => x.id === opts.position_id)
 		
 		position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat_opts.buy_stop_pct/100).format(s.product.increment) : null)
 		position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat_opts.sell_stop_pct/100).format(s.product.increment) : null)
+		
+		cb()
 	},
 	
-	onPositionClosed: function (s, opts= {}) {
+	onPositionClosed: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 	
-	onOrderExecuted: function (s, signal, position_id) {
+	onOrderExecuted: function (s, opts= {}, cb = function() {}) {
+		cb()
 	},
 
-	printOptions: function(s) {
+	printOptions: function(s, opts= {}, cb = function() {}) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.stoploss))
 		delete so_tmp.calc_lookback
 		delete so_tmp.calc_close_time
 		delete so_tmp.lib
 		
 		console.log('\n' + inspect(so_tmp))
+		cb()
 	},
 
 	//TOTALMENTE da sistemare, se dovessero servire
