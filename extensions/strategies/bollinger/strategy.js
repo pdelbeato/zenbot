@@ -338,14 +338,14 @@ module.exports = {
 	},
 	
 	onUpdateMessage: function (s) {
-		let max_profit_positions = s.options.strategy.bollinger.data.max_profit_position
+		let max_profit_position = s.options.strategy.bollinger.data.max_profit_position
 		let side_max_profit = null
 		let pct_max_profit = null
-		if (max_profit_positions.buy != null || max_profit_positions.sell != null) {
-			side_max_profit =  ((max_profit_positions.buy ? max_profit_positions.buy.profit_net_pct : -100) > (max_profit_positions.sell ? max_profit_positions.sell.profit_net_pct : -100) ? 'buy' : 'sell')
-			pct_max_profit = max_profit_positions[side_max_profit].profit_net_pct
+		if (max_profit_position.buy != null || max_profit_position.sell != null) {
+			side_max_profit =  ((max_profit_position.buy ? max_profit_position.buy.profit_net_pct : -100) > (max_profit_position.sell ? max_profit_position.sell.profit_net_pct : -100) ? 'buy' : 'sell')
+			pct_max_profit = max_profit_position[side_max_profit].profit_net_pct
 		}
-		
+		debug.msg('Strategy Bollinger - onUpdateMessage: ' + (side_max_profit ? ('/n Bollinger position:' + side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit/100)) : ''))
 		return (side_max_profit ? ('/n Bollinger position:' + side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit/100)) : '')
 	},
 	
