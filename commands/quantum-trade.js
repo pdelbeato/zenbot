@@ -102,6 +102,7 @@ module.exports = function (program, conf) {
 	.option('--update_msg <hours>', 'Send an update message every <hours>', String, conf.update_msg)
 	.option('--debug', 'output detailed debug info')
 	.option('--no_first_message', 'no first update message', Boolean, false)
+	.option('--no_check_hold', 'no check for funds on hold', Boolean, false)
 	.action(function (selector, cmd) {
 		var raw_opts = minimist(process.argv)
 		var s = {options: JSON.parse(JSON.stringify(raw_opts))}
