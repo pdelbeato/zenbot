@@ -278,20 +278,20 @@ module.exports = {
 		let strat_opts = s.options.strategy.trailing_stop.opts
 		let strat_data = s.options.strategy.trailing_stop.data
 
-		let max_profit_positions_id = s.options.strategy.trailing_stop.data.max_profit_position_id
-		let side_max_profit = null
-		let pct_max_profit = null
+		let max_trail_profit_positions_id = s.options.strategy.trailing_stop.data.max_trail_profit_position_id
+		let side_max_trail_profit = null
+		let pct_max_trail_profit = null
 		if (max_trail_profit_position_id && max_trail_profit_position_id.buy != null || max_trail_profit_position_id.sell != null) {
 			let position = {
 				buy: s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.buy),
 				sell: s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.sell),
 			}
 			
-			side_max_profit =  ((position.buy ? position.buy.profit_net_pct : -100) > (position.sell ? position.sell.profit_net_pct : -100) ? 'buy' : 'sell')
-			pct_max_profit = position[side_max_profit].profit_net_pct
+			side_max_trail_profit =  ((position.buy ? position.buy.profit_net_pct : -100) > (position.sell ? position.sell.profit_net_pct : -100) ? 'buy' : 'sell')
+			pct_max_trail_profit = position[side_max_trail_profit].profit_net_pct
 		}
 
-		return (side_max_profit ? ('\nTrailing position: ' + (side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit/100))) : '') 
+		return (side_max_trail_profit ? ('\nTrailing position: ' + (side_max_trail_profit[0].toUpperCase() + formatPercent(pct_max_trail_profit/100))) : '') 
 	},
 
 	onPositionOpened: function (s, opts= {}) {
