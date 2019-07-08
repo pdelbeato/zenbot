@@ -80,7 +80,7 @@ module.exports = {
 	
 	getOptions: function () {
 		this.option('bollinger', 'period_calc', 'calculate Bollinger Bands every period_calc time', String, '15m')
-		this.option('bollinger', 'min_periods', 'min. number of history periods', Number, 301)
+		this.option('bollinger', 'min_periods', 'Min. number of history periods', Number, 301)
 		this.option('bollinger', 'size', 'period size', Number, 20)
 		this.option('bollinger', 'time', 'times of standard deviation between the upper/lower band and the moving averages', Number, 1.5)
 		this.option('bollinger', 'rsi_size', 'period size rsi', Number, 15)

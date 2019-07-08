@@ -13,6 +13,7 @@ var debug = require('../../../lib/debug')
 //	name: 'virtual_stoploss',
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Execute profitstop every period_calc time
+//		min_periods: 2, 			//****** Minimum number of history periods (timeframe period_length)
 //		virtual_buy_stop_pct: 10,	//****** For a SELL position, buy if price rise above this % of bought price
 //		virtual_sell_stop_pct: 10,	//****** For a BUY position, sell if price drops below this % of bought price
 //	},
@@ -57,6 +58,7 @@ module.exports = {
 	
 	getOptions: function () {
 		this.option('virtual_stoploss', 'period_calc', 'calculate closing price every period_calc time', String, '15m')
+		this.option('virtual_stoploss', 'min_periods', 'Min. number of history periods', Number, 2)
 		this.option('virtual_stoploss', 'buy_virtual_stop_pct', 'For a SELL position, adjust open price if price rise above this % of bought price', Number, 10)
 		this.option('virtual_stoploss', 'sell_virtual_stop_pct', 'For a BUY position, adjust open price if price drops below this % of bought price', Number, 10)
 	},

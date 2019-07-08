@@ -13,6 +13,7 @@ var debug = require('../../../lib/debug')
 //	name: 'stoploss',
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Execute profitstop every period_calc time
+//		min_periods: 2, 			//****** Minimum number of history periods (timeframe period_length)
 //		order_type: 'maker', 		//****** Order type
 //		buy_stop_pct: 10,			//****** For a SELL position, buy if price rise above this % of bought price
 //		sell_stop_pct: 10,			//****** For a BUY position, sell if price drops below this % of bought price
@@ -56,6 +57,7 @@ module.exports = {
 	
 	getOptions: function () {
 		this.option('stoploss', 'period_calc', 'calculate closing price every period_calc time', String, '15m')
+		this.option('stoploss', 'min_periods', 'Min. number of history periods', Number, 2)
 		this.option('stoploss', 'order_type', 'Order type (maker/taker)', String, 'maker')
 		this.option('stoploss', 'buy_stop_pct', 'For a SELL position, buy if price rise above this % of bought price', Number, 10)
 		this.option('stoploss', 'sell_stop_pct', 'For a BUY position, sell if price drops below this % of bought price', Number, 10)

@@ -12,6 +12,7 @@ var debug = require('../../../lib/debug')
 //name: 'trailing_stop',
 //opts: {							//****** To store options
 //	period_calc: '15m',				//****** Execute trailing stop every period_calc time ('null' -> execute every trade)
+//	min_periods: 2,		 			//****** Minimum number of history periods (timeframe period_length)
 //	order_type: 'taker', 			//****** Order type
 //	trailing_stop_enable_pct: 2,	//****** Enable trailing stop when reaching this % profit
 //	trailing_stop_pct: 0.5,			//****** Maintain a trailing stop this % below the high-water mark of profit
@@ -59,6 +60,7 @@ module.exports = {
 	
 	getOptions: function () {
 		this.option('trailing_stop', 'period_calc', 'Execute trailing stop every period_calc time', String, '15m')
+		this.option('trailing_stop', 'min_periods', 'Min. number of history periods', Number, 2)
 		this.option('trailing_stop', 'order_type', 'Order type (maker/taker)', String, 'maker')
 		this.option('trailing_stop', 'trailing_stop_enable_pct', 'Enable trailing stop when reaching this % profit', Number, 2)
 		this.option('trailing_stop', 'trailing_stop_pct', 'Maintain a trailing stop this % below the high-water mark of profit', Number, 0.5)
