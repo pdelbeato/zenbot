@@ -1,5 +1,5 @@
 var debug = require('../../../lib/debug')
-, { formatPercent } = require('../../../lib/format')
+, { formatPercent, formatCurrency } = require('../../../lib/format')
 , z = require('zero-fill')
 , n = require('numbro')
 , Phenotypes = require('../../../lib/phenotype')
@@ -77,26 +77,26 @@ module.exports = {
 		}})
 		this.command('u', {desc: ('Virtual Stoploss - Virtual buy stop price (short position)'.grey + ' INCREASE'.green), action: function() {
 			strat_opts.virtual_buy_stop_pct = Number((strat_opts.virtual_buy_stop_pct + 0.05).toFixed(2))
-			console.log('\nVirtual Stoploss - Virtual buy stop price' + ' INCREASE'.green + ' -> ' + strat_opts.virtual_buy_stop_pct)
+			console.log('\nVirtual Stoploss - Virtual buy stop price'.yellow + ' INCREASE'.green + ' -> ' + strat_opts.virtual_buy_stop_pct)
 		}})
 		this.command('j', {desc: ('Virtual Stoploss - Virtual buy stop price (short position)'.grey + ' DECREASE'.red), action: function() {
 			strat_opts.virtual_buy_stop_pct = Number((strat_opts.virtual_buy_stop_pct - 0.05).toFixed(2))
-			console.log('\nVirtual Stoploss - Virtual buy stop price' + ' DECREASE'.red + ' -> ' + strat_opts.virtual_buy_stop_pct)
+			console.log('\nVirtual Stoploss - Virtual buy stop price'.yellow + ' DECREASE'.red + ' -> ' + strat_opts.virtual_buy_stop_pct)
 		}})
 		this.command('U', {desc: ('Virtual Stoploss - Virtual sell stop price (long position)'.grey + ' INCREASE'.green), action: function() {
 			strat_opts.virtual_sell_stop_pct = Number((strat_opts.virtual_sell_stop_pct + 0.05).toFixed(2))
-			console.log('\nVirtual Stoploss - Virtual sell stop price' + ' INCREASE'.green + ' -> ' + strat_opts.virtual_sell_stop_pct)
+			console.log('\nVirtual Stoploss - Virtual sell stop price'.yellow + ' INCREASE'.green + ' -> ' + strat_opts.virtual_sell_stop_pct)
 		}})
 		this.command('J', {desc: ('Virtual Stoploss - Virtual sell stop price (long position)'.grey + ' DECREASE'.red), action: function() {
 			strat_opts.virtual_sell_stop_pct = Number((strat_opts.virtual_sell_stop_pct - 0.05).toFixed(2))
-			console.log('\nVirtual Stoploss - Virtual sell stop price' + ' DECREASE'.green + ' -> ' + strat_opts.virtual_sell_stop_pct)
+			console.log('\nVirtual Stoploss - Virtual sell stop price'.yellow + ' DECREASE'.green + ' -> ' + strat_opts.virtual_sell_stop_pct)
 		}})
 		this.command('y', {desc: ('Virtual Stoploss - Manual activate Virtual stop on position'.grey + s.positions_index), action: function() {
 			if (s.positions_index != null) {
-				console.log('\nVirtual Stoploss - Manual activate Virtual stop on position: '.yellow + s.positions[s.positions_index].id + '. New open price: ' + format(s.period.close, s.currency) + '\n')
+				console.log('\nVirtual Stoploss - Manual activate Virtual stop on position: '.yellow + s.positions[s.positions_index].id + '. New open price: '.yellow + formatCurrency(s.period.close, s.currency) + '\n')
 				//Il prezzo di apertura originale deve essere registrato solo la prima volta
 				if (!s.positions[s.positions_index].strategy_parameters.virtual_stoploss.original_price_open) {
-					s.positions[s.positions_index].strategy_parameters.virtual_stoploss: {
+					s.positions[s.positions_index].strategy_parameters.virtual_stoploss = {
 						original_price_open: s.positions[s.positions_index].price_open,
 						original_profit_gross_pct: s.positions[s.positions_index].profit_gross_pct,
 					}
@@ -108,9 +108,9 @@ module.exports = {
 				console.log('No position in control.')
 			}
 		}})
-		this.command('Y', {desc: ('Virtual Stoploss - Manual deactivate Virtual stop on position'.grey + s.positions_index), action: function() {
+		this.command('Y', {desc: ('Virtual Stoploss - Manual deactivate Virtual stop on position '.grey + s.positions_index), action: function() {
 			if (s.positions_index != null) {
-				console.log('\nVirtual Stoploss - Manual dectivate Virtual stop on position: '.yellow + s.positions[s.positions_index].id + '. New open price: ' + format(s.positions[s.positions_index].strategy_parameters.virtual_stoploss.original_price_open, s.currency) + '\n')
+				console.log('\nVirtual Stoploss - Manual dectivate Virtual stop on position: '.yellow + s.positions[s.positions_index].id + '. New open price: ' + formatCurrency(s.positions[s.positions_index].strategy_parameters.virtual_stoploss.original_price_open, s.currency) + '\n')
 				s.positions[s.positions_index].price_open = s.positions[s.positions_index].strategy_parameters.virtual_stoploss.original_price_open
 				s.positions[s.positions_index].profit_gross_pct = s.positions[s.positions_index].strategy_parameters.virtual_stoploss.original_profit_gross_pct
 				console.log(inspect(s.positions[s.positions_index]))
@@ -132,14 +132,14 @@ module.exports = {
 //		var opts = {
 //			trade: trade,
 //		};
-		let pos_strat_param = position.strategy_parameters.virtual_stoploss
 		
 		s.positions.forEach( function (position, index) {
+			let pos_strat_param = position.strategy_parameters.virtual_stoploss
 			if (pos_strat_param.original_price_open) {
 				let original_price_open = pos_strat_param.original_price_open
 				pos_strat_param.original_profit_gross_pct = (position.side == 'buy' ? +100 : -100) * n(opts.trade.price).subtract(original_price_open).divide(original_price_open).value()
 			}
-		}
+		})
 		cb()
 	},
 	
@@ -153,13 +153,13 @@ module.exports = {
 				position_stop = position.strategy_parameters.virtual_stoploss['virtual_' + position_opposite_signal + '_stop']				
 
 				if (position_stop && !position.locked && ((position.side == 'buy' ? +1 : -1) * (s.options.strategy.virtual_stoploss.calc_lookback[0].close - position_stop) < 0)) {
-					console.log(('\n Virtual stop loss triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '. New open price ' format(s.options.strategy.virtual_stoploss.calc_lookback[0].close, s.currency) + '\n').red)
-					s.tools.pushMessage('Virtual Stop Loss Protection', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + '). New open price ' + format(s.options.strategy.virtual_stoploss.calc_lookback[0].close, s.currency), 0)
+					console.log(('\n Virtual stop loss triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '. New open price ' + formatCurrency(s.options.strategy.virtual_stoploss.calc_lookback[0].close, s.currency) + '\n').red)
+					s.tools.pushMessage('Virtual Stop Loss Protection', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + '). New open price ' + formatCurrency(s.options.strategy.virtual_stoploss.calc_lookback[0].close, s.currency), 0)
 					s.signal = 'Virtual Stoploss';
 					
 					//Il prezzo di apertura originale deve essere registrato solo la prima volta
 					if (!position.strategy_parameters.virtual_stoploss.original_price_open) {
-						position.strategy_parameters.virtual_stoploss: {
+						position.strategy_parameters.virtual_stoploss = {
 							original_price_open: position.price_open,
 							original_profit_gross_pct: position.profit_gross_pct,
 						}

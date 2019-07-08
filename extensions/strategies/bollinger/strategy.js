@@ -201,11 +201,11 @@ module.exports = {
 				strat_data.is_calmdown = true
 			}
 			//Non siamo in watchdog, controlliamo se il calmdown è passato
-			else if (s.period.close > lowerCalmdownWatchdogBound && s.period.close < upperCalmdownWatchdogBound) {
+			else if (strat_data.is_calmdown && s.period.close > lowerCalmdownWatchdogBound && s.period.close < upperCalmdownWatchdogBound) {
 				strat_data.is_calmdown = false
 			}
 			else {
-				s.signal = 'P/D Calm Boll';
+				s.signal = 'Boll Calm';
 			} 
 
 			//Utilizzo la normale strategia

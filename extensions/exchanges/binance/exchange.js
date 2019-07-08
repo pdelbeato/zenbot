@@ -552,6 +552,37 @@ module.exports = function binance (conf) {
 //						'info': { ... },              // the original unparsed order structure as is
 //						}
 						
+//						{ info:
+//						   { symbol: 'WAVESBTC',
+//						     orderId: 95320814,
+//						     clientOrderId: 'NaSF96BCrtyaWPfMVlvsfF',
+//						     price: '0.00017360',
+//						     origQty: '576.03000000',
+//						     executedQty: '0.00000000',
+//						     cummulativeQuoteQty: '0.00000000',
+//						     status: 'NEW',
+//						     timeInForce: 'GTC',
+//						     type: 'LIMIT',
+//						     side: 'SELL',
+//						     stopPrice: '0.00000000',
+//						     icebergQty: '0.00000000',
+//						     time: 1562616490588,
+//						     updateTime: 1562616490588,
+//						     isWorking: true },
+//						  id: '95320814',
+//						  timestamp: 1562616490588,
+//						  datetime: '2019-07-08T20:08:10.588Z',
+//						  symbol: 'WAVES/BTC',
+//						  type: 'limit',
+//						  side: 'sell',
+//						  price: 0.0001736,
+//						  amount: 576.03,
+//						  cost: 0,
+//						  filled: 0,
+//						  remaining: 576.03,
+//						  status: 'open' }
+
+						
 						debug.obj('exchange.getOrder - fetchOrder:', body)
 						
 						let order_tmp = {
