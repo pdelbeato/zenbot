@@ -9,7 +9,7 @@ var tb = require('timebucket')
 , readline = require('readline')
 , colors = require('colors')
 , z = require('zero-fill')
-, cliff = require('cliff')
+, inspect = require('eyes').inspector({maxLength: 10000 })
 , output = require('../lib/output')
 , objectifySelector = require('../lib/objectify-selector')
 , engineFactory = require('../lib/quantum-engine')
@@ -19,6 +19,7 @@ var tb = require('timebucket')
 , debug = require('../lib/debug')
 , sizeof = require('object-sizeof')
 , async = require('async')
+//, tools = require('./quantum-tools')
 
 //Per eseguire comandi da bash
 //var sys = require('util')
@@ -30,13 +31,31 @@ var exec = require('child_process').exec
 //function puts(error, stdout, stderr) { console.log(stdout) }
 function puts(error, stdout) { console.log(stdout) }
 
+// Cambia i colori di cliff
+//styles: {                 // Styles applied to stdout
+//    all:     'cyan',      // Overall style applied to everything
+//    label:   'underline', // Inspection labels, like 'array' in `array: [1, 2, 3]`
+//    other:   'inverted',  // Objects which don't have a literal representation, such as functions
+//    key:     'bold',      // The keys in object literals, like 'a' in `{a: 1}`
+//    special: 'grey',      // null, undefined...
+//    string:  'green',
+//    number:  'magenta',
+//    bool:    'blue',      // true false
+//    regexp:  'green',     // /\d+/
+//},
+//
+//pretty: true,             // Indent object literals
+//hideFunctions: false,     // Don't output functions at all
+//stream: process.stdout,   // Stream to write to, or null
+//maxLength: 2048           // Truncate output if longer
+
 module.exports = function (program, conf) {
 	program
 	.command('quantum-trade [selector]')
 	.allowUnknownOption()
 	.description('run trading bot against live market data with Quantum feature')
 	.option('--conf <path>', 'path to optional conf overrides file')
-	.option('--strategy <name>', 'strategy to use', String, conf.strategy)
+//	.option('--strategy <name>', 'strategy to use', String, conf.strategy)
 	.option('--order_type <type>', 'order type to use (maker/taker)', /^(maker|taker)$/i, conf.order_type)
 	.option('--paper', 'use paper trading mode (no real trades will take place)', Boolean, false)
 	.option('--manual', 'watch price and account balance, but do not perform trades automatically', Boolean, false)
@@ -49,26 +68,26 @@ module.exports = function (program, conf) {
 	.option('--max_positions <amount>', 'maximum number of opened positions', Number, conf.max_positions)
 	.option('--best_bid', 'mark up as little as possible the buy price to be the best bid', Boolean, false)
 	.option('--best_ask', 'mark down as little as possible the sell price to be the best ask', Boolean, false)
-	.option('--dump_watchdog', 'check for dumps. Strategy is in charge', Boolean, false)
-	.option('--pump_watchdog', 'check for pumps. Strategy is in charge', Boolean, false)
+//	.option('--dump_watchdog', 'check for dumps. Strategy is in charge', Boolean, false)
+//	.option('--pump_watchdog', 'check for pumps. Strategy is in charge', Boolean, false)
 	.option('--buy_calmdown <amount>', 'Minutes to wait before next buy', Number, conf.buy_calmdown)
 	.option('--sell_calmdown <amount>', 'Minutes to wait before next sell', Number, conf.sell_calmdown)
 	.option('--markdown_buy_pct <pct>', '% to mark down buy price', Number, conf.markdown_buy_pct)
 	.option('--markup_sell_pct <pct>', '% to mark up sell price', Number, conf.markup_sell_pct)
 	.option('--buy_price_limit <amount>', 'Limit buy to be under <amount>', Number, conf.buy_price_limit)
 	.option('--sell_price_limit <amount>', 'Limit sell to be above <amount>', Number, conf.sell_price_limit)
-	.option('--catch_order_pct <pct>', '% for catch orders', Number, conf.catch_order_pct)
-	.option('--catch_manual_pct <pct>', '% for manual catch orders', Number, conf.catch_manual_pct)
-	.option('--catch_fixed_value <amount>', 'value for manual catch orders', Number, conf.catch_fixed_value)
+//	.option('--catch_order_pct <pct>', '% for catch orders', Number, conf.catch_order_pct)
+//	.option('--catch_manual_pct <pct>', '% for manual catch orders', Number, conf.catch_manual_pct)
+//	.option('--catch_fixed_value <amount>', 'value for manual catch orders', Number, conf.catch_fixed_value)
 	.option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, conf.order_adjust_time)
 	.option('--order_poll_time <ms>', 'poll order status on this interval', Number, conf.order_poll_time)
-	.option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, conf.sell_stop_pct)
-	.option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct)
+//	.option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, conf.sell_stop_pct)
+//	.option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct)
 	.option('--sell_gain_pct <pct>', 'sell with this gain (min profit in long positions))', conf.sell_gain_pct)
 	.option('--buy_gain_pct <pct>', 'buy with this gain (min profit in short positions)', conf.buy_gain_pct)
 	.option('--accumulate', 'accumulate asset (buy/sell_gain_pct)', Boolean, false)
-	.option('--profit_stop_enable_pct <pct>', 'enable trailing sell stop when reaching this % profit', Number, conf.profit_stop_enable_pct)
-	.option('--profit_stop_pct <pct>', 'maintain a trailing stop this % below the high-water mark of profit', Number, conf.profit_stop_pct)
+//	.option('--profit_stop_enable_pct <pct>', 'enable trailing sell stop when reaching this % profit', Number, conf.profit_stop_enable_pct)
+//	.option('--profit_stop_pct <pct>', 'maintain a trailing stop this % below the high-water mark of profit', Number, conf.profit_stop_pct)
 	.option('--max_slippage_pct <pct>', 'avoid selling at a slippage pct above this float', conf.max_slippage_pct)
 	.option('--rsi_periods <periods>', 'number of periods to calculate RSI at', Number, conf.rsi_periods)
 	.option('--poll_trades <ms>', 'poll new trades at this interval in ms', Number, conf.poll_trades)
@@ -83,6 +102,7 @@ module.exports = function (program, conf) {
 	.option('--update_msg <hours>', 'Send an update message every <hours>', String, conf.update_msg)
 	.option('--debug', 'output detailed debug info')
 	.option('--no_first_message', 'no first update message', Boolean, false)
+	.option('--no_check_hold', 'no check for funds on hold', Boolean, false)
 	.action(function (selector, cmd) {
 		var raw_opts = minimist(process.argv)
 		var s = {options: JSON.parse(JSON.stringify(raw_opts))}
@@ -161,10 +181,10 @@ module.exports = function (program, conf) {
 		const modeMap = new Map()
 		modeMap.set(0, 'NULL')
 		modeMap.set(1, 'MARKET')
-		modeMap.set(2, 'CATCH')
+//		modeMap.set(2, 'CATCH')
 		modeMap.set(3, 'EXCHANGE')
 		modeMap.set(4, 'POSITIONS')
-		modeMap.set(5, 'LIMITS')
+		modeMap.set(5, 'STRATEGIES')
 		modeMap.set(6, 'OPTIONS')
 		modeMap.set(7, 'DEBUG TOOLS')
 
@@ -173,17 +193,17 @@ module.exports = function (program, conf) {
 		s.positions_index = null
 
 		function changeModeCommand(mode = 0) {
-			//			debug.msg('changeModeCommand')
+//			debug.msg('changeModeCommand')
 			modeCommand = mode
 
 			keyMap.clear()
 
 			keyMap.set('0', {desc: ('Modo '.grey + 'NULL'.yellow),			action: function() { changeModeCommand(0)}})
 			keyMap.set('1', {desc: ('Modo '.grey + 'MARKET'.yellow),		action: function() { changeModeCommand(1)}})
-			keyMap.set('2', {desc: ('Modo '.grey + 'CATCH'.yellow), 		action: function() { changeModeCommand(2)}})
+//			keyMap.set('2', {desc: ('Modo '.grey + 'CATCH'.yellow), 		action: function() { changeModeCommand(2)}})
 			keyMap.set('3', {desc: ('Modo '.grey + 'EXCHANGE'.yellow), 		action:	function() { changeModeCommand(3)}})
 			keyMap.set('4', {desc: ('Modo '.grey + 'POSITIONS'.yellow),		action:	function() { changeModeCommand(4)}})
-			keyMap.set('5', {desc: ('Modo '.grey + 'LIMITS'.yellow), 		action: function() { changeModeCommand(5)}})
+			keyMap.set('5', {desc: ('Modo '.grey + 'STRATEGIES'.yellow),	action: function() { changeModeCommand(5)}})
 			keyMap.set('6', {desc: ('Modo '.grey + 'OPTIONS'.yellow), 		action: function() { changeModeCommand(6)}})
 			keyMap.set('7', {desc: ('Modo '.grey + 'DEBUG TOOLS'.yellow), 	action: function() { changeModeCommand(7)}})
 
@@ -198,16 +218,16 @@ module.exports = function (program, conf) {
 			keyMap.set('x', {desc: ('print statistical output'.grey), action: function() { printTrade(false)}})
 			keyMap.set('P', {desc: ('list positions opened'.grey), action: function() {
 				console.log('\nListing positions opened...'.grey)
-				debug.printPosition(s.positions, true)
+				console.log(inspect(s.positions))
 			}})
 			keyMap.set('O', {desc: ('list orders opened'.grey), action: function() {
 				console.log('\nListing orders opened...'.grey)
-				debug.printPosition(s.orders, true)
+				console.log(inspect(s.orders))
 			}})
 			keyMap.set('Q', {desc: ('exit program with statistical output'.grey), action: function() {
 				console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
 				so.manual = true
-				engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
+				s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 				exit()
 			}})
 
@@ -219,27 +239,47 @@ module.exports = function (program, conf) {
 				//Modo MARKET
 				keyMap.set('b', {desc: ('limit'.grey + ' BUY'.green), action: function() {
 					console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command inserted'.grey)
-					engine.emitSignal('manual', 'buy')
+					let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+					s.eventBus.emit('manual', 'buy', null, null, null, protectionFree)
 				}})
 				keyMap.set('B', {desc: ('market'.grey + ' BUY'.green), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command inserted'.grey)
-					engine.emitSignal('manual', 'buy', null, null, null, false, true)
+					let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+					s.eventBus.emit('manual', 'buy', null, null, null, protectionFree, false, true)
 				}})
 				keyMap.set('s', {desc: ('limit'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command inserted'.grey)
-					engine.emitSignal('manual', 'sell')
+					let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+					s.eventBus.emit('manual', 'sell', null, null, null, protectionFree)
 				}})
 				keyMap.set('S', {desc: ('market'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command inserted'.grey)
-					engine.emitSignal('manual', 'sell', null, null, null, false, true)
+					let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+					s.eventBus.emit('manual', 'sell', null, null, null, protectionFree, false, true)
+				}})
+				keyMap.set('+', {desc: ('Buy gain pct (short position)'.grey + ' INCREASE'.green), action: function() {
+					so.buy_gain_pct = Number((so.buy_gain_pct + 0.5).toFixed(2))
+					console.log('\n' + 'Buy gain pct ' + 'INCREASE'.green + ' -> ' + so.buy_gain_pct)
+				}})
+				keyMap.set('-', {desc: ('Buy gain pct (short position)'.grey + ' DECREASE'.red), action: function() {
+					so.buy_gain_pct = Number((so.buy_gain_pct - 0.5).toFixed(2))
+					console.log('\n' + 'Buy gain pct ' + 'DECREASE'.red + ' -> ' + so.buy_gain_pct)
+				}})
+				keyMap.set('*', {desc: ('Sell gain pct (long position)'.grey + ' INCREASE'.green), action: function() {
+					so.sell_gain_pct = Number((so.sell_gain_pct + 0.5).toFixed(2))
+					console.log('\n' + 'Sell gain pct ' + 'INCREASE'.green + ' -> ' + so.sell_gain_pct)
+				}})
+				keyMap.set('_', {desc: ('Sell gain pct (long position)'.grey + ' DECREASE'.red), action: function() {
+					so.sell_gain_pct = Number((so.sell_gain_pct - 0.5).toFixed(2))
+					console.log('\n' + 'Sell gain pct ' + 'DECREASE'.red + ' -> ' + so.sell_gain_pct)
 				}})
 				keyMap.set('c', {desc: ('cancel manual orders'.grey), action: function() {
-					engine.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
+					s.tools.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
 					console.log('\nmanual'.grey + ' orders cancel' + ' command executed'.grey)
 				}})
 				keyMap.set('C', {desc: ('cancel ALL order'.grey), action: function() {
 					console.log('\nmanual'.grey + ' canceling ALL orders')
-					engine.orderStatus(undefined, undefined, undefined, undefined, 'Free')
+					s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 				}})
 				keyMap.set('M', {desc: ('switch between \'Maker\' and \'Taker\' order type'.grey), action: function() {
 					(so.order_type === 'maker' ? so.order_type = 'taker' : so.order_type = 'maker')
@@ -249,55 +289,55 @@ module.exports = function (program, conf) {
 			}
 			case 2: {
 				//Modo CATCH
-				keyMap.set('b', {desc: ('manual catch order'.grey + ' BUY'.green), action: function() {
-					console.log('\nmanual'.grey + ' catch ' + 'BUY'.green + ' command inserted'.grey)
-					var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-					engine.emitSignal('manual', 'buy', null, target_size, target_price)
-				}})
-				keyMap.set('s', {desc: ('manual catch order'.grey + ' SELL'.red), action: function() {
-					console.log('\nmanual'.grey + ' catch ' + 'SELL'.red + ' command inserted'.grey)
-					var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-					engine.emitSignal('manual', 'sell', null, target_size, target_price)
-				}})
-				keyMap.set('+', {desc: ('manual catch pct'.grey + ' INCREASE'.green), action: function() {
-					so.catch_manual_pct = Number((so.catch_manual_pct + 0.5).toFixed(2))
-					console.log('\n' + 'Manual catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_manual_pct)
-				}})
-				keyMap.set('-', {desc: ('manual catch pct'.grey + ' DECREASE'.red), action: function() {
-					so.catch_manual_pct = Number((so.catch_manual_pct - 0.5).toFixed(2))
-					console.log('\n' + 'Manual catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_manual_pct)
-				}})
-				keyMap.set('*', {desc: ('manual catch value'.grey + ' INCREASE'.green), action: function() {
-					so.catch_fixed_value += so.quantum_value
-					console.log('\n' + 'Manual catch order value ' + 'INCREASE'.green + ' -> ' + so.catch_fixed_value)
-				}})
-				keyMap.set('_', {desc: ('manual catch value'.grey + ' DECREASE'.red), action: function() {
-					so.catch_fixed_value -= so.quantum_value
-					if (so.catch_fixed_value < so.quantum_value) {
-						so.catch_fixed_value = so.quantum_value
-					}
-					console.log('\n' + 'Manual catch order value ' + 'DECREASE'.red + ' -> ' + so.catch_fixed_value)
-				}})
-				keyMap.set('q', {desc: ('catch order pct'.grey + ' INCREASE'.green), action: function() {
-					so.catch_order_pct = Number((so.catch_order_pct + 0.5).toFixed(2))
-					console.log('\n' + 'Catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_order_pct)
-				}})
-				keyMap.set('a', {desc: ('catch order pct'.grey + ' DECREASE'.red), action: function() {
-					so.catch_order_pct = Number((so.catch_order_pct - 0.5).toFixed(2))
-					console.log('\n' + 'Catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_order_pct)
-				}})
-				keyMap.set('C', {desc: ('cancel all manual catch orders'.grey), action: function() {
-					console.log('\nmanual'.grey + ' canceling ALL catch orders')
-					engine.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
-				}})
-				keyMap.set('A', {desc: ('insert catch order for all free position'.grey), action: function() {
-					console.log('\n' + 'Insert catch order for all free positions'.grey)
-					s.positions.forEach(function (position, index) {
-						engine.emitSignal('orderExecuted', position.side, 'manual', position.id)
-					})
-				}})
+//				keyMap.set('b', {desc: ('manual catch order'.grey + ' BUY'.green), action: function() {
+//					console.log('\nmanual'.grey + ' catch ' + 'BUY'.green + ' command inserted'.grey)
+//					var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+//					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+//					s.eventBus.emit('manual', 'buy', null, target_size, target_price)
+//				}})
+//				keyMap.set('s', {desc: ('manual catch order'.grey + ' SELL'.red), action: function() {
+//					console.log('\nmanual'.grey + ' catch ' + 'SELL'.red + ' command inserted'.grey)
+//					var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+//					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+//					s.eventBus.emit('manual', 'sell', null, target_size, target_price)
+//				}})
+//				keyMap.set('+', {desc: ('manual catch pct'.grey + ' INCREASE'.green), action: function() {
+//					so.catch_manual_pct = Number((so.catch_manual_pct + 0.5).toFixed(2))
+//					console.log('\n' + 'Manual catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_manual_pct)
+//				}})
+//				keyMap.set('-', {desc: ('manual catch pct'.grey + ' DECREASE'.red), action: function() {
+//					so.catch_manual_pct = Number((so.catch_manual_pct - 0.5).toFixed(2))
+//					console.log('\n' + 'Manual catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_manual_pct)
+//				}})
+//				keyMap.set('*', {desc: ('manual catch value'.grey + ' INCREASE'.green), action: function() {
+//					so.catch_fixed_value += so.quantum_value
+//					console.log('\n' + 'Manual catch order value ' + 'INCREASE'.green + ' -> ' + so.catch_fixed_value)
+//				}})
+//				keyMap.set('_', {desc: ('manual catch value'.grey + ' DECREASE'.red), action: function() {
+//					so.catch_fixed_value -= so.quantum_value
+//					if (so.catch_fixed_value < so.quantum_value) {
+//						so.catch_fixed_value = so.quantum_value
+//					}
+//					console.log('\n' + 'Manual catch order value ' + 'DECREASE'.red + ' -> ' + so.catch_fixed_value)
+//				}})
+//				keyMap.set('q', {desc: ('catch order pct'.grey + ' INCREASE'.green), action: function() {
+//					so.catch_order_pct = Number((so.catch_order_pct + 0.5).toFixed(2))
+//					console.log('\n' + 'Catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_order_pct)
+//				}})
+//				keyMap.set('a', {desc: ('catch order pct'.grey + ' DECREASE'.red), action: function() {
+//					so.catch_order_pct = Number((so.catch_order_pct - 0.5).toFixed(2))
+//					console.log('\n' + 'Catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_order_pct)
+//				}})
+//				keyMap.set('C', {desc: ('cancel all manual catch orders'.grey), action: function() {
+//					console.log('\nmanual'.grey + ' canceling ALL catch orders')
+//					s.tools.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
+//				}})
+//				keyMap.set('A', {desc: ('insert catch order for all free position'.grey), action: function() {
+//					console.log('\n' + 'Insert catch order for all free positions'.grey)
+//					s.positions.forEach(function (position, index) {
+//						s.eventBus.emit('orderExecuted', position.side, 'manual', position.id)
+//					})
+//				}})
 				break
 			}
 			case 3: {
@@ -419,7 +459,7 @@ module.exports = function (program, conf) {
 						if (s.positions_index > (s.positions.length - 1)) {
 							s.positions_index = 0
 						}
-						console.log('\nPosition in control:'.yellow + s.positions[s.positions_index].id)
+						console.log('\nPosition in control: '.yellow + s.positions[s.positions_index].id)
 					}
 					else {
 						console.log('No position opened.')
@@ -440,54 +480,56 @@ module.exports = function (program, conf) {
 				keyMap.set('i', {desc: ('get information on the position'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nInformation on position: '.yellow + s.positions[s.positions_index].id)
-						console.log(s.positions[s.positions_index])
+						console.log(inspect(s.positions[s.positions_index]))
 					}
 					else {
 						console.log('No position in control.')
 					}
 				}})
-				keyMap.set('K', {desc: ('set a manual close catch order on the position'.grey), action: function() {
+				keyMap.set('K', {desc: ('set a manual close order (using catch orderd pct) on the position'.grey), action: function() {
 					if (s.positions_index != null) {
 						if (s.positions[s.positions_index].side === 'buy') {
-							console.log('\nSet a manual close catch SELL order on the position: '.yellow + s.positions[s.positions_index].id)
-							var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-							engine.emitSignal('manual', 'sell', s.positions[s.positions_index].id, null, target_price)
+							let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+							let target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+							console.log('\nSet a manual close ' + 'SELL'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at ' + formatCurrency(target_price, s.currency).yellow)
+							s.eventBus.emit('manual', 'sell', s.positions[s.positions_index].id, null, target_price, protectionFree)
 						}
 						else {
-							console.log('\nSet a manual close catch BUY order on the position: '.yellow + s.positions[s.positions_index].id)
-							var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-							engine.emitSignal('manual', 'buy', s.positions[s.positions_index].id, null, target_price)
+							let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+							let target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
+							console.log('\nSet a manual close ' + 'BUY'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at ' + formatCurrency(target_price, s.currency).yellow)
+							s.eventBus.emit('manual', 'buy', s.positions[s.positions_index].id, null, target_price, protectionFree)
 						}
 					}
 					else {
 						console.log('No position in control.')
 					}
 				}})
-				keyMap.set('F', {desc: ('Free the position (cancel ALL orders connected to the position and let it be used)'.grey), action: function() {
+				keyMap.set('F', {desc: ('Free completely the position (cancel ALL orders connected to the position and let it be used)'.grey), action: function() {
 					if (s.positions_index != null) {
-						console.log('\nFreeing the position (cancelling all orders connected with the position) '.yellow + s.positions[s.positions_index].id)
-						engine.positionStatus(s.positions[s.positions_index], 'Free')
-						s.positions[s.positions_index].locked = false
+						console.log('\nFreeing completely the position (cancelling all orders connected with the position) '.yellow + s.positions[s.positions_index].id)
+						s.tools.positionFlags(s.positions[s.positions_index], 'status', 'Free')
+						s.tools.positionFlags(s.positions[s.positions_index], 'locked', 'Free')
 						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
 					else {
 						console.log('No position in control.')
 					}
 				}})
-				keyMap.set('L', {desc: ('Lock the position (does not cancel orders connected to the position)'.grey), action: function() {
+				keyMap.set('L', {desc: ('Lock (Manual) the position (does not cancel orders connected to the position)'.grey), action: function() {
 					if (s.positions_index != null) {
-						console.log('\nLocking the position '.yellow + s.positions[s.positions_index].id)
-						s.positions[s.positions_index].locked = true
+						console.log('\nLocking (Manual) the position '.yellow + s.positions[s.positions_index].id)
+						s.tools.positionFlags(s.positions[s.positions_index], 'locked', 'Set', 'manual')
 						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
 					else {
 						console.log('No position in control.')
 					}
 				}})
-				keyMap.set('U', {desc: ('Unlock the position (does not cancel orders connected to the position)'.grey), action: function() {
+				keyMap.set('U', {desc: ('Unlock (Manual) the position (does not cancel orders connected to the position)'.grey), action: function() {
 					if (s.positions_index != null) {
-						console.log('\nUnlocking the position '.yellow + s.positions[s.positions_index].id)
-						s.positions[s.positions_index].locked = false
+						console.log('\nUnlocking (Manual) the position '.yellow + s.positions[s.positions_index].id)
+						s.tools.positionFlags(s.positions[s.positions_index], 'locked', 'Unset', 'manual')
 						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
 					}
 					else {
@@ -497,9 +539,7 @@ module.exports = function (program, conf) {
 				keyMap.set('c', {desc: ('cancel ALL orders connected to the position, leaving it locked/unlocked'.grey), action: function() {
 					if (s.positions_index != null) {
 						console.log('\nCanceling all orders connected with the position '.yellow + s.positions[s.positions_index].id)
-						//						status_tmp = ~(s.positions[s.positions_index].status & engine.orderFlag.locked)
-						//						engine.positionStatus(s.positions[s.positions_index], 'Unset', status_tmp)
-						engine.positionStatus(s.positions[s.positions_index], 'Free')
+						s.tools.positionFlags(s.positions[s.positions_index], 'status', 'Free')
 					}
 					else {
 						console.log('No position in control.')
@@ -507,9 +547,12 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('C', {desc: ('cancel the position'.grey), action: function() {
 					if (s.positions_index != null) {
+						//Attenzione!! Se ordino più cancellazioni in breve lasso di tempo, s.position_index diventa null prima che 
+						// s.positionProcessingQueue possa eseguire le operazioni, quindi non troverà il .id e il programma andrà
+						// in errore.
 						console.log('\nCanceling the position '.yellow + s.positions[s.positions_index].id)
 
-						engine.positionStatus(s.positions[s.positions_index], 'Free')
+						s.tools.positionFlags(s.positions[s.positions_index], 'status', 'Free')
 						setTimeout(function() {
 							s.positionProcessingQueue.push({mode: 'delete', id: s.positions[s.positions_index].id})
 							s.positions_index = null
@@ -522,106 +565,77 @@ module.exports = function (program, conf) {
 				break
 			}
 			case 5: {
-				//Modo LIMITS
-				keyMap.set('q', {desc: ('Buy price limit'.grey + ' INCREASE'.green), action: function() {
-					if (!so.buy_price_limit) {
-						so.buy_price_limit = Number(s.quote.bid)
-					}
-					so.buy_price_limit += 10
-					console.log('\n' + 'Buy price limit' + ' INCREASE'.green + ' -> ' + so.buy_price_limit)
-				}})
-				keyMap.set('a', {desc: ('Buy price limit'.grey + ' DECREASE'.red), action: function() {
-					if (!so.buy_price_limit) {
-						so.buy_price_limit = Number(s.quote.bid)
-					}
-					so.buy_price_limit -= 10
-					console.log('\n' + 'Buy price limit' + ' DECREASE'.red + ' -> ' + so.buy_price_limit)
-				}})
-				keyMap.set('w', {desc: ('Sell price limit'.grey + ' INCREASE'.green), action: function() {
-					if (!so.sell_price_limit) {
-						so.sell_price_limit = Number(s.quote.ask)
-					}
-					so.sell_price_limit += 10
-					console.log('\n' + 'Sell price limit' + ' INCREASE'.green + ' -> ' + so.sell_price_limit)
-				}})
-				keyMap.set('s', {desc: ('Sell price limit'.grey + ' DECREASE'.red), action: function() {
-					if (!so.sell_price_limit) {
-						so.sell_price_limit = Number(s.quote.ask)
-					}
-					so.sell_price_limit -= 10
-					console.log('\n' + 'Sell price limit' + ' DECREASE'.red + ' -> ' + so.sell_price_limit)
-				}})
-				keyMap.set('z', {desc: ('Buy/Sell price limit'.grey + ' CANCEL'.yellow), action: function() {
-					so.buy_price_limit = null
-					so.sell_price_limit = null
-					console.log('\n' + 'Buy/Sell price limit' + ' CANCELED'.yellow)
-				}})
-				//				keyMap.set('e', {desc: ('Buy stop pct (buy if price go over)'.grey + ' INCREASE'.green), action: function() {
-				//					so.buy_stop_pct++
-				//					console.log('\n' + 'Buy stop pct' + 'INCREASE'.green + ' -> ' + so.buy_stop_pct)
-				//				}})
-				//				keyMap.set('d', {desc: ('Buy stop pct (buy if price go over)'.grey + ' DECREASE'.red), action: function() {
-				//					so.buy_stop_pct--
-				//					console.log('\n' + 'Buy stop pct ' + 'DECREASE'.red + ' -> ' + so.buy_stop_pct)
-				//				}})
-				//				keyMap.set('r', {desc: ('Sell stop pct (sell is price go under)'.grey + ' INCREASE'.green), action: function() {
-				//					so.sell_stop_pct++
-				//					console.log('\n' + 'Sell stop pct ' + 'INCREASE'.green + ' -> ' + so.sell_price_limit)
-				//				}})
-				//				keyMap.set('f', {desc: ('Sell stop pct (sell if price go under)'.grey + ' DECREASE'.red), action: function() {
-				//					so.sell_stop_pct--
-				//					console.log('\n' + 'Sell stop pct ' + 'DECREASE'.red + ' -> ' + so.sell_price_limit)
-				//				}})
-				keyMap.set('t', {desc: ('Profit stop enable pct'.grey + ' INCREASE'.green), action: function() {
-					so.profit_stop_enable_pct = Number((so.profit_stop_enable_pct + 0.1).toFixed(2))
-					console.log('\n' + 'Profit stop enable pct' + ' INCREASE'.green + ' -> ' + so.profit_stop_enable_pct)
-				}})
-				keyMap.set('g', {desc: ('Profit stop enable pct'.grey + ' DECREASE'.red), action: function() {
-					so.profit_stop_enable_pct = Number((so.profit_stop_enable_pct - 0.1).toFixed(2))
-					if (so.profit_stop_enable_pct <= 0) {
-						so.profit_stop_enable_pct= null
-					}
-					console.log('\n' + 'Profit stop enable pct' + ' DECREASE'.red + ' -> ' + so.profit_stop_enable_pct)
-				}})
-				keyMap.set('y', {desc: ('Profit stop pct'.grey + ' INCREASE'.green), action: function() {
-					so.profit_stop_pct = Number((so.profit_stop_pct + 0.05).toFixed(2))
-					console.log('\n' + 'Profit stop pct' + ' INCREASE'.green + ' -> ' + so.profit_stop_pct)
-				}})
-				keyMap.set('h', {desc: ('Profit stop pct'.grey + ' DECREASE'.red), action: function() {
-					so.profit_stop_pct = Number((so.profit_stop_pct - 0.05).toFixed(2))
-					if (so.profit_stop_pct <= 0) {
-						so.profit_stop_pct= 0
-					}
-					console.log('\n' + 'Profit stop pct' + ' DECREASE'.red + ' -> ' + so.profit_stop_pct)
-				}})
-				keyMap.set('u', {desc: ('Sell gain pct (min profit in long position)'.grey + ' INCREASE'.green), action: function() {
-					so.sell_gain_pct = Number((so.sell_gain_pct + 0.05).toFixed(2))
-					console.log('\n' + 'Sell gain pct' + ' INCREASE'.green + ' -> ' + so.sell_gain_pct)
-				}})
-				keyMap.set('j', {desc: ('Sell gain pct (min profit in long position)'.grey + ' DECREASE'.red), action: function() {
-					so.sell_gain_pct = Number((so.sell_gain_pct - 0.05).toFixed(2))
-					console.log('\n' + 'Max sell loss pct' + ' DECREASE'.red + ' -> ' + so.sell_gain_pct)
-				}})
-				keyMap.set('i', {desc: ('Buy gain pct (min profit in short position)'.grey + ' INCREASE'.green), action: function() {
-					so.buy_gain_pct = Number((so.buy_gain_pct + 0.05).toFixed(2))
-					console.log('\n' + 'Buy gain pct' + ' INCREASE'.green + ' -> ' + so.buy_gain_pct)
-				}})
-				keyMap.set('k', {desc: ('Buy gain pct (min profit in short position)'.grey + ' DECREASE'.red), action: function() {
-					so.buy_gain_pct = Number((so.buy_gain_pct - 0.05).toFixed(2))
-					console.log('\n' + 'Buy gain pct' + ' DECREASE'.red + ' -> ' + so.buy_gain_pct)
-				}})
-				keyMap.set('o', {desc: ('Actual values for limits'.grey), action: function() {
-					actual_values = '\nActual values for limits:'
-						actual_values += '\n-------------------------'
-							actual_values += '\nBuy price limit= ' + so.buy_price_limit
-							actual_values += '\nSell price limit= ' + so.sell_price_limit
-							actual_values += '\nProfit stop enable pct= ' + so.profit_stop_enable_pct
-							actual_values += '\nProfit stop pct= ' + so.profit_stop_pct
-							actual_values += '\nSell gain pct= ' + so.sell_gain_pct
-							actual_values += '\nBuy gain pct= ' + so.buy_gain_pct
+				//Modo STRATEGIES
+				let actual_code = 97; //'a'
 
-							console.log(actual_values)
-				}})
+				key_assign = {
+					command: function (key, desc_action) {
+						keyMap.set(key, desc_action)
+					}
+				};
+
+				Object.keys(s.options.strategy).forEach(function (strategy_name, index, array) {			
+					if (so.strategy[strategy_name].lib.getCommands) {
+						let actual_key = String.fromCharCode(actual_code)
+						keyMap.set(actual_key, {desc: ('Strategia\t'.grey + strategy_name.white), action: function() {
+							clearStrategyKeys()
+							so.strategy[strategy_name].lib.getCommands.call(key_assign, s)
+							listKeys()
+						}})
+						actual_code++
+					}
+				})
+				
+				
+// Tutta questa roba deve entrare nei comandi per le strategie!!!
+//				//Modo LIMITS
+//				keyMap.set('q', {desc: ('Buy price limit'.grey + ' INCREASE'.green), action: function() {
+//					if (!so.buy_price_limit) {
+//						so.buy_price_limit = Number(s.quote.bid)
+//					}
+//					so.buy_price_limit += 10
+//					console.log('\n' + 'Buy price limit' + ' INCREASE'.green + ' -> ' + so.buy_price_limit)
+//				}})
+//				keyMap.set('a', {desc: ('Buy price limit'.grey + ' DECREASE'.red), action: function() {
+//					if (!so.buy_price_limit) {
+//						so.buy_price_limit = Number(s.quote.bid)
+//					}
+//					so.buy_price_limit -= 10
+//					console.log('\n' + 'Buy price limit' + ' DECREASE'.red + ' -> ' + so.buy_price_limit)
+//				}})
+//				keyMap.set('w', {desc: ('Sell price limit'.grey + ' INCREASE'.green), action: function() {
+//					if (!so.sell_price_limit) {
+//						so.sell_price_limit = Number(s.quote.ask)
+//					}
+//					so.sell_price_limit += 10
+//					console.log('\n' + 'Sell price limit' + ' INCREASE'.green + ' -> ' + so.sell_price_limit)
+//				}})
+//				keyMap.set('s', {desc: ('Sell price limit'.grey + ' DECREASE'.red), action: function() {
+//					if (!so.sell_price_limit) {
+//						so.sell_price_limit = Number(s.quote.ask)
+//					}
+//					so.sell_price_limit -= 10
+//					console.log('\n' + 'Sell price limit' + ' DECREASE'.red + ' -> ' + so.sell_price_limit)
+//				}})
+//				keyMap.set('z', {desc: ('Buy/Sell price limit'.grey + ' CANCEL'.yellow), action: function() {
+//					so.buy_price_limit = null
+//					so.sell_price_limit = null
+//					console.log('\n' + 'Buy/Sell price limit' + ' CANCELED'.yellow)
+//				}})
+				
+				
+				
+				
+//				keyMap.set('o', {desc: ('Actual values for limits'.grey), action: function() {
+//					actual_values = '\nActual values for limits:'
+//						actual_values += '\n-------------------------'
+//							actual_values += '\nBuy price limit= ' + so.buy_price_limit
+//							actual_values += '\nSell price limit= ' + so.sell_price_limit
+//							actual_values += '\nSell gain pct= ' + so.sell_gain_pct
+//							actual_values += '\nBuy gain pct= ' + so.buy_gain_pct
+//
+//							console.log(actual_values)
+//				}})
 				break
 			}
 			case 6: {
@@ -630,32 +644,22 @@ module.exports = function (program, conf) {
 				keyMap.set('a', {desc: ('show current trade options in a dirty view (full list)'.grey), action: function() {
 					let so_tmp = JSON.parse(JSON.stringify(so))
 					delete so_tmp.strategy
-					console.log('\n' + cliff.inspect(so_tmp))
+					console.log('\n' + inspect(so_tmp))
 
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
-						console.log('\n' + strategy_name + '\n' + cliff.inspect(so.strategy[strategy_name].opts))
+						console.log('\n' + strategy_name + '\n' + inspect(so.strategy[strategy_name].opts))
 					})
 				}})
 				keyMap.set('O', {desc: ('show current strategies options/data'.grey), action: function() {
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
 						if (so.strategy[strategy_name].lib.printOptions) {
-							console.log('\nStrategy ' + strategy_name + ' options/data:')
+							console.log('\nStrategy ' + strategy_name.yellow + ' options/data:')
 							so.strategy[strategy_name].lib.printOptions(s)
 						}
 						else {
 							console.log('\nStrategy ' + strategy_name + ' has no printOptions function.')
 						}
 					})
-				}})
-				keyMap.set('w', {desc: ('toggle Dump Watchdog'.grey), action: function() {
-					so.dump_watchdog = !so.dump_watchdog
-					s.is_dump_watchdog = so.dump_watchdog
-					console.log('\nToggle Dump Watchdog: ' + (so.dump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
-				}})
-				keyMap.set('W', {desc: ('toggle Pump Watchdog'.grey), action: function() {
-					so.pump_watchdog = !so.pump_watchdog
-					s.is_pump_watchdog = so.pump_watchdog
-					console.log('\nToggle Pump Watchdog: ' + (so.pump_watchdog ? 'ON'.green.inverse : 'OFF'.red.inverse))
 				}})
 				keyMap.set('z', {desc: ('toggle Long Position'.grey), action: function() {
 					so.active_long_position = !so.active_long_position
@@ -708,6 +712,14 @@ module.exports = function (program, conf) {
 				console.log(' ' + key + ' - ' + value.desc)
 			})
 		}
+		
+		/* Clear keys normally used by strategy menu */
+		function clearStrategyKeys() {
+			let group = ['+', '-', '*', '_', 'i', 'I', 'k', 'K', 'u', 'U', 'j', 'J', 'y', 'Y', 'h', 'H', 't', 'T', 'g', 'G']
+			group.forEach((key) => {
+				keyMap.delete(key)
+			})
+		}
 
 		/* Trying to recover MongoDB connection */
 		function recoverMongoDB() {
@@ -752,7 +764,7 @@ module.exports = function (program, conf) {
 					var db = client.db(so.mongo.db)
 					//conf.db = {mongo: db}
 					conf.db.mongo = db
-					//console.log('\n' + cliff.inspect(so))
+					//console.log('\n' + inspect(so))
 					//    		cb(null)
 
 					//Recupera tutti i vecchi database
@@ -903,69 +915,42 @@ module.exports = function (program, conf) {
 
 		/* To list options*/
 		function listOptions () {
-			console.log('\n' + s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey + '\n')
+			process.stdout.write('\n' + s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey + '\n')
 
 			Object.keys(so.strategy).forEach(function (strategy_name, index) {
-				process.stdout.write(z(22, 'STRATEGY'.grey, ' ') + '\t' + strategy_name + '\t' + (require(`../extensions/strategies/${strategy_name}/strategy`).description).grey)
-
-				let opts_name = '';
-				let opts_value = '';
-				Object.keys(so.strategy[strategy_name].opts).forEach(function (key, index) {
-					opts_name += z((key.length + 3), key, ' ')
-					opts_value += z((key.length + 3), so.strategy[strategy_name].opts[key], ' ')
-				})
-				process.stdout.write('\n' + opts_name.grey)
-				process.stdout.write('\n' + opts_value + '\n\n')
+				s.tools.listStrategyOptions(strategy_name)
 			})
 
+			process.stdout.write('\n')
+			
 			process.stdout.write([
 				z(25, so.mode.toUpperCase() + ' MODE'.grey, ' '),
 				z(25, 'PERIOD LENGTH'.grey, ' '),
 				z(25, 'ORDER TYPE'.grey, ' '),
 				z(25, 'SLIPPAGE'.grey, ' '),
 				z(30, 'EXCHANGE FEES'.grey, ' ')
-				].join('') + '\n')
+				].join('') + '\n');
 
-				process.stdout.write([
-					z(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
-					z(10, so.period_length, ' '),
-					z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
-					z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
-					z(17, (so.order_type + ' ' + n((so.order_type === 'maker' ?  s.exchange.makerFee : s.exchange.takerFee)).divide(100).format('0.000%')), ' ')
-					].join('') + '\n\n')
+			process.stdout.write([
+				z(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
+				z(12, so.period_length, ' '),
+				z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
+				z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
+				z(17, (so.order_type + ' ' + n((so.order_type === 'maker' ?  s.exchange.makerFee : s.exchange.takerFee)).divide(100).format('0.000%')), ' ')
+				].join('') + '\n\n');
 
-					process.stdout.write('')
+			process.stdout.write('');
 
-					process.stdout.write([
-						z(30, 'TRAILING STOP %'.grey, ' '),
-						z(34, 'TRAILING DISTANCE %'.grey, ' '),
-						z(35, 'DUMP / PUMP WATCHDOG'.grey, ' '),
-						z(36, 'LONG / SHORT POSITION'.grey, ' ')
-						].join('') + '\n')
+			process.stdout.write([
+				z(36, 'LONG / SHORT POSITION'.grey, ' ')
+				].join('') + '\n');
 
-						process.stdout.write([
-							z(12, so.profit_stop_enable_pct + '%', ' '),
-							z(24, so.profit_stop_pct + '%', ' '),
-							z(20, so.dump_watchdog, ' '),
-							z(8, so.pump_watchdog, ' '),
-							z(16, so.active_long_position, ' '),
-							z(8, so.active_short_position, ' ')
-							].join('') + '\n\n')
-							process.stdout.write('')
-							process.stdout.write([
-								z(37, 'BUY / SELL STOP LOSS %'.grey, ' '),
-								z(35, 'CATCH ORDER DEFAULT %'.grey, ' '),
-								z(33, 'CATCH ORDER MANUAL %'.grey, ' '),
-								z(30, 'CATCH FIXED VALUE'.grey, ' '),
-								].join('') + '\n')
-								process.stdout.write([
-									z(9, (so.buy_stop_pct || '--') + '%', ' '),
-									z(6, (so.sell_stop_pct || '--') + '%', ' '),
-									z(25, so.catch_order_pct + '%', ' '),
-									z(23, so.catch_manual_pct + '%', ' '),
-									z(25, formatCurrency(so.catch_fixed_value, s.currency), ' '),
-									].join('') + '\n\n')
-									process.stdout.write('')
+			process.stdout.write([
+				z(10, so.active_long_position, ' '),
+				z(8, so.active_short_position, ' ')
+				].join('') + '\n\n');
+
+			process.stdout.write('');
 		}
 		/* End listOptions() */
 
@@ -989,21 +974,8 @@ module.exports = function (program, conf) {
 			var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
 			var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
 			if (quit) {
-//				if (s.my_trades.length) {
-//					s.my_trades.push({
-//						price: s.period.close,
-//						size: s.balance.asset,
-//						side: 'sell',
-//						time: s.period.time
-//					})
-//				}
-//				s.balance.currency = tmp_capital_currency
-//				s.balance.asset = 0
 				s.lookback.unshift(s.period)
 			}
-			//        var profit = s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
-			//        var buy_hold = s.start_price ? n(s.period.close).multiply(n(s.start_capital_currency).divide(s.start_price)) : n(tmp_capital_currency)
-			//        var buy_hold_profit = s.start_capital_currency ? n(buy_hold).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
 			var profit_currency = n(tmp_capital_currency).subtract(s.orig_capital_currency).divide(s.orig_capital_currency)
 			var profit_asset = n(tmp_capital_asset).subtract(s.orig_capital_asset).divide(s.orig_capital_asset)
 			var buy_hold = n(s.orig_capital_currency).divide(s.orig_price).multiply(s.period.close)
@@ -1620,9 +1592,11 @@ module.exports = function (program, conf) {
 						console.error(err)
 					}
 					if (s.period) {
-						Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
-							engine.writeReport(strategy_name, true)
-						})
+//						Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
+//							if (strategy_name && so.strategy[strategy_name].lib.onReport) {
+								engine.writeReport(true)
+//							}
+//						})
 					} else {
 						readline.clearLine(process.stdout)
 						readline.cursorTo(process.stdout, 0)

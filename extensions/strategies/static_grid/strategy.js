@@ -1,7 +1,7 @@
 var z = require('zero-fill')
 , n = require('numbro')
 , sma = require('../../../lib/sma')
-, cliff = require('cliff')
+, inspect = require('eyes').inspector()
 , debug = require('../../../lib/debug')
 
 //Parte da includere nel file di configurazione
@@ -137,7 +137,7 @@ module.exports = {
 			delete so_tmp.calc_close_time
 			delete so_tmp.lib
 			
-			console.log('\n' + cliff.inspect(so_tmp))
+			console.log('\n' + inspect(so_tmp))
 		},
 		
 		orderExecuted: function (s, signal, position_id) {
