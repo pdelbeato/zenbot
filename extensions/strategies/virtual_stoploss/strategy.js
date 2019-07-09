@@ -68,7 +68,7 @@ module.exports = {
 		let strat_data = s.options.strategy.virtual_stoploss.data
 		
 		this.command('o', {desc: ('Virtual Stoploss - List options'.grey), action: function() { s.tools.listStrategyOptions('virtual_stoploss')}})
-		this.command('i', {desc: ('Virtual Stoploss - Get information on the position'.grey + s.positions_index), action: function() {
+		this.command('i', {desc: ('Virtual Stoploss - Get information on the position '.grey + s.positions_index), action: function() {
 			if (s.positions_index != null) {
 				console.log('\nVirtual Stoploss - Information on position: '.yellow + s.positions[s.positions_index].id)
 				console.log(inspect(s.positions[s.positions_index]))
@@ -93,15 +93,13 @@ module.exports = {
 			strat_opts.virtual_sell_stop_pct = Number((strat_opts.virtual_sell_stop_pct - 0.05).toFixed(2))
 			console.log('\nVirtual Stoploss - Virtual sell stop price'.yellow + ' DECREASE'.green + ' -> ' + strat_opts.virtual_sell_stop_pct)
 		}})
-		this.command('y', {desc: ('Virtual Stoploss - Manual activate Virtual stop on position'.grey + s.positions_index), action: function() {
+		this.command('y', {desc: ('Virtual Stoploss - Manual activate Virtual stop on position '.grey + s.positions_index), action: function() {
 			if (s.positions_index != null) {
 				console.log('\nVirtual Stoploss - Manual activate Virtual stop on position: '.yellow + s.positions[s.positions_index].id + '. New open price: '.yellow + formatCurrency(s.period.close, s.currency) + '\n')
 				//Il prezzo di apertura originale deve essere registrato solo la prima volta
 				if (!s.positions[s.positions_index].strategy_parameters.virtual_stoploss.original_price_open) {
-					s.positions[s.positions_index].strategy_parameters.virtual_stoploss = {
-						original_price_open: s.positions[s.positions_index].price_open,
-						original_profit_gross_pct: s.positions[s.positions_index].profit_gross_pct,
-					}
+					s.positions[s.positions_index].strategy_parameters.virtual_stoploss.original_price_open = s.positions[s.positions_index].price_open,
+					s.positions[s.positions_index].strategy_parameters.virtual_stoploss.original_profit_gross_pct = s.positions[s.positions_index].profit_gross_pct,
 				}	
 				s.positions[s.positions_index].price_open = s.period.close
 				console.log(inspect(s.positions[s.positions_index]))
