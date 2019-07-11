@@ -189,6 +189,7 @@ module.exports = function (program, conf) {
 		modeMap.set(7, 'DEBUG TOOLS')
 
 		const keyMap = new Map()
+		s.exchange_orders = []
 		s.exchange_orders_index = null
 		s.positions_index = null
 
