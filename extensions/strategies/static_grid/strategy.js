@@ -183,8 +183,8 @@ module.exports = {
 		},
 
 		onReport: function (s, opts= {}, cb = function() {}) {
-			let strat_opts = s.options.strategy.trailing_stop.opts
-			let strat_data = s.options.strategy.trailing_stop.data
+			let strat_opts = s.options.strategy.static_grid.opts
+			let strat_data = s.options.strategy.static_grid.data
 
 			var cols = []
 
