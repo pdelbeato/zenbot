@@ -98,8 +98,8 @@ module.exports = {
 				console.log('\nVirtual Stoploss - Manual activate Virtual stop on position: '.yellow + s.positions[s.positions_index].id + '. New open price: '.yellow + formatCurrency(s.period.close, s.currency) + '\n')
 				//Il prezzo di apertura originale deve essere registrato solo la prima volta
 				if (!s.positions[s.positions_index].strategy_parameters.virtual_stoploss.original_price_open) {
-					s.positions[s.positions_index].strategy_parameters.virtual_stoploss.original_price_open = s.positions[s.positions_index].price_open,
-					s.positions[s.positions_index].strategy_parameters.virtual_stoploss.original_profit_gross_pct = s.positions[s.positions_index].profit_gross_pct,
+					s.positions[s.positions_index].strategy_parameters.virtual_stoploss.original_price_open = s.positions[s.positions_index].price_open
+					s.positions[s.positions_index].strategy_parameters.virtual_stoploss.original_profit_gross_pct = s.positions[s.positions_index].profit_gross_pct
 				}	
 				s.positions[s.positions_index].price_open = s.period.close
 				console.log(inspect(s.positions[s.positions_index]))
