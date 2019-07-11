@@ -28,13 +28,13 @@ var debug = require('../../../lib/debug')
 //lib: {}							//****** To store all the functions of the strategy
 //}
 //---------------------------------------------
-
-
+//
+//
 //position.strategy_parameters.trailing_stop: {
-//trailing_stop_limit: null,				//**** Maximum price (long position) / minimum price (short position) reached
-//trailing_stop: null,					//**** Lower price (long position) / higher price (short position) to close the position
+//trailing_stop_limit: null,		//****** Maximum price (long position) / minimum price (short position) reached
+//trailing_stop: null,				//****** Lower price (long position) / higher price (short position) to close the position
 //}
-
+//---------------------------------------------
 //Cambia i colori di cliff
 //styles: {                 // Styles applied to stdout
 //all:     'cyan',      // Overall style applied to everything

@@ -22,6 +22,12 @@ var debug = require('../../../lib/debug')
 //lib: {}								//****** To store all the functions of the strategy
 //}
 //---------------------------------------------
+//
+//
+//position.strategy_parameters.catching_orders: {
+//}
+//
+//---------------------------------------------
 
 
 //position.strategy_parameters.catching_orders: {
@@ -81,7 +87,7 @@ module.exports = {
 		}})
 		this.command('-', {desc: ('Catching Orders - Manual catch order pct '.grey + 'DECREASE'.red), action: function() {
 			strat_opts.catch_manual_pct = Number((strat_opts.catch_manual_pct - 0.5).toFixed(2))
-			if (strat_opts.catch_manual_pctt <= 0) {
+			if (strat_opts.catch_manual_pct <= 0) {
 				strat_opts.catch_manual_pct = 0
 			}
 			console.log('\n' + 'Catching Orders - Manual catch order pct ' + 'DECREASE'.red + ' -> ' + strat_opts.catch_manual_pct)

@@ -25,13 +25,13 @@ var debug = require('../../../lib/debug')
 //	lib: {}							//****** To store all the functions of the strategy
 //}
 //---------------------------------------------
-
-
+//
+//
 //position.strategy_parameters.stoploss: {
 //		buy_stop: null,				**** Buy stop price (short position)
 //		sell_stop: null,			**** Sell stop price (long position)
 //}
-
+//---------------------------------------------
 // Cambia i colori di cliff
 //styles: {                 // Styles applied to stdout
 //    all:     'cyan',      // Overall style applied to everything

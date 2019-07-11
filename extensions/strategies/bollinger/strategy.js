@@ -15,21 +15,21 @@ var z = require('zero-fill')
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate Bollinger Bands every period_calc time
 //		min_periods: 301, 			//****** Minimum number of history periods (timeframe period_length)
-//		size: 20,					//period size
-//		time: 2,					//times of standard deviation between the upper/lower band and the moving averages
-//		rsi_size: 15,				//period size rsi
-//		min_bandwidth_pct: 0.50,	//minimum pct bandwidth to emit a signal
-//		upper_bound_pct: 0,			//pct the current price should be near the bollinger upper bound before we sell
-//		lower_bound_pct: 0,			//pct the current price should be near the bollinger lower bound before we buy
+//		size: 20,					//****** period size
+//		time: 2,					//****** times of standard deviation between the upper/lower band and the moving averages
+//		rsi_size: 15,				//****** period size rsi
+//		min_bandwidth_pct: 0.50,	//****** minimum pct bandwidth to emit a signal
+//		upper_bound_pct: 0,			//****** pct the current price should be near the bollinger upper bound before we sell
+//		lower_bound_pct: 0,			//****** pct the current price should be near the bollinger lower bound before we buy
 //		pump_watchdog: false,		//****** Pump Watchdog switch
 //		dump_watchdog: false,		//****** Dump Watchdog switch
-//		upper_watchdog_pct: 200,	//pct the current price should be over the bollinger upper bound to activate watchdog
-//		lower_watchdog_pct: 200,	//pct the current price should be under the bollinger lower bound to activate watchdog
-//		calmdown_watchdog_pct: 0,	//pct the current price should be in the bollinger bands to calmdown the watchdog
-//		rsi_buy_threshold: 30,		//minimum rsi to buy
-//		rsi_sell_threshold: 100,	//maximum rsi to sell
-//		sell_min_pct: 5,			//avoid selling at a profit below this pct (for long positions)
-//		buy_min_pct: 5,				//avoid buying at a profit below this pct (for short positions)
+//		upper_watchdog_pct: 200,	//****** pct the current price should be over the bollinger upper bound to activate watchdog
+//		lower_watchdog_pct: 200,	//****** pct the current price should be under the bollinger lower bound to activate watchdog
+//		calmdown_watchdog_pct: 0,	//****** pct the current price should be in the bollinger bands to calmdown the watchdog
+//		rsi_buy_threshold: 30,		//****** minimum rsi to buy
+//		rsi_sell_threshold: 100,	//****** maximum rsi to sell
+//		sell_min_pct: 5,			//****** avoid selling at a profit below this pct (for long positions)
+//		buy_min_pct: 5,				//****** avoid buying at a profit below this pct (for short positions)
 //	},
 //	data: {							//****** To store calculated data
 //		bollinger: {
@@ -54,7 +54,13 @@ var z = require('zero-fill')
 //	calc_close_time: 0				//****** Close time for strategy period
 //	lib: {}							//****** To store all the functions of the strategy
 //}
-
+//---------------------------------------------
+//
+//
+//position.strategy_parameters.bollinger: {
+//}
+//
+//---------------------------------------------
 // Cambia i colori di cliff
 //styles: {                 // Styles applied to stdout
 //    all:     'cyan',      // Overall style applied to everything

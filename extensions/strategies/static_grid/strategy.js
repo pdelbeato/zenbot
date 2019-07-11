@@ -6,16 +6,15 @@ var z = require('zero-fill')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
-//Per questa strategia, attivare catching order e disattivare profit_stop e buy/sell_gain_pct
+//Per questa strategia, disattivare catching_orders
 //c.strategy['static_grid'] = {
 //	name: 'static_grid',
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate actual lane every period_calc time
 //		min_periods: 1000, 			//****** Minimum number of history periods (timeframe period_length). It is the number of values to calculate Pivot price (SMA) too.
-//		grid_pct: 4, 				//% delta between grid lines
+//		grid_delta_pct: 4, 				//% delta between grid lines
 //		lanes_per_side: 10,			//Number of lanes per side
-//		gain_distance_pct: 50,		//% of distance between open price and pivot price to be considered as gain for the position
-//		minimum_gain_pct: 3,		//Minimum % of gain for catching position
+//		gain_pct: 3,				//% of gain for closing the position
 //	},
 //	data: {							//****** To store calculated data
 //		pivot_price: 0,				//Actual Pivot price
@@ -32,6 +31,13 @@ var z = require('zero-fill')
 //	calc_close_time: 0,				//****** Close time for strategy period
 //	lib: {}							//****** To store all the functions of the strategy
 //}
+//---------------------------------------------
+//
+//
+//position.strategy_parameters.static_grid: {
+//}
+//
+//---------------------------------------------
 
 module.exports = {
 		name: 'static_grid',
@@ -40,45 +46,100 @@ module.exports = {
 		getOptions: function (s) {
 			this.option('static_grid', 'period_calc', 'Calculate actual lane every period_calc time', String, '15m')
 			this.option('static_grid', 'min_periods', 'Min. number of history periods (and the number of values to calculate Pivot price (SMA)', Number, 500)
-			this.option('static_grid', 'grid_pct','% grid lines', Number, 1)
+			this.option('static_grid', 'grid_delta_pct','% difference between grid lines', Number, 1)
 			this.option('static_grid', 'lanes_per_side','Number of lanes per side', Number, 5)
-			this.option('static_grid', 'gain_distance_pct','% of distance between open price and pivot price to be considered as gain for the positions', Number, 50)
-			this.option('static_grid', 'minimum_gain_pct','Minimum % of gain for catching position', Number, 3)
+			this.option('static_grid', 'gain_pct','% of gain for catching position', Number, 3)
 		},
 
-		calculate: function (s, cb = function() {}) {
-			//Calcolo il pivot price (s.options.strategy.static_grid.data.sma)
-			s.options.strategy.static_grid.data.pivot_price = roundToNearest(sma(s, 'static_grid', s.options.strategy.static_grid.opts.min_periods, 'close')) 
+		getCommands: function (s, opts= {}, cb = function() {}) {
+			let strat_opts = s.options.strategy.static_grid.opts
+			let strat_data = s.options.strategy.static_grid.data
+
+			this.command('o', {desc: ('Static Grid - List options'.grey), action: function() { s.tools.listStrategyOptions('static_grid')}})
+			this.command('+', {desc: ('Static Grid - Grid pct '.grey + 'INCREASE'.green), action: function() {
+				strat_opts.grid_delta_pct = Number((strat_opts.grid_delta_pct + 0.5).toFixed(2))
+				this.onTradePeriod(s, opts)
+				console.log('\n' + 'Static Grid - Grid pct ' + 'INCREASE'.green + ' -> ' + strat_opts.grid_delta_pct)
+			}})
+			this.command('-', {desc: ('Static Grid - Grid pct '.grey + 'DECREASE'.red), action: function() {
+				strat_opts.grid_delta_pct = Number((strat_opts.grid_delta_pct - 0.5).toFixed(2))
+				if (strat_opts.grid_delta_pct <= 0.5) {
+					strat_opts.grid_delta_pct = 0.5
+				}
+				this.onTradePeriod(s, opts)
+				console.log('\n' + 'Static Grid - Grid pct ' + 'DECREASE'.red + ' -> ' + strat_opts.grid_delta_pct)
+			}})
+			this.command('*', {desc: ('Static Grid - Lanes per side value '.grey + 'INCREASE'.green), action: function() {
+				strat_opts.lane_per_side++
+				this.onTradePeriod(s, opts)
+				console.log('\n' + 'Static Grid - Lane per side value ' + 'INCREASE'.green + ' -> ' + strat_opts.lane_per_side)
+			}})
+			this.command('_', {desc: ('Static Grid - Lane per side value '.grey + 'DECREASE'.red), action: function() {
+				strat_opts.lane_per_side--
+				if (strat_opts.lane_per_side < 1) {
+					strat_opts.lane_per_side = 1
+				}
+				this.onTradePeriod(s, opts)
+				console.log('\n' + 'Static Grid - Lane per side value ' + 'DECREASE'.green + ' -> ' + strat_opts.lane_per_side)
+			}})
+			this.command('i', {desc: ('Static Grid - Gain pct '.grey + 'INCREASE'.green), action: function() {
+				strat_opts.gain_pct = Number((strat_opts.gain_pct + 0.5).toFixed(2))
+				console.log('\n' + 'Static Grid - Gain pct ' + 'INCREASE'.green + ' -> ' + strat_opts.gain_pct)
+			}})
+			this.command('k', {desc: ('Static Grid - Gain pct '.grey + 'DECREASE'.green), action: function() {
+				strat_opts.gain_pct = Number((strat_opts.gain_pct - 0.5).toFixed(2))
+				if (strat_opts.gain_pct <= 0) {
+					strat_opts.gain_pct = 0
+				}
+				console.log('\n' + 'Static Grid - Gain pct ' + 'DECREASE'.green + ' -> ' + strat_opts.gain_pct)
+			}})
+			
+			cb()
+		},
+
+		onTrade: function (s, opts= {}, cb= function() {}) {
+			cb()
+		},
+
+		onTradePeriod: function (s, opts= {}, cb= function() {}) {
+//			var opts = {
+//				trade: trade,
+//			};
+						
+			let strat_opts = s.options.strategy.static_grid.opts
+			let strat_data = s.options.strategy.static_grid.data
+			
+			//Calcolo il pivot price (strat_data.sma)
+			strat_data.pivot_price = roundToNearest(sma(s, 'static_grid', strat_opts.min_periods, 'close')) 
 
 			//Calcola la griglia
-			var pivot_price = s.options.strategy.static_grid.data.pivot_price
-			var lane_width = pivot_price * s.options.strategy.static_grid.opts.grid_pct / 100
-			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
+			var pivot_price = strat_data.pivot_price
+			var lane_width = pivot_price * strat_opts.grid_delta_pct / 100
+			var central_lane = strat_opts.lanes_per_side
 			
 			for (var i = 0; i <= (2 * central_lane); i++) {
-				s.options.strategy.static_grid.data.boundary.pair[i] = roundToNearest(n(pivot_price).add((i - central_lane) * lane_width).value())
-				s.options.strategy.static_grid.data.boundary.odd[i] = roundToNearest(n(s.options.strategy.static_grid.data.boundary.pair[i]).add(lane_width / 2).value())
+				strat_data.boundary.pair[i] = roundToNearest(n(pivot_price).add((i - central_lane) * lane_width).value())
+				strat_data.boundary.odd[i] = roundToNearest(n(strat_data.boundary.pair[i]).add(lane_width / 2).value())
 			}
 			
 //			console.log('Static Grid:')
-//			console.log(s.options.strategy.static_grid.data.boundary.pair)
-//			console.log(s.options.strategy.static_grid.data.boundary.odd)
+//			console.log(strat_data.boundary.pair)
+//			console.log(strat_data.boundary.odd)
 			
 			//Se il prezzo è sotto il minimo fra tutte le odd lanes, allora entra nella pair lanes più bassa.
-			if (s.period.close < s.options.strategy.static_grid.data.boundary.odd[0]) {
-				s.options.strategy.static_grid.data.pair = true
+			if (s.period.close < strat_data.boundary.odd[0]) {
+				strat_data.pair = true
 			}
 
-			var pair_odd = (s.options.strategy.static_grid.data.pair ? 'pair' : 'odd')
-			s.options.strategy.static_grid.data.actual_lane = 0
+			var pair_odd = (strat_data.pair ? 'pair' : 'odd')
+			strat_data.actual_lane = 0
 
 			for (var i = 0; i <= (2 * central_lane); i++) {
-				if (s.period.close > s.options.strategy.static_grid.data.boundary[pair_odd][i]) {
-					s.options.strategy.static_grid.data.actual_lane = i
+				if (s.period.close > strat_data.boundary[pair_odd][i]) {
+					strat_data.actual_lane = i
 				}
 			}
-			s.options.catch_order_pct = roundToNearest(Math.max(Math.abs(((s.period.close - pivot_price) / pivot_price) * s.options.strategy.static_grid.opts.gain_distance_pct), s.options.strategy.static_grid.opts.minimum_gain_pct))
-			
+
 			cb()
 			
 			function roundToNearest(numToRound) {
@@ -89,48 +150,114 @@ module.exports = {
 			}
 		},
 
-		onPeriod: function (s, cb) {
-			var central_lane = s.options.strategy.static_grid.opts.lanes_per_side
-
-			s.options.strategy.static_grid.data.trend = s.options.strategy.static_grid.data.actual_lane - s.options.strategy.static_grid.data.old_lane
+		onStrategyPeriod: function (s, opts= {}, cb= function() {}) {
+			let strat_opts = s.options.strategy.static_grid.opts
+			let strat_data = s.options.strategy.static_grid.data
 			
-			if (s.options.strategy.static_grid.data.trend != 0) {
-				var side = (s.period.close > s.options.strategy.static_grid.data.pivot_price)
+			var central_lane = strat_opts.lanes_per_side
 
-				s.options.strategy.static_grid.data.trade_in_lane = false
-				s.options.strategy.static_grid.data.pair = !s.options.strategy.static_grid.data.pair
+			strat_data.trend = strat_data.actual_lane - strat_data.old_lane
+			
+			if (strat_data.trend != 0) {
+				var side = (s.period.close > strat_data.pivot_price)
+
+				strat_data.trade_in_lane = false
+				strat_data.pair = !strat_data.pair
 				s.options.active_long_position = !side
 				s.options.active_short_position = side
 
 				//Ricalcola la posizione precisa nelle corsie, perché ha cambiato pair/odd.
 				// Dopodiché emette il segnale
-				this.calculate(s, function() {
-					if (s.options.strategy.static_grid.data.trend < 0) {
+				this.onTradePeriod(s, opts, function() {
+					if (strat_data.trend < 0) {
 						s.eventBus.emit('static_grid', 'sell')
 					}
-					else if (s.options.strategy.static_grid.data.trend > 0) {
+					else if (strat_data.trend > 0) {
 						s.eventBus.emit('static_grid', 'buy')
 					}
-					s.options.strategy.static_grid.data.old_lane = s.options.strategy.static_grid.data.actual_lane
+					strat_data.old_lane = strat_data.actual_lane
 				})
 			}
 			cb()
+			cb()
 		},
 
-		onReport: function (s) {
+		onReport: function (s, opts= {}, cb = function() {}) {
+			let strat_opts = s.options.strategy.trailing_stop.opts
+			let strat_data = s.options.strategy.trailing_stop.data
+
 			var cols = []
-			var color = (s.options.strategy.static_grid.data.trend = 0 ? 'white': (s.options.strategy.static_grid.data.trend > 0 ? 'green' : 'red'))
+
+			var color = (strat_data.trend = 0 ? 'white': (strat_data.trend > 0 ? 'green' : 'red'))
 			cols.push('Pvt')
-			cols.push(z(7, s.options.strategy.static_grid.data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
+			cols.push(z(7, strat_data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
 			cols.push('|Lane') 
-			cols.push(z(3, s.options.strategy.static_grid.data.actual_lane, ' ')[color])
-//			cols.push(z(6, (s.options.active_long_position ? 'Long' : 'Short'), ' '))
-			cols.push(z(2, (s.options.strategy.static_grid.data.pair ? 'P' : 'O'), ' ')[color])
+			cols.push(z(3, strat_data.actual_lane, ' ')[color])
+			cols.push(z(2, (s.strat_data.pair ? 'P' : 'O'), ' ')[color])
 			cols.push('|Catch') 
-			cols.push(z(6, n(s.options.catch_order_pct).divide(100).format('0.00%'), ' ').yellow)
-			return cols
+			cols.push(z(6, n(strat_opts.gain_pct).divide(100).format('0.00%'), ' ').yellow)	
+
+			cols.forEach(function (col) {
+				process.stdout.write(col)
+			})
+			cb()
 		},
-		
+
+		onUpdateMessage: function (s, opts= {}, cb = function() {}) {
+			cb()
+		},
+
+		onPositionOpened: function (s, opts= {}, cb = function() {}) {
+//			var opts = {
+//				position_id: position_id,
+//			};
+			cb()
+		},
+
+		onPositionUpdated: function (s, opts= {}, cb = function() {}) {
+			cb()
+		},
+
+		onPositionClosed: function (s, opts= {}, cb = function() {}) {
+			cb()
+		},
+
+		onOrderExecuted: function (s, opts= {}, cb = function() {}) {
+//			//		var opts = {
+//			signal: signal,
+//			sig_kind: sig_kind,
+//			position_id: position_id,
+//			is_closed: is_closed,
+//			};
+			if (!opts.is_closed) {
+				let strat_opts = s.options.strategy.static_grid.opts
+				let strat_data = s.options.strategy.static_grid.data
+
+				if (strat_opts.gain_pct > 0) {
+					let position = s.positions.find(x => x.id === opts.position_id)
+					if (position) {
+						let position_locking = (position.locked & ~s.strategyFlag['static_grid'])
+						let target_price = null
+
+						if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'static_grid')) {
+							let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
+							if (position.side === 'buy') {
+								target_price = n(position.price_open).multiply(1 + strat_opts.gain_pct/100).format(s.product.increment, Math.floor)
+							}
+							else {
+								target_price = n(position.price_open).multiply(1 - strat_opts.gain_pct/100).format(s.product.increment, Math.floor)
+							}
+							debug.msg('Strategy Static grid - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
+							let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
+							s.signal = position_opposite_signal[0].toUpperCase() + ' Static grid'
+							s.eventBus.emit('static_grid', position_opposite_signal, position.id, undefined, target_price, protectionFlag)  
+						}
+					}
+				}
+			}
+			cb()
+		},
+			
 		printOptions: function(s) {
 			let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.static_grid))
 			delete so_tmp.calc_lookback
@@ -138,10 +265,5 @@ module.exports = {
 			delete so_tmp.lib
 			
 			console.log('\n' + inspect(so_tmp))
-		},
-		
-		orderExecuted: function (s, signal, position_id) {
-			s.options.strategy.static_grid.data.trade_in_lane = true
-			debug.msg('static_grid strategy - orderExecuted - trade_in_lane= ' + s.options.strategy.static_grid.data.trade_in_lane)
 		},
 }
