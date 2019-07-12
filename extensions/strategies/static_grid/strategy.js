@@ -55,7 +55,10 @@ module.exports = {
 			let strat_opts = s.options.strategy.static_grid.opts
 			let strat_data = s.options.strategy.static_grid.data
 
-			this.command('o', {desc: ('Static Grid - List options'.grey), action: function() { s.tools.listStrategyOptions('static_grid')}})
+			this.command('o', {desc: ('Static Grid - List options'.grey), action: function() { 
+				s.tools.listStrategyOptions('static_grid')
+				console.log(inspect(strat_data))
+			}})
 			this.command('+', {desc: ('Static Grid - Grid pct '.grey + 'INCREASE'.green), action: function() {
 				strat_opts.grid_delta_pct = Number((strat_opts.grid_delta_pct + 0.5).toFixed(2))
 				this.onTradePeriod(s, opts)
@@ -193,7 +196,7 @@ module.exports = {
 			cols.push(z(7, strat_data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
 			cols.push('|Lane') 
 			cols.push(z(3, strat_data.actual_lane, ' ')[color])
-			cols.push(z(2, (s.strat_data.pair ? 'P' : 'O'), ' ')[color])
+			cols.push(z(2, (strat_data.pair ? 'P' : 'O'), ' ')[color])
 			cols.push('|Catch') 
 			cols.push(z(6, n(strat_opts.gain_pct).divide(100).format('0.00%'), ' ').yellow)	
 

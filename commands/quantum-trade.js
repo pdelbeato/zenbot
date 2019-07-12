@@ -74,8 +74,8 @@ module.exports = function (program, conf) {
 	.option('--sell_calmdown <amount>', 'Minutes to wait before next sell', Number, conf.sell_calmdown)
 	.option('--markdown_buy_pct <pct>', '% to mark down buy price', Number, conf.markdown_buy_pct)
 	.option('--markup_sell_pct <pct>', '% to mark up sell price', Number, conf.markup_sell_pct)
-	.option('--buy_price_limit <amount>', 'Limit buy to be under <amount>', Number, conf.buy_price_limit)
-	.option('--sell_price_limit <amount>', 'Limit sell to be above <amount>', Number, conf.sell_price_limit)
+//	.option('--buy_price_limit <amount>', 'Limit buy to be under <amount>', Number, conf.buy_price_limit)
+//	.option('--sell_price_limit <amount>', 'Limit sell to be above <amount>', Number, conf.sell_price_limit)
 //	.option('--catch_order_pct <pct>', '% for catch orders', Number, conf.catch_order_pct)
 //	.option('--catch_manual_pct <pct>', '% for manual catch orders', Number, conf.catch_manual_pct)
 //	.option('--catch_fixed_value <amount>', 'value for manual catch orders', Number, conf.catch_fixed_value)
@@ -166,6 +166,7 @@ module.exports = function (program, conf) {
 			}
 		}
 
+//Da cancellare o ripensare
 		if (!so.min_periods) {
 			so.min_periods = 301
 		}
