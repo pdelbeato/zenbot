@@ -134,7 +134,7 @@ module.exports = {
 				strat_data.pair = true
 			}
 
-			var pair_odd = (strat_data.pair ? 'pair' : 'odd')
+			var pair_odd = (strat_data.pair ? 'pair' : 'odd');
 			strat_data.actual_lane = 0
 
 			for (var i = 0; i <= (2 * central_lane); i++) {
@@ -182,7 +182,6 @@ module.exports = {
 				})
 			}
 			cb()
-			cb()
 		},
 
 		onReport: function (s, opts= {}, cb = function() {}) {
@@ -191,7 +190,7 @@ module.exports = {
 
 			var cols = []
 
-			var color = (strat_data.trend = 0 ? 'white': (strat_data.trend > 0 ? 'green' : 'red'))
+			var color = (strat_data.trend === 0 ? 'white' : (strat_data.trend > 0 ? 'green' : 'red'))
 			cols.push('Pvt')
 			cols.push(z(7, strat_data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
 			cols.push('|Lane') 
