@@ -191,13 +191,14 @@ module.exports = {
 			var cols = []
 
 			var color = (strat_data.trend === 0 ? 'white' : (strat_data.trend > 0 ? 'green' : 'red'))
-			cols.push('Pvt')
+//			cols.push('Pvt')
 			cols.push(z(7, strat_data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
-			cols.push('|Lane') 
+//			cols.push('|Lane')
+			cols.push('|')
 			cols.push(z(3, strat_data.actual_lane, ' ')[color])
 			cols.push(z(2, (strat_data.pair ? 'P' : 'O'), ' ')[color])
-			cols.push('|Catch') 
-			cols.push(z(6, n(strat_opts.gain_pct).divide(100).format('0.00%'), ' ').yellow)	
+//			cols.push('|Catch') 
+//			cols.push(z(6, n(strat_opts.gain_pct).divide(100).format('0.00%'), ' ').yellow)	
 
 			cols.forEach(function (col) {
 				process.stdout.write(col)
