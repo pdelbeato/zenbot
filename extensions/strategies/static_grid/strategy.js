@@ -6,7 +6,7 @@ var z = require('zero-fill')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
-//Per questa strategia, disattivare catching_orders
+//Per questa strategia, attivare catching_orders e disattivare virtual_stoploss e stoploss
 //c.strategy['static_grid'] = {
 //	name: 'static_grid',
 //	opts: {							//****** To store options
@@ -14,7 +14,6 @@ var z = require('zero-fill')
 //		min_periods: 1000, 			//****** Minimum number of history periods (timeframe period_length). It is the number of values to calculate Pivot price (SMA) too.
 //		grid_delta_pct: 4, 				//% delta between grid lines
 //		lanes_per_side: 10,			//Number of lanes per side
-//		gain_pct: 3,				//% of gain for closing the position
 //	},
 //	data: {							//****** To store calculated data
 //		pivot_price: 0,				//Actual Pivot price
@@ -48,7 +47,7 @@ module.exports = {
 			this.option('static_grid', 'min_periods', 'Min. number of history periods (and the number of values to calculate Pivot price (SMA)', Number, 500)
 			this.option('static_grid', 'grid_delta_pct','% difference between grid lines', Number, 1)
 			this.option('static_grid', 'lanes_per_side','Number of lanes per side', Number, 5)
-			this.option('static_grid', 'gain_pct','% of gain for catching position', Number, 3)
+//			this.option('static_grid', 'gain_pct','% of gain for catching position', Number, 3)
 		},
 
 		getCommands: function (s, opts= {}, cb = function() {}) {
@@ -85,17 +84,17 @@ module.exports = {
 				this.onTradePeriod(s, opts)
 				console.log('\n' + 'Static Grid - Lane per side value ' + 'DECREASE'.green + ' -> ' + strat_opts.lane_per_side)
 			}})
-			this.command('i', {desc: ('Static Grid - Gain pct '.grey + 'INCREASE'.green), action: function() {
-				strat_opts.gain_pct = Number((strat_opts.gain_pct + 0.5).toFixed(2))
-				console.log('\n' + 'Static Grid - Gain pct ' + 'INCREASE'.green + ' -> ' + strat_opts.gain_pct)
-			}})
-			this.command('k', {desc: ('Static Grid - Gain pct '.grey + 'DECREASE'.green), action: function() {
-				strat_opts.gain_pct = Number((strat_opts.gain_pct - 0.5).toFixed(2))
-				if (strat_opts.gain_pct <= 0) {
-					strat_opts.gain_pct = 0
-				}
-				console.log('\n' + 'Static Grid - Gain pct ' + 'DECREASE'.green + ' -> ' + strat_opts.gain_pct)
-			}})
+//			this.command('i', {desc: ('Static Grid - Gain pct '.grey + 'INCREASE'.green), action: function() {
+//				strat_opts.gain_pct = Number((strat_opts.gain_pct + 0.5).toFixed(2))
+//				console.log('\n' + 'Static Grid - Gain pct ' + 'INCREASE'.green + ' -> ' + strat_opts.gain_pct)
+//			}})
+//			this.command('k', {desc: ('Static Grid - Gain pct '.grey + 'DECREASE'.green), action: function() {
+//				strat_opts.gain_pct = Number((strat_opts.gain_pct - 0.5).toFixed(2))
+//				if (strat_opts.gain_pct <= 0) {
+//					strat_opts.gain_pct = 0
+//				}
+//				console.log('\n' + 'Static Grid - Gain pct ' + 'DECREASE'.green + ' -> ' + strat_opts.gain_pct)
+//			}})
 			
 			cb()
 		},
@@ -232,32 +231,32 @@ module.exports = {
 //			position_id: position_id,
 //			is_closed: is_closed,
 //			};
-			if (!opts.is_closed) {
-				let strat_opts = s.options.strategy.static_grid.opts
-				let strat_data = s.options.strategy.static_grid.data
-
-				if (strat_opts.gain_pct > 0) {
-					let position = s.positions.find(x => x.id === opts.position_id)
-					if (position) {
-						let position_locking = (position.locked & ~s.strategyFlag['static_grid'])
-						let target_price = null
-
-						if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'static_grid')) {
-							let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
-							if (position.side === 'buy') {
-								target_price = n(position.price_open).multiply(1 + strat_opts.gain_pct/100).format(s.product.increment, Math.floor)
-							}
-							else {
-								target_price = n(position.price_open).multiply(1 - strat_opts.gain_pct/100).format(s.product.increment, Math.floor)
-							}
-							debug.msg('Strategy Static grid - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
-							let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
-							s.signal = position_opposite_signal[0].toUpperCase() + ' Static grid'
-							s.eventBus.emit('static_grid', position_opposite_signal, position.id, undefined, target_price, protectionFlag)  
-						}
-					}
-				}
-			}
+//			if (!opts.is_closed) {
+//				let strat_opts = s.options.strategy.static_grid.opts
+//				let strat_data = s.options.strategy.static_grid.data
+//
+//				if (strat_opts.gain_pct > 0) {
+//					let position = s.positions.find(x => x.id === opts.position_id)
+//					if (position) {
+//						let position_locking = (position.locked & ~s.strategyFlag['static_grid'])
+//						let target_price = null
+//
+//						if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'static_grid')) {
+//							let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
+//							if (position.side === 'buy') {
+//								target_price = n(position.price_open).multiply(1 + strat_opts.gain_pct/100).format(s.product.increment, Math.floor)
+//							}
+//							else {
+//								target_price = n(position.price_open).multiply(1 - strat_opts.gain_pct/100).format(s.product.increment, Math.floor)
+//							}
+//							debug.msg('Strategy Static grid - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
+//							let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
+//							s.signal = position_opposite_signal[0].toUpperCase() + ' Static grid'
+//							s.eventBus.emit('static_grid', position_opposite_signal, position.id, undefined, target_price, protectionFlag)  
+//						}
+//					}
+//				}
+//			}
 			cb()
 		},
 			
