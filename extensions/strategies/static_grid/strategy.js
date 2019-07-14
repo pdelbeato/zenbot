@@ -146,7 +146,12 @@ module.exports = {
 				}
 			}
 			
-			strat_data.trend = (strat_data.actual_lane - strat_data.old_lane)
+			if (!s.in_preroll) {
+				strat_data.trend = (strat_data.actual_lane - strat_data.old_lane)
+			}
+			else {
+				strat_data.old_lane = strat_data.actual_lane
+			}
 
 			cb()
 			
