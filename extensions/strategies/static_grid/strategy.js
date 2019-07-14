@@ -24,7 +24,8 @@ var z = require('zero-fill')
 //		actual_lane: 0,				//Lane of actual price
 //		old_lane: 0,				//Former lane
 //		trend: 1,					//Trend (1 rising, 0 not moving, -1 falling)
-//		trade_in_lane: false,		//Trade in lane done or not
+////		trade_in_lane: false,		//Trade in lane done or not
+//		pair: true,					//In what lanes are actual price
 //	},
 //	calc_lookback: [],				//****** Old periods for calculation
 //	calc_close_time: 0,				//****** Close time for strategy period
@@ -140,7 +141,12 @@ module.exports = {
 				if (s.period.close > strat_data.boundary[pair_odd][i]) {
 					strat_data.actual_lane = i
 				}
+				else {
+					break
+				}
 			}
+			
+			strat_data.trend = (strat_data.actual_lane - strat_data.old_lane)
 
 			cb()
 			
@@ -157,13 +163,10 @@ module.exports = {
 			let strat_data = s.options.strategy.static_grid.data
 			
 			var central_lane = strat_opts.lanes_per_side
-
-			strat_data.trend = strat_data.actual_lane - strat_data.old_lane
+			var side = (s.period.close > strat_data.pivot_price)
 			
 			if (strat_data.trend != 0) {
-				var side = (s.period.close > strat_data.pivot_price)
-
-				strat_data.trade_in_lane = false
+//				strat_data.trade_in_lane = false
 				strat_data.pair = !strat_data.pair
 				s.options.active_long_position = !side
 				s.options.active_short_position = side
@@ -191,7 +194,7 @@ module.exports = {
 
 			var color = (strat_data.trend === 0 ? 'white' : (strat_data.trend > 0 ? 'green' : 'red'))
 //			cols.push('Pvt')
-			cols.push(z(7, strat_data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
+			cols.push(z(8, strat_data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
 //			cols.push('|Lane')
 			cols.push('|')
 			cols.push(z(3, strat_data.actual_lane, ' ')[color])
