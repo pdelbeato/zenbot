@@ -115,9 +115,7 @@ module.exports = {
 		let strat_data = s.options.strategy.bollinger.data
 		
 		this.command('o', {desc: ('Bollinger - List options'.grey), action: function() {
-//			s.tools.listStrategyOptions('bollinger')
-			this.printOptions(s)
-//			console.log(inspect(strat_data))
+			s.tools.listStrategyOptions('bollinger', false)
 		}})
 		this.command('i', {desc: 'Bollinger - Toggle No same price'.grey, action: function() {
 			strat_opts.no_same_price = !strat_opts.no_same_price
@@ -448,7 +446,7 @@ module.exports = {
 		cb()
 	},
 	
-	printOptions: function(s, opts= { only_opts = false }, cb = function() {}) {
+	printOptions: function(s, opts= { only_opts: false }, cb = function() {}) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.bollinger))
 		delete so_tmp.calc_lookback
 		delete so_tmp.calc_close_time

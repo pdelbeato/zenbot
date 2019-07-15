@@ -654,13 +654,14 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('O', {desc: ('show current strategies options/data'.grey), action: function() {
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
-						if (so.strategy[strategy_name].lib.printOptions) {
-							console.log('\nStrategy ' + strategy_name.yellow + ' options/data:')
-							so.strategy[strategy_name].lib.printOptions(s)
-						}
-						else {
-							console.log('\nStrategy ' + strategy_name + ' has no printOptions function.')
-						}
+//						if (so.strategy[strategy_name].lib.printOptions) {
+//							console.log('\nStrategy ' + strategy_name.yellow + ' options/data:')
+//							so.strategy[strategy_name].lib.printOptions(s)
+//						}
+//						else {
+//							console.log('\nStrategy ' + strategy_name + ' has no printOptions function.')
+//						}
+						s.tools.listStrategyOptions(strategy_name, false)
 					})
 				}})
 				keyMap.set('z', {desc: ('toggle Long Position'.grey), action: function() {
@@ -920,7 +921,7 @@ module.exports = function (program, conf) {
 			process.stdout.write('\n' + s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey + '\n')
 
 			Object.keys(so.strategy).forEach(function (strategy_name, index) {
-				s.tools.listStrategyOptions(strategy_name)
+				s.tools.listStrategyOptions(strategy_name, true)
 			})
 
 			process.stdout.write('\n')
