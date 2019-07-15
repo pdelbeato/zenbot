@@ -114,7 +114,11 @@ module.exports = {
 		let strat_opts = s.options.strategy.bollinger.opts
 		let strat_data = s.options.strategy.bollinger.data
 		
-		this.command('o', {desc: ('Bollinger - List options'.grey), action: function() { s.tools.listStrategyOptions('bollinger')}})
+		this.command('o', {desc: ('Bollinger - List options'.grey), action: function() {
+//			s.tools.listStrategyOptions('bollinger')
+			this.printOptions(s)
+//			console.log(inspect(strat_data))
+		}})
 		this.command('i', {desc: 'Bollinger - Toggle No same price'.grey, action: function() {
 			strat_opts.no_same_price = !strat_opts.no_same_price
 			console.log('\nToggle No same price: ' + (strat_opts.no_same_price ? 'ON'.green.inverse : 'OFF'.red.inverse))
@@ -397,10 +401,9 @@ module.exports = {
 //			position_id: position_id,
 //		};
 		let strat_opts = s.options.strategy.bollinger.opts
-		let min_open_price = s.options.strategy.bollinger.data.min_open_price
-		
+				
 		if(strat_opts.no_same_price) {
-			min_open_price[position.side] = Math.min(position.price_open, min_open_price[position.side])
+			s.options.strategy.bollinger.data.min_open_price[position.side] = Math.min(position.price_open, s.options.strategy.bollinger.data.min_open_price[position.side])
 		}
 		
 		cb()
@@ -445,15 +448,32 @@ module.exports = {
 		cb()
 	},
 	
-	printOptions: function(s, opts= {}, cb = function() {}) {
+	printOptions: function(s, opts= { only_opts = false }, cb = function() {}) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.bollinger))
 		delete so_tmp.calc_lookback
 		delete so_tmp.calc_close_time
 		delete so_tmp.lib
 		
+		if (opts.only_opts) {
+			delete so_tmp.data
+		}
+		console.log('\nSTRATEGY'.grey + '\t' + this.name + '\t' + this.description.grey + '\n')
 		console.log('\n' + inspect(so_tmp))
 		cb()
 	},
+	
+//	listStrategyOptions: function(strategy_name) {
+//		process.stdout.write('\nSTRATEGY'.grey + '\t' + strategy_name + '\t' + (require(`../extensions/strategies/${strategy_name}/strategy`).description).grey + '\n')
+//
+//		let opts_rows = [];
+//		Object.keys(s.options.strategy[strategy_name].opts).forEach(function (key, index) {
+//			opts_rows.push(z(40, key.grey, ' ') + '\t' + s.options.strategy[strategy_name].opts[key])
+//		})
+//
+//		opts_rows.forEach(function (row) {
+//			process.stdout.write(row + '\n')
+//		})
+//	},
 
 	phenotypes: {
 		// -- common
