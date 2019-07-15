@@ -6,13 +6,13 @@ var z = require('zero-fill')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
-//Per questa strategia, attivare catching_orders e disattivare virtual_stoploss e stoploss
+//Per questa strategia, attivare catching_orders e disattivare virtual_stoploss
 //c.strategy['static_grid'] = {
 //	name: 'static_grid',
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate actual lane every period_calc time
 //		min_periods: 1000, 			//****** Minimum number of history periods (timeframe period_length). It is the number of values to calculate Pivot price (SMA) too.
-//		grid_delta_pct: 4, 				//% delta between grid lines
+//		grid_delta_pct: 4, 			//% delta between grid lines
 //		lanes_per_side: 10,			//Number of lanes per side
 //	},
 //	data: {							//****** To store calculated data
@@ -23,7 +23,7 @@ var z = require('zero-fill')
 //		},
 //		actual_lane: 0,				//Lane of actual price
 //		old_lane: 0,				//Former lane
-//		trend: 1,					//Trend (1 rising, 0 not moving, -1 falling)
+//		trend: 0,					//Trend (1 rising, 0 not moving, -1 falling)
 ////		trade_in_lane: false,		//Trade in lane done or not
 //		pair: true,					//In what lanes are actual price
 //	},
