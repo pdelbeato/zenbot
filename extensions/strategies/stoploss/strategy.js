@@ -146,15 +146,15 @@ module.exports = {
 	},
 	
 	onPositionUpdated: function (s, opts= {}, cb = function() {}) {
-		debug.msg('Strategy Stoploss - onPositionUpdated')
+//		debug.msg('Strategy Stoploss - onPositionUpdated')
 		let strat_opts = s.options.strategy.stoploss.opts
 
 		var position = s.positions.find(x => x.id === opts.position_id)
 		
 		position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat_opts.buy_stop_pct/100).format(s.product.increment) : null)
 		position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat_opts.sell_stop_pct/100).format(s.product.increment) : null)
-		debug.msg('Strategy Stoploss - position.strategy_parameters.stoploss.sell_stop= ' + position.strategy_parameters.stoploss.sell_stop)
-		console.log(position)
+//		debug.msg('Strategy Stoploss - position.strategy_parameters.stoploss.sell_stop= ' + position.strategy_parameters.stoploss.sell_stop)
+//		console.log(position)
 		cb()
 	},
 	
