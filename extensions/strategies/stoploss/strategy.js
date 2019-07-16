@@ -146,6 +146,7 @@ module.exports = {
 	},
 	
 	onPositionUpdated: function (s, opts= {}, cb = function() {}) {
+		debug.msg('Strategy Stoploss - onPositionUpdated')
 		let strat_opts = s.options.strategy.stoploss.opts
 
 		var position = s.positions.find(x => x.id === opts.position_id)
