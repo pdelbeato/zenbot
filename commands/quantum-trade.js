@@ -649,7 +649,8 @@ module.exports = function (program, conf) {
 					console.log('\n' + inspect(so_tmp))
 
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
-						console.log('\n' + strategy_name + '\n' + inspect(so.strategy[strategy_name].opts))
+						console.log('\n' + strategy_name)
+						console.log('\n' + inspect(so.strategy[strategy_name].opts))
 					})
 				}})
 				keyMap.set('O', {desc: ('show current strategies options/data'.grey), action: function() {

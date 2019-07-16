@@ -70,7 +70,9 @@ module.exports = {
 		let strat_opts = s.options.strategy.trailing_stop.opts
 		let strat_data = s.options.strategy.trailing_stop.data
 
-		this.command('o', {desc: ('Trailing Stop - List options'.grey), action: function() { s.tools.listStrategyOptions('trailing_stop')}})
+		this.command('o', {desc: ('Trailing Stop - List options'.grey), action: function() {
+			s.tools.listStrategyOptions('trailing_stop', false)
+		}})
 		this.command('u', {desc: ('Trailing Stop - Enabling pct'.grey + ' INCREASE'.green), action: function() {
 			strat_opts.trailing_stop_enable_pct = Number((strat_opts.trailing_stop_enable_pct + 0.05).toFixed(2))
 			console.log('\n' + 'Trailing Stop - Enabling pct' + ' INCREASE'.green + ' -> ' + strat_opts.trailing_stop_enable_pct)

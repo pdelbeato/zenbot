@@ -66,7 +66,9 @@ module.exports = {
 		let strat_opts = s.options.strategy.catching_orders.opts
 		let strat_data = s.options.strategy.catching_orders.data
 
-		this.command('o', {desc: ('Catching Orders - List options'.grey), action: function() { s.tools.listStrategyOptions('catching_orders')}})
+		this.command('o', {desc: ('Catching orders - List options'.grey), action: function() {
+			s.tools.listStrategyOptions('catching_orders', false)
+		}})
 		this.command('Y', {desc: ('Catching Orders - Manual catch order '.grey + 'BUY'.green), action: function() {
 			console.log('\nCatching Orders - Manual catch '.grey + 'BUY'.green + ' command inserted'.grey)
 			let target_price = n(s.quote.bid).multiply(1 - strat_opts.catch_manual_pct/100).format(s.product.increment, Math.floor)

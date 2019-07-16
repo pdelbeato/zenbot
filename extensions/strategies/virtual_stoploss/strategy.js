@@ -67,7 +67,9 @@ module.exports = {
 		let strat_opts = s.options.strategy.virtual_stoploss.opts
 		let strat_data = s.options.strategy.virtual_stoploss.data
 		
-		this.command('o', {desc: ('Virtual Stoploss - List options'.grey), action: function() { s.tools.listStrategyOptions('virtual_stoploss')}})
+		this.command('o', {desc: ('Virtual Stoploss - List options'.grey), action: function() {
+			s.tools.listStrategyOptions('virtual_stoploss', false)
+		}})
 		this.command('i', {desc: ('Virtual Stoploss - Get information on the position '.grey + s.positions_index), action: function() {
 			if (s.positions_index != null) {
 				console.log('\nVirtual Stoploss - Information on position: '.yellow + s.positions[s.positions_index].id)

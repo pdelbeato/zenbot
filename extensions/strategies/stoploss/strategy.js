@@ -67,7 +67,9 @@ module.exports = {
 		let strat_opts = s.options.strategy.stoploss.opts
 		let strat_data = s.options.strategy.stoploss.data
 		
-		this.command('o', {desc: ('Stoploss - List options'.grey), action: function() { s.tools.listStrategyOptions('stoploss')}})
+		this.command('o', {desc: ('Stoploss - List options'.grey), action: function() {
+			s.tools.listStrategyOptions('stoploss', false)
+		}})
 		this.command('u', {desc: ('Stoploss - Buy stop price (short position)'.grey + ' INCREASE'.green), action: function() {
 			strat_opts.buy_stop_pct = Number((strat_opts.buy_stop_pct + 0.05).toFixed(2))
 			console.log('\n' + 'Stoploss - Buy stop price' + ' INCREASE'.green + ' -> ' + strat_opts.buy_stop_pct)

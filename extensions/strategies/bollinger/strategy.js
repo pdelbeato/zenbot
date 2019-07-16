@@ -52,7 +52,7 @@ var z = require('zero-fill')
 //			sell: null,
 //		}
 //		min_open_price: {			//****** Minimum open price
-//			buy: Infinity,
+//			buy: 1000000,
 //			sell: 0,
 //		}
 //	},	

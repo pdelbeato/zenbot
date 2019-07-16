@@ -55,9 +55,8 @@ module.exports = {
 			let strat_opts = s.options.strategy.static_grid.opts
 			let strat_data = s.options.strategy.static_grid.data
 
-			this.command('o', {desc: ('Static Grid - List options'.grey), action: function() { 
-				s.tools.listStrategyOptions('static_grid')
-				console.log(inspect(strat_data))
+			this.command('o', {desc: ('Static Grid - List options'.grey), action: function() {
+				s.tools.listStrategyOptions('static_grid', false)
 			}})
 			this.command('+', {desc: ('Static Grid - Grid pct '.grey + 'INCREASE'.green), action: function() {
 				strat_opts.grid_delta_pct = Number((strat_opts.grid_delta_pct + 0.5).toFixed(2))
