@@ -11,61 +11,61 @@ var z = require('zero-fill')
 //Parte da includere nel file di configurazione
 //---------------------------------------------
 //c.strategy['bollinger'] = {
-//name: 'bollinger',
-//opts: {							//****** To store options
-//period_calc: '15m',			//****** Calculate Bollinger Bands every period_calc time
-//min_periods: 301, 			//****** Minimum number of history periods (timeframe period_length)
-//size: 20,					//****** period size
-//time: 2,					//****** times of standard deviation between the upper/lower band and the moving averages
-//rsi_size: 15,				//****** period size rsi
-//min_bandwidth_pct: 0.50,	//****** minimum pct bandwidth to emit a signal
-//upper_bound_pct: 0,			//****** pct the current price should be near the bollinger upper bound before we sell
-//lower_bound_pct: 0,			//****** pct the current price should be near the bollinger lower bound before we buy
-//pump_watchdog: false,		//****** Pump Watchdog switch
-//dump_watchdog: false,		//****** Dump Watchdog switch
-//upper_watchdog_pct: 200,	//****** pct the current price should be over the bollinger upper bound to activate watchdog
-//lower_watchdog_pct: 200,	//****** pct the current price should be under the bollinger lower bound to activate watchdog
-//calmdown_watchdog_pct: 0,	//****** pct the current price should be in the bollinger bands to calmdown the watchdog
-//rsi_buy_threshold: 30,		//****** minimum rsi to buy
-//rsi_sell_threshold: 100,	//****** maximum rsi to sell
-//sell_min_pct: 5,			//****** avoid selling at a profit below this pct (for long positions)
-//buy_min_pct: 5,				//****** avoid buying at a profit below this pct (for short positions)
-//no_same_price: true,		//****** Avoid to open a position with an open price not below delta_pct from the minimum open price
-//delta_pct: 1,				//****** Delta % from minimum open price
-//over_and_back: false,		//****** Emit signal when price comes back inside the band
-//},
-//data: {							//****** To store calculated data
-//bollinger: {
-//upperBound: null,
-//midBound: null,
-//lowerBound: null,
-//}
-//rsi: {
-//rsi: null,
-//rsi_avg_gain: null,
-//rsi_avg_loss: null,
-//}
-//watchdog {
-//pump: false,
-//dump: false,
-//calmdown: false,
-//}
-//is_over: {
-//up: false,
-//down: false,
-//},
-//max_profit_position: {		//****** Positions with max profit
-//buy: null,
-//sell: null,
-//}
-//min_open_price: {			//****** Minimum open price
-//buy: 1000000,
-//sell: 0,
-//}
-//},	
-//calc_lookback: [],				//****** Old periods for calculation
-//calc_close_time: 0				//****** Close time for strategy period
-//lib: {}							//****** To store all the functions of the strategy
+//	name: 'bollinger',
+//	opts: {							//****** To store options
+//		period_calc: '15m',			//****** Calculate Bollinger Bands every period_calc time
+//		min_periods: 301, 			//****** Minimum number of history periods (timeframe period_length)
+//		size: 20,					//****** period size
+//		time: 2,					//****** times of standard deviation between the upper/lower band and the moving averages
+//		rsi_size: 15,				//****** period size rsi
+//		min_bandwidth_pct: 0.50,	//****** minimum pct bandwidth to emit a signal
+//		upper_bound_pct: 0,			//****** pct the current price should be near the bollinger upper bound before we sell
+//		lower_bound_pct: 0,			//****** pct the current price should be near the bollinger lower bound before we buy
+//		pump_watchdog: false,		//****** Pump Watchdog switch
+//		dump_watchdog: false,		//****** Dump Watchdog switch
+//		upper_watchdog_pct: 200,	//****** pct the current price should be over the bollinger upper bound to activate watchdog
+//		lower_watchdog_pct: 200,	//****** pct the current price should be under the bollinger lower bound to activate watchdog
+//		calmdown_watchdog_pct: 0,	//****** pct the current price should be in the bollinger bands to calmdown the watchdog
+//		rsi_buy_threshold: 30,		//****** minimum rsi to buy
+//		rsi_sell_threshold: 100,	//****** maximum rsi to sell
+//		sell_min_pct: 5,			//****** avoid selling at a profit below this pct (for long positions)
+//		buy_min_pct: 5,				//****** avoid buying at a profit below this pct (for short positions)
+//		no_same_price: true,		//****** Avoid to open a position with an open price not below delta_pct from the minimum open price
+//		delta_pct: 1,				//****** Delta % from minimum open price
+//		over_and_back: false,		//****** Emit signal when price comes back inside the band
+//	},
+//	data: {							//****** To store calculated data
+//		bollinger: {
+//			upperBound: null,
+//			midBound: null,
+//			lowerBound: null,
+//		}
+//	rsi: {
+//		rsi: null,
+//		rsi_avg_gain: null,
+//		rsi_avg_loss: null,
+//	}
+//	watchdog: {
+//		pump: false,
+//		dump: false,
+//		calmdown: false,
+//	}
+//	is_over: {
+//		up: false,
+//		down: false,
+//	},
+//	max_profit_position: {		//****** Positions with max profit
+//		buy: null,
+//		sell: null,
+//	}
+//	min_open_price: {			//****** Minimum open price
+//		buy: 1000000,
+//		sell: 0,
+//	}
+//	},	
+//	calc_lookback: [],				//****** Old periods for calculation
+//	calc_close_time: 0				//****** Close time for strategy period
+//	lib: {}							//****** To store all the functions of the strategy
 //}
 //---------------------------------------------
 
@@ -262,16 +262,16 @@ module.exports = {
 			//Utilizzo la normale strategia
 			if (!strat_data.watchdog.pump && !strat_data.watchdog.dump && !strat_data.watchdog.calmdown) {
 				let condition = {
-						buy: [
-							(s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100))),
-							(rsi > strat_opts.rsi_buy_threshold),
-							(strat_opts.no_same_price ? ((s.period.close < (strat_data.min_open_price.buy * (1 - strat_opts.delta_pct/100))) ? true : false) : true),
-							],
-							sell: [
-								(s.period.close > (upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100))),
-								(rsi < strat_opts.rsi_sell_threshold),
-								(strat_opts.no_same_price ? ((s.period.close > (strat_data.min_open_price.sell * (1 + strat_opts.delta_pct/100))) ? true : false) : true),
-								]
+					buy: [
+						(s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100))),
+						(rsi > strat_opts.rsi_buy_threshold),
+						(strat_opts.no_same_price ? ((s.period.close < (strat_data.min_open_price.buy * (1 - strat_opts.delta_pct/100))) ? true : false) : true),
+					],
+					sell: [
+						(s.period.close > (upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100))),
+						(rsi < strat_opts.rsi_sell_threshold),
+						(strat_opts.no_same_price ? ((s.period.close > (strat_data.min_open_price.sell * (1 + strat_opts.delta_pct/100))) ? true : false) : true),
+					]
 				}
 
 //				s.eventBus.emit(sig_kind, signal, position_id, fixed_size, fixed_price, is_reorder, is_taker)
@@ -279,13 +279,13 @@ module.exports = {
 				if (condition.sell[0]) {
 					strat_data.is_over.up = true;
 					if (!strat_opts.over_and_back) {
-						controlConditions(sell)
+						controlConditions('sell')
 					}
 				}
 				else if (strat_data.is_over.up) {
 					strat_data.is_over.up = false
 					if (strat_opts.over_and_back) {
-						controlConditions(sell)
+						controlConditions('sell')
 					}
 				}
 //				if (sell_condition_1 && sell_condition_2) {
@@ -306,13 +306,13 @@ module.exports = {
 				else if (condition.buy[0]) {
 					strat_data.is_over.up = true;
 					if (!strat_opts.over_and_back) {
-						controlConditions(buy)
+						controlConditions('buy')
 					}
 				}
 				else if (strat_data.is_over.up) {
 					strat_data.is_over.up = false
 					if (!strat_opts.over_and_back) {
-						controlConditions(buy)
+						controlConditions('buy')
 					}
 				}
 			}
