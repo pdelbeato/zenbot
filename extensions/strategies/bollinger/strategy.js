@@ -304,13 +304,13 @@ module.exports = {
 //				}
 //				}
 				else if (condition.buy[0]) {
-					strat_data.is_over.up = true;
+					strat_data.is_over.down = true;
 					if (!strat_opts.over_and_back) {
 						controlConditions('buy')
 					}
 				}
 				else if (strat_data.is_over.up) {
-					strat_data.is_over.up = false
+					strat_data.is_over.down = false
 					if (!strat_opts.over_and_back) {
 						controlConditions('buy')
 					}
@@ -320,8 +320,8 @@ module.exports = {
 		cb()
 
 		function controlConditions(side) {
-			let opposite_side = (side === 'buy' ? 'sell' : 'buy')
-			let min_pct = {
+			var opposite_side = (side === 'buy' ? 'sell' : 'buy')
+			var min_pct = {
 				buy: strat_opts.buy_min_pct,
 				sell: strat_opts.sell_min_pct,
 			}
