@@ -261,7 +261,7 @@ module.exports = {
 
 			//Utilizzo la normale strategia
 			if (!strat_data.watchdog.pump && !strat_data.watchdog.dump && !strat_data.watchdog.calmdown) {
-				let condition = {
+				var condition = {
 					buy: [
 						(s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100))),
 						(rsi > strat_opts.rsi_buy_threshold),
