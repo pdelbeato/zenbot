@@ -481,7 +481,7 @@ module.exports = {
 
 		switch(position_side) {
 		case 'buy': {
-			min_open_price.buy = Infinity
+			min_open_price.buy = 1000000
 
 			s.positions.forEach(function (position, index, array) {
 				min_open_price.buy = Math.min(position.price_open, min_open_price.buy)
