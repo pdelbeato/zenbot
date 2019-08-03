@@ -39,29 +39,29 @@ var z = require('zero-fill')
 //			upperBound: null,
 //			midBound: null,
 //			lowerBound: null,
-//		}
-//	rsi: {
-//		rsi: null,
-//		rsi_avg_gain: null,
-//		rsi_avg_loss: null,
-//	}
-//	watchdog: {
-//		pump: false,
-//		dump: false,
-//		calmdown: false,
-//	}
-//	is_over: {
-//		up: false,
-//		down: false,
-//	},
-//	max_profit_position: {		//****** Positions with max profit
-//		buy: null,
-//		sell: null,
-//	}
-//	min_open_price: {			//****** Minimum open price
-//		buy: 1000000,
-//		sell: 0,
-//	}
+//		},
+//		rsi: {
+//			rsi: null,
+//			rsi_avg_gain: null,
+//			rsi_avg_loss: null,
+//		},
+//		watchdog: {
+//			pump: false,
+//			dump: false,
+//			calmdown: false,
+//		},
+//		is_over: {
+//			up: false,
+//			down: false,
+//		},
+//		max_profit_position: {		//****** Positions with max profit
+//			buy: null,
+//			sell: null,
+//		},
+//		min_open_price: {			//****** Minimum open price
+//			buy: 1000000,
+//			sell: 0,
+//		},
 //	},	
 //	calc_lookback: [],				//****** Old periods for calculation
 //	calc_close_time: 0				//****** Close time for strategy period
