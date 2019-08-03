@@ -476,25 +476,29 @@ module.exports = {
 //		var opts = {
 //		position_id: position_id,
 //		}; 
+		
+		let strat_opts = s.options.strategy.bollinger.opts
+		
+		if(strat_opts.no_same_price) {
+			var position_side = s.closed_positions.find(x => x.id === opts.position_id).side
 
-		var position_side = s.closed_positions.find(x => x.id === opts.position_id).side
+			switch(position_side) {
+			case 'buy': {
+				s.options.strategy.bollinger.data.min_open_price.buy = 1000000
 
-		switch(position_side) {
-		case 'buy': {
-			min_open_price.buy = 1000000
+				s.positions.forEach(function (position, index, array) {
+					s.options.strategy.bollinger.data.min_open_price.buy = Math.min(position.price_open, s.options.strategy.bollinger.data.min_open_price.buy)
+				})
+			}
+			case 'sell': {
+				s.options.strategy.bollinger.data.min_open_price.sell = 0
 
-			s.positions.forEach(function (position, index, array) {
-				min_open_price.buy = Math.min(position.price_open, min_open_price.buy)
-			})
+				s.positions.forEach(function (position, index, array) {
+					s.options.strategy.bollinger.data.min_open_price.sell = Math.max(position.price_open, s.options.strategy.bollinger.data.min_open_price.sell)
+				})
+			}
+			}	
 		}
-		case 'sell': {
-			min_open_price.sell = 0
-
-			s.positions.forEach(function (position, index, array) {
-				min_open_price.sell = Math.max(position.price_open, min_open_price.sell)
-			})
-		}
-		}	
 		cb()
 	},
 
