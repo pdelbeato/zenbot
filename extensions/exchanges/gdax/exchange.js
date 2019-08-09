@@ -3,6 +3,8 @@ var Gdax = require('gdax')
 , minimist = require('minimist')
 //Se funziona la gestione della memoria, si può cancellare insieme alla funzione getMemory()
 , sizeof = require('object-sizeof')
+,  minimist = require('minimist')
+
 
 module.exports = function gdax (conf) {
 	var so = minimist(process.argv)
@@ -790,6 +792,18 @@ module.exports = function gdax (conf) {
 					}
 					delete opts.order_type
 
+        websocket_client[product_id].disconnect()
+        websocket_client[product_id] = null
+        websocket_cache[product_id] = null
+        websocketClient(product_id)
+      })
+
+      websocket_client[product_id].on('close', () => {
+        if (client_state.errored){
+          client_state.errored = false
+          return
+        }
+
 					debug.msg('buy - buy call')
 
 					client.buy(opts, function (err, resp, body) {
@@ -1115,6 +1129,17 @@ module.exports = function gdax (conf) {
 					retry('getAllOrders', func_args, (next_request - now() + 1))
 				}
 			},
+
+        if (resp.statusCode === 404) {
+          // order was cancelled. recall from cache
+          body = orders['~' + opts.order_id]
+          body.status = 'done'
+          body.done_reason = 'canceled'
+        }
+
+        if (err) {
+          return retry('getOrder', func_args, err)
+        }
 
 			// return the property used for range querying.
 			getCursor: function (trade) {
