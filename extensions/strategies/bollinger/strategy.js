@@ -64,7 +64,7 @@ var z = require('zero-fill')
 //		},
 //	},	
 //	calc_lookback: [],				//****** Old periods for calculation
-//	calc_close_time: 0				//****** Close time for strategy period
+//	calc_close_time: 0,				//****** Close time for strategy period
 //	lib: {}							//****** To store all the functions of the strategy
 //}
 //---------------------------------------------
