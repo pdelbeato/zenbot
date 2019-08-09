@@ -42,7 +42,7 @@
   {
     "asset": "LTC",
     "currency": "USD",
-    "min_size": "0.5",
+    "min_size": "0.1",
     "max_size": null,
     "increment": "0.01",
     "label": "LTC/USD"
@@ -86,6 +86,22 @@
     "max_size": null,
     "increment": "0.01",
     "label": "MHC/USD"
+  },
+  {
+    "asset": "TRX",
+    "currency": "USD",
+    "min_size": "200",
+    "max_size": null,
+    "increment": "0.01",
+    "label": "TRX/USD"
+  },
+  {
+    "asset": "BTT",
+    "currency": "USD",
+    "min_size": "10000",
+    "max_size": null,
+    "increment": "0.01",
+    "label": "BTT/USD"
   },
   {
     "asset": "BTC",
@@ -168,6 +184,30 @@
     "label": "MHC/EUR"
   },
   {
+    "asset": "TRX",
+    "currency": "EUR",
+    "min_size": "200",
+    "max_size": null,
+    "increment": "0.01",
+    "label": "TRX/EUR"
+  },
+  {
+    "asset": "BTT",
+    "currency": "EUR",
+    "min_size": "10000",
+    "max_size": null,
+    "increment": "0.01",
+    "label": "BTT/EUR"
+  },
+  {
+    "asset": "LTC",
+    "currency": "EUR",
+    "min_size": "0.1",
+    "max_size": null,
+    "increment": "0.01",
+    "label": "LTC/EUR"
+  },
+  {
     "asset": "BTC",
     "currency": "GBP",
     "min_size": "0.002",
@@ -198,6 +238,22 @@
     "max_size": null,
     "increment": "0.01",
     "label": "MHC/GBP"
+  },
+  {
+    "asset": "LTC",
+    "currency": "GBP",
+    "min_size": "0.1",
+    "max_size": null,
+    "increment": "0.01",
+    "label": "LTC/GBP"
+  },
+  {
+    "asset": "XRP",
+    "currency": "GBP",
+    "min_size": "40",
+    "max_size": null,
+    "increment": "0.0001",
+    "label": "XRP/GBP"
   },
   {
     "asset": "BTC",
@@ -298,7 +354,7 @@
   {
     "asset": "MHC",
     "currency": "BTC",
-    "min_size": "100",
+    "min_size": "500",
     "max_size": null,
     "increment": "0.000001",
     "label": "MHC/BTC"
@@ -306,9 +362,25 @@
   {
     "asset": "MHC",
     "currency": "ETH",
-    "min_size": "70",
+    "min_size": "500",
     "max_size": null,
     "increment": "0.01",
     "label": "MHC/ETH"
+  },
+  {
+    "asset": "TRX",
+    "currency": "BTC",
+    "min_size": "200",
+    "max_size": null,
+    "increment": "0.000001",
+    "label": "TRX/BTC"
+  },
+  {
+    "asset": "BTT",
+    "currency": "BTC",
+    "min_size": "10000",
+    "max_size": null,
+    "increment": "0.000001",
+    "label": "BTT/BTC"
   }
 ]
