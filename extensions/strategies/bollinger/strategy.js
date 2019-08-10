@@ -277,8 +277,10 @@ module.exports = {
 //				s.eventBus.emit(sig_kind, signal, position_id, fixed_size, fixed_price, is_reorder, is_taker)
 
 				if (condition.sell[0]) {
-					strat_data.is_over.up = true;
-					if (!strat_opts.over_and_back) {
+					if (strat_opts.over_and_back) {
+						strat_data.is_over.up = true;
+					}
+					else {
 						controlConditions('sell')
 					}
 				}
@@ -304,12 +306,14 @@ module.exports = {
 //				}
 //				}
 				else if (condition.buy[0]) {
-					strat_data.is_over.down = true;
-					if (!strat_opts.over_and_back) {
+					if (strat_opts.over_and_back) {
+						strat_data.is_over.down = true;
+					}
+					else {
 						controlConditions('buy')
 					}
 				}
-				else if (strat_data.is_over.up) {
+				else if (strat_data.is_over.down) {
 					strat_data.is_over.down = false
 					if (!strat_opts.over_and_back) {
 						controlConditions('buy')
@@ -333,7 +337,7 @@ module.exports = {
 					if (strat_data.max_profit_position[opposite_side] && strat_data.max_profit_position[opposite_side].profit_net_pct >= min_pct[side]) {
 						s.eventBus.emit('bollinger', side, strat_data.max_profit_position[opposite_side].id)
 					}
-					else if (condition[side][2] && !strat_opts.over_and_back) {
+					else if (condition[side][2]) {
 						s.eventBus.emit('bollinger', side)
 					}
 					else {
