@@ -84,7 +84,7 @@
     "node-telegram-bot-api": "^0.30.0",
     "number-abbreviate": "^2.0.0",
     "numbro": "github:highvelocityspace/numbro",
-	"object-sizeof": "^1.4.0",
+    "object-sizeof": "^1.4.0",
     "path": "^0.12.7",
     "poloniex.js": "1.0.1",
     "popper.js": "^1.15.0",

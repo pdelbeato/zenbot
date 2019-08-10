@@ -286,9 +286,9 @@ module.exports = {
 				}
 				else if (strat_data.is_over.up) {
 					strat_data.is_over.up = false
-					if (strat_opts.over_and_back) {
+//					if (strat_opts.over_and_back) {
 						controlConditions('sell')
-					}
+//					}
 				}
 //				if (sell_condition_1 && sell_condition_2) {
 //				s.signal = 'S Bollinger';
@@ -315,9 +315,9 @@ module.exports = {
 				}
 				else if (strat_data.is_over.down) {
 					strat_data.is_over.down = false
-					if (!strat_opts.over_and_back) {
+//					if (!strat_opts.over_and_back) {
 						controlConditions('buy')
-					}
+//					}
 				}
 			}
 		}
