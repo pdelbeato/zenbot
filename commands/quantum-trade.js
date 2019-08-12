@@ -512,7 +512,7 @@ module.exports = function (program, conf) {
 						console.log('\nFreeing completely the position (cancelling all orders connected with the position) '.yellow + s.positions[s.positions_index].id)
 						s.tools.positionFlags(s.positions[s.positions_index], 'status', 'Free')
 						s.tools.positionFlags(s.positions[s.positions_index], 'locked', 'Free')
-						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
+						s.positionProcessingQueue.push({mode: 'update', position_id: s.positions[s.positions_index].id})
 					}
 					else {
 						console.log('No position in control.')
@@ -522,7 +522,7 @@ module.exports = function (program, conf) {
 					if (s.positions_index != null) {
 						console.log('\nLocking (Manual) the position '.yellow + s.positions[s.positions_index].id)
 						s.tools.positionFlags(s.positions[s.positions_index], 'locked', 'Set', 'manual')
-						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
+						s.positionProcessingQueue.push({mode: 'update', position_id: s.positions[s.positions_index].id})
 					}
 					else {
 						console.log('No position in control.')
@@ -532,7 +532,7 @@ module.exports = function (program, conf) {
 					if (s.positions_index != null) {
 						console.log('\nUnlocking (Manual) the position '.yellow + s.positions[s.positions_index].id)
 						s.tools.positionFlags(s.positions[s.positions_index], 'locked', 'Unset', 'manual')
-						s.positionProcessingQueue.push({mode: 'update', id: s.positions[s.positions_index].id})
+						s.positionProcessingQueue.push({mode: 'update', position_id: s.positions[s.positions_index].id})
 					}
 					else {
 						console.log('No position in control.')
@@ -556,7 +556,7 @@ module.exports = function (program, conf) {
 
 						s.tools.positionFlags(s.positions[s.positions_index], 'status', 'Free')
 						setTimeout(function() {
-							s.positionProcessingQueue.push({mode: 'delete', id: s.positions[s.positions_index].id})
+							s.positionProcessingQueue.push({mode: 'delete', position_id: s.positions[s.positions_index].id})
 							s.positions_index = null
 						}, so.order_poll_time)
 					}
@@ -857,7 +857,7 @@ module.exports = function (program, conf) {
 
 		/* Funzioni per le operazioni sul database Mongo DB delle posizioni */
 		s.positionProcessingQueue = async.queue(function(task, callback) {
-			managePositionCollection(task.mode, task.id, callback)
+			managePositionCollection(task.mode, task.position_id, callback)
 		})
 
 		// Assegna una funzione di uscita
