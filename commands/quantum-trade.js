@@ -173,7 +173,7 @@ module.exports = function (program, conf) {
 					so.min_periods = Math.max(so.strategy[strategy_name].opts.min_periods, so.min_periods)
 				}
 			})
-			debug.msg('quantum-trade - so.min_periods= ' + so.min_periods)
+//			debug.msg('quantum-trade - so.min_periods= ' + so.min_periods)
 		}
 
 		so.selector = objectifySelector(selector || conf.selector)
@@ -762,7 +762,7 @@ module.exports = function (program, conf) {
 				}
 
 				//Corretto per il Deprecation Warning
-				require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true }, function (err, client) {
+				require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
 					if (err) {
 						console.error('WARNING: MongoDB Connection Error: ', err)
 						console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')
