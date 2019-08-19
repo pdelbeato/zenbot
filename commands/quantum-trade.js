@@ -166,9 +166,14 @@ module.exports = function (program, conf) {
 			}
 		}
 
-//Da cancellare o ripensare
 		if (!so.min_periods) {
-			so.min_periods = 301
+			so.min_periods = 1
+			Object.keys(s.options.strategy).forEach(function (strategy_name, index, array) {			
+				if (so.strategy[strategy_name].opts.min_periods) {
+					so.min_periods = Math.max(so.strategy[strategy_name].opts.min_periods, so.min_periods)
+				}
+			})
+			debug.msg('quantum-trade - so.min_periods= ' + so.min_periods)
 		}
 
 		so.selector = objectifySelector(selector || conf.selector)

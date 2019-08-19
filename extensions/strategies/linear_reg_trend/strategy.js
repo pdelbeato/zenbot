@@ -15,7 +15,7 @@ var z = require('zero-fill')
 //		min_periods: 1501, 			//****** Minimum number of history periods (timeframe period_length)
 //		size: 100,					//****** Use 'size' period to calculate linear regression
 //		upper_threshold: 2,			//****** Upper threshold (long if price is higher)
-//		lower_threshold: 2,			//****** Lower threshold (short if price is lower)
+//		lower_threshold: -2,			//****** Lower threshold (short if price is lower)
 //		activated: false,			//****** Activate this strategy
 //	},
 //	data: {							//****** To store calculated data
@@ -122,7 +122,7 @@ module.exports = {
 				color = 'red'
 			}
 
-			cols.push(z(5, ('T ' + n(strat_data.slope).format('0.0')), ' ')[color])
+			cols.push(z(5, ('[' + n(strat_data.slope).format('0.0') + ']'), ' ')[color])
 		}
 		else {
 			cols.push(z(5, '', ' '))
