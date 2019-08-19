@@ -94,7 +94,7 @@ module.exports = {
 		let strat_opts = s.options.strategy.linear_reg_trend.opts
 		let strat_data = s.options.strategy.linear_reg_trend.data
 
-		Promise.all([linearRegSlope(s, 'linear_reg_trend', strat_opts.size, 'close')]).then(result => {
+		linearRegSlope(s, 'linear_reg_trend', strat_opts.size, 'close').then(result => {
 			if(result && result.outReal) {
 				strat_data.slope = result.outReal
 			}
@@ -122,9 +122,8 @@ module.exports = {
 				color = 'red'
 			}
 
-			cols.push(z(5, 'T ' + n(strat_data.slope).format('0.0'), ' ')[color])
+			cols.push(z(5, ('T ' + n(strat_data.slope).format('0.0')), ' ')[color])
 		}
-
 		else {
 			cols.push(z(5, '', ' '))
 		}
