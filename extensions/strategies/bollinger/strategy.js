@@ -117,7 +117,9 @@ module.exports = {
 		this.option('bollinger', 'buy_min_pct', 'avoid buying at a profit below this pct (for short positions)', Number, 1)
 		this.option('bollinger', 'no_same_price', 'Avoid to open a position with an open price not below delta_pct from the minimum open price', Boolean, true)
 		this.option('bollinger', 'delta_pct', 'Delta % from minimum open price', Number, 1)
-		this.option('bollinger', 'over_and_back', 'Emit signal when price comes back inside the band', Boolean, false)		
+		this.option('bollinger', 'over_and_back', 'Emit signal when price comes back inside the band', Boolean, false)
+		
+		this.onPositionClosed(s, opts, cb)
 	},
 
 	getCommands: function (s, opts = {}, cb = function() {}) {
@@ -458,16 +460,18 @@ module.exports = {
 //		var opts = {
 //		position_id: position_id,
 //		};
-		let strat_opts = s.options.strategy.bollinger.opts
-
-		if(strat_opts.no_same_price) {
-			let limit = {}
-			limit.buy = Math.min(position.price_open, s.options.strategy.bollinger.data.limit_open_price.buy)
-			limit.sell = Math.max(position.price_open, s.options.strategy.bollinger.data.limit_open_price.sell)
-			s.options.strategy.bollinger.data.limit_open_price[position.side] = limit[position.side] 
-		}
-
-		cb()
+		
+		this.onPositionClosed(s, opts, cb)
+//		let strat_opts = s.options.strategy.bollinger.opts
+//
+//		if(strat_opts.no_same_price) {
+//			let limit = {}
+//			limit.buy = Math.min(position.price_open, s.options.strategy.bollinger.data.limit_open_price.buy)
+//			limit.sell = Math.max(position.price_open, s.options.strategy.bollinger.data.limit_open_price.sell)
+//			s.options.strategy.bollinger.data.limit_open_price[position.side] = limit[position.side] 
+//		}
+//
+//		cb()
 	},
 
 	onPositionUpdated: function (s, opts= {}, cb = function() {}) {
@@ -483,30 +487,21 @@ module.exports = {
 //		var opts = {
 //		position_id: position_id,
 //		}; 
-		
+
 		let strat_opts = s.options.strategy.bollinger.opts
-		
+
 		if(strat_opts.no_same_price) {
-			var position_side = s.closed_positions.find(x => x.id === opts.position_id).side
+			s.options.strategy.bollinger.data.limit_open_price.buy = 1000000
+			s.options.strategy.bollinger.data.limit_open_price.sell = 0
 
-			switch(position_side) {
-			case 'buy': {
-				s.options.strategy.bollinger.data.limit_open_price.buy = 1000000
-
-				s.positions.forEach(function (position, index, array) {
+			s.positions.forEach(function (position, index, array) {
+				if (position.side === 'buy') {
 					s.options.strategy.bollinger.data.limit_open_price.buy = Math.min(position.price_open, s.options.strategy.bollinger.data.limit_open_price.buy)
-				})
-				break
-			}
-			case 'sell': {
-				s.options.strategy.bollinger.data.limit_open_price.sell = 0
-
-				s.positions.forEach(function (position, index, array) {
+				}
+				else {
 					s.options.strategy.bollinger.data.limit_open_price.sell = Math.max(position.price_open, s.options.strategy.bollinger.data.limit_open_price.sell)
-				})
-				break
-			}
-			}	
+				}
+			})
 		}
 		cb()
 	},
@@ -528,19 +523,6 @@ module.exports = {
 		console.log('\n' + inspect(so_tmp))
 		cb()
 	},
-
-//	listStrategyOptions: function(strategy_name) {
-//	process.stdout.write('\nSTRATEGY'.grey + '\t' + strategy_name + '\t' + (require(`../extensions/strategies/${strategy_name}/strategy`).description).grey + '\n')
-
-//	let opts_rows = [];
-//	Object.keys(s.options.strategy[strategy_name].opts).forEach(function (key, index) {
-//	opts_rows.push(z(40, key.grey, ' ') + '\t' + s.options.strategy[strategy_name].opts[key])
-//	})
-
-//	opts_rows.forEach(function (row) {
-//	process.stdout.write(row + '\n')
-//	})
-//	},
 
 	phenotypes: {
 		// -- common

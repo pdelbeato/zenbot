@@ -78,15 +78,10 @@ module.exports = {
 	},
 
 	onTrade: function (s, opts= {}, cb = function() {}) {
-		if (opts.trade) {
-		}
 		cb()
 	},
 
 	onTradePeriod: function (s, opts= {}, cb = function() {}) {
-		let strat_opts = s.options.strategy.linear_reg_trend.opts
-		let strat_data = s.options.strategy.linear_reg_trend.data
-
 		cb()
 	},
 
@@ -185,19 +180,6 @@ module.exports = {
 		console.log('\n' + inspect(so_tmp))
 		cb()
 	},
-
-//	listStrategyOptions: function(strategy_name) {
-//	process.stdout.write('\nSTRATEGY'.grey + '\t' + strategy_name + '\t' + (require(`../extensions/strategies/${strategy_name}/strategy`).description).grey + '\n')
-
-//	let opts_rows = [];
-//	Object.keys(s.options.strategy[strategy_name].opts).forEach(function (key, index) {
-//	opts_rows.push(z(40, key.grey, ' ') + '\t' + s.options.strategy[strategy_name].opts[key])
-//	})
-
-//	opts_rows.forEach(function (row) {
-//	process.stdout.write(row + '\n')
-//	})
-//	},
 
 	phenotypes: {
 		// -- common
