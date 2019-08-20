@@ -248,11 +248,13 @@ module.exports = function (program, conf) {
 		})
 // Fine aggiunta dalla fine
 		
+		var engine = null
+		
 		Promise.all([recover_my_positions, recover_my_closed_positions])
 		.then(function() {
 			//Quindi engine è quantum-engine(s, conf), dove conf è zenbot.conf da zenbot.js, quindi l'unione
 			// di conf_file, conf.js e conf-sample.js e NON s.options
-			var engine = engineFactory(s, conf)
+			engine = engineFactory(s, conf)
 		})
 		.catch(function(error) {
 			console.log(error)
