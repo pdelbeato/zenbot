@@ -122,7 +122,7 @@ module.exports = {
 				color = 'red'
 			}
 
-			cols.push(z(5, ('[' + n(strat_data.slope).format('0.0') + ']'), ' ')[color])
+			cols.push(z(5, ('[' + n(strat_data.slope).format('0.0') + '‰]'), ' ')[color])
 		}
 		else {
 			cols.push(z(5, '', ' '))
