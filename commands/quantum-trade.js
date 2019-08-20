@@ -14,7 +14,6 @@ var tb = require('timebucket')
 , objectifySelector = require('../lib/objectify-selector')
 , engineFactory = require('../lib/quantum-engine')
 , collectionService = require('../lib/services/collection-service')
-// , { formatAsset, formatPercent, formatCurrency } = require('../lib/format')
 , { formatAsset, formatPercent, formatCurrency } = require('../lib/format')
 , debug = require('../lib/debug')
 , sizeof = require('object-sizeof')
@@ -55,7 +54,6 @@ module.exports = function (program, conf) {
 	.allowUnknownOption()
 	.description('run trading bot against live market data with Quantum feature')
 	.option('--conf <path>', 'path to optional conf overrides file')
-//	.option('--strategy <name>', 'strategy to use', String, conf.strategy)
 	.option('--order_type <type>', 'order type to use (maker/taker)', /^(maker|taker)$/i, conf.order_type)
 	.option('--paper', 'use paper trading mode (no real trades will take place)', Boolean, false)
 	.option('--manual', 'watch price and account balance, but do not perform trades automatically', Boolean, false)
@@ -68,33 +66,20 @@ module.exports = function (program, conf) {
 	.option('--max_positions <amount>', 'maximum number of opened positions', Number, conf.max_positions)
 	.option('--best_bid', 'mark up as little as possible the buy price to be the best bid', Boolean, false)
 	.option('--best_ask', 'mark down as little as possible the sell price to be the best ask', Boolean, false)
-//	.option('--dump_watchdog', 'check for dumps. Strategy is in charge', Boolean, false)
-//	.option('--pump_watchdog', 'check for pumps. Strategy is in charge', Boolean, false)
 	.option('--buy_calmdown <amount>', 'Minutes to wait before next buy', Number, conf.buy_calmdown)
 	.option('--sell_calmdown <amount>', 'Minutes to wait before next sell', Number, conf.sell_calmdown)
 	.option('--markdown_buy_pct <pct>', '% to mark down buy price', Number, conf.markdown_buy_pct)
 	.option('--markup_sell_pct <pct>', '% to mark up sell price', Number, conf.markup_sell_pct)
-//	.option('--buy_price_limit <amount>', 'Limit buy to be under <amount>', Number, conf.buy_price_limit)
-//	.option('--sell_price_limit <amount>', 'Limit sell to be above <amount>', Number, conf.sell_price_limit)
-//	.option('--catch_order_pct <pct>', '% for catch orders', Number, conf.catch_order_pct)
-//	.option('--catch_manual_pct <pct>', '% for manual catch orders', Number, conf.catch_manual_pct)
-//	.option('--catch_fixed_value <amount>', 'value for manual catch orders', Number, conf.catch_fixed_value)
 	.option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, conf.order_adjust_time)
 	.option('--order_poll_time <ms>', 'poll order status on this interval', Number, conf.order_poll_time)
-//	.option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, conf.sell_stop_pct)
-//	.option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct)
 	.option('--sell_gain_pct <pct>', 'sell with this gain (min profit in long positions))', conf.sell_gain_pct)
 	.option('--buy_gain_pct <pct>', 'buy with this gain (min profit in short positions)', conf.buy_gain_pct)
 	.option('--accumulate', 'accumulate asset (buy/sell_gain_pct)', Boolean, false)
-//	.option('--profit_stop_enable_pct <pct>', 'enable trailing sell stop when reaching this % profit', Number, conf.profit_stop_enable_pct)
-//	.option('--profit_stop_pct <pct>', 'maintain a trailing stop this % below the high-water mark of profit', Number, conf.profit_stop_pct)
 	.option('--max_slippage_pct <pct>', 'avoid selling at a slippage pct above this float', conf.max_slippage_pct)
 	.option('--rsi_periods <periods>', 'number of periods to calculate RSI at', Number, conf.rsi_periods)
 	.option('--poll_trades <ms>', 'poll new trades at this interval in ms', Number, conf.poll_trades)
 	.option('--currency_increment <amount>', 'Currency increment, if different than the asset increment', String, null)
 	.option('--keep_lookback_periods <amount>', 'Keep this many lookback periods max. ', Number, conf.keep_lookback_periods)
-	//.option('--use_prev_trades', 'load and use previous trades for stop-order triggers and loss protection') //da togliere
-	//.option('--min_prev_trades <number>', 'minimum number of previous trades to load if use_prev_trades is enabled, set to 0 to disable and use trade time instead', Number, conf.min_prev_trades) //da togliere
 	.option('--disable_stats', 'disable printing order stats')
 	.option('--reset', 'reset previous positions and start new profit calculation from 0')
 	.option('--use_fee_asset', 'Using separated asset to pay for fees. Such as binance\'s BNB or Huobi\'s HT', Boolean, false)
@@ -104,6 +89,7 @@ module.exports = function (program, conf) {
 	.option('--no_first_message', 'no first update message', Boolean, false)
 	.option('--no_check_hold', 'no check for funds on hold', Boolean, false)
 	.action(function (selector, cmd) {
+		//Con le righe seguenti, dovrei mettere in s.options tutte le opzioni passate da riga di comando, niente di più.
 		var raw_opts = minimist(process.argv)
 		var s = {options: JSON.parse(JSON.stringify(raw_opts))}
 		var so = s.options
@@ -118,8 +104,8 @@ module.exports = function (program, conf) {
 		// (minimist mette queste opzioni dentro un array chiamato _)
 		delete so._
 
-		//Punto controverso. Le opzioni dovrebbero essere già sovrascritte dal file --conf (vedi boot.js)
-		// Perchè questa nuova sovrascrittura? cmd.conf dovrebbe essere il file passato con --conf
+		//Prendo il file puntato da --conf e registro tutte le opzioni in esso contenute dentro so.
+		// cmd.conf dovrebbe essere il file passato con --conf
 		if (cmd.conf) {
 			var overrides = require(path.resolve(process.cwd(), cmd.conf))
 			Object.keys(overrides).forEach(function (k) {
@@ -137,6 +123,7 @@ module.exports = function (program, conf) {
 			}
 		})
 
+		//Provare a togliere queste righe///
 		//Punto controverso. A quanto sembra, tutte le opzioni passate in command line sono messe in so=s.options (riga 83-85).
 		// Dopodiché, vengono sovrascritte dal file --conf (riga 99-104).
 		//Quindi vengono prese tutte le opzioni passate a quantum-trade (quindi zenbot.conf da zenbot.js, quindi l'unione di
@@ -150,19 +137,15 @@ module.exports = function (program, conf) {
 		so.stats = !cmd.disable_stats
 		so.mode = so.paper ? 'paper' : 'live';
 
-		//debug.msg('updateMsg=' + so.update_msg)
 		if (so.update_msg) {
-			//			var nextUpdateMsg = moment().add(so.update_msg, 'h')
 			var nextUpdateMsg = moment().startOf('day').add(8, 'h')
 
 			while (nextUpdateMsg < moment()) {
 				nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
-				//				debug.msg('nextUpdateMsg=' + nextUpdateMsg)
 			}
 
 			if (!so.no_first_message) {
 				nextUpdateMsg = nextUpdateMsg.subtract(so.update_msg, 'h')
-				//				debug.msg('First message on. nextUpdateMsg=' + nextUpdateMsg)
 			}
 		}
 
@@ -295,56 +278,7 @@ module.exports = function (program, conf) {
 				break
 			}
 			case 2: {
-				//Modo CATCH
-//				keyMap.set('b', {desc: ('manual catch order'.grey + ' BUY'.green), action: function() {
-//					console.log('\nmanual'.grey + ' catch ' + 'BUY'.green + ' command inserted'.grey)
-//					var target_price = n(s.quote.bid).multiply(1 - so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-//					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-//					s.eventBus.emit('manual', 'buy', null, target_size, target_price)
-//				}})
-//				keyMap.set('s', {desc: ('manual catch order'.grey + ' SELL'.red), action: function() {
-//					console.log('\nmanual'.grey + ' catch ' + 'SELL'.red + ' command inserted'.grey)
-//					var target_price = n(s.quote.ask).multiply(1 + so.catch_manual_pct/100).format(s.product.increment, Math.floor)
-//					var target_size = n(so.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-//					s.eventBus.emit('manual', 'sell', null, target_size, target_price)
-//				}})
-//				keyMap.set('+', {desc: ('manual catch pct'.grey + ' INCREASE'.green), action: function() {
-//					so.catch_manual_pct = Number((so.catch_manual_pct + 0.5).toFixed(2))
-//					console.log('\n' + 'Manual catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_manual_pct)
-//				}})
-//				keyMap.set('-', {desc: ('manual catch pct'.grey + ' DECREASE'.red), action: function() {
-//					so.catch_manual_pct = Number((so.catch_manual_pct - 0.5).toFixed(2))
-//					console.log('\n' + 'Manual catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_manual_pct)
-//				}})
-//				keyMap.set('*', {desc: ('manual catch value'.grey + ' INCREASE'.green), action: function() {
-//					so.catch_fixed_value += so.quantum_value
-//					console.log('\n' + 'Manual catch order value ' + 'INCREASE'.green + ' -> ' + so.catch_fixed_value)
-//				}})
-//				keyMap.set('_', {desc: ('manual catch value'.grey + ' DECREASE'.red), action: function() {
-//					so.catch_fixed_value -= so.quantum_value
-//					if (so.catch_fixed_value < so.quantum_value) {
-//						so.catch_fixed_value = so.quantum_value
-//					}
-//					console.log('\n' + 'Manual catch order value ' + 'DECREASE'.red + ' -> ' + so.catch_fixed_value)
-//				}})
-//				keyMap.set('q', {desc: ('catch order pct'.grey + ' INCREASE'.green), action: function() {
-//					so.catch_order_pct = Number((so.catch_order_pct + 0.5).toFixed(2))
-//					console.log('\n' + 'Catch order pct ' + 'INCREASE'.green + ' -> ' + so.catch_order_pct)
-//				}})
-//				keyMap.set('a', {desc: ('catch order pct'.grey + ' DECREASE'.red), action: function() {
-//					so.catch_order_pct = Number((so.catch_order_pct - 0.5).toFixed(2))
-//					console.log('\n' + 'Catch order pct ' + 'DECREASE'.red + ' -> ' + so.catch_order_pct)
-//				}})
-//				keyMap.set('C', {desc: ('cancel all manual catch orders'.grey), action: function() {
-//					console.log('\nmanual'.grey + ' canceling ALL catch orders')
-//					s.tools.orderStatus(undefined, undefined, 'manual', undefined, 'Unset', 'manual')
-//				}})
-//				keyMap.set('A', {desc: ('insert catch order for all free position'.grey), action: function() {
-//					console.log('\n' + 'Insert catch order for all free positions'.grey)
-//					s.positions.forEach(function (position, index) {
-//						s.eventBus.emit('orderExecuted', position.side, 'manual', position.id)
-//					})
-//				}})
+				
 				break
 			}
 			case 3: {
@@ -1047,19 +981,6 @@ module.exports = function (program, conf) {
 				}
 			})
 
-//			if (s.my_prev_trades.length) {
-//				s.my_prev_trades.forEach(function (trade) {
-//					if (trade.profit) {
-//						if (trade.profit > 0) {
-//							gains++
-//						}
-//						else {
-//							losses++
-//						}
-//					}
-//				})
-//			}
-
 			if (s.my_trades.length && gains > 0) {
 				if (!statsonly) {
 					output_lines.push('win/loss: ' + gains + '/' + losses)
@@ -1305,7 +1226,6 @@ module.exports = function (program, conf) {
 			if (err) throw err
 			if (my_prev_trades.length) {
 				s.my_trades = my_prev_trades.slice(0)
-//				s.my_prev_trades = my_prev_trades.reverse().slice(0) // simple copy, less recent executed first
 				console.log('Recuperati i vecchi trade: ' + s.my_trades.length)
 			}
 		})
@@ -1344,27 +1264,6 @@ module.exports = function (program, conf) {
 				}
 				trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(function (err, trades) {
 					if (err) throw err
-//					if (trades.length) { //} && so.use_prev_trades) {
-//						let prevOpts = {
-//							query: {
-//								selector: so.selector.normalized
-//							},
-//							//limit: so.min_prev_trades
-//						}
-//						//if (!so.min_prev_trades) {
-//							prevOpts.query.time = {$gte : trades[0].time}
-//						//}
-//						//Recupera i vecchi my_trades e li mette in s.my_prev_trades
-////						my_trades.find(prevOpts.query).sort({$natural:-1}).limit(prevOpts.limit).toArray(function (err, my_prev_trades) {
-//						my_trades.find(prevOpts.query).sort({$natural:-1}).toArray(function (err, my_prev_trades) {
-//							if (err) throw err
-//							if (my_prev_trades.length) {
-//								//console.log('My_prev_trades')
-////								s.my_prev_trades = my_prev_trades.reverse().slice(0) // simple copy, less recent executed first
-//								s.my_trades = my_prev_trades.reverse().slice(0) // simple copy, less recent executed first
-//							}
-//						})
-//					}
 
 					//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco
 					if (!trades.length) {
@@ -1576,8 +1475,6 @@ module.exports = function (program, conf) {
 					b.vs_buy_hold = (b.consolidated - b.buy_hold) / b.buy_hold
 					conf.output.api.on && printTrade(false, false, true)
 					if (so.mode === 'live' && s.db_valid) {
-						//Corretto il deprecation warning
-						//							balances.save(b, function (err) {
 						balances.updateOne({'_id': b._id}, {$set: b}, {upsert: true}, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving balance')
@@ -1601,11 +1498,7 @@ module.exports = function (program, conf) {
 						console.error(err)
 					}
 					if (s.period) {
-//						Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
-//							if (strategy_name && so.strategy[strategy_name].lib.onReport) {
-								engine.writeReport(true)
-//							}
-//						})
+						engine.writeReport(true)
 					} else {
 						readline.clearLine(process.stdout)
 						readline.cursorTo(process.stdout, 0)
@@ -1639,7 +1532,6 @@ module.exports = function (program, conf) {
 						prev_timeout = true
 					}
 					else {
-//						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - getTrades request failed. retrying...')
 						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - getTrades request failed. Not retrying.')
 						console.error(err)
 					}
@@ -1662,7 +1554,6 @@ module.exports = function (program, conf) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 							console.error(err)
 						}
-						//Corretto il Deprecation Warning
 						if (s.db_valid) resume_markers.updateOne({'_id' : marker._id}, {$set : marker}, {upsert : true}, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
@@ -1673,7 +1564,6 @@ module.exports = function (program, conf) {
 							s.my_trades.slice(my_trades_size).forEach(function (my_trade) {
 								my_trade._id = my_trade.id
 								my_trade.session_id = session.id
-								//Corretto il Deprecation Warning
 								if (s.db_valid) {
 									my_trades.updateOne({'_id' : my_trade._id}, {$set: my_trade}, {upsert: true}, function (err) {
 										if (err) {
@@ -1693,7 +1583,6 @@ module.exports = function (program, conf) {
 								period.session_id = session.id
 							}
 							period._id = period.id
-							//Corretto il Deprecation Warning
 							if (s.db_valid) {
 								periods.updateOne({'_id': period._id}, {$set: period}, {upsert: true}, function (err) {
 									if (err) {
@@ -1730,7 +1619,6 @@ module.exports = function (program, conf) {
 				}
 				marker.to = marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor
 						marker.newest_time = Math.max(marker.newest_time, trade.time)
-						//Corretto il Deprecation Warning
 						if (s.db_valid) trades.updateOne({'_id' : trade._id}, {$set : trade}, {upsert : true}, function (err) {
 							// ignore duplicate key errors
 							if (err && err.code !== 11000) {

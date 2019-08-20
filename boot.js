@@ -31,8 +31,8 @@ module.exports = function (cb) {
     console.error(err + ', falling back to conf-sample')
   }
 
-  // 3. Load conf-sample.js and merge
-  var defaults = require('./conf-sample')
+  // 3. Load conf-default.js and merge
+  var defaults = require('./conf-default')
   _.defaultsDeep(config, overrides, conf, defaults)
   zenbot.conf = config
 

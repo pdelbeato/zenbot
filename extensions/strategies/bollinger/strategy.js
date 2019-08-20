@@ -58,7 +58,7 @@ var z = require('zero-fill')
 //			buy: null,
 //			sell: null,
 //		},
-//		min_open_price: {			//****** Minimum open price
+//		limit_open_price: {			//****** Limit open price
 //			buy: 1000000,
 //			sell: 0,
 //		},
@@ -265,12 +265,12 @@ module.exports = {
 					buy: [
 						(s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100))),
 						(rsi > strat_opts.rsi_buy_threshold),
-						(strat_opts.no_same_price ? ((s.period.close < (strat_data.min_open_price.buy * (1 - strat_opts.delta_pct/100))) ? true : false) : true),
+						(strat_opts.no_same_price ? ((s.period.close < (strat_data.limit_open_price.buy * (1 - strat_opts.delta_pct/100))) ? true : false) : true),
 					],
 					sell: [
 						(s.period.close > (upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100))),
 						(rsi < strat_opts.rsi_sell_threshold),
-						(strat_opts.no_same_price ? ((s.period.close > (strat_data.min_open_price.sell * (1 + strat_opts.delta_pct/100))) ? true : false) : true),
+						(strat_opts.no_same_price ? ((s.period.close > (strat_data.limit_open_price.sell * (1 + strat_opts.delta_pct/100))) ? true : false) : true),
 					]
 				}
 
@@ -301,7 +301,7 @@ module.exports = {
 //				s.eventBus.emit('bollinger', 'sell')
 //				}
 //				else {
-//				debug.msg('Strategy Bollinger - No same price protection: s.period.close= ' + s.period.close + ' ; calculated min_open_price.sell= ' + (strat_data.min_open_price.sell * (1 + strat_opts.delta_pct/100)))
+//				debug.msg('Strategy Bollinger - No same price protection: s.period.close= ' + s.period.close + ' ; calculated limit_open_price.sell= ' + (strat_data.limit_open_price.sell * (1 + strat_opts.delta_pct/100)))
 //				}
 //				}
 //				}
@@ -341,7 +341,7 @@ module.exports = {
 						s.eventBus.emit('bollinger', side)
 					}
 					else {
-						debug.msg('Strategy Bollinger - No same price protection: s.period.close= ' + s.period.close + ' ; delta min_open_price ' + (strat_data.min_open_price[side] * strat_opts.delta_pct/100))
+						debug.msg('Strategy Bollinger - No same price protection: s.period.close= ' + s.period.close + ' ; delta limit_open_price ' + (strat_data.limit_open_price[side] * strat_opts.delta_pct/100))
 					}
 				}
 			}
@@ -461,7 +461,10 @@ module.exports = {
 		let strat_opts = s.options.strategy.bollinger.opts
 
 		if(strat_opts.no_same_price) {
-			s.options.strategy.bollinger.data.min_open_price[position.side] = Math.min(position.price_open, s.options.strategy.bollinger.data.min_open_price[position.side])
+			let limit = {}
+			limit.buy = Math.min(position.price_open, s.options.strategy.bollinger.data.limit_open_price.buy)
+			limit.sell = Math.max(position.price_open, s.options.strategy.bollinger.data.limit_open_price.sell)
+			s.options.strategy.bollinger.data.limit_open_price[position.side] = limit[position.side] 
 		}
 
 		cb()
@@ -488,18 +491,18 @@ module.exports = {
 
 			switch(position_side) {
 			case 'buy': {
-				s.options.strategy.bollinger.data.min_open_price.buy = 1000000
+				s.options.strategy.bollinger.data.limit_open_price.buy = 1000000
 
 				s.positions.forEach(function (position, index, array) {
-					s.options.strategy.bollinger.data.min_open_price.buy = Math.min(position.price_open, s.options.strategy.bollinger.data.min_open_price.buy)
+					s.options.strategy.bollinger.data.limit_open_price.buy = Math.min(position.price_open, s.options.strategy.bollinger.data.limit_open_price.buy)
 				})
 				break
 			}
 			case 'sell': {
-				s.options.strategy.bollinger.data.min_open_price.sell = 0
+				s.options.strategy.bollinger.data.limit_open_price.sell = 0
 
 				s.positions.forEach(function (position, index, array) {
-					s.options.strategy.bollinger.data.min_open_price.sell = Math.max(position.price_open, s.options.strategy.bollinger.data.min_open_price.sell)
+					s.options.strategy.bollinger.data.limit_open_price.sell = Math.max(position.price_open, s.options.strategy.bollinger.data.limit_open_price.sell)
 				})
 				break
 			}
