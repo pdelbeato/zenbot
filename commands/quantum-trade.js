@@ -217,30 +217,46 @@ module.exports = function (program, conf) {
 		}
 
 		//Recupera tutte le vecchie posizioni aperte e le copia in s.positions
-		my_positions.find({selector: so.selector.normalized}).toArray(function (err, my_prev_positions) {
-			if (err) throw err
-			if (my_prev_positions.length) {
-				my_prev_positions.forEach(function (position) {
-					position.status = 0
-				})
-				s.positions = my_prev_positions.slice(0)
-				console.log('Recuperate le vecchie posizioni aperte: ' + s.positions.length)
-			}
+		let recover_my_positions = new Promise(function (resolve, reject) {
+			my_positions.find({selector: so.selector.normalized}).toArray(function (err, my_prev_positions) {
+				if (err) {
+					reject(err)
+				}
+				if (my_prev_positions.length) {
+					my_prev_positions.forEach(function (position) {
+						position.status = 0
+					})
+					s.positions = my_prev_positions.slice(0)
+					console.log('Recuperate le vecchie posizioni aperte: ' + s.positions.length)
+				}
+				resolve()
+			})
 		})
-		
+
 		//Recupera tutte le vecchie posizioni chiuse e le copia in s.closed_positions
-		my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, my_closed_positions) {
-			if (err) throw err
-			if (my_closed_positions.length) {
-				s.closed_positions = my_closed_positions.slice(0)
-				console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
-			}
+		let recover_my_closed_positions = new Promise(function (resolve, reject) {
+			my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, my_closed_positions) {
+				if (err) {
+					reject(err)
+				}
+				if (my_closed_positions.length) {
+					s.closed_positions = my_closed_positions.slice(0)
+					console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
+				}
+				resolve()
+			})
 		})
 // Fine aggiunta dalla fine
 		
-		//Quindi engine è quantum-engine(s, conf), dove conf è zenbot.conf da zenbot.js, quindi l'unione
-		// di conf_file, conf.js e conf-sample.js e NON s.options
-		var engine = engineFactory(s, conf)
+		Promise.all([recover_my_positions, recover_my_closed_positions])
+		.then(function() {
+			//Quindi engine è quantum-engine(s, conf), dove conf è zenbot.conf da zenbot.js, quindi l'unione
+			// di conf_file, conf.js e conf-sample.js e NON s.options
+			var engine = engineFactory(s, conf)
+		})
+		.catch(function(error) {
+			console.log(error)
+		})
 
 		var modeCommand = 0
 		const modeMap = new Map()

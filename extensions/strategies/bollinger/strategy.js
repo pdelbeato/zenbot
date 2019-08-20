@@ -192,9 +192,9 @@ module.exports = {
 //		if (opts.trade) {
 //		}
 		//Fa schifo!!! Da modificare quando mi viene in mente come fare per far fare init dopo aver recuperato i vecchi db
-		if (s.options.strategy.bollinger.data.limit_open_price.buy == 1000000 && s.options.strategy.bollinger.data.limit_open_price.sell == 0) {
-			this.onPositionClosed(s)
-		}
+//		if (s.options.strategy.bollinger.data.limit_open_price.buy == 1000000 && s.options.strategy.bollinger.data.limit_open_price.sell == 0) {
+//			this.onPositionClosed(s)
+//		}
 		cb()
 	},
 
