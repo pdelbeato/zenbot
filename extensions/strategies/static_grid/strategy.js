@@ -43,6 +43,9 @@ module.exports = {
 		name: 'static_grid',
 		description: 'Static Grid Strategy',
 		
+		init: function (s) {
+		},
+		
 		getOptions: function (s) {
 			this.option('static_grid', 'period_calc', 'Calculate actual lane every period_calc time', String, '15m')
 			this.option('static_grid', 'min_periods', 'Min. number of history periods (and the number of values to calculate Pivot price (SMA)', Number, 500)

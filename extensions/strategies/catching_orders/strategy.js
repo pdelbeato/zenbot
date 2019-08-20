@@ -56,6 +56,9 @@ module.exports = {
 	description: 'Catching Orders strategy',
 	noHoldCheck: true,
 
+	init: function (s) {
+	},
+	
 	getOptions: function () {
 		this.option('catching_orders', 'catch_order_pct', '% for automatic catching orders', Number, 2)
 		this.option('catching_orders', 'catch_manual_pct', '% for manual catching order', Number, 10)

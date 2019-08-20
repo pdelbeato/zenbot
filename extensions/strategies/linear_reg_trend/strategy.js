@@ -54,6 +54,9 @@ module.exports = {
 	description: 'Change long/short mode depending on linear regression of prices.',
 	noHoldCheck: false,
 
+	init: function (s) {
+	},
+	
 	getOptions: function () {
 		this.option('linear_reg_trend', 'period_calc', 'Calculate Linear Regression Trend every period_calc time', String, '15m')
 		this.option('linear_reg_trend', 'min_periods', 'Min. number of history periods', Number, 1501)

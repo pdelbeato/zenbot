@@ -97,6 +97,10 @@ module.exports = {
 	description: 'Buy when [(Price ≤ Lower Bollinger Band) && (rsi > rsi_buy_threshold)] and sell when [(Price ≥ Upper Bollinger Band) && (rsi < rsi_sell_threshold)].',
 	noHoldCheck: false,
 
+	init: function (s) {
+		this.onPositionClosed(s, opts, cb)
+	},
+
 	getOptions: function () {
 		this.option('bollinger', 'period_calc', 'calculate Bollinger Bands every period_calc time', String, '15m')
 		this.option('bollinger', 'min_periods', 'Min. number of history periods', Number, 301)
@@ -118,8 +122,6 @@ module.exports = {
 		this.option('bollinger', 'no_same_price', 'Avoid to open a position with an open price not below delta_pct from the minimum open price', Boolean, true)
 		this.option('bollinger', 'delta_pct', 'Delta % from minimum open price', Number, 1)
 		this.option('bollinger', 'over_and_back', 'Emit signal when price comes back inside the band', Boolean, false)
-		
-		this.onPositionClosed(s, opts, cb)
 	},
 
 	getCommands: function (s, opts = {}, cb = function() {}) {
