@@ -161,10 +161,86 @@ module.exports = function (program, conf) {
 
 		so.selector = objectifySelector(selector || conf.selector)
 
+//		//Quindi engine è quantum-engine(s, conf), dove conf è zenbot.conf da zenbot.js, quindi l'unione
+//		// di conf_file, conf.js e conf-sample.js e NON s.options
+//		var engine = engineFactory(s, conf)
+		var collectionServiceInstance = collectionService(conf)
+
+// Aggiunta dalla fine		
+		var order_types = ['maker', 'taker']
+		if (!order_types.includes(so.order_type)) {
+			so.order_type = 'maker'
+		}
+
+		var db_cursor, trade_cursor
+		var query_start = tb().resize(so.period_length).subtract(so.min_periods * 2).toMilliseconds()
+		var days = Math.ceil((new Date().getTime() - query_start) / 86400000)
+		var session = null
+
+		var lookback_size = 0
+		var my_trades_size = 0
+
+		//Recupera tutti i vecchi database
+		var my_trades = collectionServiceInstance.getMyTrades()
+		var my_positions = collectionServiceInstance.getMyPositions()
+		var my_closed_positions = collectionServiceInstance.getMyClosedPositions()
+		var periods = collectionServiceInstance.getPeriods()
+		var sessions = collectionServiceInstance.getSessions()
+		var balances = collectionServiceInstance.getBalances()
+		var trades = collectionServiceInstance.getTrades()
+		var resume_markers = collectionServiceInstance.getResumeMarkers()
+		
+		s.db_valid = true
+
+		var marker = {
+			id: crypto.randomBytes(4).toString('hex'),
+			selector: so.selector.normalized,
+			from: null,
+			to: null,
+			oldest_time: null
+		}
+		marker._id = marker.id
+
+		//Se richiesto nel comando, esegue il reset dei database
+		if (cmd.reset) {
+			//Corretto il Deprecation Warning
+			console.log('\nDeleting my_positions collection...')
+			my_positions.drop()
+			console.log('\nDeleting my_closed_positions collection...')
+			my_closed_positions.drop()
+			console.log('\nDeleting my_trades collection...')
+			my_trades.drop()
+			console.log('\nDeleting sessions collection...')
+			sessions.drop()
+			console.log('\nDeleting balances collection...')
+			balances.drop()
+		}
+
+		//Recupera tutte le vecchie posizioni aperte e le copia in s.positions
+		my_positions.find({selector: so.selector.normalized}).toArray(function (err, my_prev_positions) {
+			if (err) throw err
+			if (my_prev_positions.length) {
+				my_prev_positions.forEach(function (position) {
+					position.status = 0
+				})
+				s.positions = my_prev_positions.slice(0)
+				console.log('Recuperate le vecchie posizioni aperte: ' + s.positions.length)
+			}
+		})
+		
+		//Recupera tutte le vecchie posizioni chiuse e le copia in s.closed_positions
+		my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, my_closed_positions) {
+			if (err) throw err
+			if (my_closed_positions.length) {
+				s.closed_positions = my_closed_positions.slice(0)
+				console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
+			}
+		})
+// Fine aggiunta dalla fine
+		
 		//Quindi engine è quantum-engine(s, conf), dove conf è zenbot.conf da zenbot.js, quindi l'unione
 		// di conf_file, conf.js e conf-sample.js e NON s.options
 		var engine = engineFactory(s, conf)
-		var collectionServiceInstance = collectionService(conf)
 
 		var modeCommand = 0
 		const modeMap = new Map()
@@ -1151,76 +1227,76 @@ module.exports = function (program, conf) {
 		/* End of implementing statistical status */
 
 
-		var order_types = ['maker', 'taker']
-		if (!order_types.includes(so.order_type)) {
-			so.order_type = 'maker'
-		}
-
-		var db_cursor, trade_cursor
-		var query_start = tb().resize(so.period_length).subtract(so.min_periods * 2).toMilliseconds()
-		var days = Math.ceil((new Date().getTime() - query_start) / 86400000)
-		var session = null
-
-		var lookback_size = 0
-		var my_trades_size = 0
-
-		//Recupera tutti i vecchi database
-		var my_trades = collectionServiceInstance.getMyTrades()
-		var my_positions = collectionServiceInstance.getMyPositions()
-		var my_closed_positions = collectionServiceInstance.getMyClosedPositions()
-		var periods = collectionServiceInstance.getPeriods()
-		var sessions = collectionServiceInstance.getSessions()
-		var balances = collectionServiceInstance.getBalances()
-		var trades = collectionServiceInstance.getTrades()
-		var resume_markers = collectionServiceInstance.getResumeMarkers()
-		
-		s.db_valid = true
-
-		var marker = {
-			id: crypto.randomBytes(4).toString('hex'),
-			selector: so.selector.normalized,
-			from: null,
-			to: null,
-			oldest_time: null
-		}
-		marker._id = marker.id
-
-		//Se richiesto nel comando, esegue il reset dei database
-		if (cmd.reset) {
-			//Corretto il Deprecation Warning
-			console.log('\nDeleting my_positions collection...')
-			my_positions.drop()
-			console.log('\nDeleting my_closed_positions collection...')
-			my_closed_positions.drop()
-			console.log('\nDeleting my_trades collection...')
-			my_trades.drop()
-			console.log('\nDeleting sessions collection...')
-			sessions.drop()
-			console.log('\nDeleting balances collection...')
-			balances.drop()
-		}
-
-		//Recupera tutte le vecchie posizioni aperte e le copia in s.positions
-		my_positions.find({selector: so.selector.normalized}).toArray(function (err, my_prev_positions) {
-			if (err) throw err
-			if (my_prev_positions.length) {
-				my_prev_positions.forEach(function (position) {
-					position.status = 0
-				})
-				s.positions = my_prev_positions.slice(0)
-				console.log('Recuperate le vecchie posizioni aperte: ' + s.positions.length)
-			}
-		})
-		
-		//Recupera tutte le vecchie posizioni chiuse e le copia in s.closed_positions
-		my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, my_closed_positions) {
-			if (err) throw err
-			if (my_closed_positions.length) {
-				s.closed_positions = my_closed_positions.slice(0)
-				console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
-			}
-		})
-		
+//		var order_types = ['maker', 'taker']
+//		if (!order_types.includes(so.order_type)) {
+//			so.order_type = 'maker'
+//		}
+//
+//		var db_cursor, trade_cursor
+//		var query_start = tb().resize(so.period_length).subtract(so.min_periods * 2).toMilliseconds()
+//		var days = Math.ceil((new Date().getTime() - query_start) / 86400000)
+//		var session = null
+//
+//		var lookback_size = 0
+//		var my_trades_size = 0
+//
+//		//Recupera tutti i vecchi database
+//		var my_trades = collectionServiceInstance.getMyTrades()
+//		var my_positions = collectionServiceInstance.getMyPositions()
+//		var my_closed_positions = collectionServiceInstance.getMyClosedPositions()
+//		var periods = collectionServiceInstance.getPeriods()
+//		var sessions = collectionServiceInstance.getSessions()
+//		var balances = collectionServiceInstance.getBalances()
+//		var trades = collectionServiceInstance.getTrades()
+//		var resume_markers = collectionServiceInstance.getResumeMarkers()
+//		
+//		s.db_valid = true
+//
+//		var marker = {
+//			id: crypto.randomBytes(4).toString('hex'),
+//			selector: so.selector.normalized,
+//			from: null,
+//			to: null,
+//			oldest_time: null
+//		}
+//		marker._id = marker.id
+//
+//		//Se richiesto nel comando, esegue il reset dei database
+//		if (cmd.reset) {
+//			//Corretto il Deprecation Warning
+//			console.log('\nDeleting my_positions collection...')
+//			my_positions.drop()
+//			console.log('\nDeleting my_closed_positions collection...')
+//			my_closed_positions.drop()
+//			console.log('\nDeleting my_trades collection...')
+//			my_trades.drop()
+//			console.log('\nDeleting sessions collection...')
+//			sessions.drop()
+//			console.log('\nDeleting balances collection...')
+//			balances.drop()
+//		}
+//
+//		//Recupera tutte le vecchie posizioni aperte e le copia in s.positions
+//		my_positions.find({selector: so.selector.normalized}).toArray(function (err, my_prev_positions) {
+//			if (err) throw err
+//			if (my_prev_positions.length) {
+//				my_prev_positions.forEach(function (position) {
+//					position.status = 0
+//				})
+//				s.positions = my_prev_positions.slice(0)
+//				console.log('Recuperate le vecchie posizioni aperte: ' + s.positions.length)
+//			}
+//		})
+//		
+//		//Recupera tutte le vecchie posizioni chiuse e le copia in s.closed_positions
+//		my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, my_closed_positions) {
+//			if (err) throw err
+//			if (my_closed_positions.length) {
+//				s.closed_positions = my_closed_positions.slice(0)
+//				console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
+//			}
+//		})
+//		
 		//Recupera tutti i vecchi trade e li copia in s.my_trades
 		my_trades.find({selector: so.selector.normalized}).toArray(function (err, my_prev_trades) {
 			if (err) throw err

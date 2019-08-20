@@ -28,7 +28,7 @@ module.exports = function (cb) {
   try {
     conf = require('./conf')
   } catch (err) {
-    console.error(err + ', falling back to conf-sample')
+    console.error(err + ', falling back to conf-default')
   }
 
   // 3. Load conf-default.js and merge
