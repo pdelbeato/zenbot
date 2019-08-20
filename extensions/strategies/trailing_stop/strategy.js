@@ -58,6 +58,9 @@ module.exports = {
 	description: 'Trailing Stop strategy',
 	noHoldCheck: false,
 	
+	init: function (s) {
+	},
+	
 	getOptions: function () {
 		this.option('trailing_stop', 'period_calc', 'Execute trailing stop every period_calc time', String, '15m')
 		this.option('trailing_stop', 'min_periods', 'Min. number of history periods', Number, 2)

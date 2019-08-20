@@ -55,6 +55,9 @@ module.exports = {
 	description: 'Stoploss strategy',
 	noHoldCheck: false,
 	
+	init: function (s) {
+	},
+	
 	getOptions: function () {
 		this.option('stoploss', 'period_calc', 'calculate closing price every period_calc time', String, '15m')
 		this.option('stoploss', 'min_periods', 'Min. number of history periods', Number, 2)

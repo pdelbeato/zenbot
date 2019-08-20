@@ -98,7 +98,7 @@ module.exports = {
 	noHoldCheck: false,
 
 	init: function (s) {
-		this.onPositionClosed(s, opts, cb)
+		this.onPositionClosed(s)
 	},
 
 	getOptions: function () {

@@ -56,6 +56,9 @@ module.exports = {
 	description: 'Virtual Stoploss strategy',
 	noHoldCheck: false,
 	
+	init: function (s) {
+	},
+	
 	getOptions: function () {
 		this.option('virtual_stoploss', 'period_calc', 'calculate closing price every period_calc time', String, '15m')
 		this.option('virtual_stoploss', 'min_periods', 'Min. number of history periods', Number, 2)
