@@ -187,10 +187,12 @@ module.exports = {
 	},
 
 	onTrade: function (s, opts= {}, cb = function() {}) {
+		let strat_opts = s.options.strategy.bollinger.opts
+		let strat_data = s.options.strategy.bollinger.data
 //		if (opts.trade) {
 //		}
 		//Fa schifo!!! Da modificare quando mi viene in mente come fare per far fare init dopo aver recuperato i vecchi db
-		if (limit_open_price.buy == 1000000 && limit_open_price.sell == 0) {
+		if (s.options.strategy.bollinger.data.limit_open_price.buy == 1000000 && s.options.strategy.bollinger.data.limit_open_price.sell == 0) {
 			this.onPositionClosed(s)
 		}
 		cb()
