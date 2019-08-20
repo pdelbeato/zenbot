@@ -93,6 +93,13 @@ module.exports = function (program, conf) {
 		var raw_opts = minimist(process.argv)
 		var s = {options: JSON.parse(JSON.stringify(raw_opts))}
 		var so = s.options
+	
+		s.positions = []
+		s.closed_positions = []
+		s.my_trades = []
+		s.trades = []
+		s.lookback = []
+		s.orders = []
 		
 		var engine = null
 
