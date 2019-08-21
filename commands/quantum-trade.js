@@ -123,8 +123,8 @@ module.exports = function (program, conf) {
 			})
 		}
 
-		//Da capire bene a cosa serve. conf sono le opzioni passate a quantum-trade, quindi zenbot.conf, quindi l'unione
-		// delle opzioni conf_file, conf.js e conf-sample.js
+		// Registra in s.options tutte le opzioni passate a riga di comando, sovrascrivendo conf (ovvero le opzioni passate a quantum-trade da zenbot.js
+		//   durante la chiamata, quindi zenbot.conf, ovvero l'unione delle opzioni del conf_file, conf.js e conf-sample.js)
 		Object.keys(conf).forEach(function (k) {
 			if (typeof cmd[k] !== 'undefined') {
 				//console.log('cmd k=' + k + ' - ' + cmd[k])
