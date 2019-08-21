@@ -8,6 +8,7 @@ var tb = require('timebucket')
   , objectifySelector = require('../lib/objectify-selector')
   , engineFactory = require('../lib/engine')
   , collectionService = require('../lib/services/collection-service')
+  , jsonexport = require('jsonexport')
   , _ = require('lodash')
 
 module.exports = function (program, conf) {
@@ -174,7 +175,7 @@ module.exports = function (program, conf) {
         }
         options_output.simresults.start_capital = s.start_capital
         options_output.simresults.last_buy_price = s.last_buy_price
-        options_output.simresults.last_assest_value = s.trades[s.trades.length-1].price
+        options_output.simresults.last_assest_value = s.period.close
         options_output.net_currency = s.net_currency
         options_output.simresults.asset_capital = s.asset_capital
         options_output.simresults.currency = n(s.balance.currency).value()
@@ -198,7 +199,14 @@ module.exports = function (program, conf) {
 
         if (so.backtester_generation >= 0)
         {
-          fs.writeFileSync(path.resolve(__dirname, '..', 'simulations','sim_'+so.strategy.replace('_','')+'_'+ so.selector.normalized.replace('_','').toLowerCase()+'_'+so.backtester_generation+'.json'),options_json, {encoding: 'utf8'})
+          var file_name = so.strategy.replace('_','')+'_'+ so.selector.normalized.replace('_','').toLowerCase()+'_'+so.backtester_generation
+          fs.writeFileSync(path.resolve(__dirname, '..', 'simulations','sim_'+file_name+'.json'),options_json, {encoding: 'utf8'})
+          var trades_json = JSON.stringify(s.my_trades, null, 2)
+          fs.writeFileSync(path.resolve(__dirname, '..', 'simulations','sim_trades_'+file_name+'.json'),trades_json, {encoding: 'utf8'})
+          jsonexport(s.my_trades,function(err, csv){
+            if(err) return console.log(err)
+            fs.writeFileSync(path.resolve(__dirname, '..', 'simulations','sim_trades_'+file_name+'.csv'),csv, {encoding: 'utf8'})
+          })
         }
 
         if (so.filename !== 'none') {

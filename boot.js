@@ -28,11 +28,11 @@ module.exports = function (cb) {
   try {
     conf = require('./conf')
   } catch (err) {
-    console.error(err + ', falling back to conf-sample')
+    console.error(err + ', falling back to conf-default')
   }
 
-  // 3. Load conf-sample.js and merge
-  var defaults = require('./conf-sample')
+  // 3. Load conf-default.js and merge
+  var defaults = require('./conf-default')
   _.defaultsDeep(config, overrides, conf, defaults)
   zenbot.conf = config
 
@@ -60,7 +60,7 @@ module.exports = function (cb) {
       (authMechanism ? '&authMechanism=' + authMechanism : '' )
   }
 
-  require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true }, function (err, client) {
+  require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
     if (err) {
       console.error('WARNING: MongoDB Connection Error: ', err)
       console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')
