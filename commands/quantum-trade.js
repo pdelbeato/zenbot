@@ -884,9 +884,9 @@ module.exports = function (program, conf) {
 		})
 
 		// Assegna una funzione di uscita
-		s.positionProcessingQueue.drain = function() {
+		s.positionProcessingQueue.drain(function() {
 			debug.msg('s.positionProcessingQueue - All items have been processed')
-		}
+		})
 
 		function managePositionCollection (mode, position_id, cb = function () {}) {
 			switch (mode) {
