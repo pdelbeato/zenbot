@@ -879,19 +879,13 @@ module.exports = function (program, conf) {
 		}
 
 		/* Funzioni per le operazioni sul database Mongo DB delle posizioni */
-		s.positionProcessingQueue = async.queue(function(task, callback) {
-			managePositionCollection(task.mode, task.position_id, callback)
-		})
-
-		// Assegna una funzione di uscita
-		s.positionProcessingQueue.drain(function() {
-			debug.msg('s.positionProcessingQueue - All items have been processed')
-		})
-
-		function managePositionCollection (mode, position_id, cb = function () {}) {
-			switch (mode) {
+		s.positionProcessingQueue = async.queue(function(task, callback = function () {}) {
+//			//Ficca qui dentro tutta la funzione seguente, senza definirla che è inutile
+//			managePositionCollection(task.mode, task.position_id, callback)
+			
+			switch (task.mode) {
 			case 'update': {
-				var position = s.positions.find(x => x.id === position_id)
+				var position = s.positions.find(x => x.id === task.position_id)
 				position._id = position.id
 
 				if (s.db_valid) {
@@ -906,7 +900,7 @@ module.exports = function (program, conf) {
 				break
 			}
 			case 'delete': {
-				var position_index = s.positions.findIndex(x => x.id === position_id)
+				var position_index = s.positions.findIndex(x => x.id === task.position_id)
 				
 				if (s.db_valid) {
 					//Cancello la posizione dal db delle posizioni aperte...
@@ -921,7 +915,7 @@ module.exports = function (program, conf) {
 						}
 					})
 					//... e inserisco la posizione chiusa del db delle posizioni chiuse
-					position = s.closed_positions.find(x => x.id === position_id)
+					position = s.closed_positions.find(x => x.id === task.position_id)
 					if (position) {
 						position._id = position.id
 						my_closed_positions.updateOne({'_id' : position_id}, {$set: position}, {upsert: true}, function (err) {
@@ -936,8 +930,64 @@ module.exports = function (program, conf) {
 				break
 			}
 			}
-			return cb(null)
-		}
+			callback(null)
+		})
+
+		// Assegna una funzione di uscita
+		s.positionProcessingQueue.drain(function() {
+			debug.msg('s.positionProcessingQueue - All items have been processed')
+		})
+
+//		function managePositionCollection (mode, position_id, cb = function () {}) {
+//			switch (mode) {
+//			case 'update': {
+//				var position = s.positions.find(x => x.id === position_id)
+//				position._id = position.id
+//
+//				if (s.db_valid) {
+//					my_positions.updateOne({'_id' : position_id}, {$set: position}, {upsert: true}, function (err) {
+//						if (err) {
+//							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
+//							console.error(err)
+//							return cb(err)
+//						}
+//					})
+//				}
+//				break
+//			}
+//			case 'delete': {
+//				var position_index = s.positions.findIndex(x => x.id === position_id)
+//				
+//				if (s.db_valid) {
+//					//Cancello la posizione dal db delle posizioni aperte...
+//					my_positions.deleteOne({'_id' : position_id}, function (err) {
+//						//In ogni caso, elimino la posizione da s.positions
+//						s.positions.splice(position_index,1)
+//						
+//						if (err) {
+//							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in my_positions')
+//							console.error(err)
+//							return cb(err)
+//						}
+//					})
+//					//... e inserisco la posizione chiusa del db delle posizioni chiuse
+//					position = s.closed_positions.find(x => x.id === position_id)
+//					if (position) {
+//						position._id = position.id
+//						my_closed_positions.updateOne({'_id' : position_id}, {$set: position}, {upsert: true}, function (err) {
+//							if (err) {
+//								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_closed_positions')
+//								console.error(err)
+//								return cb(err)
+//							}
+//						})
+//					}
+//				}
+//				break
+//			}
+//			}
+//			return cb(null)
+//		}
 		/* End funzioni per le operazioni sul database Mongo DB delle posizioni */
 
 		/* To list options*/
