@@ -889,7 +889,7 @@ module.exports = function (program, conf) {
 				position._id = position.id
 
 				if (s.db_valid) {
-					my_positions.updateOne({'_id' : position_id}, {$set: position}, {upsert: true}, function (err) {
+					my_positions.updateOne({'_id' : task.position_id}, {$set: position}, {upsert: true}, function (err) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
 							console.error(err)
@@ -905,7 +905,7 @@ module.exports = function (program, conf) {
 				
 				if (s.db_valid) {
 					//Cancello la posizione dal db delle posizioni aperte...
-					my_positions.deleteOne({'_id' : position_id}, function (err) {
+					my_positions.deleteOne({'_id' : task.position_id}, function (err) {
 						//In ogni caso, elimino la posizione da s.positions
 						s.positions.splice(position_index,1)
 						
@@ -919,7 +919,7 @@ module.exports = function (program, conf) {
 					position = s.closed_positions.find(x => x.id === task.position_id)
 					if (position) {
 						position._id = position.id
-						my_closed_positions.updateOne({'_id' : position_id}, {$set: position}, {upsert: true}, function (err) {
+						my_closed_positions.updateOne({'_id' : task.position_id}, {$set: position}, {upsert: true}, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_closed_positions')
 								console.error(err)
