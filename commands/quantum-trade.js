@@ -925,10 +925,10 @@ module.exports = function (program, conf) {
 								console.error(err)
 								return callback(err)
 							}
+							s.tools.functionStrategies ('onPositionClosed', task)
 						})
 					}
 				}
-				s.tools.functionStrategies ('onPositionClosed', task)
 				break
 			}
 			}
