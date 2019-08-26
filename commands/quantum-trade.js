@@ -928,13 +928,10 @@ module.exports = function (program, conf) {
 						})
 					}
 				}
+				s.tools.functionStrategies ('onPositionClosed', task)
 				break
 			}
 			}
-//			var opts = {
-//					position_id: task.position_id,
-//			};
-			s.tools.functionStrategies ('onPositionClosed', task)
 			callback(null)
 		})
 
