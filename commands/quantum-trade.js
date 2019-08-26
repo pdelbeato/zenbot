@@ -893,7 +893,8 @@ module.exports = function (program, conf) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
 							console.error(err)
-							return cb(err)
+							
+							return callback(err)
 						}
 					})
 				}
@@ -911,7 +912,7 @@ module.exports = function (program, conf) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in my_positions')
 							console.error(err)
-							return cb(err)
+							return callback(err)
 						}
 					})
 					//... e inserisco la posizione chiusa del db delle posizioni chiuse
@@ -922,7 +923,7 @@ module.exports = function (program, conf) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_closed_positions')
 								console.error(err)
-								return cb(err)
+								return callback(err)
 							}
 						})
 					}
@@ -930,6 +931,7 @@ module.exports = function (program, conf) {
 				break
 			}
 			}
+			s.tools.functionStrategies ('onPositionClosed', opts)
 			callback(null)
 		})
 
