@@ -931,7 +931,10 @@ module.exports = function (program, conf) {
 				break
 			}
 			}
-			s.tools.functionStrategies ('onPositionClosed', opts)
+//			var opts = {
+//					position_id: task.position_id,
+//			};
+			s.tools.functionStrategies ('onPositionClosed', task)
 			callback(null)
 		})
 
