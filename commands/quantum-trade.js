@@ -917,7 +917,7 @@ module.exports = function (program, conf) {
 					})
 					//... e inserisco la posizione chiusa del db delle posizioni chiuse
 					var position = s.closed_positions.find(x => x.id === task.position_id)
-					console.log('delete position - prima if')
+					
 					if (position) {
 						position._id = position.id
 						my_closed_positions.updateOne({'_id' : task.position_id}, {$set: position}, {upsert: true}, function (err) {
@@ -926,7 +926,7 @@ module.exports = function (program, conf) {
 								console.error(err)
 								return callback(err)
 							}
-							console.log('delete position - prima onPositionClosed')
+
 							s.tools.functionStrategies ('onPositionClosed', task)
 						})
 					}
