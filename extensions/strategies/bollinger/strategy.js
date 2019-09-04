@@ -415,9 +415,9 @@ module.exports = {
 					cols.push('*')
 				}
 
-				cols.push(z(8, n(lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_down])
+				cols.push(z(8, n(lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_down])
 				cols.push(' <->')
-				cols.push(z(8, n(upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,7), ' ')[color_up])
+				cols.push(z(8, n(upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_up])
 				cols.push('(' + z(2, n(rsi).format('0'), ' ')[color_rsi] + ')')
 			}
 		}
