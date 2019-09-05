@@ -415,14 +415,14 @@ module.exports = {
 					cols.push('*')
 				}
 
-				cols.push(z(9, n(lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_down])
+				cols.push(z(8, n(lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_down])
 				cols.push(' <->')
-				cols.push(z(9, n(upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_up])
+				cols.push(z(8, n(upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_up])
 				cols.push('(' + z(2, n(rsi).format('0'), ' ')[color_rsi] + ')')
 			}
 		}
 		else {
-			cols.push(z(9, '', ' '))
+			cols.push(z(8, '', ' '))
 		}
 
 		if (!s.in_preroll && (strat_data.max_profit_position.buy != null || strat_data.max_profit_position.sell != null)) {
@@ -438,10 +438,10 @@ module.exports = {
 					buysell = (position_buy_profit > position_sell_profit ? 'B' : 'S')
 					buysell_profit = (position_buy_profit > position_sell_profit ? formatPercent(position_buy_profit) : formatPercent(position_sell_profit))
 
-					cols.push(z(7, buysell + buysell_profit, ' ')[n(buysell_profit) > 0 ? 'green' : 'red'])
+					cols.push(z(8, buysell + buysell_profit, ' ')[n(buysell_profit) > 0 ? 'green' : 'red'])
 		}
 		else {
-			cols.push(z(7, '', ' '))
+			cols.push(z(8, '', ' '))
 		}
 
 		cols.forEach(function (col) {
