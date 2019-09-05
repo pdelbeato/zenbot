@@ -1,8 +1,8 @@
-var z = require('zero-fill')
-, n = require('numbro')
+var n = require('numbro')
 , sma = require('../../../lib/sma')
 , inspect = require('eyes').inspector()
 , debug = require('../../../lib/debug')
+//, z = require('zero-fill')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
@@ -201,13 +201,13 @@ module.exports = {
 
 			var color = (strat_data.trend === 0 ? 'white' : (strat_data.trend > 0 ? 'green' : 'red'))
 //			cols.push('Pvt')
-			cols.push(z(8, strat_data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
+			cols.push(s.tools.zeroFill(8, strat_data.pivot_price, ' ')[(s.options.active_long_position ? 'green' : 'red')])
 //			cols.push('|Lane')
 			cols.push('|')
-			cols.push(z(3, strat_data.actual_lane, ' ')[color])
-			cols.push(z(2, (strat_data.pair ? 'P' : 'O'), ' ')[color])
+			cols.push(s.tools.zeroFill(3, strat_data.actual_lane, ' ')[color])
+			cols.push(s.tools.zeroFill(2, (strat_data.pair ? 'P' : 'O'), ' ')[color])
 //			cols.push('|Catch') 
-//			cols.push(z(6, n(strat_opts.gain_pct).divide(100).format('0.00%'), ' ').yellow)	
+//			cols.push(s.tools.zeroFill(6, n(strat_opts.gain_pct).divide(100).format('0.00%'), ' ').yellow)	
 
 			cols.forEach(function (col) {
 				process.stdout.write(col)

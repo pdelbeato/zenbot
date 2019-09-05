@@ -8,7 +8,7 @@ var tb = require('timebucket')
 , crypto = require('crypto')
 , readline = require('readline')
 , colors = require('colors')
-, z = require('zero-fill')
+//, z = require('zero-fill')
 , inspect = require('eyes').inspector({maxLength: 10000 })
 , output = require('../lib/output')
 , objectifySelector = require('../lib/objectify-selector')
@@ -18,7 +18,7 @@ var tb = require('timebucket')
 , debug = require('../lib/debug')
 , sizeof = require('object-sizeof')
 , async = require('async')
-//, tools = require('./quantum-tools')
+, quantumTools = require ('../lib/quantum-tools')
 
 //Per eseguire comandi da bash
 //var sys = require('util')
@@ -47,6 +47,9 @@ function puts(error, stdout) { console.log(stdout) }
 //hideFunctions: false,     // Don't output functions at all
 //stream: process.stdout,   // Stream to write to, or null
 //maxLength: 2048           // Truncate output if longer
+
+//Carico le funzioni di utilità
+quantumTools(s, conf)
 
 module.exports = function (program, conf) {
 	program
@@ -1008,30 +1011,30 @@ module.exports = function (program, conf) {
 			process.stdout.write('\n')
 			
 			process.stdout.write([
-				z(25, so.mode.toUpperCase() + ' MODE'.grey, ' '),
-				z(25, 'PERIOD LENGTH'.grey, ' '),
-				z(25, 'ORDER TYPE'.grey, ' '),
-				z(25, 'SLIPPAGE'.grey, ' '),
-				z(30, 'EXCHANGE FEES'.grey, ' ')
+				s.tools.zeroFill(25, so.mode.toUpperCase() + ' MODE'.grey, ' '),
+				s.tools.zeroFill(25, 'PERIOD LENGTH'.grey, ' '),
+				s.tools.zeroFill(25, 'ORDER TYPE'.grey, ' '),
+				s.tools.zeroFill(25, 'SLIPPAGE'.grey, ' '),
+				s.tools.zeroFill(30, 'EXCHANGE FEES'.grey, ' ')
 				].join('') + '\n');
 
 			process.stdout.write([
-				z(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
-				z(12, so.period_length, ' '),
-				z(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
-				z(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
-				z(17, (so.order_type + ' ' + n((so.order_type === 'maker' ?  s.exchange.makerFee : s.exchange.takerFee)).divide(100).format('0.000%')), ' ')
+				s.tools.zeroFill(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
+				s.tools.zeroFill(12, so.period_length, ' '),
+				s.tools.zeroFill(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
+				s.tools.zeroFill(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
+				s.tools.zeroFill(17, (so.order_type + ' ' + n((so.order_type === 'maker' ?  s.exchange.makerFee : s.exchange.takerFee)).divide(100).format('0.000%')), ' ')
 				].join('') + '\n\n');
 
 			process.stdout.write('');
 
 			process.stdout.write([
-				z(36, 'LONG / SHORT POSITION'.grey, ' ')
+				s.tools.zeroFill(36, 'LONG / SHORT POSITION'.grey, ' ')
 				].join('') + '\n');
 
 			process.stdout.write([
-				z(10, so.active_long_position, ' '),
-				z(8, so.active_short_position, ' ')
+				s.tools.zeroFill(10, so.active_long_position, ' '),
+				s.tools.zeroFill(8, so.active_short_position, ' ')
 				].join('') + '\n\n');
 
 			process.stdout.write('');

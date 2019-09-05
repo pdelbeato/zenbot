@@ -114,7 +114,6 @@
     "webpack-cli": "^3.3.6",
     "wexnz": "^0.1.3",
     "ws": "^7.1.1",
-    "zero-fill": "^2.2.3"
   },
   "devDependencies": {
     "eslint": "^6.1.0",

@@ -1,10 +1,10 @@
-var z = require('zero-fill')
-, n = require('numbro')
+var n = require('numbro')
 , linearRegSlope = require('../../../lib/ta_linearreg_slope')
 , Phenotypes = require('../../../lib/phenotype')
 , inspect = require('eyes').inspector({maxLength: 4096 })
 , { formatPercent } = require('../../../lib/format')
 , debug = require('../../../lib/debug')
+//, z = require('zero-fill')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
@@ -120,10 +120,10 @@ module.exports = {
 				color = 'red'
 			}
 
-			cols.push(z(6, ('[' + n(strat_data.slope).format('0.00') + '‰]'), ' ')[color])
+			cols.push(s.tools.zeroFill(6, ('[' + n(strat_data.slope).format('0.00') + '‰]'), ' ')[color])
 		}
 		else {
-			cols.push(z(6, '', ' '))
+			cols.push(s.tools.zeroFill(6, '', ' '))
 		}
 
 		cols.forEach(function (col) {
