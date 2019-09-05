@@ -189,14 +189,22 @@ module.exports = function (program, conf) {
 		var my_trades_size = 0
 
 		//Recupera tutti i vecchi database
-		var my_trades = collectionServiceInstance.getMyTrades()
-		var my_positions = collectionServiceInstance.getMyPositions()
-		var my_closed_positions = collectionServiceInstance.getMyClosedPositions()
-		var periods = collectionServiceInstance.getPeriods()
-		var sessions = collectionServiceInstance.getSessions()
-		var balances = collectionServiceInstance.getBalances()
-		var trades = collectionServiceInstance.getTrades()
-		var resume_markers = collectionServiceInstance.getResumeMarkers()
+//		var my_trades = collectionServiceInstance.getMyTrades()
+//		var my_positions = collectionServiceInstance.getMyPositions()
+//		var my_closed_positions = collectionServiceInstance.getMyClosedPositions()
+//		var periods = collectionServiceInstance.getPeriods()
+//		var sessions = collectionServiceInstance.getSessions()
+//		var balances = collectionServiceInstance.getBalances()
+//		var trades = collectionServiceInstance.getTrades()
+//		var resume_markers = collectionServiceInstance.getResumeMarkers()
+		var my_trades = conf.db.mongo.my_trades
+		var my_positions = conf.db.mongo.my_positions
+		var my_closed_positions = conf.db.mongo.my_closed_positions
+		var periods = conf.db.mongo.periods
+		var sessions = conf.db.mongo.sessions
+		var balances = conf.db.mongo.balances
+		var trades = conf.db.mongo.trades
+		var resume_markers = conf.db.mongo.resume_markers
 		
 		s.db_valid = true
 

@@ -39,36 +39,51 @@ module.exports = function (cb) {
   var eventBus = new EventEmitter()
   zenbot.conf.eventBus = eventBus
 
-  var authStr = '', authMechanism, connectionString
-
-  if(zenbot.conf.mongo.username){
-    authStr = encodeURIComponent(zenbot.conf.mongo.username)
-
-    if(zenbot.conf.mongo.password) authStr += ':' + encodeURIComponent(zenbot.conf.mongo.password)
-
-    authStr += '@'
-
-    // authMechanism could be a conf.js parameter to support more mongodb authentication methods
-    authMechanism = zenbot.conf.mongo.authMechanism || 'DEFAULT'
-  }
-
-  if (zenbot.conf.mongo.connectionString) {
-    connectionString = zenbot.conf.mongo.connectionString
-  } else {
-    connectionString = 'mongodb://' + authStr + zenbot.conf.mongo.host + ':' + zenbot.conf.mongo.port + '/' + zenbot.conf.mongo.db + '?' +
-      (zenbot.conf.mongo.replicaSet ? '&replicaSet=' + zenbot.conf.mongo.replicaSet : '' ) +
-      (authMechanism ? '&authMechanism=' + authMechanism : '' )
-  }
-
-  require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
-    if (err) {
-      console.error('WARNING: MongoDB Connection Error: ', err)
-      console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')
-      console.error('Attempted authentication string: ' + connectionString)
-      cb(null, zenbot)
-      return
-    }
-    var db = client.db(zenbot.conf.mongo.db)
+//  var authStr = '', authMechanism, connectionString
+//
+//  if(zenbot.conf.mongo.username){
+//    authStr = encodeURIComponent(zenbot.conf.mongo.username)
+//
+//    if(zenbot.conf.mongo.password) authStr += ':' + encodeURIComponent(zenbot.conf.mongo.password)
+//
+//    authStr += '@'
+//
+//    // authMechanism could be a conf.js parameter to support more mongodb authentication methods
+//    authMechanism = zenbot.conf.mongo.authMechanism || 'DEFAULT'
+//  }
+//
+//  if (zenbot.conf.mongo.connectionString) {
+//    connectionString = zenbot.conf.mongo.connectionString
+//  } else {
+//    connectionString = 'mongodb://' + authStr + zenbot.conf.mongo.host + ':' + zenbot.conf.mongo.port + '/' + zenbot.conf.mongo.db + '?' +
+//      (zenbot.conf.mongo.replicaSet ? '&replicaSet=' + zenbot.conf.mongo.replicaSet : '' ) +
+//      (authMechanism ? '&authMechanism=' + authMechanism : '' )
+//  }
+//
+//  require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
+//    if (err) {
+//      console.error('WARNING: MongoDB Connection Error: ', err)
+//      console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')
+//      console.error('Attempted authentication string: ' + connectionString)
+//      cb(null, zenbot)
+//      return
+//    }
+//    var db = client.db(zenbot.conf.mongo.db)
+  var Datastore = require('nedb')
+  var db = {}
+  db.trades = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/trades.db'), autoload: true})
+  db.resume_markers = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/resume_markers.db'), autoload: true})
+  db.balances = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/balances.db'), autoload: true})
+  db.sessions = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/sessions.db'), autoload: true})
+  db.periods = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/periods.db'), autoload: true})
+  db.my_trades = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/my_trades.db'), autoload: true})
+  db.sim_results = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/sim_results.db'), autoload: true})
+  db.my_positions = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/my_positions.db'), autoload: true})
+  db.my_closed_positions = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/my_closed_positions.db'), autoload: true})
+  
+  db.trades.ensureIndex({fieldname: 'time'})
+  db.resume_markers.ensureIndex({fieldname: 'to'})
+  
     _.set(zenbot, 'conf.db.mongo', db)
     cb(null, zenbot)
   })
