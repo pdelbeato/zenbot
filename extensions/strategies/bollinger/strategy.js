@@ -415,14 +415,14 @@ module.exports = {
 					cols.push('*')
 				}
 
-				cols.push(s.tools.zeroFill(8, n(lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_down])
-				cols.push(' <->')
-				cols.push(s.tools.zeroFill(8, n(upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_up])
+				cols.push(s.tools.zeroFill(9, n(lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_down])
+				cols.push('<->'.grey)
+				cols.push(s.tools.zeroFill(9, n(upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_up])
 				cols.push('(' + s.tools.zeroFill(2, n(rsi).format('0'), ' ')[color_rsi] + ')')
 			}
 		}
 		else {
-			cols.push(s.tools.zeroFill(24, '', ' '))
+			cols.push(s.tools.zeroFill(25, '', ' '))
 		}
 
 		if (!s.in_preroll && (strat_data.max_profit_position.buy != null || strat_data.max_profit_position.sell != null)) {

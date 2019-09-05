@@ -48,9 +48,6 @@ function puts(error, stdout) { console.log(stdout) }
 //stream: process.stdout,   // Stream to write to, or null
 //maxLength: 2048           // Truncate output if longer
 
-//Carico le funzioni di utilità
-quantumTools(s, conf)
-
 module.exports = function (program, conf) {
 	program
 	.command('quantum-trade [selector]')
@@ -103,6 +100,9 @@ module.exports = function (program, conf) {
 		s.trades = []
 		s.lookback = []
 		s.orders = []
+		
+		//Carico le funzioni di utilità
+		quantumTools(s, conf)
 		
 		var engine = null
 
