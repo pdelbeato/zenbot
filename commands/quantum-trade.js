@@ -844,7 +844,7 @@ module.exports = function (program, conf) {
 //				db_resume_markers.ensureIndex({fieldname: 'to'})
 //				console.log('Sorted databases...')
 
-				debug.msg(' fatto! Ricreo i database...', false)
+				debug.msg('Ricreo i database...', false)
 				db_my_positions.destroy(function(err) {
 					if (err) {
 						console.error('Failed to destroy datastore:', err);
