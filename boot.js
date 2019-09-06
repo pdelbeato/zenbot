@@ -39,57 +39,57 @@ module.exports = function (cb) {
 	var eventBus = new EventEmitter()
 	zenbot.conf.eventBus = eventBus
 
-//	var authStr = '', authMechanism, connectionString
-
-//	if(zenbot.conf.mongo.username){
-//	authStr = encodeURIComponent(zenbot.conf.mongo.username)
-
-//	if(zenbot.conf.mongo.password) authStr += ':' + encodeURIComponent(zenbot.conf.mongo.password)
-
-//	authStr += '@'
-
-//	// authMechanism could be a conf.js parameter to support more mongodb authentication methods
-//	authMechanism = zenbot.conf.mongo.authMechanism || 'DEFAULT'
-//	}
-
-//	if (zenbot.conf.mongo.connectionString) {
-//	connectionString = zenbot.conf.mongo.connectionString
-//	} else {
-//	connectionString = 'mongodb://' + authStr + zenbot.conf.mongo.host + ':' + zenbot.conf.mongo.port + '/' + zenbot.conf.mongo.db + '?' +
-//	(zenbot.conf.mongo.replicaSet ? '&replicaSet=' + zenbot.conf.mongo.replicaSet : '' ) +
-//	(authMechanism ? '&authMechanism=' + authMechanism : '' )
-//	}
-
-//	require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
-//	if (err) {
-//	console.error('WARNING: MongoDB Connection Error: ', err)
-//	console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')
-//	console.error('Attempted authentication string: ' + connectionString)
-//	cb(null, zenbot)
-//	return
-//	}
-//	var db = client.db(zenbot.conf.mongo.db)
-//	var Datastore = require('nedb')
 	var Datastore = require('nestdb')
 	var db = {}
-	db.trades = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/trades.db'), autoload: true})
-	db.resume_markers = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/resume_markers.db'), autoload: true})
-	db.balances = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/balances.db'), autoload: true})
-	db.sessions = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/sessions.db'), autoload: true})
-	db.periods = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/periods.db'), autoload: true})
-	db.my_trades = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/my_trades.db'), autoload: true})
-	db.sim_results = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/sim_results.db'), autoload: true})
-	db.my_positions = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/my_positions.db'), autoload: true})
-	db.my_closed_positions = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/my_closed_positions.db'), autoload: true})
-	console.log('Created/loaded databases...')
+	var promises = []
+	var db_names = ['trades', 'resume_markers', 'balances', 'sessions', 'periods', 'my_trades', 'sim_results', 'my_positions', 'my_closed_positions']
 
-	db.trades.ensureIndex({fieldname: 'time'})
-	db.resume_markers.ensureIndex({fieldname: 'to'})
-	console.log('Sorted databases...')
+	db_names.forEach(function (db_name, index) {
+		promises.push(new Promise(function (resolve, reject) {
+			db[db_name] = new Datastore ({
+				filename: ('./' + zenbot.conf.mongo.db + '/' + db_name + '.db'),
+				autoload: true,
+				onload: function (err) {
+					if (err) {
+						reject(err);
+					}
+					else {
+						console.log(db_name + ' database loaded...');
+						resolve()
+					}
+				}
+			})
+		})
+		)
+	})
+	console.log('Boot - promises')
+	console.log(promises)
 
-	_.set(zenbot, 'conf.db.mongo', db)
+//	db.trades = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/trades.db'), autoload: true})
+//	db.resume_markers = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/resume_markers.db'), autoload: true})
+//	db.balances = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/balances.db'), autoload: true})
+//	db.sessions = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/sessions.db'), autoload: true})
+//	db.periods = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/periods.db'), autoload: true})
+//	db.my_trades = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/my_trades.db'), autoload: true})
+//	db.sim_results = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/sim_results.db'), autoload: true})
+//	db.my_positions = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/my_positions.db'), autoload: true})
+//	db.my_closed_positions = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/my_closed_positions.db'), autoload: true})
 
-	console.log(zenbot.conf.db)
-	cb(null, zenbot)
-//	})
+	Promise.all(promises)
+	.then(function() {
+		console.log('Created/loaded databases...')
+		cosnole.log(db)
+
+		db.trades.ensureIndex({fieldname: 'time'})
+		db.resume_markers.ensureIndex({fieldname: 'to'})
+		console.log('Sorted databases...')
+
+		_.set(zenbot, 'conf.db.mongo', db)
+
+		console.log(zenbot.conf.db)
+		cb(null, zenbot)
+	})
+	.catch(function(error) {
+		console.log(error)
+	})
 }
