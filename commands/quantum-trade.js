@@ -21,12 +21,8 @@ var tb = require('timebucket')
 , quantumTools = require ('../lib/quantum-tools')
 
 //Per eseguire comandi da bash
-//var sys = require('util')
-var exec = require('child_process').exec
-//function execs(cmd, puts, cb) {
-//exec(cmd, puts)
-//return cb()
-//}
+//var exec = require('child_process').exec
+
 //function puts(error, stdout, stderr) { console.log(stdout) }
 function puts(error, stdout) { console.log(stdout) }
 
@@ -830,16 +826,16 @@ module.exports = function (program, conf) {
 //				resume_markers = collectionServiceInstance.getResumeMarkers()
 
 				var Datastore = require('nestdb')
-				var conf.db.mongo = {}
+				conf.db.mongo = {}
 				db_trades = conf.db.mongo.trades = new Datastore ({filename: ('./' + conf.mongo.db + '/trades.db'), autoload: true})
 				db_resume_markers = conf.db.mongo.resume_markers = new Datastore ({filename: ('./' + conf.mongo.db + '/resume_markers.db'), autoload: true})
 				db_balances = conf.db.mongo.balances = new Datastore ({filename: ('./' + conf.mongo.db + '/balances.db'), autoload: true})
 				db_sessions = conf.db.mongo.sessions = new Datastore ({filename: ('./' + conf.mongo.db + '/sessions.db'), autoload: true})
 				db_periods = conf.db.mongo.periods = new Datastore ({filename: ('./' + conf.mongo.db + '/periods.db'), autoload: true})
 				db_my_trades = conf.db.mongo.my_trades = new Datastore ({filename: ('./' + conf.mongo.db + '/my_trades.db'), autoload: true})
-				db_sim_results = conf.db.mongo.sim_results = new Datastore ({filename: ('./' + .conf.mongo.db + '/sim_results.db'), autoload: true})
+				db_sim_results = conf.db.mongo.sim_results = new Datastore ({filename: ('./' + conf.mongo.db + '/sim_results.db'), autoload: true})
 				db_my_positions = conf.db.mongo.my_positions = new Datastore ({filename: ('./' + conf.mongo.db + '/my_positions.db'), autoload: true})
-				db_my_closed_positions = conf.db.mongo.my_closed_positions = new Datastore ({filename: ('./' + .conf.mongo.db + '/my_closed_positions.db'), autoload: true})
+				db_my_closed_positions = conf.db.mongo.my_closed_positions = new Datastore ({filename: ('./' + conf.mongo.db + '/my_closed_positions.db'), autoload: true})
 				console.log('Created/loaded databases...')
 
 				db_trades.ensureIndex({fieldname: 'time'})
@@ -923,9 +919,6 @@ module.exports = function (program, conf) {
 
 		/* Funzioni per le operazioni sul database Mongo DB delle posizioni */
 		s.positionProcessingQueue = async.queue(function(task, callback = function () {}) {
-//			//Ficca qui dentro tutta la funzione seguente, senza definirla che è inutile
-//			managePositionCollection(task.mode, task.position_id, callback)
-			
 			switch (task.mode) {
 			case 'update': {
 				var position = s.positions.find(x => x.id === task.position_id)
@@ -987,8 +980,6 @@ module.exports = function (program, conf) {
 		s.positionProcessingQueue.drain(function() {
 			debug.msg('s.positionProcessingQueue - All items have been processed')
 		})
-
-
 		/* End funzioni per le operazioni sul database Mongo DB delle posizioni */
 
 		/* To list options*/
