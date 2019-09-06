@@ -13,7 +13,7 @@ var tb = require('timebucket')
 , output = require('../lib/output')
 , objectifySelector = require('../lib/objectify-selector')
 , engineFactory = require('../lib/quantum-engine')
-//, collectionService = require('../lib/services/collection-service')
+, collectionService = require('../lib/services/collection-service')
 , { formatAsset, formatPercent, formatCurrency } = require('../lib/format')
 , debug = require('../lib/debug')
 , sizeof = require('object-sizeof')
@@ -778,8 +778,8 @@ module.exports = function (program, conf) {
 //			exec('sudo service mongodb start', puts)
 //			exec('sudo service mongodb status', puts)
 
-			setTimeout(function() {
-				debug.msg('Recupero la connessione...')
+//			setTimeout(function() {
+				debug.msg('Recupero la connessione con i database...')
 
 //				var authStr = '', authMechanism, connectionString
 
@@ -825,24 +825,26 @@ module.exports = function (program, conf) {
 //				trades = collectionServiceInstance.getTrades()
 //				resume_markers = collectionServiceInstance.getResumeMarkers()
 
-				var Datastore = require('nestdb')
-				conf.db.mongo = {}
-				db_trades = conf.db.mongo.trades = new Datastore ({filename: ('./' + conf.mongo.db + '/trades.db'), autoload: true})
-				db_resume_markers = conf.db.mongo.resume_markers = new Datastore ({filename: ('./' + conf.mongo.db + '/resume_markers.db'), autoload: true})
-				db_balances = conf.db.mongo.balances = new Datastore ({filename: ('./' + conf.mongo.db + '/balances.db'), autoload: true})
-				db_sessions = conf.db.mongo.sessions = new Datastore ({filename: ('./' + conf.mongo.db + '/sessions.db'), autoload: true})
-				db_periods = conf.db.mongo.periods = new Datastore ({filename: ('./' + conf.mongo.db + '/periods.db'), autoload: true})
-				db_my_trades = conf.db.mongo.my_trades = new Datastore ({filename: ('./' + conf.mongo.db + '/my_trades.db'), autoload: true})
-				db_sim_results = conf.db.mongo.sim_results = new Datastore ({filename: ('./' + conf.mongo.db + '/sim_results.db'), autoload: true})
-				db_my_positions = conf.db.mongo.my_positions = new Datastore ({filename: ('./' + conf.mongo.db + '/my_positions.db'), autoload: true})
-				db_my_closed_positions = conf.db.mongo.my_closed_positions = new Datastore ({filename: ('./' + conf.mongo.db + '/my_closed_positions.db'), autoload: true})
-				console.log('Created/loaded databases...')
+			var collectionServiceInstance = collectionService(conf, function() {
+			
+//				var Datastore = require('nestdb')
+//				conf.db.mongo = {}
+//				db_trades = conf.db.mongo.trades = new Datastore ({filename: ('./' + conf.mongo.db + '/trades.db'), autoload: true})
+//				db_resume_markers = conf.db.mongo.resume_markers = new Datastore ({filename: ('./' + conf.mongo.db + '/resume_markers.db'), autoload: true})
+//				db_balances = conf.db.mongo.balances = new Datastore ({filename: ('./' + conf.mongo.db + '/balances.db'), autoload: true})
+//				db_sessions = conf.db.mongo.sessions = new Datastore ({filename: ('./' + conf.mongo.db + '/sessions.db'), autoload: true})
+//				db_periods = conf.db.mongo.periods = new Datastore ({filename: ('./' + conf.mongo.db + '/periods.db'), autoload: true})
+//				db_my_trades = conf.db.mongo.my_trades = new Datastore ({filename: ('./' + conf.mongo.db + '/my_trades.db'), autoload: true})
+//				db_sim_results = conf.db.mongo.sim_results = new Datastore ({filename: ('./' + conf.mongo.db + '/sim_results.db'), autoload: true})
+//				db_my_positions = conf.db.mongo.my_positions = new Datastore ({filename: ('./' + conf.mongo.db + '/my_positions.db'), autoload: true})
+//				db_my_closed_positions = conf.db.mongo.my_closed_positions = new Datastore ({filename: ('./' + conf.mongo.db + '/my_closed_positions.db'), autoload: true})
+//				console.log('Created/loaded databases...')
+//
+//				db_trades.ensureIndex({fieldname: 'time'})
+//				db_resume_markers.ensureIndex({fieldname: 'to'})
+//				console.log('Sorted databases...')
 
-				db_trades.ensureIndex({fieldname: 'time'})
-				db_resume_markers.ensureIndex({fieldname: 'to'})
-				console.log('Sorted databases...')
-
-				debug.msg(' fatto! Ricreo db_my_positions...', false)
+				debug.msg(' fatto! Ricreo i database...', false)
 				db_my_positions.destroy(function(err) {
 					if (err) {
 						console.error('Failed to destroy datastore:', err);
@@ -855,10 +857,9 @@ module.exports = function (program, conf) {
 							}
 						})
 					})
-					debug.msg(' fatto!', false)
+					debug.msg('db_my_positions -> fatto!', false)
 				})
 
-				debug.msg(' fatto! Ricreo db_my_closed_positions...', false)
 				db_my_closed_positions.destroy(function(err) {
 					if (err) {
 						console.error('Failed to destroy datastore:', err);
@@ -871,10 +872,9 @@ module.exports = function (program, conf) {
 							}
 						})
 					})
-					debug.msg(' fatto!', false)
+					debug.msg('db_my_closed_positions -> fatto!', false)
 				})
 
-				debug.msg(' fatto! Ricreo db_my_trades...', false)
 				db_my_trades.destroy(function(err) {
 					if (err) {
 						console.error('Failed to destroy datastore:', err);
@@ -887,9 +887,9 @@ module.exports = function (program, conf) {
 							}
 						})
 					})
-					debug.msg(' fatto!', false)
+					debug.msg('db_my_trades -> fatto!', false)
 				})
-			}, 10000)
+//			}, 10000)
 			s.db_valid = true
 		}
 
