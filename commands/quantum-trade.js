@@ -26,19 +26,19 @@ var tb = require('timebucket')
 //function puts(error, stdout, stderr) { console.log(stdout) }
 function puts(error, stdout) { console.log(stdout) }
 
-// Cambia i colori di cliff
+//Cambia i colori di cliff
 //styles: {                 // Styles applied to stdout
-//    all:     'cyan',      // Overall style applied to everything
-//    label:   'underline', // Inspection labels, like 'array' in `array: [1, 2, 3]`
-//    other:   'inverted',  // Objects which don't have a literal representation, such as functions
-//    key:     'bold',      // The keys in object literals, like 'a' in `{a: 1}`
-//    special: 'grey',      // null, undefined...
-//    string:  'green',
-//    number:  'magenta',
-//    bool:    'blue',      // true false
-//    regexp:  'green',     // /\d+/
+//all:     'cyan',      // Overall style applied to everything
+//label:   'underline', // Inspection labels, like 'array' in `array: [1, 2, 3]`
+//other:   'inverted',  // Objects which don't have a literal representation, such as functions
+//key:     'bold',      // The keys in object literals, like 'a' in `{a: 1}`
+//special: 'grey',      // null, undefined...
+//string:  'green',
+//number:  'magenta',
+//bool:    'blue',      // true false
+//regexp:  'green',     // /\d+/
 //},
-//
+
 //pretty: true,             // Indent object literals
 //hideFunctions: false,     // Don't output functions at all
 //stream: process.stdout,   // Stream to write to, or null
@@ -89,17 +89,17 @@ module.exports = function (program, conf) {
 		var raw_opts = minimist(process.argv)
 		var s = {options: JSON.parse(JSON.stringify(raw_opts))}
 		var so = s.options
-	
+
 		s.positions = []
 		s.closed_positions = []
 		s.my_trades = []
 		s.trades = []
 		s.lookback = []
 		s.orders = []
-		
+
 		//Carico le funzioni di utilità
 		quantumTools(s, conf)
-		
+
 		var engine = null
 
 		//Se è stata impostata la funzione per il tempo di esecuzione, fissa il tempo di partenza
@@ -201,7 +201,7 @@ module.exports = function (program, conf) {
 		var db_balances = conf.db.mongo.balances
 		var db_trades = conf.db.mongo.trades
 		var db_resume_markers = conf.db.mongo.resume_markers
-		
+
 		s.db_valid = true
 
 		var marker = {
@@ -268,7 +268,7 @@ module.exports = function (program, conf) {
 				resolve()
 			})
 		})
-				
+
 		Promise.all([recover_my_positions, recover_my_closed_positions])
 		.then(function() {
 			//Quindi engine è quantum-engine(s, conf), dove conf è zenbot.conf da zenbot.js, quindi l'unione
@@ -391,7 +391,7 @@ module.exports = function (program, conf) {
 				break
 			}
 			case 2: {
-				
+
 				break
 			}
 			case 3: {
@@ -623,9 +623,9 @@ module.exports = function (program, conf) {
 				let actual_code = 97; //'a'
 
 				key_assign = {
-					command: function (key, desc_action) {
-						keyMap.set(key, desc_action)
-					}
+						command: function (key, desc_action) {
+							keyMap.set(key, desc_action)
+						}
 				};
 
 				Object.keys(s.options.strategy).forEach(function (strategy_name, index, array) {			
@@ -639,56 +639,56 @@ module.exports = function (program, conf) {
 						actual_code++
 					}
 				})
-				
-				
-// Tutta questa roba deve entrare nei comandi per le strategie!!!
+
+
+//				Tutta questa roba deve entrare nei comandi per le strategie!!!
 //				//Modo LIMITS
 //				keyMap.set('q', {desc: ('Buy price limit'.grey + ' INCREASE'.green), action: function() {
-//					if (!so.buy_price_limit) {
-//						so.buy_price_limit = Number(s.quote.bid)
-//					}
-//					so.buy_price_limit += 10
-//					console.log('\n' + 'Buy price limit' + ' INCREASE'.green + ' -> ' + so.buy_price_limit)
+//				if (!so.buy_price_limit) {
+//				so.buy_price_limit = Number(s.quote.bid)
+//				}
+//				so.buy_price_limit += 10
+//				console.log('\n' + 'Buy price limit' + ' INCREASE'.green + ' -> ' + so.buy_price_limit)
 //				}})
 //				keyMap.set('a', {desc: ('Buy price limit'.grey + ' DECREASE'.red), action: function() {
-//					if (!so.buy_price_limit) {
-//						so.buy_price_limit = Number(s.quote.bid)
-//					}
-//					so.buy_price_limit -= 10
-//					console.log('\n' + 'Buy price limit' + ' DECREASE'.red + ' -> ' + so.buy_price_limit)
+//				if (!so.buy_price_limit) {
+//				so.buy_price_limit = Number(s.quote.bid)
+//				}
+//				so.buy_price_limit -= 10
+//				console.log('\n' + 'Buy price limit' + ' DECREASE'.red + ' -> ' + so.buy_price_limit)
 //				}})
 //				keyMap.set('w', {desc: ('Sell price limit'.grey + ' INCREASE'.green), action: function() {
-//					if (!so.sell_price_limit) {
-//						so.sell_price_limit = Number(s.quote.ask)
-//					}
-//					so.sell_price_limit += 10
-//					console.log('\n' + 'Sell price limit' + ' INCREASE'.green + ' -> ' + so.sell_price_limit)
+//				if (!so.sell_price_limit) {
+//				so.sell_price_limit = Number(s.quote.ask)
+//				}
+//				so.sell_price_limit += 10
+//				console.log('\n' + 'Sell price limit' + ' INCREASE'.green + ' -> ' + so.sell_price_limit)
 //				}})
 //				keyMap.set('s', {desc: ('Sell price limit'.grey + ' DECREASE'.red), action: function() {
-//					if (!so.sell_price_limit) {
-//						so.sell_price_limit = Number(s.quote.ask)
-//					}
-//					so.sell_price_limit -= 10
-//					console.log('\n' + 'Sell price limit' + ' DECREASE'.red + ' -> ' + so.sell_price_limit)
+//				if (!so.sell_price_limit) {
+//				so.sell_price_limit = Number(s.quote.ask)
+//				}
+//				so.sell_price_limit -= 10
+//				console.log('\n' + 'Sell price limit' + ' DECREASE'.red + ' -> ' + so.sell_price_limit)
 //				}})
 //				keyMap.set('z', {desc: ('Buy/Sell price limit'.grey + ' CANCEL'.yellow), action: function() {
-//					so.buy_price_limit = null
-//					so.sell_price_limit = null
-//					console.log('\n' + 'Buy/Sell price limit' + ' CANCELED'.yellow)
+//				so.buy_price_limit = null
+//				so.sell_price_limit = null
+//				console.log('\n' + 'Buy/Sell price limit' + ' CANCELED'.yellow)
 //				}})
-				
-				
-				
-				
+
+
+
+
 //				keyMap.set('o', {desc: ('Actual values for limits'.grey), action: function() {
-//					actual_values = '\nActual values for limits:'
-//						actual_values += '\n-------------------------'
-//							actual_values += '\nBuy price limit= ' + so.buy_price_limit
-//							actual_values += '\nSell price limit= ' + so.sell_price_limit
-//							actual_values += '\nSell gain pct= ' + so.sell_gain_pct
-//							actual_values += '\nBuy gain pct= ' + so.buy_gain_pct
-//
-//							console.log(actual_values)
+//				actual_values = '\nActual values for limits:'
+//				actual_values += '\n-------------------------'
+//				actual_values += '\nBuy price limit= ' + so.buy_price_limit
+//				actual_values += '\nSell price limit= ' + so.sell_price_limit
+//				actual_values += '\nSell gain pct= ' + so.sell_gain_pct
+//				actual_values += '\nBuy gain pct= ' + so.buy_gain_pct
+
+//				console.log(actual_values)
 //				}})
 				break
 			}
@@ -723,8 +723,8 @@ module.exports = function (program, conf) {
 					printTrade(false, true)
 				}})
 //				keyMap.set('H', {desc: ('toggle automatic HTML dump to file'.grey), action: function() {
-//					console.log('\nDumping statistics...'.grey)
-//					toggleStats()
+//				console.log('\nDumping statistics...'.grey)
+//				toggleStats()
 //				}})
 				break
 			}
@@ -761,7 +761,7 @@ module.exports = function (program, conf) {
 				console.log(' ' + key + ' - ' + value.desc)
 			})
 		}
-		
+
 		/* Clear keys normally used by strategy menu */
 		function clearStrategyKeys() {
 			let group = ['+', '-', '*', '_', 'i', 'I', 'k', 'K', 'u', 'U', 'j', 'J', 'y', 'Y', 'h', 'H', 't', 'T', 'g', 'G']
@@ -779,54 +779,54 @@ module.exports = function (program, conf) {
 //			exec('sudo service mongodb status', puts)
 
 //			setTimeout(function() {
-				debug.msg('Recupero la connessione con i database...')
+			debug.msg('Recupero la connessione con i database...')
 
-//				var authStr = '', authMechanism, connectionString
+//			var authStr = '', authMechanism, connectionString
 
-//				if(so.mongo.username){
-//				authStr = encodeURIComponent(so.mongo.username)
+//			if(so.mongo.username){
+//			authStr = encodeURIComponent(so.mongo.username)
 
-//				if(so.mongo.password) authStr += ':' + encodeURIComponent(so.mongo.password)
+//			if(so.mongo.password) authStr += ':' + encodeURIComponent(so.mongo.password)
 
-//				authStr += '@'
+//			authStr += '@'
 
-//				// authMechanism could be a conf.js parameter to support more mongodb authentication methods
-//				authMechanism = so.mongo.authMechanism || 'DEFAULT'
-//				}
+//			// authMechanism could be a conf.js parameter to support more mongodb authentication methods
+//			authMechanism = so.mongo.authMechanism || 'DEFAULT'
+//			}
 
-//				if (so.mongo.connectionString) {
-//				connectionString = so.mongo.connectionString
-//				} else {
-//				connectionString = 'mongodb://' + authStr + so.mongo.host + ':' + so.mongo.port + '/' + so.mongo.db + '?' +
-//				(so.mongo.replicaSet ? '&replicaSet=' + so.mongo.replicaSet : '' ) +
-//				(authMechanism ? '&authMechanism=' + authMechanism : '' )
-//				}
+//			if (so.mongo.connectionString) {
+//			connectionString = so.mongo.connectionString
+//			} else {
+//			connectionString = 'mongodb://' + authStr + so.mongo.host + ':' + so.mongo.port + '/' + so.mongo.db + '?' +
+//			(so.mongo.replicaSet ? '&replicaSet=' + so.mongo.replicaSet : '' ) +
+//			(authMechanism ? '&authMechanism=' + authMechanism : '' )
+//			}
 
-//				//Corretto per il Deprecation Warning
-//				require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
-//				if (err) {
-//				console.error('WARNING: MongoDB Connection Error: ', err)
-//				console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')
-//				console.error('Attempted authentication string: ' + connectionString)
-//				//	      		cb(null)
-//				//      		return
-//				}
-//				var db = client.db(so.mongo.db)
-//				conf.db.mongo = db
+//			//Corretto per il Deprecation Warning
+//			require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
+//			if (err) {
+//			console.error('WARNING: MongoDB Connection Error: ', err)
+//			console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')
+//			console.error('Attempted authentication string: ' + connectionString)
+//			//	      		cb(null)
+//			//      		return
+//			}
+//			var db = client.db(so.mongo.db)
+//			conf.db.mongo = db
 
-//				//Recupera tutti i vecchi database
-//				collectionServiceInstance = collectionService(conf)
-//				my_trades = collectionServiceInstance.getMyTrades()
-//				my_positions = collectionServiceInstance.getMyPositions()
-//				my_closed_positions = collectionServiceInstance.getMyClosedPositions()
-//				periods = collectionServiceInstance.getPeriods()
-//				sessions = collectionServiceInstance.getSessions()
-//				balances = collectionServiceInstance.getBalances()
-//				trades = collectionServiceInstance.getTrades()
-//				resume_markers = collectionServiceInstance.getResumeMarkers()
+//			//Recupera tutti i vecchi database
+//			collectionServiceInstance = collectionService(conf)
+//			my_trades = collectionServiceInstance.getMyTrades()
+//			my_positions = collectionServiceInstance.getMyPositions()
+//			my_closed_positions = collectionServiceInstance.getMyClosedPositions()
+//			periods = collectionServiceInstance.getPeriods()
+//			sessions = collectionServiceInstance.getSessions()
+//			balances = collectionServiceInstance.getBalances()
+//			trades = collectionServiceInstance.getTrades()
+//			resume_markers = collectionServiceInstance.getResumeMarkers()
 
 			var collectionServiceInstance = collectionService(conf, function() {
-			
+
 //				var Datastore = require('nestdb')
 //				conf.db.mongo = {}
 //				db_trades = conf.db.mongo.trades = new Datastore ({filename: ('./' + conf.mongo.db + '/trades.db'), autoload: true})
@@ -839,7 +839,7 @@ module.exports = function (program, conf) {
 //				db_my_positions = conf.db.mongo.my_positions = new Datastore ({filename: ('./' + conf.mongo.db + '/my_positions.db'), autoload: true})
 //				db_my_closed_positions = conf.db.mongo.my_closed_positions = new Datastore ({filename: ('./' + conf.mongo.db + '/my_closed_positions.db'), autoload: true})
 //				console.log('Created/loaded databases...')
-//
+
 //				db_trades.ensureIndex({fieldname: 'time'})
 //				db_resume_markers.ensureIndex({fieldname: 'to'})
 //				console.log('Sorted databases...')
@@ -889,8 +889,9 @@ module.exports = function (program, conf) {
 					})
 					debug.msg('db_my_trades -> fatto!', false)
 				})
-//			}, 10000)
-			s.db_valid = true
+//				}, 10000)
+				s.db_valid = true
+			})
 		}
 
 
@@ -929,7 +930,7 @@ module.exports = function (program, conf) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in db_my_positions')
 							console.error(err)
-							
+
 							return callback(err)
 						}
 					})
@@ -938,13 +939,13 @@ module.exports = function (program, conf) {
 			}
 			case 'delete': {
 				var position_index = s.positions.findIndex(x => x.id === task.position_id)
-				
+
 				if (s.db_valid) {
 					//Cancello la posizione dal db delle posizioni aperte...
 					db_my_positions.remove({'_id' : task.position_id}, { multi: false }, function (err) {
 						//In ogni caso, elimino la posizione da s.positions
 						s.positions.splice(position_index,1)
-						
+
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in db_my_positions')
 							console.error(err)
@@ -953,7 +954,7 @@ module.exports = function (program, conf) {
 					})
 					//... e inserisco la posizione chiusa del db delle posizioni chiuse
 					var position = s.closed_positions.find(x => x.id === task.position_id)
-					
+
 					if (position) {
 						position._id = position.id
 						db_my_closed_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
@@ -991,7 +992,7 @@ module.exports = function (program, conf) {
 			})
 
 			process.stdout.write('\n')
-			
+
 			process.stdout.write([
 				s.tools.zeroFill(25, so.mode.toUpperCase() + ' MODE'.grey, ' '),
 				s.tools.zeroFill(25, 'PERIOD LENGTH'.grey, ' '),
@@ -1170,109 +1171,109 @@ module.exports = function (program, conf) {
 //		/* Implementing statistical status dump every 10 secs */
 //		var shouldSaveStats = false
 //		function toggleStats() {
-//			shouldSaveStats = !shouldSaveStats
-//			if (shouldSaveStats) {
-//				console.log('Auto stats dump enabled')
-//			}
-//			else {
-//				console.log('Auto stats dump disabled')
-//			}
+//		shouldSaveStats = !shouldSaveStats
+//		if (shouldSaveStats) {
+//		console.log('Auto stats dump enabled')
 //		}
-//
+//		else {
+//		console.log('Auto stats dump disabled')
+//		}
+//		}
+
 //		function saveStatsLoop() {
-//			saveStats()
-//			setTimeout(function () {
-//				saveStatsLoop()
-//			}, 10000)
+//		saveStats()
+//		setTimeout(function () {
+//		saveStatsLoop()
+//		}, 10000)
 //		}
 //		saveStatsLoop()
-//
+
 //		function saveStats() {
-//			if(!shouldSaveStats) return
-//
-//			var output_lines = []
-//			var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
-//			var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
-//
-//			//        var profit = s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
-//			var profit_currency = n(tmp_capital_currency).subtract(s.orig_capital_currency).divide(s.orig_capital_currency)
-//			var profit_asset = n(tmp_capital_asset).subtract(s.orig_capital_asset).divide(s.orig_capital_asset)
-//			output_lines.push('Last balance in currency: ' + formatCurrency(tmp_capital_currency, s.currency).yellow + ' (' + profit_currency.format('0.00%') + ')')
-//			output_lines.push('Last balance in asset: ' + formatAsset(tmp_capital_asset, s.asset).yellow + ' (' + profit_asset.format('0.00%') + ')')
-//			var buy_hold = n(s.orig_capital_currency).divide(s.orig_price).multiply(s.period.close)
-//			var buy_hold_profit = n(buy_hold).subtract(s.orig_capital_currency).divide(s.orig_capital_currency)
-//			var sell_hold = n(s.orig_capital_asset).multiply(s.orig_price).divide(s.period.close)
-//			var sell_hold_profit = n(sell_hold).subtract(s.orig_capital_asset).divide(s.orig_capital_asset)
-//			
-//			output_lines.push('BuyHold: ' + formatCurrency(buy_hold, s.currency).yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
-//			output_lines.push('vs. BuyHold: ' + n(tmp_capital_currency).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
-//			output_lines.push('SellHold: ' + formatAsset(sell_hold, s.asset).yellow + ' (' + n(sell_hold_profit).format('0.00%') + ')')
-//			output_lines.push('vs. SellHold: ' + n(tmp_capital_asset).subtract(sell_hold).divide(sell_hold).format('0.00%').yellow)
-//			output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
-//			// Build stats for UI
-//			s.stats = {
-//				profit_currency: profit_currency.format('0.00%'),
-//				tmp_capital_currency: n(tmp_capital_currency).format('0.00000000'),
-//				buy_hold: buy_hold.format('0.00000000'),
-//				buy_hold_profit: n(buy_hold_profit).format('0.00%'),
-//				day_count: s.day_count,
-//				total_fees: s.total_fees,
-//				trade_per_day: n(s.my_trades.length / s.day_count).format('0.00')
-//			}
-//
-//			var losses = 0, gains = 0
-//			s.my_trades.forEach(function (trade) {
-//				if (trade.profit) {
-//					if (trade.profit > 0) {
-//						gains++
-//					}
-//					else {
-//						losses++
-//					}
-//				}
-//			})
-//
-//			if (s.my_trades.length && gains > 0) {
-//				output_lines.push('win/loss: ' + gains + '/' + losses)
-//				output_lines.push('error rate: ' + (n(losses).divide(gains + losses).format('0.00%')).yellow)
-//
-//				//for API
-//				s.stats.win = gains
-//				s.stats.losses = losses
-//				s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%')
-//			}
-//
-//			var html_output = output_lines.map(function (line) {
-//				return colors.stripColors(line)
-//			}).join('\n')
-//			var data = s.lookback.slice(0, s.lookback.length - so.min_periods).map(function (period) {
-//				var data = {}
-//				var keys = Object.keys(period)
-//				for(var i = 0; i < keys.length; i++){
-//					data[keys[i]] = period[keys[i]]
-//				}
-//				return data
-//			})
-//			var code = 'var data = ' + JSON.stringify(data) + ';\n'
-//			code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
-//			var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'sim_result.html.tpl'), {encoding: 'utf8'})
-//			var out = tpl
-//			.replace('{{code}}', code)
-//			.replace('{{trend_ema_period}}', so.trend_ema || 36)
-//			.replace('{{output}}', html_output)
-//			.replace(/\{\{symbol\}\}/g,  so.selector.normalized + ' - zenbot ' + require('../package.json').version)
-//			if (so.filename !== 'none') {
-//				var out_target
-//				var dt = new Date().toISOString()
-//
-//				//ymd
-//				var today = dt.slice(2, 4) + dt.slice(5, 7) + dt.slice(8, 10)
-//				let out_target_prefix = so.paper ? 'simulations/paper_result_' : 'stats/trade_result_'
-//					out_target = so.filename || out_target_prefix + so.selector.normalized +'_' + today + '_UTC.html'
-//
-//					fs.writeFileSync(out_target, out)
-//					//console.log('\nwrote'.grey, out_target)
-//			}
+//		if(!shouldSaveStats) return
+
+//		var output_lines = []
+//		var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
+//		var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
+
+//		//        var profit = s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
+//		var profit_currency = n(tmp_capital_currency).subtract(s.orig_capital_currency).divide(s.orig_capital_currency)
+//		var profit_asset = n(tmp_capital_asset).subtract(s.orig_capital_asset).divide(s.orig_capital_asset)
+//		output_lines.push('Last balance in currency: ' + formatCurrency(tmp_capital_currency, s.currency).yellow + ' (' + profit_currency.format('0.00%') + ')')
+//		output_lines.push('Last balance in asset: ' + formatAsset(tmp_capital_asset, s.asset).yellow + ' (' + profit_asset.format('0.00%') + ')')
+//		var buy_hold = n(s.orig_capital_currency).divide(s.orig_price).multiply(s.period.close)
+//		var buy_hold_profit = n(buy_hold).subtract(s.orig_capital_currency).divide(s.orig_capital_currency)
+//		var sell_hold = n(s.orig_capital_asset).multiply(s.orig_price).divide(s.period.close)
+//		var sell_hold_profit = n(sell_hold).subtract(s.orig_capital_asset).divide(s.orig_capital_asset)
+
+//		output_lines.push('BuyHold: ' + formatCurrency(buy_hold, s.currency).yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
+//		output_lines.push('vs. BuyHold: ' + n(tmp_capital_currency).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
+//		output_lines.push('SellHold: ' + formatAsset(sell_hold, s.asset).yellow + ' (' + n(sell_hold_profit).format('0.00%') + ')')
+//		output_lines.push('vs. SellHold: ' + n(tmp_capital_asset).subtract(sell_hold).divide(sell_hold).format('0.00%').yellow)
+//		output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
+//		// Build stats for UI
+//		s.stats = {
+//		profit_currency: profit_currency.format('0.00%'),
+//		tmp_capital_currency: n(tmp_capital_currency).format('0.00000000'),
+//		buy_hold: buy_hold.format('0.00000000'),
+//		buy_hold_profit: n(buy_hold_profit).format('0.00%'),
+//		day_count: s.day_count,
+//		total_fees: s.total_fees,
+//		trade_per_day: n(s.my_trades.length / s.day_count).format('0.00')
+//		}
+
+//		var losses = 0, gains = 0
+//		s.my_trades.forEach(function (trade) {
+//		if (trade.profit) {
+//		if (trade.profit > 0) {
+//		gains++
+//		}
+//		else {
+//		losses++
+//		}
+//		}
+//		})
+
+//		if (s.my_trades.length && gains > 0) {
+//		output_lines.push('win/loss: ' + gains + '/' + losses)
+//		output_lines.push('error rate: ' + (n(losses).divide(gains + losses).format('0.00%')).yellow)
+
+//		//for API
+//		s.stats.win = gains
+//		s.stats.losses = losses
+//		s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%')
+//		}
+
+//		var html_output = output_lines.map(function (line) {
+//		return colors.stripColors(line)
+//		}).join('\n')
+//		var data = s.lookback.slice(0, s.lookback.length - so.min_periods).map(function (period) {
+//		var data = {}
+//		var keys = Object.keys(period)
+//		for(var i = 0; i < keys.length; i++){
+//		data[keys[i]] = period[keys[i]]
+//		}
+//		return data
+//		})
+//		var code = 'var data = ' + JSON.stringify(data) + ';\n'
+//		code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
+//		var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'sim_result.html.tpl'), {encoding: 'utf8'})
+//		var out = tpl
+//		.replace('{{code}}', code)
+//		.replace('{{trend_ema_period}}', so.trend_ema || 36)
+//		.replace('{{output}}', html_output)
+//		.replace(/\{\{symbol\}\}/g,  so.selector.normalized + ' - zenbot ' + require('../package.json').version)
+//		if (so.filename !== 'none') {
+//		var out_target
+//		var dt = new Date().toISOString()
+
+//		//ymd
+//		var today = dt.slice(2, 4) + dt.slice(5, 7) + dt.slice(8, 10)
+//		let out_target_prefix = so.paper ? 'simulations/paper_result_' : 'stats/trade_result_'
+//		out_target = so.filename || out_target_prefix + so.selector.normalized +'_' + today + '_UTC.html'
+
+//		fs.writeFileSync(out_target, out)
+//		//console.log('\nwrote'.grey, out_target)
+//		}
 //		}
 //		/* End of implementing statistical status */
 
@@ -1303,13 +1304,13 @@ module.exports = function (program, conf) {
 
 			function getNext() {
 				var opts = {
-					query: {
-						selector: so.selector.normalized
-					},
-					sort: {
-						time: 1
-					},
-					limit: 1000
+						query: {
+							selector: so.selector.normalized
+						},
+						sort: {
+							time: 1
+						},
+						limit: 1000
 				}
 				if (db_cursor) {
 					opts.query.time = {$gt: db_cursor}
@@ -1336,10 +1337,10 @@ module.exports = function (program, conf) {
 						if (so.mode === 'paper') {
 							console.log('!!! Paper mode enabled. No real trades are performed until you remove --paper from the startup command.')
 						}
-						
+
 						//Inizializzo i comandi dell'interfaccia
 						changeModeCommand()
-					
+
 						engine.syncBalance(function (err) {
 							if (err) {
 								if (err.desc) console.error(err.desc)
@@ -1368,19 +1369,19 @@ module.exports = function (program, conf) {
 //								total_fees: s.total_fees,
 //								num_trades: s.my_trades.length
 							}
-														
+
 							session._id = session.id
 							db_sessions.find({selector: so.selector.normalized}).limit(1).sort({started: -1}).exec(function (err, prev_sessions) {
 								if (err) throw err
 								var prev_session = prev_sessions[0]
-								
+
 								//Il controllo sulla precedente sessione, soprattutto quando ci sono più bot che lavorano sullo stesso balance, è destinato la maggior
 								// parte delle volte a fallire. Quindi lo tolgo, anche perchè in ogni caso serve a poco.
 //								if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
 								if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || so.mode === 'live')) {
 //									debug.msg('getNext() - prev_session')
-//                    				if (prev_session.orig_capital_currency && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
-//                      			s.orig_capital_currency = session.orig_capital_currency = so.currency_capital || prev_session.orig_capital_currency
+//									if (prev_session.orig_capital_currency && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
+//									s.orig_capital_currency = session.orig_capital_currency = so.currency_capital || prev_session.orig_capital_currency
 									s.orig_currency = session.orig_currency = prev_session.orig_currency
 									s.orig_asset = session.orig_asset = prev_session.orig_asset
 									s.orig_price = session.orig_price = prev_session.orig_price
@@ -1405,20 +1406,20 @@ module.exports = function (program, conf) {
 									s.orig_capital_asset = session.orig_capital_asset = s.start_capital_asset
 									debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital_currency = ' + s.orig_capital_currency + ' ; s.orig_capital_asset = ' + s.orig_capital_asset + ' ; s.orig_price = ' + s.orig_price)
 								}
-								
+
 								s.start_currency = session.start_currency = s.balance.currency
 								s.start_asset = session.start_asset = s.balance.asset
 								session.start_capital_currency = s.start_capital_currency
 								session.start_capital_asset = s.start_capital_asset
 								session.start_price = s.start_price
-								
+
 								if (s.lookback.length > so.keep_lookback_periods) {
 									s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 								}
 
 								//Chiamata alla funzione forwardScan() ogni so.poll_trades
 								setInterval(forwardScan, so.poll_trades)
-								
+
 								//Se l'exchange non ha websocket, chiamata alla funzione getAllOrders() ogni so.order_poll_time
 								if (!s.exchange.websocket) { // && typeof s.exchange.getAllOrders === 'function') {
 									console.log('Attivo chiamata a s.exchange.getAllOrders')
@@ -1445,7 +1446,7 @@ module.exports = function (program, conf) {
 										}
 									})
 								}
-								
+
 								//Attivazione del bot di Telegram
 								if (so.telegramBot && so.telegramBot.on) {
 									const Telegram = require('node-telegram-bot-api')
@@ -1453,19 +1454,19 @@ module.exports = function (program, conf) {
 										polling: true,
 									};
 									const telegramBot = new Telegram(so.telegramBot.bot_token, options);
-									
+
 									telegramBot.onText(/\/long/, function(msg) {
 										debug.msg('TelegramBot - ' + msg.text.toString())
 										so.active_long_position = !so.active_long_position
 										telegramBot.sendMessage(so.telegramBot.chat_id, (so.active_long_position? 'Long' : 'No long'))
 									})
-									
+
 									telegramBot.onText(/\/short/, function(msg) {
 										debug.msg('TelegramBot - ' + msg.text.toString())
 										so.active_short_position = !so.active_short_position
 										telegramBot.sendMessage(so.telegramBot.chat_id, (so.active_short_position? 'Short' : 'No short'))
 									})
-									
+
 									telegramBot.onText(/\/status/, function(msg) {
 										debug.msg('TelegramBot - ' + msg.text.toString())
 										engine.updateMessage()
@@ -1543,7 +1544,7 @@ module.exports = function (program, conf) {
 					//Con questo, memorizzo valori inutili dentro session.balance.
 					//              session.balance = b
 				}
-				
+
 				session.updated = new Date().getTime()
 				session.balance = s.balance
 				session.num_trades = s.my_trades.length
