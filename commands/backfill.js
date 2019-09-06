@@ -61,8 +61,8 @@ module.exports = function (program, conf) {
 				start_time = new Date().getTime() - (86400000 * cmd.days)
 			}
 		}
-		resume_markers.find({selector: selector.normalized}).toArray(function (err, results) {
-			if (err) throw err
+		resume_markers.find({selector: selector.normalized}, function(err, results) {
+			console.log('Backfill - resume_markers')
 			markers = results.sort(function (a, b) {
 				if (mode === 'backward') {
 					if (a.to > b.to) return -1
@@ -91,6 +91,7 @@ module.exports = function (program, conf) {
 			}
 			last_batch_opts = opts
 			exchange.getTrades(opts, function (err, results) {
+				console.log('Backfill - exchange.getTrades')
 				trades = results
 				if (err) {
 					console.error('err backfilling selector: ' + selector.normalized)
@@ -174,10 +175,12 @@ module.exports = function (program, conf) {
 					console.log('\nskipping ' + diff + ' hrs of previously collected data')
 				}
 				//Corretto per Deprecation Warning
-				resume_markers.update({"_id" : marker._id}, {$set : marker}, {upsert : true})
-				.then(setupNext)
-				.catch(function(err){
-					if (err) throw err
+				console.log('Backfill - before resume_markers.update')
+				resume_markers.update({"_id" : marker._id}, {$set : marker}, {upsert : true}, function() {
+				setupNext
+//				.catch(function(err){
+//					if (err) throw err
+//				})
 				})
 			}).catch(function(err){
 				if (err) {
@@ -239,6 +242,7 @@ module.exports = function (program, conf) {
 						marker.newest_time = Math.max(marker.newest_time, trade.time)
 			}
 			//Corretto per Deprecation Warning
+			console.log('Backfill - saveTrade - before tradesCollection.update')
 			return tradesCollection.update({"_id" : trade._id}, {$set : trade}, {upsert : true})
 		}
 	})
