@@ -54,7 +54,7 @@ module.exports = function (cb) {
 						reject(err);
 					}
 					else {
-						console.log(db_name + ' database loaded...');
+						console.log('Boot - ' + db_name + ' database loaded...');
 						resolve()
 					}
 				}
@@ -62,8 +62,8 @@ module.exports = function (cb) {
 		})
 		)
 	})
-	console.log('Boot - promises')
-	console.log(promises)
+//	console.log('Boot - promises')
+//	console.log(promises)
 
 //	db.trades = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/trades.db'), autoload: true})
 //	db.resume_markers = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/resume_markers.db'), autoload: true})
@@ -78,7 +78,7 @@ module.exports = function (cb) {
 	Promise.all(promises)
 	.then(function() {
 		console.log('Created/loaded databases...')
-		cosnole.log(db)
+//		console.log(db)
 
 		db.trades.ensureIndex({fieldname: 'time'})
 		db.resume_markers.ensureIndex({fieldname: 'to'})
@@ -86,7 +86,7 @@ module.exports = function (cb) {
 
 		_.set(zenbot, 'conf.db.mongo', db)
 
-		console.log(zenbot.conf.db)
+//		console.log(zenbot.conf.db)
 		cb(null, zenbot)
 	})
 	.catch(function(error) {
