@@ -13,7 +13,7 @@ var tb = require('timebucket')
 , output = require('../lib/output')
 , objectifySelector = require('../lib/objectify-selector')
 , engineFactory = require('../lib/quantum-engine')
-, collectionService = require('../lib/services/collection-service')
+//, collectionService = require('../lib/services/collection-service')
 , { formatAsset, formatPercent, formatCurrency } = require('../lib/format')
 , debug = require('../lib/debug')
 , sizeof = require('object-sizeof')
@@ -173,7 +173,7 @@ module.exports = function (program, conf) {
 
 		so.selector = objectifySelector(selector || conf.selector)
 
-		var collectionServiceInstance = collectionService(conf)
+//		var collectionServiceInstance = collectionService(conf)
 
 		var order_types = ['maker', 'taker']
 		if (!order_types.includes(so.order_type)) {
@@ -197,14 +197,14 @@ module.exports = function (program, conf) {
 //		var balances = collectionServiceInstance.getBalances()
 //		var trades = collectionServiceInstance.getTrades()
 //		var resume_markers = collectionServiceInstance.getResumeMarkers()
-		var my_trades = conf.db.mongo.my_trades
-		var my_positions = conf.db.mongo.my_positions
-		var my_closed_positions = conf.db.mongo.my_closed_positions
-		var periods = conf.db.mongo.periods
-		var sessions = conf.db.mongo.sessions
-		var balances = conf.db.mongo.balances
-		var trades = conf.db.mongo.trades
-		var resume_markers = conf.db.mongo.resume_markers
+		var db_my_trades = conf.db.mongo.my_trades
+		var db_my_positions = conf.db.mongo.my_positions
+		var db_my_closed_positions = conf.db.mongo.my_closed_positions
+		var db_periods = conf.db.mongo.periods
+		var db_sessions = conf.db.mongo.sessions
+		var db_balances = conf.db.mongo.balances
+		var db_trades = conf.db.mongo.trades
+		var db_resume_markers = conf.db.mongo.resume_markers
 		
 		s.db_valid = true
 
@@ -220,21 +220,31 @@ module.exports = function (program, conf) {
 		//Se richiesto nel comando, esegue il reset dei database
 		if (cmd.reset) {
 			//Corretto il Deprecation Warning
+//			console.log('\nDeleting my_positions collection...')
+//			my_positions.drop()
+//			console.log('\nDeleting my_closed_positions collection...')
+//			my_closed_positions.drop()
+//			console.log('\nDeleting my_trades collection...')
+//			my_trades.drop()
+//			console.log('\nDeleting sessions collection...')
+//			sessions.drop()
+//			console.log('\nDeleting balances collection...')
+//			balances.drop()
 			console.log('\nDeleting my_positions collection...')
-			my_positions.drop()
+			db_my_positions.destroy()
 			console.log('\nDeleting my_closed_positions collection...')
-			my_closed_positions.drop()
-			console.log('\nDeleting my_trades collection...')
-			my_trades.drop()
+			db_my_closed_positions.destroy()
+			console.log('\nDeleting db_my_trades collection...')
+			db_my_trades.destroy()
 			console.log('\nDeleting sessions collection...')
-			sessions.drop()
+			db_sessions.destroy()
 			console.log('\nDeleting balances collection...')
-			balances.drop()
+			db_balances.destroy()
 		}
 
 		//Recupera tutte le vecchie posizioni aperte e le copia in s.positions
 		let recover_my_positions = new Promise(function (resolve, reject) {
-			my_positions.find({selector: so.selector.normalized}).toArray(function (err, my_prev_positions) {
+			db_my_positions.find({selector: so.selector.normalized}, function (err, my_prev_positions) {
 				if (err) {
 					reject(err)
 				}
@@ -251,7 +261,7 @@ module.exports = function (program, conf) {
 
 		//Recupera tutte le vecchie posizioni chiuse e le copia in s.closed_positions
 		let recover_my_closed_positions = new Promise(function (resolve, reject) {
-			my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, my_closed_positions) {
+			db_my_closed_positions.find({selector: so.selector.normalized}, function (err, my_closed_positions) {
 				if (err) {
 					reject(err)
 				}
@@ -701,13 +711,6 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('O', {desc: ('show current strategies options/data'.grey), action: function() {
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
-//						if (so.strategy[strategy_name].lib.printOptions) {
-//							console.log('\nStrategy ' + strategy_name.yellow + ' options/data:')
-//							so.strategy[strategy_name].lib.printOptions(s)
-//						}
-//						else {
-//							console.log('\nStrategy ' + strategy_name + ' has no printOptions function.')
-//						}
 						s.tools.listStrategyOptions(strategy_name, false)
 					})
 				}})
@@ -774,61 +777,82 @@ module.exports = function (program, conf) {
 		/* Trying to recover MongoDB connection */
 		function recoverMongoDB() {
 			s.db_valid = false
-			exec('sudo rm /var/lib/mongodb/mongod.lock', puts)
-			exec('sudo mongod --repair', puts)
-			exec('sudo service mongodb start', puts)
-			exec('sudo service mongodb status', puts)
+//			exec('sudo rm /var/lib/mongodb/mongod.lock', puts)
+//			exec('sudo mongod --repair', puts)
+//			exec('sudo service mongodb start', puts)
+//			exec('sudo service mongodb status', puts)
 
 			setTimeout(function() {
 				debug.msg('Recupero la connessione...')
-				var authStr = '', authMechanism, connectionString
 
-				if(so.mongo.username){
-					authStr = encodeURIComponent(so.mongo.username)
+//				var authStr = '', authMechanism, connectionString
 
-					if(so.mongo.password) authStr += ':' + encodeURIComponent(so.mongo.password)
+//				if(so.mongo.username){
+//				authStr = encodeURIComponent(so.mongo.username)
 
-					authStr += '@'
+//				if(so.mongo.password) authStr += ':' + encodeURIComponent(so.mongo.password)
 
-						// authMechanism could be a conf.js parameter to support more mongodb authentication methods
-						authMechanism = so.mongo.authMechanism || 'DEFAULT'
-				}
+//				authStr += '@'
 
-				if (so.mongo.connectionString) {
-					connectionString = so.mongo.connectionString
-				} else {
-					connectionString = 'mongodb://' + authStr + so.mongo.host + ':' + so.mongo.port + '/' + so.mongo.db + '?' +
-					(so.mongo.replicaSet ? '&replicaSet=' + so.mongo.replicaSet : '' ) +
-					(authMechanism ? '&authMechanism=' + authMechanism : '' )
-				}
+//				// authMechanism could be a conf.js parameter to support more mongodb authentication methods
+//				authMechanism = so.mongo.authMechanism || 'DEFAULT'
+//				}
 
-				//Corretto per il Deprecation Warning
-				require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
+//				if (so.mongo.connectionString) {
+//				connectionString = so.mongo.connectionString
+//				} else {
+//				connectionString = 'mongodb://' + authStr + so.mongo.host + ':' + so.mongo.port + '/' + so.mongo.db + '?' +
+//				(so.mongo.replicaSet ? '&replicaSet=' + so.mongo.replicaSet : '' ) +
+//				(authMechanism ? '&authMechanism=' + authMechanism : '' )
+//				}
+
+//				//Corretto per il Deprecation Warning
+//				require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
+//				if (err) {
+//				console.error('WARNING: MongoDB Connection Error: ', err)
+//				console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')
+//				console.error('Attempted authentication string: ' + connectionString)
+//				//	      		cb(null)
+//				//      		return
+//				}
+//				var db = client.db(so.mongo.db)
+//				conf.db.mongo = db
+
+//				//Recupera tutti i vecchi database
+//				collectionServiceInstance = collectionService(conf)
+//				my_trades = collectionServiceInstance.getMyTrades()
+//				my_positions = collectionServiceInstance.getMyPositions()
+//				my_closed_positions = collectionServiceInstance.getMyClosedPositions()
+//				periods = collectionServiceInstance.getPeriods()
+//				sessions = collectionServiceInstance.getSessions()
+//				balances = collectionServiceInstance.getBalances()
+//				trades = collectionServiceInstance.getTrades()
+//				resume_markers = collectionServiceInstance.getResumeMarkers()
+
+				var Datastore = require('nestdb')
+				var conf.db.mongo = {}
+				db_trades = conf.db.mongo.trades = new Datastore ({filename: ('./' + conf.mongo.db + '/trades.db'), autoload: true})
+				db_resume_markers = conf.db.mongo.resume_markers = new Datastore ({filename: ('./' + conf.mongo.db + '/resume_markers.db'), autoload: true})
+				db_balances = conf.db.mongo.balances = new Datastore ({filename: ('./' + conf.mongo.db + '/balances.db'), autoload: true})
+				db_sessions = conf.db.mongo.sessions = new Datastore ({filename: ('./' + conf.mongo.db + '/sessions.db'), autoload: true})
+				db_periods = conf.db.mongo.periods = new Datastore ({filename: ('./' + conf.mongo.db + '/periods.db'), autoload: true})
+				db_my_trades = conf.db.mongo.my_trades = new Datastore ({filename: ('./' + conf.mongo.db + '/my_trades.db'), autoload: true})
+				db_sim_results = conf.db.mongo.sim_results = new Datastore ({filename: ('./' + .conf.mongo.db + '/sim_results.db'), autoload: true})
+				db_my_positions = conf.db.mongo.my_positions = new Datastore ({filename: ('./' + conf.mongo.db + '/my_positions.db'), autoload: true})
+				db_my_closed_positions = conf.db.mongo.my_closed_positions = new Datastore ({filename: ('./' + .conf.mongo.db + '/my_closed_positions.db'), autoload: true})
+				console.log('Created/loaded databases...')
+
+				db_trades.ensureIndex({fieldname: 'time'})
+				db_resume_markers.ensureIndex({fieldname: 'to'})
+				console.log('Sorted databases...')
+
+				debug.msg(' fatto! Ricreo db_my_positions...', false)
+				db_my_positions.destroy(function(err) {
 					if (err) {
-						console.error('WARNING: MongoDB Connection Error: ', err)
-						console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')
-						console.error('Attempted authentication string: ' + connectionString)
-						//	      		cb(null)
-						//      		return
-					}
-					var db = client.db(so.mongo.db)
-					conf.db.mongo = db
-
-					//Recupera tutti i vecchi database
-					collectionServiceInstance = collectionService(conf)
-					my_trades = collectionServiceInstance.getMyTrades()
-					my_positions = collectionServiceInstance.getMyPositions()
-					my_closed_positions = collectionServiceInstance.getMyClosedPositions()
-					periods = collectionServiceInstance.getPeriods()
-					sessions = collectionServiceInstance.getSessions()
-					balances = collectionServiceInstance.getBalances()
-					trades = collectionServiceInstance.getTrades()
-					resume_markers = collectionServiceInstance.getResumeMarkers()
-		
-					debug.msg(' fatto! Ricreo my_positions...', false)
-					my_positions.drop()
+						console.error('Failed to destroy datastore:', err);
+					} 
 					s.positions.forEach(function (position) {
-						my_positions.insertOne(position, function (err) {
+						db_my_positions.insert(position, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
 								console.error(err)
@@ -836,11 +860,15 @@ module.exports = function (program, conf) {
 						})
 					})
 					debug.msg(' fatto!', false)
-					
-					debug.msg(' fatto! Ricreo my_closed_positions...', false)
-					my_closed_positions.drop()
+				})
+
+				debug.msg(' fatto! Ricreo db_my_closed_positions...', false)
+				db_my_closed_positions.destroy(function(err) {
+					if (err) {
+						console.error('Failed to destroy datastore:', err);
+					} 
 					s.closed_positions.forEach(function (position) {
-						my_closed_positions.insertOne(position, function (err) {
+						db_my_closed_positions.insert(position, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
 								console.error(err)
@@ -848,11 +876,15 @@ module.exports = function (program, conf) {
 						})
 					})
 					debug.msg(' fatto!', false)
-					
-					debug.msg(' fatto! Ricreo my_trades...', false)
-					my_trades.drop()
+				})
+
+				debug.msg(' fatto! Ricreo db_my_trades...', false)
+				db_my_trades.destroy(function(err) {
+					if (err) {
+						console.error('Failed to destroy datastore:', err);
+					} 
 					s.my_trades.forEach(function (position) {
-						my_trades.insertOne(position, function (err) {
+						db_my_trades.insert(position, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
 								console.error(err)
@@ -872,7 +904,7 @@ module.exports = function (program, conf) {
 
 			debug.msg('cleanMongoBD - Pulisco i db più vecchi di ' + fromTime + ' (ora è ' + moment() + ')... ')
 
-			periods.deleteMany({'time' : { $lt : fromTime }}, function (err, obj) {
+			db_periods.remove({'time' : { $lt : fromTime }}, { multi: true }, function (err, obj) {
 				if (err) {
 					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanMongoDB - error cleaning db.periods')
 					console.error(err)
@@ -880,7 +912,7 @@ module.exports = function (program, conf) {
 				debug.msg('cleanMongoDB - ' + obj.result.n + ' period(s) deleted')
 			})
 
-			trades.deleteMany({'time' : { $lt : fromTime }}, function (err, obj) {
+			db_trades.remove({'time' : { $lt : fromTime }}, { multi: true }, function (err, obj) {
 				if (err) {
 					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanMongoDB - error cleaning db.trades')
 					console.error(err)
@@ -900,9 +932,9 @@ module.exports = function (program, conf) {
 				position._id = position.id
 
 				if (s.db_valid) {
-					my_positions.updateOne({'_id' : task.position_id}, {$set: position}, {upsert: true}, function (err) {
+					db_my_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
 						if (err) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in db_my_positions')
 							console.error(err)
 							
 							return callback(err)
@@ -916,12 +948,12 @@ module.exports = function (program, conf) {
 				
 				if (s.db_valid) {
 					//Cancello la posizione dal db delle posizioni aperte...
-					my_positions.deleteOne({'_id' : task.position_id}, function (err) {
+					db_my_positions.remove({'_id' : task.position_id}, { multi: false }, function (err) {
 						//In ogni caso, elimino la posizione da s.positions
 						s.positions.splice(position_index,1)
 						
 						if (err) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in my_positions')
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in db_my_positions')
 							console.error(err)
 							return callback(err)
 						}
@@ -931,9 +963,9 @@ module.exports = function (program, conf) {
 					
 					if (position) {
 						position._id = position.id
-						my_closed_positions.updateOne({'_id' : task.position_id}, {$set: position}, {upsert: true}, function (err) {
+						db_my_closed_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
 							if (err) {
-								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_closed_positions')
+								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in db_my_closed_positions')
 								console.error(err)
 								return callback(err)
 							}
@@ -956,56 +988,7 @@ module.exports = function (program, conf) {
 			debug.msg('s.positionProcessingQueue - All items have been processed')
 		})
 
-//		function managePositionCollection (mode, position_id, cb = function () {}) {
-//			switch (mode) {
-//			case 'update': {
-//				var position = s.positions.find(x => x.id === position_id)
-//				position._id = position.id
-//
-//				if (s.db_valid) {
-//					my_positions.updateOne({'_id' : position_id}, {$set: position}, {upsert: true}, function (err) {
-//						if (err) {
-//							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_positions')
-//							console.error(err)
-//							return cb(err)
-//						}
-//					})
-//				}
-//				break
-//			}
-//			case 'delete': {
-//				var position_index = s.positions.findIndex(x => x.id === position_id)
-//				
-//				if (s.db_valid) {
-//					//Cancello la posizione dal db delle posizioni aperte...
-//					my_positions.deleteOne({'_id' : position_id}, function (err) {
-//						//In ogni caso, elimino la posizione da s.positions
-//						s.positions.splice(position_index,1)
-//						
-//						if (err) {
-//							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in my_positions')
-//							console.error(err)
-//							return cb(err)
-//						}
-//					})
-//					//... e inserisco la posizione chiusa del db delle posizioni chiuse
-//					position = s.closed_positions.find(x => x.id === position_id)
-//					if (position) {
-//						position._id = position.id
-//						my_closed_positions.updateOne({'_id' : position_id}, {$set: position}, {upsert: true}, function (err) {
-//							if (err) {
-//								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in my_closed_positions')
-//								console.error(err)
-//								return cb(err)
-//							}
-//						})
-//					}
-//				}
-//				break
-//			}
-//			}
-//			return cb(null)
-//		}
+
 		/* End funzioni per le operazioni sul database Mongo DB delle posizioni */
 
 		/* To list options*/
@@ -1303,8 +1286,10 @@ module.exports = function (program, conf) {
 //		/* End of implementing statistical status */
 
 		//Recupera tutti i vecchi trade e li copia in s.my_trades
-		my_trades.find({selector: so.selector.normalized}).toArray(function (err, my_prev_trades) {
-			if (err) throw err
+		db_my_trades.find({selector: so.selector.normalized}, function (err, my_prev_trades) {
+			if (err) {
+				throw err
+			}
 			if (my_prev_trades.length) {
 				s.my_trades = my_prev_trades.slice(0)
 				console.log('Recuperati i vecchi trade: ' + s.my_trades.length)
@@ -1342,11 +1327,13 @@ module.exports = function (program, conf) {
 					trade_cursor = s.exchange.getCursor(query_start)
 					opts.query.time = {$gte: query_start}
 				}
-				trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(function (err, trades) {
-					if (err) throw err
+				db_trades.find(opts.query).limit(opts.limit).sort(opts.sort).exec(function (err, filtered_trades) {
+					if (err) {
+						throw err
+					}
 
 					//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco
-					if (!trades.length) {
+					if (!filtered_trades.length) {
 						var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
 						console.log(head)
 
@@ -1392,7 +1379,7 @@ module.exports = function (program, conf) {
 							}
 														
 							session._id = session.id
-							sessions.find({selector: so.selector.normalized}).limit(1).sort({started: -1}).toArray(function (err, prev_sessions) {
+							db_sessions.find({selector: so.selector.normalized}).limit(1).sort({started: -1}).exec(function (err, prev_sessions) {
 								if (err) throw err
 								var prev_session = prev_sessions[0]
 								
@@ -1497,9 +1484,9 @@ module.exports = function (program, conf) {
 						})
 						return
 					}
-					db_cursor = trades[trades.length - 1].time
-					trade_cursor = s.exchange.getCursor(trades[trades.length - 1])
-					engine.update(trades, true, function (err) {
+					db_cursor = filtered_trades[filtered_trades.length - 1].time
+					trade_cursor = s.exchange.getCursor(filtered_trades[filtered_trades.length - 1])
+					engine.update(filtered_trades, true, function (err) {
 						if (err) throw err
 						setImmediate(getNext)
 					})
@@ -1555,7 +1542,7 @@ module.exports = function (program, conf) {
 					b.vs_buy_hold = (b.consolidated - b.buy_hold) / b.buy_hold
 					conf.output.api.on && printTrade(false, false, true)
 					if (so.mode === 'live' && s.db_valid) {
-						balances.updateOne({'_id': b._id}, {$set: b}, {upsert: true}, function (err) {
+						db_balances.update({'_id': b._id}, {$set: b}, {multi: false, upsert: true}, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving balance')
 								console.error(err)
@@ -1571,20 +1558,23 @@ module.exports = function (program, conf) {
 				session.num_trades = s.my_trades.length
 				session.day_count = s.day_count
 				session.total_fees = s.total_fees
-				
-				if (s.db_valid) sessions.updateOne({'_id' : session._id}, {$set : session}, {upsert : true}, function (err) {
-					if (err) {
-						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
-						console.error(err)
-					}
-					if (s.period) {
-						engine.writeReport(true)
-					} else {
-						readline.clearLine(process.stdout)
-						readline.cursorTo(process.stdout, 0)
-						process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
-					}
-				})
+
+				if (s.db_valid) {
+					db_sessions.update({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
+
+						if (err) {
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
+							console.error(err)
+						}
+						if (s.period) {
+							engine.writeReport(true)
+						} else {
+							readline.clearLine(process.stdout)
+							readline.cursorTo(process.stdout, 0)
+							process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
+						}
+					})
+				}
 			}
 			/* End of saveSession()  */
 
@@ -1634,7 +1624,7 @@ module.exports = function (program, conf) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 							console.error(err)
 						}
-						if (s.db_valid) resume_markers.updateOne({'_id' : marker._id}, {$set : marker}, {upsert : true}, function (err) {
+						if (s.db_valid) db_resume_markers.update({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
 								console.error(err)
@@ -1645,7 +1635,7 @@ module.exports = function (program, conf) {
 								my_trade._id = my_trade.id
 								my_trade.session_id = session.id
 								if (s.db_valid) {
-									my_trades.updateOne({'_id' : my_trade._id}, {$set: my_trade}, {upsert: true}, function (err) {
+									db_my_trades.update({'_id' : my_trade._id}, {$set: my_trade}, {multi: false, upsert: true}, function (err) {
 										if (err) {
 											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
 											console.error(err)
@@ -1664,9 +1654,9 @@ module.exports = function (program, conf) {
 							}
 							period._id = period.id
 							if (s.db_valid) {
-								periods.updateOne({'_id': period._id}, {$set: period}, {upsert: true}, function (err) {
+								db_periods.update({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
 									if (err) {
-										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving periods')
+										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
 										console.error(err)
 									}
 								})
@@ -1699,7 +1689,7 @@ module.exports = function (program, conf) {
 				}
 				marker.to = marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor
 						marker.newest_time = Math.max(marker.newest_time, trade.time)
-						if (s.db_valid) trades.updateOne({'_id' : trade._id}, {$set : trade}, {upsert : true}, function (err) {
+						if (s.db_valid) db_trades.update({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
 							// ignore duplicate key errors
 							if (err && err.code !== 11000) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')

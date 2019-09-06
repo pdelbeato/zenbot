@@ -69,7 +69,8 @@ module.exports = function (cb) {
 //	return
 //	}
 //	var db = client.db(zenbot.conf.mongo.db)
-	var Datastore = require('nedb')
+//	var Datastore = require('nedb')
+	var Datastore = require('nestdb')
 	var db = {}
 	db.trades = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/trades.db'), autoload: true})
 	db.resume_markers = new Datastore ({filename: ('./' + zenbot.conf.mongo.db + '/resume_markers.db'), autoload: true})
