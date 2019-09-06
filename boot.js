@@ -3,7 +3,7 @@ var path = require('path')
 var minimist = require('minimist')
 var version = require('./package.json').version
 var EventEmitter = require('events')
-var collectionService = require('../lib/services/collection-service')
+var collectionService = require('./lib/services/collection-service')
 
 module.exports = function (cb) {
 	var zenbot = { version }
