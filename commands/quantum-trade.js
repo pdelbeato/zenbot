@@ -900,20 +900,20 @@ module.exports = function (program, conf) {
 
 			debug.msg('cleanMongoBD - Pulisco i db più vecchi di ' + fromTime + ' (ora è ' + moment() + ')... ')
 
-			db_periods.remove({'time' : { $lt : fromTime }}, { multi: true }, function (err, obj) {
+			db_periods.remove({'time' : { $lt : fromTime }}, { multi: true }, function (err, numRemoved) {
 				if (err) {
 					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanMongoDB - error cleaning db.periods')
 					console.error(err)
 				}
-				debug.msg('cleanMongoDB - ' + obj.result.n + ' period(s) deleted')
+				debug.msg('cleanMongoDB - ' + numRemoved + ' period(s) deleted')
 			})
 
-			db_trades.remove({'time' : { $lt : fromTime }}, { multi: true }, function (err, obj) {
+			db_trades.remove({'time' : { $lt : fromTime }}, { multi: true }, function (err, numRemoved) {
 				if (err) {
 					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanMongoDB - error cleaning db.trades')
 					console.error(err)
 				}
-				debug.msg('cleanMongoDB - ' + obj.result.n + ' trade(s) deleted')
+				debug.msg('cleanMongoDB - ' + numRemoved + ' trade(s) deleted')
 			})
 		}
 
