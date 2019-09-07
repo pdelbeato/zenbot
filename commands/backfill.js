@@ -24,8 +24,8 @@ module.exports = function (program, conf) {
 //		var collectionServiceInstance = collectionService(conf)
 //		var tradesCollection = collectionServiceInstance.getTrades()
 //		var resume_markers = collectionServiceInstance.getResumeMarkers()
-		var db_trades = conf.db.mongo.trades
-		var db_resume_markers = conf.db.mongo.resume_markers
+		var db_trades = conf.nestdb.trades
+		var db_resume_markers = conf.nestdb.resume_markers
 
 		var marker = {
 			id: crypto.randomBytes(4).toString('hex'),

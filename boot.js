@@ -40,49 +40,7 @@ module.exports = function (cb) {
 	var eventBus = new EventEmitter()
 	zenbot.conf.eventBus = eventBus
 
-	var collectionServiceInstance = collectionService(zenbot.conf, function() {
+	collectionService(zenbot.conf, function() {
 		cb(null, zenbot)
 	})
-	
-//	var Datastore = require('nestdb')
-//	var db = {}
-//	var promises = []
-//	var db_names = ['trades', 'resume_markers', 'balances', 'sessions', 'periods', 'my_trades', 'sim_results', 'my_positions', 'my_closed_positions']
-//
-//	db_names.forEach(function (db_name, index) {
-//		promises.push(new Promise(function (resolve, reject) {
-//			db[db_name] = new Datastore ({
-//				filename: ('./' + zenbot.conf.mongo.db + '/' + db_name + '.db'),
-//				autoload: true,
-//				onload: function (err) {
-//					if (err) {
-//						reject(err);
-//					}
-//					else {
-//						console.log('Boot - ' + db_name + ' database loaded...');
-//						resolve()
-//					}
-//				}
-//			})
-//		})
-//		)
-//	})
-//
-//	Promise.all(promises)
-//	.then(function() {
-//		console.log('Created/loaded databases...')
-////		console.log(db)
-//
-//		db.trades.ensureIndex({fieldname: 'time'})
-//		db.resume_markers.ensureIndex({fieldname: 'to'})
-//		console.log('Sorted databases...')
-
-//		_.set(zenbot, 'conf.db.mongo', db)
-
-//		console.log(zenbot.conf.db)
-//		cb(null, zenbot)
-//	})
-//	.catch(function(error) {
-//		console.log(error)
-//	})
 }

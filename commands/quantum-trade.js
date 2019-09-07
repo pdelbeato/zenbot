@@ -169,8 +169,6 @@ module.exports = function (program, conf) {
 
 		so.selector = objectifySelector(selector || conf.selector)
 
-//		var collectionServiceInstance = collectionService(conf)
-
 		var order_types = ['maker', 'taker']
 		if (!order_types.includes(so.order_type)) {
 			so.order_type = 'maker'
@@ -185,22 +183,14 @@ module.exports = function (program, conf) {
 		var my_trades_size = 0
 
 		//Recupera tutti i vecchi database
-//		var my_trades = collectionServiceInstance.getMyTrades()
-//		var my_positions = collectionServiceInstance.getMyPositions()
-//		var my_closed_positions = collectionServiceInstance.getMyClosedPositions()
-//		var periods = collectionServiceInstance.getPeriods()
-//		var sessions = collectionServiceInstance.getSessions()
-//		var balances = collectionServiceInstance.getBalances()
-//		var trades = collectionServiceInstance.getTrades()
-//		var resume_markers = collectionServiceInstance.getResumeMarkers()
-		var db_my_trades = conf.db.mongo.my_trades
-		var db_my_positions = conf.db.mongo.my_positions
-		var db_my_closed_positions = conf.db.mongo.my_closed_positions
-		var db_periods = conf.db.mongo.periods
-		var db_sessions = conf.db.mongo.sessions
-		var db_balances = conf.db.mongo.balances
-		var db_trades = conf.db.mongo.trades
-		var db_resume_markers = conf.db.mongo.resume_markers
+		var db_my_trades = conf.nestdb.my_trades
+		var db_my_positions = conf.nestdb.my_positions
+		var db_my_closed_positions = conf.nestdb.my_closed_positions
+		var db_periods = conf.nestdb.periods
+		var db_sessions = conf.nestdb.sessions
+		var db_balances = conf.nestdb.balances
+		var db_trades = conf.nestdb.trades
+		var db_resume_markers = conf.nestdb.resume_markers
 
 		s.db_valid = true
 
@@ -215,17 +205,6 @@ module.exports = function (program, conf) {
 
 		//Se richiesto nel comando, esegue il reset dei database
 		if (cmd.reset) {
-			//Corretto il Deprecation Warning
-//			console.log('\nDeleting my_positions collection...')
-//			my_positions.drop()
-//			console.log('\nDeleting my_closed_positions collection...')
-//			my_closed_positions.drop()
-//			console.log('\nDeleting my_trades collection...')
-//			my_trades.drop()
-//			console.log('\nDeleting sessions collection...')
-//			sessions.drop()
-//			console.log('\nDeleting balances collection...')
-//			balances.drop()
 			console.log('\nDeleting my_positions collection...')
 			db_my_positions.destroy()
 			console.log('\nDeleting my_closed_positions collection...')
@@ -738,13 +717,13 @@ module.exports = function (program, conf) {
 					s.exchange.debug_exchange = !s.exchange.debug_exchange
 					console.log('\nDEBUG EXCHANGE mode: ' + (s.exchange.debug_exchange ? 'ON'.green.inverse : 'OFF'.red.inverse))
 				}})
-				keyMap.set('R', {desc: ('try to recover MongoDB connection'.grey), 	action: function() {
-					console.log('\nTrying to recover MongoDB connection...'.grey)
-					recoverMongoDB()
+				keyMap.set('R', {desc: ('try to recover databases'.grey), 	action: function() {
+					console.log('\nTrying to recover databases...'.grey)
+					recoverDB()
 				}})
-				keyMap.set('K', {desc: ('clean MongoDB databases (delete data older than 30 days)'.grey), action: function() {
-					console.log('\nCleaning MongoDB databases...'.grey)
-					cleanMongoDB()
+				keyMap.set('K', {desc: ('clean databases (delete data older than 30 days)'.grey), action: function() {
+					console.log('\nCleaning databases...'.grey)
+					cleanDB()
 				}})
 				break
 			}
@@ -770,80 +749,13 @@ module.exports = function (program, conf) {
 			})
 		}
 
-		/* Trying to recover MongoDB connection */
-		function recoverMongoDB() {
+		/* Trying to recover DB connection */
+		function recoverDB() {
 			s.db_valid = false
-//			exec('sudo rm /var/lib/mongodb/mongod.lock', puts)
-//			exec('sudo mongod --repair', puts)
-//			exec('sudo service mongodb start', puts)
-//			exec('sudo service mongodb status', puts)
 
-//			setTimeout(function() {
 			debug.msg('Recupero la connessione con i database...')
 
-//			var authStr = '', authMechanism, connectionString
-
-//			if(so.mongo.username){
-//			authStr = encodeURIComponent(so.mongo.username)
-
-//			if(so.mongo.password) authStr += ':' + encodeURIComponent(so.mongo.password)
-
-//			authStr += '@'
-
-//			// authMechanism could be a conf.js parameter to support more mongodb authentication methods
-//			authMechanism = so.mongo.authMechanism || 'DEFAULT'
-//			}
-
-//			if (so.mongo.connectionString) {
-//			connectionString = so.mongo.connectionString
-//			} else {
-//			connectionString = 'mongodb://' + authStr + so.mongo.host + ':' + so.mongo.port + '/' + so.mongo.db + '?' +
-//			(so.mongo.replicaSet ? '&replicaSet=' + so.mongo.replicaSet : '' ) +
-//			(authMechanism ? '&authMechanism=' + authMechanism : '' )
-//			}
-
-//			//Corretto per il Deprecation Warning
-//			require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
-//			if (err) {
-//			console.error('WARNING: MongoDB Connection Error: ', err)
-//			console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')
-//			console.error('Attempted authentication string: ' + connectionString)
-//			//	      		cb(null)
-//			//      		return
-//			}
-//			var db = client.db(so.mongo.db)
-//			conf.db.mongo = db
-
-//			//Recupera tutti i vecchi database
-//			collectionServiceInstance = collectionService(conf)
-//			my_trades = collectionServiceInstance.getMyTrades()
-//			my_positions = collectionServiceInstance.getMyPositions()
-//			my_closed_positions = collectionServiceInstance.getMyClosedPositions()
-//			periods = collectionServiceInstance.getPeriods()
-//			sessions = collectionServiceInstance.getSessions()
-//			balances = collectionServiceInstance.getBalances()
-//			trades = collectionServiceInstance.getTrades()
-//			resume_markers = collectionServiceInstance.getResumeMarkers()
-
 			var collectionServiceInstance = collectionService(conf, function() {
-
-//				var Datastore = require('nestdb')
-//				conf.db.mongo = {}
-//				db_trades = conf.db.mongo.trades = new Datastore ({filename: ('./' + conf.mongo.db + '/trades.db'), autoload: true})
-//				db_resume_markers = conf.db.mongo.resume_markers = new Datastore ({filename: ('./' + conf.mongo.db + '/resume_markers.db'), autoload: true})
-//				db_balances = conf.db.mongo.balances = new Datastore ({filename: ('./' + conf.mongo.db + '/balances.db'), autoload: true})
-//				db_sessions = conf.db.mongo.sessions = new Datastore ({filename: ('./' + conf.mongo.db + '/sessions.db'), autoload: true})
-//				db_periods = conf.db.mongo.periods = new Datastore ({filename: ('./' + conf.mongo.db + '/periods.db'), autoload: true})
-//				db_my_trades = conf.db.mongo.my_trades = new Datastore ({filename: ('./' + conf.mongo.db + '/my_trades.db'), autoload: true})
-//				db_sim_results = conf.db.mongo.sim_results = new Datastore ({filename: ('./' + conf.mongo.db + '/sim_results.db'), autoload: true})
-//				db_my_positions = conf.db.mongo.my_positions = new Datastore ({filename: ('./' + conf.mongo.db + '/my_positions.db'), autoload: true})
-//				db_my_closed_positions = conf.db.mongo.my_closed_positions = new Datastore ({filename: ('./' + conf.mongo.db + '/my_closed_positions.db'), autoload: true})
-//				console.log('Created/loaded databases...')
-
-//				db_trades.ensureIndex({fieldname: 'time'})
-//				db_resume_markers.ensureIndex({fieldname: 'to'})
-//				console.log('Sorted databases...')
-
 				debug.msg('Ricreo i database...', false)
 				db_my_positions.destroy(function(err) {
 					if (err) {
@@ -889,36 +801,35 @@ module.exports = function (program, conf) {
 					})
 					debug.msg('db_my_trades -> fatto!', false)
 				})
-//				}, 10000)
 				s.db_valid = true
 			})
 		}
 
 
-		/* To clean MongoDB databases */
-		function cleanMongoDB() {
-			fromTime = n(moment().subtract(so.mongo.tot_days, 'd')).value()
+		/* To clean databases */
+		function cleanDB() {
+			fromTime = n(moment().subtract(so.nestdb.tot_days, 'd')).value()
 
-			debug.msg('cleanMongoBD - Pulisco i db più vecchi di ' + fromTime + ' (ora è ' + moment() + ')... ')
+			debug.msg('cleanDB - Pulisco il db dei record più vecchi di ' + fromTime + ' (ora è ' + moment() + ')... ')
 
 			db_periods.remove({'time' : { $lt : fromTime }}, { multi: true }, function (err, numRemoved) {
 				if (err) {
-					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanMongoDB - error cleaning db.periods')
+					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.periods')
 					console.error(err)
 				}
-				debug.msg('cleanMongoDB - ' + numRemoved + ' period(s) deleted')
+				debug.msg('cleanDB - ' + numRemoved + ' period(s) deleted')
 			})
 
 			db_trades.remove({'time' : { $lt : fromTime }}, { multi: true }, function (err, numRemoved) {
 				if (err) {
-					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanMongoDB - error cleaning db.trades')
+					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.trades')
 					console.error(err)
 				}
-				debug.msg('cleanMongoDB - ' + numRemoved + ' trade(s) deleted')
+				debug.msg('cleanDB - ' + numRemoved + ' trade(s) deleted')
 			})
 		}
 
-		/* Funzioni per le operazioni sul database Mongo DB delle posizioni */
+		/* Funzioni per le operazioni sul database delle posizioni */
 		s.positionProcessingQueue = async.queue(function(task, callback = function () {}) {
 			switch (task.mode) {
 			case 'update': {
@@ -928,7 +839,7 @@ module.exports = function (program, conf) {
 				if (s.db_valid) {
 					db_my_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
 						if (err) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in db_my_positions')
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_positions')
 							console.error(err)
 
 							return callback(err)
@@ -947,7 +858,7 @@ module.exports = function (program, conf) {
 						s.positions.splice(position_index,1)
 
 						if (err) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error deleting in db_my_positions')
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error deleting in db_my_positions')
 							console.error(err)
 							return callback(err)
 						}
@@ -959,7 +870,7 @@ module.exports = function (program, conf) {
 						position._id = position.id
 						db_my_closed_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
 							if (err) {
-								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - MongoDB - error saving in db_my_closed_positions')
+								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
 								console.error(err)
 								return callback(err)
 							}
@@ -981,7 +892,7 @@ module.exports = function (program, conf) {
 		s.positionProcessingQueue.drain(function() {
 			debug.msg('s.positionProcessingQueue - All items have been processed')
 		})
-		/* End funzioni per le operazioni sul database Mongo DB delle posizioni */
+		/* End funzioni per le operazioni sul database delle posizioni */
 
 		/* To list options*/
 		function listOptions () {
