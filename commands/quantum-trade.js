@@ -190,9 +190,7 @@ module.exports = function (program, conf) {
 		var db_sessions = conf.nestdb.sessions
 		var db_balances = conf.nestdb.balances
 		var db_resume_markers = conf.nestdb.resume_markers
-		
-		//Questo db lo carico dopo aver fatto il backfill degli ultimi trade
-//		var db_trades = conf.nestdb.trades
+		var db_trades = conf.nestdb.trades
 
 		s.db_valid = true
 
@@ -1400,17 +1398,13 @@ module.exports = function (program, conf) {
 			/* End of getNext() */
 
 			engine.writeHeader()
-			var db_trades = conf.nestdb.trades = new Datastore ({
-				filename: ('./' + conf.nestdb.dir + '/db_trades.db'),
-				autoload: true,
-				onload: function (err) {
-					if (err) {
-						console.err(err);
-					}
-					else {
-						console.log('Boot - db_trades reloaded...');
-						getNext()
-					}
+			db_trades.load(function (err) {
+				if (err) {
+					console.err(err);
+				}
+				else {
+					console.log('Boot - db_trades reloaded...');
+					getNext()
 				}
 			})
 		})
