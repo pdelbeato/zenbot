@@ -846,6 +846,8 @@ module.exports = function (program, conf) {
 						}
 					})
 				}
+//Se db_valid è falso, allora sto lavorando sul db, quindi devo riprogrammare la funzione!!
+				
 				break
 			}
 			case 'delete': {
@@ -1330,6 +1332,9 @@ module.exports = function (program, conf) {
 
 								//Chiamata alla funzione forwardScan() ogni so.poll_trades
 								setInterval(forwardScan, so.poll_trades)
+								
+								//Ridimensiona i database ogni giorno
+								setInterval(cleanDB, 86400000)
 
 								//Se l'exchange non ha websocket, chiamata alla funzione getAllOrders() ogni so.order_poll_time
 								if (!s.exchange.websocket) { // && typeof s.exchange.getAllOrders === 'function') {
