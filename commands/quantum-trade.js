@@ -864,22 +864,23 @@ module.exports = function (program, conf) {
 							console.error(err)
 							return callback(err)
 						}
+
+						//... e inserisco la posizione chiusa del db delle posizioni chiuse
+						var position = s.closed_positions.find(x => x.id === task.position_id)
+
+						if (position) {
+							position._id = position.id
+							db_my_closed_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+								if (err) {
+									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
+									console.error(err)
+									return callback(err)
+								}
+
+								s.tools.functionStrategies ('onPositionClosed', task)
+							})
+						}
 					})
-					//... e inserisco la posizione chiusa del db delle posizioni chiuse
-					var position = s.closed_positions.find(x => x.id === task.position_id)
-
-					if (position) {
-						position._id = position.id
-						db_my_closed_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
-							if (err) {
-								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
-								console.error(err)
-								return callback(err)
-							}
-
-							s.tools.functionStrategies ('onPositionClosed', task)
-						})
-					}
 				}
 				else {
 					console.log('s.positionProcessingQueue - s.db_valid FALSE!!')
