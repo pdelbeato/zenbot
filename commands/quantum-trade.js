@@ -191,7 +191,17 @@ module.exports = function (program, conf) {
 		var db_balances = conf.nestdb.balances
 		var db_resume_markers = conf.nestdb.resume_markers
 		var db_trades = conf.nestdb.trades
-
+		
+		//Autocompatta i db ogni giorno
+		db_my_trades.persistence.setAutocompactionInterval(86400000)
+		db_my_positions.persistence.setAutocompactionInterval(86400000)
+		db_my_closed_positions.persistence.setAutocompactionInterval(86400000)
+		db_periods.setAutocompactionInterval(86400000)
+		db_sessions.persistence.setAutocompactionInterval(86400000)
+		db_balances.persistence.setAutocompactionInterval(86400000)
+		db_resume_markers.persistence.setAutocompactionInterval(86400000)
+		db_trades.persistence.setAutocompactionInterval(86400000)
+		
 		s.db_valid = true
 
 		var marker = {
