@@ -837,6 +837,16 @@ module.exports = function (program, conf) {
 				}
 				debug.msg('cleanDB - ' + numRemoved + ' trade(s) deleted')
 			})
+
+			debug.msg('cleanDB - Compattazione dei db')
+			db_my_trades.persistence.compactDatafile()
+			db_my_positions.persistence.compactDatafile()
+			db_my_closed_positions.persistence.compactDatafile()
+			db_periods.persistence.compactDatafile()
+			db_sessions.persistence.compactDatafile()
+			db_balances.persistence.compactDatafile()
+			db_resume_markers.persistence.compactDatafile()
+			db_trades.persistence.compactDatafile()
 		}
 
 		/* Funzioni per le operazioni sul database delle posizioni */
