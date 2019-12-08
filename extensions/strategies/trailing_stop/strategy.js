@@ -1,6 +1,6 @@
 var debug = require('../../../lib/debug')
 , { formatPercent } = require('../../../lib/format')
-, z = require('zero-fill')
+//, z = require('zero-fill')
 //, n = require('numbro')
 , Phenotypes = require('../../../lib/phenotype')
 , inspect = require('eyes').inspector()
@@ -272,10 +272,10 @@ module.exports = {
 			buysell = (position_buy_profit > position_sell_profit ? 'B' : 'S')
 			buysell_profit = (position_buy_profit > position_sell_profit ? formatPercent(position_buy_profit) : formatPercent(position_sell_profit))
 
-			cols.push(z(8, buysell + buysell_profit, ' ')['yellow'])
+			cols.push(s.tools.zeroFill(8, buysell + buysell_profit, ' ')['yellow'])
 		}
 		else {
-			cols.push(z(8, '', ' '))
+			cols.push(s.tools.zeroFill(8, '', ' '))
 		}
 
 		cols.forEach(function (col) {

@@ -1,7 +1,7 @@
 var tb = require('timebucket')
 , crypto = require('crypto')
 , objectifySelector = require('../lib/objectify-selector')
-, collectionService = require('../lib/services/collection-service')
+//, collectionService = require('../lib/services/collection-service')
 
 module.exports = function (program, conf) {
 	program
@@ -21,9 +21,11 @@ module.exports = function (program, conf) {
 			process.exit(1)
 		}
 
-		var collectionServiceInstance = collectionService(conf)
-		var tradesCollection = collectionServiceInstance.getTrades()
-		var resume_markers = collectionServiceInstance.getResumeMarkers()
+//		var collectionServiceInstance = collectionService(conf)
+//		var tradesCollection = collectionServiceInstance.getTrades()
+//		var resume_markers = collectionServiceInstance.getResumeMarkers()
+		var db_trades = conf.nestdb.trades
+		var db_resume_markers = conf.nestdb.resume_markers
 
 		var marker = {
 			id: crypto.randomBytes(4).toString('hex'),
@@ -59,8 +61,8 @@ module.exports = function (program, conf) {
 				start_time = new Date().getTime() - (86400000 * cmd.days)
 			}
 		}
-		resume_markers.find({selector: selector.normalized}).toArray(function (err, results) {
-			if (err) throw err
+		db_resume_markers.find({selector: selector.normalized}, function(err, results) {
+//			console.log('Backfill - db_resume_markers')
 			markers = results.sort(function (a, b) {
 				if (mode === 'backward') {
 					if (a.to > b.to) return -1
@@ -89,6 +91,7 @@ module.exports = function (program, conf) {
 			}
 			last_batch_opts = opts
 			exchange.getTrades(opts, function (err, results) {
+//				console.log('Backfill - exchange.getTrades')
 				trades = results
 				if (err) {
 					console.error('err backfilling selector: ' + selector.normalized)
@@ -172,10 +175,12 @@ module.exports = function (program, conf) {
 					console.log('\nskipping ' + diff + ' hrs of previously collected data')
 				}
 				//Corretto per Deprecation Warning
-				resume_markers.updateOne({"_id" : marker._id}, {$set : marker}, {upsert : true})
-				.then(setupNext)
-				.catch(function(err){
-					if (err) throw err
+//				console.log('Backfill - before db_resume_markers.update')
+				db_resume_markers.update({"_id" : marker._id}, {$set : marker}, {upsert : true}, function() {
+				setupNext()
+//				.catch(function(err){
+//					if (err) throw err
+//				})
 				})
 			}).catch(function(err){
 				if (err) {
@@ -236,8 +241,8 @@ module.exports = function (program, conf) {
 				marker.to = marker.to ? Math.max(marker.to, cursor) : cursor
 						marker.newest_time = Math.max(marker.newest_time, trade.time)
 			}
-			//Corretto per Deprecation Warning
-			return tradesCollection.updateOne({"_id" : trade._id}, {$set : trade}, {upsert : true})
+//			console.log('Backfill - saveTrade - before db_trades.update')
+			return db_trades.update({"_id" : trade._id}, {$set : trade}, {upsert : true})
 		}
 	})
 }
