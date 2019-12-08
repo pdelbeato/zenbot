@@ -731,7 +731,7 @@ module.exports = function (program, conf) {
 					console.log('\nTrying to recover databases...'.grey)
 					recoverDB()
 				}})
-				keyMap.set('K', {desc: ('clean databases (delete data older than ' + so.nestdb.tot_days + ' days)'.grey), action: function() {
+				keyMap.set('K', {desc: ('clean databases (delete data older than '.grey + so.nestdb.tot_days + ' days)'.grey), action: function() {
 					console.log('\nCleaning databases...'.grey)
 					cleanDB()
 				}})
