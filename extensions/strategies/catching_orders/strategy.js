@@ -222,6 +222,13 @@ module.exports = {
 	},
 
 	onReport: function (s, opts= {}, cb = function() {}) {
+		let strat_opts = s.options.strategy.catching_orders.opts
+		let strat_data = s.options.strategy.catching_orders.data
+		
+		var cols = []
+		if (strat_data.catching_orders && strat_data.sma) {
+			col.push(strat_data.sma)
+		}
 		cb()
 	},
 
