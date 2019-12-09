@@ -208,7 +208,7 @@ module.exports = {
 				console.log('\nCatching Orders - Auto catch '.grey + 'BUY'.green + ' command inserted'.grey)
 				let target_price = n(strat_data.sma).multiply(1 - strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
 				let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-				let protectionFlag = s.protectionFlag['calmdown']// + s.protectionFlag['min_profit'] Perchè mi serve?
+				let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
 				s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag)
 			}
 
@@ -216,7 +216,7 @@ module.exports = {
 				console.log('\nCatching Orders - Auto catch '.grey + 'SELL'.red + ' command inserted'.grey)
 				let target_price = n(strat_data.sma).multiply(1 + strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
 				let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-				let protectionFlag = s.protectionFlag['calmdown']// + s.protectionFlag['min_profit'] Perchè mi serve?
+				let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
 				s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag)
 			}
 		}
@@ -236,7 +236,7 @@ module.exports = {
 
 		var cols = []
 		if (strat_data.sma) {
-			col.push(strat_data.sma)
+			cols.push(strat_data.sma)
 		}
 		cols.forEach(function (col) {
 			process.stdout.write(col)
