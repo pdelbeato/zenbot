@@ -2,6 +2,7 @@ var debug = require('../../../lib/debug')
 , { formatPercent } = require('../../../lib/format')
 , z = require('zero-fill')
 , n = require('numbro')
+, sma = require('../../../lib/sma')
 , Phenotypes = require('../../../lib/phenotype')
 , inspect = require('eyes').inspector()
 
