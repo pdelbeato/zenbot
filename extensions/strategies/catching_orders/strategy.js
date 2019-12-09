@@ -203,24 +203,26 @@ module.exports = {
 				}
 			})
 
-			//Immetto gli ordini nuovi
-			if (strat_opts.catch_auto_long) {
-				console.log('\nCatching Orders - Auto catch '.grey + 'BUY'.green + ' command inserted'.grey)
-				let target_price = n(strat_data.sma).multiply(1 - strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
-				let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-				let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-				s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag)
-			}
+			setTimeout (function() {
+				//Immetto gli ordini nuovi
+				if (strat_opts.catch_auto_long) {
+					console.log('\nCatching Orders - Auto catch '.grey + 'BUY'.green + ' command inserted'.grey)
+					let target_price = n(strat_data.sma).multiply(1 - strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
+					let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+					s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag)
+				}
 
-			if (strat_opts.catch_auto_short) {
-				console.log('\nCatching Orders - Auto catch '.grey + 'SELL'.red + ' command inserted'.grey)
-				let target_price = n(strat_data.sma).multiply(1 + strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
-				let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-				let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-				s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag)
-			}
+				if (strat_opts.catch_auto_short) {
+					console.log('\nCatching Orders - Auto catch '.grey + 'SELL'.red + ' command inserted'.grey)
+					let target_price = n(strat_data.sma).multiply(1 + strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
+					let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+					s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag)
+				}
+				cb()
+			}, 6000)
 		}
-		cb()
 
 		function roundToNearest(numToRound) {
 			var numToRoundTo = (s.product.increment ? s.product.increment : 0.00000001)
@@ -231,16 +233,16 @@ module.exports = {
 	},
 
 	onReport: function (s, opts= {}, cb = function() {}) {
-		let strat_opts = s.options.strategy.catching_orders.opts
-		let strat_data = s.options.strategy.catching_orders.data
-
-		var cols = []
-		if (strat_data.sma) {
-			cols.push(s.tools.zeroFill(8, strat_data.sma, ' '))
-		}
-		cols.forEach(function (col) {
-			process.stdout.write(col)
-		})
+//		let strat_opts = s.options.strategy.catching_orders.opts
+//		let strat_data = s.options.strategy.catching_orders.data
+//
+//		var cols = []
+//		if (strat_data.sma) {
+//			cols.push(s.tools.zeroFill(8, strat_data.sma, ' '))
+//		}
+//		cols.forEach(function (col) {
+//			process.stdout.write(col)
+//		})
 		cb()
 	},
 
