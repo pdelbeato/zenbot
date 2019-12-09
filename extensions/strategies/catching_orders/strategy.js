@@ -236,7 +236,7 @@ module.exports = {
 
 		var cols = []
 		if (strat_data.sma) {
-			cols.push(strat_data.sma)
+			cols.push(s.tools.zeroFill(8, strat_data.sma, ' '))
 		}
 		cols.forEach(function (col) {
 			process.stdout.write(col)
