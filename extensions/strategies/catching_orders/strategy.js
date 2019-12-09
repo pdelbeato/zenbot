@@ -23,9 +23,6 @@ var debug = require('../../../lib/debug')
 //},
 //data: {								//****** To store calculated data
 //sma: null,
-//auto_catch_order: {					//****** Per registrare gli ordini aperti con auto-catch
-//long: null,
-//short: null,
 //},
 //},	
 //calc_lookback: [],					//****** Old periods for calculation
@@ -141,7 +138,6 @@ module.exports = {
 		}})
 		this.command('C', {desc: ('Catching Orders - Cancel all auto-catch orders'.grey), action: function() {
 			console.log('\nCancel'.grey + ' ALL auto-catch orders')
-//			s.tools.orderStatus(undefined, undefined, 'catching_orders', null, 'Unset', 'catching_orders')
 			s.orders.forEach(function (order, index) {
 				if (order.kind == 'catching_orders' && !order.position.id) {
 					s.tools.orderStatus(order, undefined, 'catching_orders', undefined, 'Unset', 'catching_orders')
@@ -203,8 +199,8 @@ module.exports = {
 				}
 			})
 
+			//Immetto gli ordini nuovi dopo aver atteso wait_for_settlement
 			setTimeout (function() {
-				//Immetto gli ordini nuovi
 				if (strat_opts.catch_auto_long) {
 					console.log('\nCatching Orders - Auto catch '.grey + 'BUY'.green + ' command inserted'.grey)
 					let target_price = n(strat_data.sma).multiply(1 - strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
@@ -221,7 +217,7 @@ module.exports = {
 					s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag)
 				}
 				cb()
-			}, 6000)
+			}, s.options.wait_for_settlement)
 		}
 
 		function roundToNearest(numToRound) {
