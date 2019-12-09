@@ -145,7 +145,7 @@ module.exports = {
 				if (order.kind == 'catching_orders' && !order.position.id) {
 					s.tools.orderStatus(order, undefined, 'catching_orders', undefined, 'Unset', 'catching_orders')
 				}
-			}
+			})
 		}})	
 		this.command('A', {desc: ('Catching Orders - Insert position-catch order for ALL free position'.grey), action: function() {
 			if (strat_opts.catch_order_pct > 0) {
@@ -199,7 +199,7 @@ module.exports = {
 				if (order.kind == 'catching_orders' && !order.position.id) {
 					s.tools.orderStatus(order, undefined, 'catching_orders', undefined, 'Unset', 'catching_orders')
 				}
-			}
+			})
 
 			//Immetto gli ordini nuovi
 			if (strat_opts.catch_auto_long) {
@@ -229,6 +229,9 @@ module.exports = {
 		if (strat_data.catching_orders && strat_data.sma) {
 			col.push(strat_data.sma)
 		}
+		cols.forEach(function (col) {
+			process.stdout.write(col)
+		})
 		cb()
 	},
 
