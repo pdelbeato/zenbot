@@ -189,7 +189,7 @@ module.exports = {
 		//Calcolo il pivot price (strat_data.sma)
 		strat_data.sma = roundToNearest(sma(s, 'catching_orders', strat_opts.min_periods, 'close'))
 
-		if (strat_opts.catch_auto_long || strat_opts.catch_auto_short) {
+		if (strat_data.sma && (strat_opts.catch_auto_long || strat_opts.catch_auto_short)) {
 			//Cancello gli ordini vecchi
 			console.log('\nCatching Orders - '.grey + 'Cancel ALL Auto-catch orders')
 			s.orders.forEach(function (order, index) {
