@@ -14,7 +14,7 @@ var n = require('numbro')
 //	name: 'bollinger',
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate Bollinger Bands every period_calc time
-//		min_periods: 301, 			//****** Minimum number of history periods (timeframe period_length)
+//		min_periods: 21, 			//****** Minimum number of calc_lookback to maintain (timeframe is "period_calc")
 //		size: 20,					//****** period size
 //		time: 2,					//****** times of standard deviation between the upper/lower band and the moving averages
 //		rsi_size: 15,				//****** period size rsi

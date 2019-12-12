@@ -13,12 +13,13 @@ var debug = require('../../../lib/debug')
 //name: 'catching_orders',
 //opts: {								//****** To store options
 //period_calc: '1h',					//****** After how many periods the auto-catch orders must be tuned 
-//min_periods: 61, 					//****** Minimum number of history periods (timeframe period_length) = SMA size
-//catch_order_pct = 3					//****** pct for position catch order
-//catch_auto_pct = 5					//****** pct for auto catch order
-//catch_fixed_value = 500				//****** Currency value for auto catch order
-//catch_auto_long = false				//****** Option for auto-long catch orders (buy on low) based on SMA
-//catch_auto_short = false			//****** Option for auto-short catch orders (sell on high) based on SMA
+//min_periods: 2, 						//****** Minimum number of calc_lookback to maintain (timeframe is "period_calc")
+//catch_order_pct = 3,					//****** pct for position catch order
+//catch_auto_pct = 5,					//****** pct for auto catch order
+//catch_fixed_value = 500,				//****** Currency value for auto catch order
+//catch_SMA = 60,						//****** SMA size in period_length
+//catch_auto_long = false,				//****** Option for auto-long catch orders (buy on low) based on SMA
+//catch_auto_short = false,			//****** Option for auto-short catch orders (sell on high) based on SMA
 //},
 //data: {								//****** To store calculated data
 //sma: null,
@@ -187,7 +188,7 @@ module.exports = {
 		let strat_data = s.options.strategy.catching_orders.data
 
 		//Calcolo il pivot price (strat_data.sma)
-		strat_data.sma = roundToNearest(sma(s, 'catching_orders', strat_opts.min_periods, 'close'))
+		strat_data.sma = roundToNearest(sma(s, null, strat_opts.min_periods, 'close'))
 
 		if (strat_data.sma && (strat_opts.catch_auto_long || strat_opts.catch_auto_short)) {
 			//Cancello gli ordini vecchi
