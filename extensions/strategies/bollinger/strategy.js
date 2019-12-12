@@ -351,7 +351,7 @@ module.exports = {
 						s.eventBus.emit('bollinger', side)
 					}
 					else {
-						debug.msg('Strategy Bollinger - No same price protection: s.period.close= ' + s.period.close + ' ; delta limit_open_price ' + (strat_data.limit_open_price[side] * strat_opts.delta_pct/100))
+						debug.msg('Strategy Bollinger - No same price protection: s.period.close= ' + s.period.close + '; limit_open_price ' + strat_data.limit_open_price[side] + '; delta limit_open_price ' + (strat_data.limit_open_price[side] * strat_opts.delta_pct/100))
 					}
 				}
 			}

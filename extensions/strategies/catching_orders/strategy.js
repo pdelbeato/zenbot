@@ -12,7 +12,7 @@ var debug = require('../../../lib/debug')
 //c.strategy['catching_orders'] = {
 //name: 'catching_orders',
 //opts: {								//****** To store options
-//period_calc: '1h',					//****** After how many periods the auto-catch orders must be tuned 
+//period_calc: '1h',					//****** After how much time the auto-catch orders must be tuned 
 //min_periods: 2, 						//****** Minimum number of calc_lookback to maintain (timeframe is "period_calc")
 //catch_order_pct: 3,					//****** pct for position catch order
 //catch_auto_pct: 5,					//****** pct for auto catch order
