@@ -13,8 +13,7 @@ var debug = require('../../../lib/debug')
 //name: 'catching_orders',
 //opts: {								//****** To store options
 //period_calc: '1h',					//****** After how many periods the auto-catch orders must be tuned 
-//min_periods: 61, 					//****** Minimum number of history periods (timeframe period_length)
-//size: 1,							//****** SMA period size (size * period_calc)
+//min_periods: 61, 					//****** Minimum number of history periods (timeframe period_length) = SMA size
 //catch_order_pct = 3					//****** pct for position catch order
 //catch_auto_pct = 5					//****** pct for auto catch order
 //catch_fixed_value = 500				//****** Currency value for auto catch order
