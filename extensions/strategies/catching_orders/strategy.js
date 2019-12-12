@@ -14,12 +14,12 @@ var debug = require('../../../lib/debug')
 //opts: {								//****** To store options
 //period_calc: '1h',					//****** After how many periods the auto-catch orders must be tuned 
 //min_periods: 2, 						//****** Minimum number of calc_lookback to maintain (timeframe is "period_calc")
-//catch_order_pct = 3,					//****** pct for position catch order
-//catch_auto_pct = 5,					//****** pct for auto catch order
-//catch_fixed_value = 500,				//****** Currency value for auto catch order
-//catch_SMA = 60,						//****** SMA size in period_length
-//catch_auto_long = false,				//****** Option for auto-long catch orders (buy on low) based on SMA
-//catch_auto_short = false,			//****** Option for auto-short catch orders (sell on high) based on SMA
+//catch_order_pct: 3,					//****** pct for position catch order
+//catch_auto_pct: 5,					//****** pct for auto catch order
+//catch_fixed_value: 500,				//****** Currency value for auto catch order
+//catch_SMA: 60,						//****** SMA size in period_length
+//catch_auto_long: false,				//****** Option for auto-long catch orders (buy on low) based on SMA
+//catch_auto_short: false,			//****** Option for auto-short catch orders (sell on high) based on SMA
 //},
 //data: {								//****** To store calculated data
 //sma: null,
