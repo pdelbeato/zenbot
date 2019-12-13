@@ -338,7 +338,7 @@ module.exports = function (program, conf) {
 				keyMap.set('B', {desc: ('market'.grey + ' BUY'.green), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command inserted'.grey)
 					let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-					s.eventBus.emit('manual', 'buy', null, null, null, protectionFree, false, true)
+					s.eventBus.emit('manual', 'buy', null, null, null, protectionFree, 'manual', false, true)
 				}})
 				keyMap.set('s', {desc: ('limit'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command inserted'.grey)
@@ -348,7 +348,7 @@ module.exports = function (program, conf) {
 				keyMap.set('S', {desc: ('market'.grey + ' SELL'.red), action: function() {
 					console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command inserted'.grey)
 					let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-					s.eventBus.emit('manual', 'sell', null, null, null, protectionFree, false, true)
+					s.eventBus.emit('manual', 'sell', null, null, null, protectionFree, 'manual', false, true)
 				}})
 				keyMap.set('+', {desc: ('Buy gain pct (short position)'.grey + ' INCREASE'.green), action: function() {
 					so.buy_gain_pct = Number((so.buy_gain_pct + 0.5).toFixed(2))

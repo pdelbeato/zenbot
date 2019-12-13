@@ -148,7 +148,7 @@ module.exports = {
 						s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 						s.signal = position.side[0].toUpperCase() + ' Trailing stop';
 						let protectionFree = s.protectionFlag['calmdown']
-						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, (strat_opts.order_type === 'taker' ? true : false))
+						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, (strat_opts.order_type === 'taker' ? true : false))
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null
 //						strat_data.max_trail_profit_position_id[position.side] = null
@@ -221,7 +221,7 @@ module.exports = {
 						s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 						s.signal = position.side[0].toUpperCase() + ' Trailing stop';
 						let protectionFree = s.protectionFlag['calmdown']
-						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, (strat_opts.order_type === 'taker' ? true : false))
+						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, (strat_opts.order_type === 'taker' ? true : false))
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null
 //						strat_data.max_trail_profit_position_id[position.side] = null
