@@ -217,7 +217,7 @@ module.exports = {
 					s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag, false, false)
 				}
 				cb()
-			}, 2*s.options.wait_for_settlement)
+			}, 10*s.options.wait_for_settlement)
 		}
 
 		function roundToNearest(numToRound) {
