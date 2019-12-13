@@ -243,7 +243,12 @@ module.exports = {
 	},
 
 	onUpdateMessage: function (s, opts= {}, cb = function() {}) {
-		cb()
+		let strat_opts = s.options.strategy.catching_orders.opts
+		let result = null
+		if (strat_opts.catch_auto_long || strat_opts.catch_auto_short) {
+			let result = 'Auto-catch (Long/Short): ' + strat_opts.catch_auto_long + ' ; ' + strat_opts.catch_auto_short
+		}
+		cb(result)
 	},
 
 	onPositionOpened: function (s, opts= {}, cb = function() {}) {
