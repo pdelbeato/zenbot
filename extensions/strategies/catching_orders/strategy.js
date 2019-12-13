@@ -117,11 +117,11 @@ module.exports = {
 			}
 			console.log('\n' + 'Catching Orders - Auto-catch order value ' + 'DECREASE'.green + ' -> ' + strat_opts.catch_fixed_value)
 		}})
-		this.command('u', {desc: ('Catching Orders - Toggle Auto-long (buy on low) catch order'.grey), action: function() {
+		this.command('u', {desc: ('Catching Orders - Toggle ' + 'Auto-long'.green + ' (buy on low) catch order'.grey), action: function() {
 			strat_opts.catch_auto_long = !strat_opts.catch_auto_long
 			console.log('\nToggle Auto-long catch order: ' + (strat_opts.catch_auto_long ? 'ON'.green.inverse : 'OFF'.red.inverse))
 		}})
-		this.command('j', {desc: ('Catching Orders - Toggle Auto-short (sell on high) catch order'.grey), action: function() {
+		this.command('j', {desc: ('Catching Orders - Toggle ' + 'Auto-short'.red + ' (sell on high) catch order'.grey), action: function() {
 			strat_opts.catch_auto_short = !strat_opts.catch_auto_short
 			console.log('\nToggle Auto-short catch order: ' + (strat_opts.catch_auto_short ? 'ON'.green.inverse : 'OFF'.red.inverse))
 		}})
@@ -206,7 +206,7 @@ module.exports = {
 					let target_price = n(strat_data.sma).multiply(1 - strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
 					let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
 					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-					s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag)
+					s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag, false, true)
 				}
 
 				if (strat_opts.catch_auto_short) {
@@ -214,10 +214,10 @@ module.exports = {
 					let target_price = n(strat_data.sma).multiply(1 + strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
 					let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
 					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-					s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag)
+					s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag, false, true)
 				}
 				cb()
-			}, s.options.wait_for_settlement)
+			}, 2*s.options.wait_for_settlement)
 		}
 
 		function roundToNearest(numToRound) {
@@ -289,7 +289,7 @@ module.exports = {
 						debug.msg('Strategy catching_orders - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
 						let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
 						s.signal = position_opposite_signal[0].toUpperCase() + ' Catching order'
-						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag)  
+						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag, false, true)  
 					}
 				}
 			}
