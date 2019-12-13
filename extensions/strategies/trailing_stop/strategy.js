@@ -103,7 +103,7 @@ module.exports = {
 			let strat_data = s.options.strategy.trailing_stop.data
 			let strat = s.options.strategy.trailing_stop
 
-			//Eseguo solo se non ho specificato period_calc
+			//Eseguo il controllo su ogni trade solo se non ho specificato period_calc
 			if (!strat_opts.period_calc) {
 				strat_data.max_trail_profit_position_id = {
 					buy: null,
@@ -175,6 +175,7 @@ module.exports = {
 			let strat_data = s.options.strategy.trailing_stop.data
 			let strat = s.options.strategy.trailing_stop
 
+			//Eseguo il controllo ad ogni period_calc solo se è stato specificato, altrimenti il controllo è su ogni trade
 			if (strat_opts.period_calc) {
 //				debug.msg('trailing_stop strategy - onStrategyPeriod')
 				strat_data.max_trail_profit_position_id = {
@@ -210,7 +211,7 @@ module.exports = {
 						} 
 					})
 				}
-//Perchè lo faccio anche ad ogni StrategyPeriod oltre che in ogni trade???
+
 				s.positions.forEach(function (position, index) {
 					position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 					position_stop = position[position_opposite_signal + '_stop']
