@@ -103,6 +103,7 @@ module.exports = {
 			let strat_data = s.options.strategy.trailing_stop.data
 			let strat = s.options.strategy.trailing_stop
 
+			//Eseguo solo se non ho specificato period_calc
 			if (!strat_opts.period_calc) {
 				strat_data.max_trail_profit_position_id = {
 					buy: null,
@@ -147,7 +148,7 @@ module.exports = {
 						s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 						s.signal = position.side[0].toUpperCase() + ' Trailing stop';
 						let protectionFree = s.protectionFlag['calmdown']
-						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, false)
+						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, (strat_opts.order_type === 'taker' ? true : false))
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null
 //						strat_data.max_trail_profit_position_id[position.side] = null
@@ -209,7 +210,7 @@ module.exports = {
 						} 
 					})
 				}
-
+//Perchè lo faccio anche ad ogni StrategyPeriod oltre che in ogni trade???
 				s.positions.forEach(function (position, index) {
 					position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 					position_stop = position[position_opposite_signal + '_stop']
@@ -219,7 +220,7 @@ module.exports = {
 						s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 						s.signal = position.side[0].toUpperCase() + ' Trailing stop';
 						let protectionFree = s.protectionFlag['calmdown']
-						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, false)
+						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, (strat_opts.order_type === 'taker' ? true : false))
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null
 //						strat_data.max_trail_profit_position_id[position.side] = null
