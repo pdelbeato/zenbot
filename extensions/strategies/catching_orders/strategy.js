@@ -201,17 +201,18 @@ module.exports = {
 
 			//Immetto gli ordini nuovi dopo aver atteso wait_for_settlement
 			setTimeout (function() {
-				let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
 				let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short'] + s.protectionFlag['only_one_side']
 				if (strat_opts.catch_auto_long) {
 					console.log('\nCatching Orders - Auto catch '.grey + 'BUY'.green + ' command inserted'.grey)
 					let target_price = n(strat_data.sma).multiply(1 - strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
+					let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
 					s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag, 'catching_orders', false, false)
 				}
 
 				if (strat_opts.catch_auto_short) {
 					console.log('\nCatching Orders - Auto catch '.grey + 'SELL'.red + ' command inserted'.grey)
 					let target_price = n(strat_data.sma).multiply(1 + strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
+					let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
 					s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag, 'catching_orders', false, false)
 				}
 				cb()
