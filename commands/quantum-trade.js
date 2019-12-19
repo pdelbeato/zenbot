@@ -189,7 +189,7 @@ module.exports = function (program, conf) {
 		var db_my_closed_positions = conf.nestdb.my_closed_positions
 		var db_periods = conf.nestdb.periods
 		var db_sessions = conf.nestdb.sessions
-		var db_balances = conf.nestdb.balances
+//		var db_balances = conf.nestdb.balances
 		var db_resume_markers = conf.nestdb.resume_markers
 		var db_trades = conf.nestdb.trades
 		
@@ -199,7 +199,7 @@ module.exports = function (program, conf) {
 		db_my_closed_positions.persistence.setAutocompactionInterval(86400000)
 		db_periods.persistence.setAutocompactionInterval(86400000)
 		db_sessions.persistence.setAutocompactionInterval(86400000)
-		db_balances.persistence.setAutocompactionInterval(86400000)
+//		db_balances.persistence.setAutocompactionInterval(86400000)
 		db_resume_markers.persistence.setAutocompactionInterval(86400000)
 		db_trades.persistence.setAutocompactionInterval(86400000)
 		
@@ -224,8 +224,8 @@ module.exports = function (program, conf) {
 			db_my_trades.destroy()
 			console.log('\nDeleting sessions collection...')
 			db_sessions.destroy()
-			console.log('\nDeleting balances collection...')
-			db_balances.destroy()
+//			console.log('\nDeleting balances collection...')
+//			db_balances.destroy()
 		}
 
 		//Recupera tutte le vecchie posizioni aperte e le copia in s.positions
@@ -845,7 +845,7 @@ module.exports = function (program, conf) {
 			db_my_closed_positions.persistence.compactDatafile()
 			db_periods.persistence.compactDatafile()
 			db_sessions.persistence.compactDatafile()
-			db_balances.persistence.compactDatafile()
+//			db_balances.persistence.compactDatafile()
 			db_resume_markers.persistence.compactDatafile()
 			db_trades.persistence.compactDatafile()
 		}
@@ -1457,39 +1457,39 @@ module.exports = function (program, conf) {
 					engine.updateMessage()
 				}
 
-				//Se esiste s.period, aggiorno il database balances
-				if (s.period) {
-					session.price = s.period.close
-					var d = tb().resize(conf.balance_snapshot_period)
-					var b = {
-						id: so.selector.normalized + '-' + d.toString(),
-						selector: so.selector.normalized,
-						time: d.toMilliseconds(),
-						currency: s.balance.currency,
-						asset: s.balance.asset,
-						price: s.period.close,
-						//Questi due seguenti a cosa serve memorizzarli nel db dei balances?
-						start_capital_currency: session.orig_capital_currency,
-						start_price: session.orig_price,
-					}
-					b._id = b.id
-					b.consolidated = n(s.balance.asset).multiply(s.period.close).add(s.balance.currency).value()
-					b.profit_currency = (b.consolidated - session.orig_capital_currency) / session.orig_capital_currency
-					b.buy_hold = s.period.close * (session.orig_asset + session.orig_currency / session.orig_price)
-					b.buy_hold_profit = (b.buy_hold - session.orig_capital_currency) / session.orig_capital_currency
-					b.vs_buy_hold = (b.consolidated - b.buy_hold) / b.buy_hold
-					conf.output.api.on && printTrade(false, false, true)
-					if (so.mode === 'live' && s.db_valid) {
-						db_balances.update({'_id': b._id}, {$set: b}, {multi: false, upsert: true}, function (err) {
-							if (err) {
-								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving balance')
-								console.error(err)
-							}
-						})
-					}
-					//Con questo, memorizzo valori inutili dentro session.balance.
-					//              session.balance = b
-				}
+//				//Se esiste s.period, aggiorno il database balances
+//				if (s.period) {
+//					session.price = s.period.close
+//					var d = tb().resize(conf.balance_snapshot_period)
+//					var b = {
+//						id: so.selector.normalized + '-' + d.toString(),
+//						selector: so.selector.normalized,
+//						time: d.toMilliseconds(),
+//						currency: s.balance.currency,
+//						asset: s.balance.asset,
+//						price: s.period.close,
+//						//Questi due seguenti a cosa serve memorizzarli nel db dei balances?
+//						start_capital_currency: session.orig_capital_currency,
+//						start_price: session.orig_price,
+//					}
+//					b._id = b.id
+//					b.consolidated = n(s.balance.asset).multiply(s.period.close).add(s.balance.currency).value()
+//					b.profit_currency = (b.consolidated - session.orig_capital_currency) / session.orig_capital_currency
+//					b.buy_hold = s.period.close * (session.orig_asset + session.orig_currency / session.orig_price)
+//					b.buy_hold_profit = (b.buy_hold - session.orig_capital_currency) / session.orig_capital_currency
+//					b.vs_buy_hold = (b.consolidated - b.buy_hold) / b.buy_hold
+//					conf.output.api.on && printTrade(false, false, true)
+//					if (so.mode === 'live' && s.db_valid) {
+//						db_balances.update({'_id': b._id}, {$set: b}, {multi: false, upsert: true}, function (err) {
+//							if (err) {
+//								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving balance')
+//								console.error(err)
+//							}
+//						})
+//					}
+//					//Con questo, memorizzo valori inutili dentro session.balance.
+//					//              session.balance = b
+//				}
 
 				session.updated = new Date().getTime()
 				session.balance = s.balance
