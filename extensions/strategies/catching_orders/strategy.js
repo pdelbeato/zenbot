@@ -66,10 +66,10 @@ module.exports = {
 	getOptions: function () {
 		this.option('catching_orders', 'period_calc', 'After how many periods the auto-catch orders must be tuned', String, '1h')
 		this.option('catching_orders', 'min_periods', 'Min. number of history periods', Number, 61)
-		this.option('catching_orders', 'size', 'SMA period size (size * period_calc) for auto-catch orders', Number, 1)
 		this.option('catching_orders', 'catch_order_pct', '% for position-catch orders', Number, 3)
 		this.option('catching_orders', 'catch_auto_pct', '% for auto-catch order', Number, 5)
 		this.option('catching_orders', 'catch_fixed_value', 'Amount of currency for auto-catch order', Number, 500)
+		this.option('catching_orders', 'catch_SMA', 'SMA size in period_length for auto-catch orders', Number, 60)
 		this.option('catching_orders', 'catch_auto_long', 'Option for auto-long catch orders (buy on low) based on SMA', Boolean, false)
 		this.option('catching_orders', 'catch_auto_short', 'Option for auto-short catch orders (sell on high) based on SMA', Boolean, false)
 	},
@@ -162,7 +162,7 @@ module.exports = {
 						}
 						debug.msg('Strategy catching_orders - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
 						s.signal = position_opposite_signal[0].toUpperCase() + ' Catching order'
-						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag, false, false)  
+						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, false)  
 					}
 				})
 			}
@@ -201,20 +201,19 @@ module.exports = {
 
 			//Immetto gli ordini nuovi dopo aver atteso wait_for_settlement
 			setTimeout (function() {
+				let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short'] + s.protectionFlag['only_one_side']
 				if (strat_opts.catch_auto_long) {
 					console.log('\nCatching Orders - Auto catch '.grey + 'BUY'.green + ' command inserted'.grey)
 					let target_price = n(strat_data.sma).multiply(1 - strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
 					let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-					s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag, false, false)
+					s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag, 'catching_orders', false, false)
 				}
 
 				if (strat_opts.catch_auto_short) {
 					console.log('\nCatching Orders - Auto catch '.grey + 'SELL'.red + ' command inserted'.grey)
 					let target_price = n(strat_data.sma).multiply(1 + strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
 					let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-					s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag, false, false)
+					s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag, 'catching_orders', false, false)
 				}
 				cb()
 			}, 10*s.options.wait_for_settlement)
@@ -246,7 +245,7 @@ module.exports = {
 		let strat_opts = s.options.strategy.catching_orders.opts
 		let result = null
 		if (strat_opts.catch_auto_long || strat_opts.catch_auto_short) {
-			let result = 'Auto-catch (Long/Short): ' + strat_opts.catch_auto_long + ' ; ' + strat_opts.catch_auto_short
+			result = 'Auto-catch (Long/Short): ' + strat_opts.catch_auto_long + ' ; ' + strat_opts.catch_auto_short
 		}
 		cb(result)
 	},
@@ -294,7 +293,7 @@ module.exports = {
 						debug.msg('Strategy catching_orders - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
 						let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
 						s.signal = position_opposite_signal[0].toUpperCase() + ' Catching order'
-						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag, false, false)  
+						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, false)  
 					}
 				}
 			}

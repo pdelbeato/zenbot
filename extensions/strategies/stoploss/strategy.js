@@ -119,7 +119,7 @@ module.exports = {
 					let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
 					s.options.active_long_position = false
 					s.options.active_short_position = false
-					s.eventBus.emit('stoploss', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, strat_opts.order_type)
+					s.eventBus.emit('stoploss', position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, strat_opts.order_type)
 				}
 				else {
 					s.signal = null
