@@ -66,10 +66,10 @@ module.exports = {
 	getOptions: function () {
 		this.option('catching_orders', 'period_calc', 'After how many periods the auto-catch orders must be tuned', String, '1h')
 		this.option('catching_orders', 'min_periods', 'Min. number of history periods', Number, 61)
-		this.option('catching_orders', 'size', 'SMA period size (size * period_calc) for auto-catch orders', Number, 1)
 		this.option('catching_orders', 'catch_order_pct', '% for position-catch orders', Number, 3)
 		this.option('catching_orders', 'catch_auto_pct', '% for auto-catch order', Number, 5)
 		this.option('catching_orders', 'catch_fixed_value', 'Amount of currency for auto-catch order', Number, 500)
+		this.option('catching_orders', 'catch_SMA', 'SMA size in period_length for auto-catch orders', Number, 60)
 		this.option('catching_orders', 'catch_auto_long', 'Option for auto-long catch orders (buy on low) based on SMA', Boolean, false)
 		this.option('catching_orders', 'catch_auto_short', 'Option for auto-short catch orders (sell on high) based on SMA', Boolean, false)
 	},
