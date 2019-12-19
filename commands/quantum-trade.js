@@ -102,6 +102,7 @@ module.exports = function (program, conf) {
 
 		var engine = null
 
+//Da sistemare: eliminare sta cazzata
 		//Se è stata impostata la funzione per il tempo di esecuzione, fissa il tempo di partenza
 		if (so.run_for) {
 			debug.msg('Run_for option = ', so.run_for)
@@ -192,6 +193,8 @@ module.exports = function (program, conf) {
 //		var db_balances = conf.nestdb.balances
 		var db_resume_markers = conf.nestdb.resume_markers
 		var db_trades = conf.nestdb.trades
+		var db_log_resume_markers = conf.nestdb.log.resume_markers
+		var db_log_trades = conf.nestdb.log.trades
 		
 		//Autocompatta i db ogni giorno
 		db_my_trades.persistence.setAutocompactionInterval(86400000)
@@ -200,8 +203,8 @@ module.exports = function (program, conf) {
 		db_periods.persistence.setAutocompactionInterval(86400000)
 		db_sessions.persistence.setAutocompactionInterval(86400000)
 //		db_balances.persistence.setAutocompactionInterval(86400000)
-		db_resume_markers.persistence.setAutocompactionInterval(86400000)
-		db_trades.persistence.setAutocompactionInterval(86400000)
+//		db_resume_markers.persistence.setAutocompactionInterval(86400000)
+//		db_trades.persistence.setAutocompactionInterval(86400000)
 		
 		s.db_valid = true
 
@@ -798,20 +801,20 @@ module.exports = function (program, conf) {
 					debug.msg('db_my_closed_positions -> fatto!', false)
 				})
 
-				db_my_trades.destroy(function(err) {
-					if (err) {
-						console.error('Failed to destroy datastore:', err);
-					} 
-					s.my_trades.forEach(function (position) {
-						db_my_trades.insert(position, function (err) {
-							if (err) {
-								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
-								console.error(err)
-							}
-						})
-					})
-					debug.msg('db_my_trades -> fatto!', false)
-				})
+//				db_my_trades.destroy(function(err) {
+//					if (err) {
+//						console.error('Failed to destroy datastore:', err);
+//					} 
+//					s.my_trades.forEach(function (position) {
+//						db_my_trades.insert(position, function (err) {
+//							if (err) {
+//								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
+//								console.error(err)
+//							}
+//						})
+//					})
+//					debug.msg('db_my_trades -> fatto!', false)
+//				})
 				s.db_valid = true
 			})
 		}
@@ -831,13 +834,13 @@ module.exports = function (program, conf) {
 				debug.msg('cleanDB - ' + numRemoved + ' period(s) deleted')
 			})
 
-			db_trades.remove({'time' : { $lt : fromTime }}, { multi: true }, function (err, numRemoved) {
-				if (err) {
-					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.trades')
-					console.error(err)
-				}
-				debug.msg('cleanDB - ' + numRemoved + ' trade(s) deleted')
-			})
+//			db_trades.remove({'time' : { $lt : fromTime }}, { multi: true }, function (err, numRemoved) {
+//				if (err) {
+//					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.trades')
+//					console.error(err)
+//				}
+//				debug.msg('cleanDB - ' + numRemoved + ' trade(s) deleted')
+//			})
 
 			debug.msg('cleanDB - Compattazione dei db')
 			db_my_trades.persistence.compactDatafile()
@@ -846,8 +849,8 @@ module.exports = function (program, conf) {
 			db_periods.persistence.compactDatafile()
 			db_sessions.persistence.compactDatafile()
 //			db_balances.persistence.compactDatafile()
-			db_resume_markers.persistence.compactDatafile()
-			db_trades.persistence.compactDatafile()
+//			db_resume_markers.persistence.compactDatafile()
+//			db_trades.persistence.compactDatafile()
 		}
 
 		/* Funzioni per le operazioni sul database delle posizioni */
@@ -1263,6 +1266,12 @@ module.exports = function (program, conf) {
 					if (!filtered_trades.length) {
 						var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
 						console.log(head)
+						
+						console.log('Disconnect databases not needed')
+						db_resume_markers = null
+						conf.nestdb.resume_markers = null
+						db_trades = null
+						conf.nestdb.trades = null
 
 						//A che diavolo serve?
 						output(conf).initializeOutput(s)
@@ -1562,12 +1571,20 @@ module.exports = function (program, conf) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 							console.error(err)
 						}
-						if (s.db_valid) db_resume_markers.update({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
+//						if (s.db_valid) db_resume_markers.update({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
+//							if (err) {
+//								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
+//								console.error(err)
+//							}
+//						})
+						db_log_resume_markers.insert({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
 								console.error(err)
 							}
 						})
+						
+						
 						if (s.my_trades.length > my_trades_size) {
 							s.my_trades.slice(my_trades_size).forEach(function (my_trade) {
 								my_trade._id = my_trade.id
@@ -1627,7 +1644,14 @@ module.exports = function (program, conf) {
 				}
 				marker.to = marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor
 						marker.newest_time = Math.max(marker.newest_time, trade.time)
-						if (s.db_valid) db_trades.update({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
+//						if (s.db_valid) db_trades.update({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
+//							// ignore duplicate key errors
+//							if (err && err.code !== 11000) {
+//								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
+//								console.error(err)
+//							}
+//						})
+						db_log_trades.insert({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
 							// ignore duplicate key errors
 							if (err && err.code !== 11000) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
