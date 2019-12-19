@@ -193,7 +193,7 @@ module.exports = function (program, conf) {
 //		var db_balances = conf.nestdb.balances
 		var db_resume_markers = conf.nestdb.resume_markers
 		var db_trades = conf.nestdb.trades
-		var db_log_resume_markers = conf.nestdb.log.resume_markers
+
 		var db_log_trades = conf.nestdb.log.trades
 		
 		//Autocompatta i db ogni giorno
@@ -203,7 +203,7 @@ module.exports = function (program, conf) {
 		db_periods.persistence.setAutocompactionInterval(86400000)
 		db_sessions.persistence.setAutocompactionInterval(86400000)
 //		db_balances.persistence.setAutocompactionInterval(86400000)
-//		db_resume_markers.persistence.setAutocompactionInterval(86400000)
+		db_resume_markers.persistence.setAutocompactionInterval(86400000)
 //		db_trades.persistence.setAutocompactionInterval(86400000)
 		
 		s.db_valid = true
@@ -213,7 +213,8 @@ module.exports = function (program, conf) {
 			selector: so.selector.normalized,
 			from: null,
 			to: null,
-			oldest_time: null
+			oldest_time: null,
+			newest_time: null
 		}
 		marker._id = marker.id
 
@@ -849,7 +850,7 @@ module.exports = function (program, conf) {
 			db_periods.persistence.compactDatafile()
 			db_sessions.persistence.compactDatafile()
 //			db_balances.persistence.compactDatafile()
-//			db_resume_markers.persistence.compactDatafile()
+			db_resume_markers.persistence.compactDatafile()
 //			db_trades.persistence.compactDatafile()
 		}
 
@@ -1268,8 +1269,6 @@ module.exports = function (program, conf) {
 						console.log(head)
 						
 						console.log('Disconnect databases not needed')
-						db_resume_markers = null
-						conf.nestdb.resume_markers = null
 						db_trades = null
 						conf.nestdb.trades = null
 
@@ -1571,19 +1570,12 @@ module.exports = function (program, conf) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 							console.error(err)
 						}
-//						if (s.db_valid) db_resume_markers.update({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
-//							if (err) {
-//								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
-//								console.error(err)
-//							}
-//						})
-						db_log_resume_markers.insert({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
+						if (s.db_valid) db_resume_markers.update({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
 								console.error(err)
 							}
 						})
-						
 						
 						if (s.my_trades.length > my_trades_size) {
 							s.my_trades.slice(my_trades_size).forEach(function (my_trade) {
@@ -1642,22 +1634,23 @@ module.exports = function (program, conf) {
 					marker.oldest_time = trade.time
 					marker.newest_time = trade.time
 				}
-				marker.to = marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor
-						marker.newest_time = Math.max(marker.newest_time, trade.time)
-//						if (s.db_valid) db_trades.update({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
-//							// ignore duplicate key errors
-//							if (err && err.code !== 11000) {
-//								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
-//								console.error(err)
-//							}
-//						})
-						db_log_trades.insert({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
-							// ignore duplicate key errors
-							if (err && err.code !== 11000) {
-								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
-								console.error(err)
-							}
-						})
+				marker.to = (marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor)
+				marker.newest_time = Math.max(marker.newest_time, trade.time)
+//				if (s.db_valid) db_trades.update({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
+//				// ignore duplicate key errors
+//				if (err && err.code !== 11000) {
+//				console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
+//				console.error(err)
+//				}
+//				})
+//				db_log_trades.insert({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
+				db_log_trades.insert(trade, function (err) {
+					// ignore duplicate key errors
+					if (err && err.code !== 11000) {
+						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
+						console.error(err)
+					}
+				})
 			}
 			/* End of saveTrade() */
 		}
