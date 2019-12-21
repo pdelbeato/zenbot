@@ -84,6 +84,7 @@
     "node-prowl": "^0.1.7",
     "node-sass": "^4.12.0",
 	"node-telegram-bot-api": "^0.40.0",
+	"npm-check-updates": "^4.0.1",
     "number-abbreviate": "^2.0.0",
     "numbro": "github:highvelocityspace/numbro",
     "object-sizeof": "^1.5.1",
