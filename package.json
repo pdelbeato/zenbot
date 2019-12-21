@@ -77,6 +77,7 @@
     "mock-require": "^3.0.3",
     "moment": "^2.24.0",
     "mongodb": "^3.3.4",
+    "nedb-logger": "^0.1.0",
     "nestdb": "^2.0.0",
     "nedb-logger": "^0.1.0",
     "node-bittrex-api": "^0.8.3",
