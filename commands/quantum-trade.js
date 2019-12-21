@@ -1019,12 +1019,6 @@ module.exports = function (program, conf) {
 				output_lines.push(sizeof(s.trades) + ' size of s.trades')
 				output_lines.push(sizeof(s.period) + ' size of s.period')
 				output_lines.push(sizeof(s.lookback) + ' size of s.lookback')
-				output_lines.push(sizeof(db_my_trades) + ' size of db_my_trades')
-				output_lines.push(sizeof(db_my_positions) + ' size of db_my_positions')
-				output_lines.push(sizeof(db_my_closed_positions) + ' size of db_my_closed_positions')
-				output_lines.push(sizeof(db_periods) + ' size of db_periods')
-				output_lines.push(sizeof(db_resume_markers) + ' size of db_resume_markers')
-				output_lines.push(sizeof(db_trades) + ' size of db_trades')
 
 				Object.keys(so.strategy).forEach(function (strategy_name, index) {
 					output_lines.push(sizeof(s.options.strategy[strategy_name].calc_lookback) + ' size of ' + strategy_name + ' calc_lookback')
