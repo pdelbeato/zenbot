@@ -193,15 +193,15 @@ module.exports = function (program, conf) {
 		var db_resume_markers = conf.nestdb.resume_markers
 		var db_trades = conf.nestdb.trades
 		
-		//Autocompatta i db ogni giorno
-		db_my_trades.persistence.setAutocompactionInterval(86400000)
-		db_my_positions.persistence.setAutocompactionInterval(86400000)
-		db_my_closed_positions.persistence.setAutocompactionInterval(86400000)
-		db_periods.persistence.setAutocompactionInterval(86400000)
-		db_sessions.persistence.setAutocompactionInterval(86400000)
-//		db_balances.persistence.setAutocompactionInterval(86400000)
-		db_resume_markers.persistence.setAutocompactionInterval(86400000)
-		db_trades.persistence.setAutocompactionInterval(86400000)
+//		//Autocompatta i db ogni giorno
+//		db_my_trades.persistence.setAutocompactionInterval(86400000)
+//		db_my_positions.persistence.setAutocompactionInterval(86400000)
+//		db_my_closed_positions.persistence.setAutocompactionInterval(86400000)
+//		db_periods.persistence.setAutocompactionInterval(86400000)
+//		db_sessions.persistence.setAutocompactionInterval(86400000)
+////		db_balances.persistence.setAutocompactionInterval(86400000)
+//		db_resume_markers.persistence.setAutocompactionInterval(86400000)
+//		db_trades.persistence.setAutocompactionInterval(86400000)
 		
 		s.db_valid = true
 
@@ -217,13 +217,13 @@ module.exports = function (program, conf) {
 		//Se richiesto nel comando, esegue il reset dei database
 		if (cmd.reset) {
 			console.log('\nDeleting my_positions collection...')
-			db_my_positions.destroy()
+			db_my_positions.drop()
 			console.log('\nDeleting my_closed_positions collection...')
-			db_my_closed_positions.destroy()
+			db_my_closed_positions.drop()
 			console.log('\nDeleting db_my_trades collection...')
-			db_my_trades.destroy()
+			db_my_trades.drop()
 			console.log('\nDeleting sessions collection...')
-			db_sessions.destroy()
+			db_sessions.drop()
 //			console.log('\nDeleting balances collection...')
 //			db_balances.destroy()
 		}
@@ -768,12 +768,12 @@ module.exports = function (program, conf) {
 
 			var collectionServiceInstance = collectionService(conf, function() {
 				debug.msg('Ricreo i database...', false)
-				db_my_positions.destroy(function(err) {
+				db_my_positions.drop(function(err) {
 					if (err) {
 						console.error('Failed to destroy datastore:', err);
 					} 
 					s.positions.forEach(function (position) {
-						db_my_positions.insert(position, function (err) {
+						db_my_positions.insertOne(position, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
 								console.error(err)
@@ -783,12 +783,12 @@ module.exports = function (program, conf) {
 					debug.msg('db_my_positions -> fatto!', false)
 				})
 
-				db_my_closed_positions.destroy(function(err) {
+				db_my_closed_positions.drop(function(err) {
 					if (err) {
 						console.error('Failed to destroy datastore:', err);
 					} 
 					s.closed_positions.forEach(function (position) {
-						db_my_closed_positions.insert(position, function (err) {
+						db_my_closed_positions.insertOne(position, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
 								console.error(err)
@@ -798,12 +798,12 @@ module.exports = function (program, conf) {
 					debug.msg('db_my_closed_positions -> fatto!', false)
 				})
 
-				db_my_trades.destroy(function(err) {
+				db_my_trades.drop(function(err) {
 					if (err) {
 						console.error('Failed to destroy datastore:', err);
 					} 
 					s.my_trades.forEach(function (position) {
-						db_my_trades.insert(position, function (err) {
+						db_my_trades.insertOne(position, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
 								console.error(err)
@@ -823,7 +823,7 @@ module.exports = function (program, conf) {
 
 			debug.msg('cleanDB - Pulisco il db dei record più vecchi di ' + fromTime + ' (ora è ' + moment() + ')... ')
 
-			db_periods.remove({'time' : { $lt : fromTime }}, { multi: true }, function (err, numRemoved) {
+			db_periods.deleteMany({'time' : { $lt : fromTime }}, function (err, numRemoved) {
 				if (err) {
 					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.periods')
 					console.error(err)
@@ -831,7 +831,7 @@ module.exports = function (program, conf) {
 				debug.msg('cleanDB - ' + numRemoved + ' period(s) deleted')
 			})
 
-			db_trades.remove({'time' : { $lt : fromTime }}, { multi: true }, function (err, numRemoved) {
+			db_trades.deleteMany({'time' : { $lt : fromTime }}, function (err, numRemoved) {
 				if (err) {
 					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.trades')
 					console.error(err)
@@ -839,15 +839,15 @@ module.exports = function (program, conf) {
 				debug.msg('cleanDB - ' + numRemoved + ' trade(s) deleted')
 			})
 
-			debug.msg('cleanDB - Compattazione dei db')
-			db_my_trades.persistence.compactDatafile()
-			db_my_positions.persistence.compactDatafile()
-			db_my_closed_positions.persistence.compactDatafile()
-			db_periods.persistence.compactDatafile()
-			db_sessions.persistence.compactDatafile()
-//			db_balances.persistence.compactDatafile()
-			db_resume_markers.persistence.compactDatafile()
-			db_trades.persistence.compactDatafile()
+//			debug.msg('cleanDB - Compattazione dei db')
+//			db_my_trades.persistence.compactDatafile()
+//			db_my_positions.persistence.compactDatafile()
+//			db_my_closed_positions.persistence.compactDatafile()
+//			db_periods.persistence.compactDatafile()
+//			db_sessions.persistence.compactDatafile()
+////			db_balances.persistence.compactDatafile()
+//			db_resume_markers.persistence.compactDatafile()
+//			db_trades.persistence.compactDatafile()
 		}
 
 		/* Funzioni per le operazioni sul database delle posizioni */
@@ -858,7 +858,7 @@ module.exports = function (program, conf) {
 				position._id = position.id
 
 				if (s.db_valid) {
-					db_my_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+					db_my_positions.updateOne({'_id' : task.position_id}, {$set: position}, {upsert: true}, function (err) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_positions')
 							console.error(err)
@@ -867,7 +867,7 @@ module.exports = function (program, conf) {
 						}
 					})
 				}
-//Se db_valid è falso, allora sto lavorando sul db, quindi devo riprogrammare la funzione!!
+//Da sistemare: se db_valid è falso, allora sto lavorando sul db, quindi devo richiamare la funzione più tardi!!
 				
 				break
 			}
@@ -876,7 +876,7 @@ module.exports = function (program, conf) {
 
 				if (s.db_valid) {
 					//Cancello la posizione dal db delle posizioni aperte...
-					db_my_positions.remove({'_id' : task.position_id}, { multi: false }, function (err) {
+					db_my_positions.deleteOne({'_id' : task.position_id}, function (err) {
 						//In ogni caso, elimino la posizione da s.positions
 						s.positions.splice(position_index,1)
 
@@ -891,7 +891,7 @@ module.exports = function (program, conf) {
 
 						if (position) {
 							position._id = position.id
-							db_my_closed_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+							db_my_closed_positions.updateOne({'_id' : task.position_id}, {$set: position}, {upsert: true}, function (err) {
 								if (err) {
 									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
 									console.error(err)
@@ -1356,7 +1356,7 @@ module.exports = function (program, conf) {
 								setInterval(forwardScan, so.poll_trades)
 								
 								//Ridimensiona i database ogni giorno
-								setInterval(cleanDB, 86400000)
+//								setInterval(cleanDB, 86400000)
 
 								//Se l'exchange non ha websocket, chiamata alla funzione getAllOrders() ogni so.order_poll_time
 								if (!s.exchange.websocket) { // && typeof s.exchange.getAllOrders === 'function') {
@@ -1425,15 +1425,15 @@ module.exports = function (program, conf) {
 			/* End of getNext() */
 
 			engine.writeHeader()
-			db_trades.load(function (err) {
-				if (err) {
-					console.err(err);
-				}
-				else {
-					console.log('Boot - db_trades reloaded...');
+//			db_trades.load(function (err) {
+//				if (err) {
+//					console.err(err);
+//				}
+//				else {
+//					console.log('Boot - db_trades reloaded...');
 					getNext()
-				}
-			})
+//				}
+//			})
 		})
 		/* End of backfiller.on(exit) */
 
@@ -1498,7 +1498,7 @@ module.exports = function (program, conf) {
 				session.total_fees = s.total_fees
 
 				if (s.db_valid) {
-					db_sessions.update({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
+					db_sessions.updateOne({'_id' : session._id}, {$set : session}, {upsert : true}, function (err) {
 
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
@@ -1562,7 +1562,7 @@ module.exports = function (program, conf) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 							console.error(err)
 						}
-						if (s.db_valid) db_resume_markers.update({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
+						if (s.db_valid) db_resume_markers.updateOne({'_id' : marker._id}, {$set : marker}, {upsert : true}, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
 								console.error(err)
@@ -1573,7 +1573,7 @@ module.exports = function (program, conf) {
 								my_trade._id = my_trade.id
 								my_trade.session_id = session.id
 								if (s.db_valid) {
-									db_my_trades.update({'_id' : my_trade._id}, {$set: my_trade}, {multi: false, upsert: true}, function (err) {
+									db_my_trades.updateOne({'_id' : my_trade._id}, {$set: my_trade}, {upsert: true}, function (err) {
 										if (err) {
 											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
 											console.error(err)
@@ -1592,7 +1592,7 @@ module.exports = function (program, conf) {
 							}
 							period._id = period.id
 							if (s.db_valid) {
-								db_periods.update({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
+								db_periods.updateOne({'_id': period._id}, {$set: period}, {upsert: true}, function (err) {
 									if (err) {
 										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
 										console.error(err)
@@ -1627,7 +1627,7 @@ module.exports = function (program, conf) {
 				}
 				marker.to = marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor
 						marker.newest_time = Math.max(marker.newest_time, trade.time)
-						if (s.db_valid) db_trades.update({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
+						if (s.db_valid) db_trades.updateOne({'_id' : trade._id}, {$set : trade}, {upsert : true}, function (err) {
 							// ignore duplicate key errors
 							if (err && err.code !== 11000) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
