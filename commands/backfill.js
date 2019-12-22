@@ -176,7 +176,7 @@ module.exports = function (program, conf) {
 				}
 				//Corretto per Deprecation Warning
 //				console.log('Backfill - before db_resume_markers.update')
-				db_resume_markers.updateOne({"_id" : marker._id}, {$set : marker}, {upsert : true}, function() {
+				db_resume_markers.update({"_id" : marker._id}, {$set : marker}, {multi: false, upsert : true}, function() {
 				setupNext()
 //				.catch(function(err){
 //					if (err) throw err
@@ -242,7 +242,7 @@ module.exports = function (program, conf) {
 						marker.newest_time = Math.max(marker.newest_time, trade.time)
 			}
 //			console.log('Backfill - saveTrade - before db_trades.update')
-			return db_trades.updateOne({"_id" : trade._id}, {$set : trade}, {upsert : true})
+			return db_trades.update({"_id" : trade._id}, {$set : trade}, {multi: false, upsert : true})
 		}
 	})
 }
