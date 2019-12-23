@@ -215,58 +215,82 @@ module.exports = function (program, conf) {
 		}
 		marker._id = marker.id
 
+		var promises = []
 		//Se richiesto nel comando, esegue il reset dei database
 		if (cmd.reset) {
-			console.log('\nDeleting my_positions collection...')
-			db_my_positions.drop(function() {
-				console.log('done!')
-			})
-			console.log('\nDeleting my_closed_positions collection...')
-			db_my_closed_positions.drop(function() {
-				console.log('done!')
-			})
-			console.log('\nDeleting db_my_trades collection...')
-			db_my_trades.drop(function() {
-				console.log('done!')
-			})
-			console.log('\nDeleting sessions collection...')
-			db_sessions.drop(function() {
-				console.log('done!')
-			})
-//			console.log('\nDeleting balances collection...')
-//			db_balances.destroy()
-		}
-
-		//Recupera tutte le vecchie posizioni aperte e le copia in s.positions
-		let recover_my_positions = new Promise(function (resolve, reject) {
-			db_my_positions.find({selector: so.selector.normalized}, function (err, my_prev_positions) {
-				if (err) {
-					reject(err)
-				}
-				if (my_prev_positions.length) {
-					my_prev_positions.forEach(function (position) {
-						position.status = 0
+			console.log('\nDeleting my_positions, my_closed_positions, my_trades and sessions collections...')
+			let reset_db_my_positions = new Promise(function (resolve, reject) {
+				db_my_positions.drop(function(err, results) {
+					if (err) {
+						reject(err)
+					}
+					console.log('\n\tmy_positions collection deleted!')
+					resolve()
 					})
-					s.positions = my_prev_positions.slice(0)
-					console.log('Recuperate le vecchie posizioni aperte: ' + s.positions.length)
-				}
-				resolve()
 			})
-		})
+			let reset_db_my_closed_positions = new Promise(function (resolve, reject) {
+				db_my_closed_positions.drop(function(err, results) {
+					if (err) {
+						reject(err)
+					}
+					console.log('\n\tmy_closed_positions collection deleted!')
+					resolve()
+					})
+			})
+			let reset_db_my_trades = new Promise(function (resolve, reject) {
+				db_my_trades.drop(function(err, results) {
+					if (err) {
+						reject(err)
+					}
+					console.log('\n\tmy_trades collection deleted!')
+					resolve()
+				})
+			})
+			let reset_db_sessions = new Promise(function (resolve, reject) {
+				db_sessions.drop(function(err, results) {
+					if (err) {
+						reject(err)
+					}
+					console.log('\n\tsessions collection deleted!')
+					resolve()
+				})
+			})
+			promises.push([reset_db_my_positions, reset_db_my_closed_positions, reset_db_my_trades, reset_db_sessions])
+		}
+//Da sistemare: non ha senso usare s. per memorizzare queste informazioni. Le posso recuperare direttamente dal db
+		//Altrimenti, recupera tutte le vecchie posizioni (aperte e chiuse) e le copia in s.positions e s.closed_positions
+		else {		
+			let recover_my_positions = new Promise(function (resolve, reject) {
+				db_my_positions.find({selector: so.selector.normalized}, function (err, my_prev_positions) {
+					if (err) {
+						reject(err)
+					}
+					if (my_prev_positions.length) {
+						my_prev_positions.forEach(function (position) {
+							position.status = 0
+						})
+						s.positions = my_prev_positions.slice(0)
+						console.log('Recuperate le vecchie posizioni aperte: ' + s.positions.length)
+					}
+					resolve()
+				})
+			})
 
-		//Recupera tutte le vecchie posizioni chiuse e le copia in s.closed_positions
-		let recover_my_closed_positions = new Promise(function (resolve, reject) {
-			db_my_closed_positions.find({selector: so.selector.normalized}, function (err, my_closed_positions) {
-				if (err) {
-					reject(err)
-				}
-				if (my_closed_positions.length) {
-					s.closed_positions = my_closed_positions.slice(0)
-					console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
-				}
-				resolve()
+			//Recupera tutte le vecchie posizioni chiuse e le copia in s.closed_positions
+			let recover_my_closed_positions = new Promise(function (resolve, reject) {
+				db_my_closed_positions.find({selector: so.selector.normalized}, function (err, my_closed_positions) {
+					if (err) {
+						reject(err)
+					}
+					if (my_closed_positions.length) {
+						s.closed_positions = my_closed_positions.slice(0)
+						console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
+					}
+					resolve()
+				})
 			})
-		})
+			promises.push([recover_my_positions, recover_my_closed_positions])
+		}
 
 		Promise.all([recover_my_positions, recover_my_closed_positions])
 		.then(function() {
