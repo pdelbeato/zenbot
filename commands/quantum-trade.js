@@ -90,7 +90,7 @@ module.exports = function (program, conf) {
 		s.positions = []
 		s.closed_positions = []
 		s.my_trades = []
-		s.trades = []
+//		s.trades = []
 		s.lookback = []
 		s.orders = []
 
@@ -1036,7 +1036,7 @@ module.exports = function (program, conf) {
 					output_lines.push(s.positions.length + ' positions opened.')
 					output_lines.push(s.orders.length + ' orders opened.')
 					output_lines.push(sizeof(s) + ' size of s')
-					output_lines.push(sizeof(s.trades) + ' size of s.trades')
+//					output_lines.push(sizeof(s.trades) + ' size of s.trades')
 					output_lines.push(sizeof(s.period) + ' size of s.period')
 					output_lines.push(sizeof(s.lookback) + ' size of s.lookback')
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
@@ -1626,15 +1626,17 @@ module.exports = function (program, conf) {
 						marker.oldest_time = trade.time
 						marker.newest_time = trade.time
 					}
-					marker.to = marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor
-							marker.newest_time = Math.max(marker.newest_time, trade.time)
-							if (s.db_valid) db_trades.update({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
-								// ignore duplicate key errors
-								if (err && err.code !== 11000) {
-									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
-									console.error(err)
-								}
-							})
+					marker.to = (marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor)
+					marker.newest_time = Math.max(marker.newest_time, trade.time)
+					if (s.db_valid) {
+						db_trades.update({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
+							// ignore duplicate key errors
+							if (err && err.code !== 11000) {
+								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
+								console.error(err)
+							}
+						})
+					}
 				}
 				/* End of saveTrade() */
 			}
