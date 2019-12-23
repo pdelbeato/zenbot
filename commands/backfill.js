@@ -153,7 +153,7 @@ module.exports = function (program, conf) {
 			Promise.all(trades.map((trade)=>saveTrade(trade))).then(function(/*results*/){
 				var oldest_time = marker.oldest_time
 				var newest_time = marker.newest_time
-				markers.forEach(function (other_marker) {
+				markers.each(function (other_marker) {
 					// for backward scan, if the oldest_time is within another marker's range, skip to the other marker's start point.
 					// for forward scan, if the newest_time is within another marker's range, skip to the other marker's end point.
 					if (mode === 'backward' && marker.id !== other_marker.id && marker.from <= other_marker.to && marker.from > other_marker.from) {
