@@ -289,7 +289,20 @@ module.exports = function (program, conf) {
 					resolve()
 				})
 			})
-			promises = [recover_my_positions, recover_my_closed_positions]
+			//Recupera tutti i vecchi trade e li copia in s.my_trades
+			let recover_my_trades = new Promise(function (resolve, reject) {
+				db_my_trades.find({selector: so.selector.normalized}).toArray(function (err, my_prev_trades) {
+					if (err) {
+						reject(err)
+					}
+					if (my_prev_trades.length) {
+						s.my_trades = my_prev_trades.slice(0)
+						console.log('Recuperati i vecchi trade: ' + s.my_trades.length)
+					}
+					resolve()
+				})
+			})
+			promises = [recover_my_positions, recover_my_closed_positions, recover_my_trades]
 		}
 
 		//Una volta effettuate le operazioni sui db, proseguo con il resto
@@ -1242,17 +1255,6 @@ module.exports = function (program, conf) {
 //			}
 //			/* End of implementing statistical status */
 
-			//Recupera tutti i vecchi trade e li copia in s.my_trades
-			db_my_trades.find({selector: so.selector.normalized}).toArray(function (err, my_prev_trades) {
-				if (err) {
-					throw err
-				}
-				if (my_prev_trades.length) {
-					s.my_trades = my_prev_trades.slice(0)
-					console.log('Recuperati i vecchi trade: ' + s.my_trades.length)
-				}
-			})
-
 			//Per caricare i dati dei trades, chiama zenbot.js backfill (so.selector.normalized) --days __ --conf __
 			var zenbot_cmd = process.platform === 'win32' ? 'zenbot.bat' : 'zenbot.sh'; // Use 'win32' for 64 bit windows too
 			var command_args = ['backfill', so.selector.normalized, '--days', days || 1]
@@ -1670,6 +1672,7 @@ module.exports = function (program, conf) {
 			/* End of forwardScan() */
 		})
 		.catch(function(error) {
+			console.log('Errore nella gestione db!')
 			console.log(error)
 		})
 	})
