@@ -8,7 +8,6 @@ var tb = require('timebucket')
 , crypto = require('crypto')
 , readline = require('readline')
 , colors = require('colors')
-//, z = require('zero-fill')
 , inspect = require('eyes').inspector({maxLength: 10000 })
 , output = require('../lib/output')
 , objectifySelector = require('../lib/objectify-selector')
@@ -62,8 +61,6 @@ module.exports = function (program, conf) {
 //	.option('--max_positions <amount>', 'maximum number of opened positions', Number, conf.max_positions)
 	.option('--best_bid', 'mark up as little as possible the buy price to be the best bid', Boolean, false)
 	.option('--best_ask', 'mark down as little as possible the sell price to be the best ask', Boolean, false)
-//	.option('--buy_calmdown <amount>', 'Minutes to wait before next buy', Number, conf.buy_calmdown)
-//	.option('--sell_calmdown <amount>', 'Minutes to wait before next sell', Number, conf.sell_calmdown)
 //	.option('--markdown_buy_pct <pct>', '% to mark down buy price', Number, conf.markdown_buy_pct)
 //	.option('--markup_sell_pct <pct>', '% to mark up sell price', Number, conf.markup_sell_pct)
 //	.option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, conf.order_adjust_time)
@@ -79,7 +76,7 @@ module.exports = function (program, conf) {
 	.option('--disable_stats', 'disable printing order stats')
 	.option('--reset', 'reset previous positions and start new profit calculation from 0')
 //	.option('--use_fee_asset', 'Using separated asset to pay for fees. Such as binance\'s BNB or Huobi\'s HT', Boolean)
-	.option('--run_for <minutes>', 'Execute for a period of minutes then exit with status 0', String, conf.run_for)
+//	.option('--run_for <minutes>', 'Execute for a period of minutes then exit with status 0', String, conf.run_for)
 //	.option('--update_msg <hours>', 'Send an update message every <hours>', String, conf.update_msg)
 	.option('--debug', 'output detailed debug info')
 	.option('--no_first_message', 'no first update message', Boolean, false)
@@ -102,11 +99,11 @@ module.exports = function (program, conf) {
 
 		var engine = null
 
-		//Se è stata impostata la funzione per il tempo di esecuzione, fissa il tempo di partenza
-		if (so.run_for) {
-			debug.msg('Run_for option = ', so.run_for)
-			var botStartTime = moment().add(so.run_for, 'm')
-		}
+//		//Se è stata impostata la funzione per il tempo di esecuzione, fissa il tempo di partenza
+//		if (so.run_for) {
+//			debug.msg('Run_for option = ', so.run_for)
+//			var botStartTime = moment().add(so.run_for, 'm')
+//		}
 
 		//Dovrebbe cancellare tutte le opzioni passate a riga di comando senza denominazione
 		// (minimist mette queste opzioni dentro un array chiamato _)
@@ -189,20 +186,8 @@ module.exports = function (program, conf) {
 		var db_my_closed_positions = conf.nestdb.my_closed_positions
 		var db_periods = conf.nestdb.periods
 		var db_sessions = conf.nestdb.sessions
-//		var db_balances = conf.nestdb.balances
 		var db_resume_markers = conf.nestdb.resume_markers
 		var db_trades = conf.nestdb.trades
-
-
-//		//Autocompatta i db ogni giorno
-//		db_my_trades.persistence.setAutocompactionInterval(86400000)
-//		db_my_positions.persistence.setAutocompactionInterval(86400000)
-//		db_my_closed_positions.persistence.setAutocompactionInterval(86400000)
-//		db_periods.persistence.setAutocompactionInterval(86400000)
-//		db_sessions.persistence.setAutocompactionInterval(86400000)
-////		db_balances.persistence.setAutocompactionInterval(86400000)
-//		db_resume_markers.persistence.setAutocompactionInterval(86400000)
-//		db_trades.persistence.setAutocompactionInterval(86400000)
 
 		s.db_valid = true
 
@@ -224,7 +209,7 @@ module.exports = function (program, conf) {
 					if (err) {
 						reject(err)
 					}
-					console.log('\n\tmy_positions collection deleted!')
+					console.log('\tCollection my_positions deleted!')
 					db_my_positions = conf.nestdb.datastore.collection('my_positions')
 					resolve()
 				})
@@ -234,7 +219,7 @@ module.exports = function (program, conf) {
 					if (err) {
 						reject(err)
 					}
-					console.log('\n\tmy_closed_positions collection deleted!')
+					console.log('\tCollection my_closed_positions deleted!')
 					db_my_closed_positions = conf.nestdb.datastore.collection('my_closed_positions')
 					resolve()
 				})
@@ -244,7 +229,7 @@ module.exports = function (program, conf) {
 					if (err) {
 						reject(err)
 					}
-					console.log('\n\tmy_trades collection deleted!')
+					console.log('\tCollection my_trades deleted!')
 					db_my_trades = conf.nestdb.datastore.collection('my_trades')
 					resolve()
 				})
@@ -254,7 +239,7 @@ module.exports = function (program, conf) {
 					if (err) {
 						reject(err)
 					}
-					console.log('\n\tsessions collection deleted!')
+					console.log('\tCollection sessions deleted!')
 					db_sessions = conf.nestdb.datastore.collection('sessions')
 					resolve()
 				})
@@ -638,7 +623,7 @@ module.exports = function (program, conf) {
 					}})
 					keyMap.set('C', {desc: ('cancel the position'.grey), action: function() {
 						if (s.positions_index != null) {
-							//Attenzione!! Se ordino più cancellazioni in breve lasso di tempo, s.position_index diventa null prima che 
+//Da sistemare: Attenzione!! Se ordino più cancellazioni in breve lasso di tempo, s.position_index diventa null prima che 
 							// s.positionProcessingQueue possa eseguire le operazioni, quindi non troverà il .id e il programma andrà
 							// in errore.
 							console.log('\nCanceling the position '.yellow + s.positions[s.positions_index].id)
@@ -775,10 +760,10 @@ module.exports = function (program, conf) {
 						s.exchange.debug_exchange = !s.exchange.debug_exchange
 						console.log('\nDEBUG EXCHANGE mode: ' + (s.exchange.debug_exchange ? 'ON'.green.inverse : 'OFF'.red.inverse))
 					}})
-					keyMap.set('R', {desc: ('try to recover databases'.grey), 	action: function() {
-						console.log('\nTrying to recover databases...'.grey)
-						recoverDB()
-					}})
+//					keyMap.set('R', {desc: ('try to recover databases'.grey), 	action: function() {
+//						console.log('\nTrying to recover databases...'.grey)
+//						recoverDB()
+//					}})
 					keyMap.set('K', {desc: ('clean databases (delete data older than '.grey + so.nestdb.tot_days + ' days)'.grey), action: function() {
 						console.log('\nCleaning databases...'.grey)
 						cleanDB()
@@ -807,61 +792,63 @@ module.exports = function (program, conf) {
 				})
 			}
 
-			/* Trying to recover DB connection */
-			function recoverDB() {
-				s.db_valid = false
-
-				debug.msg('Recupero la connessione con i database...')
-
-				var collectionServiceInstance = collectionService(conf, function() {
-					debug.msg('Ricreo i database...', false)
-					db_my_positions.drop(function(err) {
-						if (err) {
-							console.error('Failed to destroy datastore:', err);
-						} 
-						s.positions.forEach(function (position) {
-							db_my_positions.insert(position, function (err) {
-								if (err) {
-									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
-									console.error(err)
-								}
-							})
-						})
-						debug.msg('db_my_positions -> fatto!', false)
-					})
-
-					db_my_closed_positions.drop(function(err) {
-						if (err) {
-							console.error('Failed to destroy datastore:', err);
-						} 
-						s.closed_positions.forEach(function (position) {
-							db_my_closed_positions.insert(position, function (err) {
-								if (err) {
-									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
-									console.error(err)
-								}
-							})
-						})
-						debug.msg('db_my_closed_positions -> fatto!', false)
-					})
-
-					db_my_trades.drop(function(err) {
-						if (err) {
-							console.error('Failed to destroy datastore:', err);
-						} 
-						s.my_trades.forEach(function (position) {
-							db_my_trades.insert(position, function (err) {
-								if (err) {
-									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
-									console.error(err)
-								}
-							})
-						})
-						debug.msg('db_my_trades -> fatto!', false)
-					})
-					s.db_valid = true
-				})
-			}
+//Da sistemare: i db risultano chiusi, va aggiornato il codice
+			//Ma in realtà, non mi serve più questa funzione
+//			/* Trying to recover DB connection */
+//			function recoverDB() {
+//				s.db_valid = false
+//
+//				debug.msg('Recupero la connessione con i database...')
+//
+//				var collectionServiceInstance = collectionService(conf, function() {
+//					debug.msg('Ricreo i database...', false)
+//					db_my_positions.drop(function(err) {
+//						if (err) {
+//							console.error('Failed to destroy datastore:', err);
+//						} 
+//						s.positions.forEach(function (position) {
+//							db_my_positions.insert(position, function (err) {
+//								if (err) {
+//									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
+//									console.error(err)
+//								}
+//							})
+//						})
+//						debug.msg('db_my_positions -> fatto!', false)
+//					})
+//
+//					db_my_closed_positions.drop(function(err) {
+//						if (err) {
+//							console.error('Failed to destroy datastore:', err);
+//						} 
+//						s.closed_positions.forEach(function (position) {
+//							db_my_closed_positions.insert(position, function (err) {
+//								if (err) {
+//									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
+//									console.error(err)
+//								}
+//							})
+//						})
+//						debug.msg('db_my_closed_positions -> fatto!', false)
+//					})
+//
+//					db_my_trades.drop(function(err) {
+//						if (err) {
+//							console.error('Failed to destroy datastore:', err);
+//						} 
+//						s.my_trades.forEach(function (position) {
+//							db_my_trades.insert(position, function (err) {
+//								if (err) {
+//									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
+//									console.error(err)
+//								}
+//							})
+//						})
+//						debug.msg('db_my_trades -> fatto!', false)
+//					})
+//					s.db_valid = true
+//				})
+//			}
 
 
 			/* To clean databases */
@@ -885,16 +872,6 @@ module.exports = function (program, conf) {
 					}
 					debug.msg('cleanDB - ' + numRemoved + ' trade(s) deleted')
 				})
-
-//				debug.msg('cleanDB - Compattazione dei db')
-//				db_my_trades.persistence.compactDatafile()
-//				db_my_positions.persistence.compactDatafile()
-//				db_my_closed_positions.persistence.compactDatafile()
-//				db_periods.persistence.compactDatafile()
-//				db_sessions.persistence.compactDatafile()
-////				db_balances.persistence.compactDatafile()
-//				db_resume_markers.persistence.compactDatafile()
-//				db_trades.persistence.compactDatafile()
 			}
 
 			/* Funzioni per le operazioni sul database delle posizioni */
@@ -1346,6 +1323,7 @@ module.exports = function (program, conf) {
 									if (err) throw err
 									var prev_session = prev_sessions[0]
 
+//Da sistemare: ho veramente bisogno di un controllo sul capitale precedente per stabilire che è un prosieguo della vecchia sessione?
 									//Il controllo sulla precedente sessione, soprattutto quando ci sono più bot che lavorano sullo stesso balance, è destinato la maggior
 									// parte delle volte a fallire. Quindi lo tolgo, anche perchè in ogni caso serve a poco.
 //									if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
@@ -1390,9 +1368,6 @@ module.exports = function (program, conf) {
 
 									//Chiamata alla funzione forwardScan() ogni so.poll_trades
 									setInterval(forwardScan, so.poll_trades)
-
-									//Ridimensiona i database ogni giorno
-//									setInterval(cleanDB, 86400000)
 
 									//Se l'exchange non ha websocket, chiamata alla funzione getAllOrders() ogni so.order_poll_time
 									if (!s.exchange.websocket) { // && typeof s.exchange.getAllOrders === 'function') {
@@ -1461,15 +1436,7 @@ module.exports = function (program, conf) {
 				/* End of getNext() */
 
 				engine.writeHeader()
-//				db_trades.load(function (err) {
-//				if (err) {
-//				console.err(err);
-//				}
-//				else {
-//				console.log('Boot - db_trades reloaded...');
 				getNext()
-//				}
-//				})
 			})
 			/* End of backfiller.on(exit) */
 
@@ -1477,19 +1444,17 @@ module.exports = function (program, conf) {
 			//forwardScan() viene chiamata ogni so.poll_trades
 			function forwardScan() {
 				function saveSession() {
-					//Check sul run_for
-					if (botStartTime && botStartTime - moment() < 0 ) {
-						// Not sure if I should just handle exit code directly or thru printTrade.  Decided on printTrade being if code is added there for clean exits this can just take advantage of it.
-						engine.exit(() => {
-							printTrade(true)
-						})
-					}
+//					//Check sul run_for
+//					if (botStartTime && botStartTime - moment() < 0 ) {
+//						// Not sure if I should just handle exit code directly or thru printTrade.  Decided on printTrade being if code is added there for clean exits this can just take advantage of it.
+//						engine.exit(() => {
+//							printTrade(true)
+//						})
+//					}
 
 					//Check per invio messaggi di status
 					if (nextUpdateMsg && nextUpdateMsg - moment() < 0) {
-						//						nextUpdateMsg = moment().add(so.update_msg, 'h')
 						nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
-						//debug.msg('nextUpdateMsg=' + nextUpdateMsg)
 						engine.updateMessage()
 					}
 

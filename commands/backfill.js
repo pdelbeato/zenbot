@@ -1,7 +1,6 @@
 var tb = require('timebucket')
 , crypto = require('crypto')
 , objectifySelector = require('../lib/objectify-selector')
-//, collectionService = require('../lib/services/collection-service')
 
 module.exports = function (program, conf) {
 	program
@@ -21,20 +20,18 @@ module.exports = function (program, conf) {
 			process.exit(1)
 		}
 
-//		var collectionServiceInstance = collectionService(conf)
-//		var tradesCollection = collectionServiceInstance.getTrades()
-//		var resume_markers = collectionServiceInstance.getResumeMarkers()
 		var db_trades = conf.nestdb.trades
 		var db_resume_markers = conf.nestdb.resume_markers
 
 		var marker = {
-			id: crypto.randomBytes(4).toString('hex'),
-			selector: selector.normalized,
-			from: null,
-			to: null,
-			oldest_time: null,
-			newest_time: null
+				id: crypto.randomBytes(4).toString('hex'),
+				selector: selector.normalized,
+				from: null,
+				to: null,
+				oldest_time: null,
+				newest_time: null
 		}
+		
 		marker._id = marker.id
 		var trade_counter = 0
 		var day_trade_counter = 0
@@ -45,10 +42,12 @@ module.exports = function (program, conf) {
 		var last_batch_id, last_batch_opts
 		var offset = exchange.offset
 		var markers, trades
+		
 		if (!mode) {
 			console.error('cannot backfill ' + selector.normalized + ': exchange does not offer historical data')
 			process.exit(0)
 		}
+		
 		if (mode === 'backward') {
 			target_time = new Date().getTime() - (86400000 * cmd.days)
 		}
@@ -61,6 +60,7 @@ module.exports = function (program, conf) {
 				start_time = new Date().getTime() - (86400000 * cmd.days)
 			}
 		}
+		
 		db_resume_markers.find({selector: selector.normalized}, function(err, results) {
 //			console.log('Backfill - db_resume_markers')
 			markers = results.sort(function (a, b) {
@@ -174,13 +174,8 @@ module.exports = function (program, conf) {
 					diff = tb(marker.newest_time - newest_time).resize('1h').value
 					console.log('\nskipping ' + diff + ' hrs of previously collected data')
 				}
-				//Corretto per Deprecation Warning
-//				console.log('Backfill - before db_resume_markers.update')
 				db_resume_markers.update({"_id" : marker._id}, {$set : marker}, {multi: false, upsert : true}, function() {
-				setupNext()
-//				.catch(function(err){
-//					if (err) throw err
-//				})
+					setupNext()
 				})
 			}).catch(function(err){
 				if (err) {
