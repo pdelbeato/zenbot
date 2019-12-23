@@ -225,7 +225,7 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\n\tmy_positions collection deleted!')
-					db_my_positions = conf.nestdb.datastore.collection(my_positions)
+					db_my_positions = conf.nestdb.datastore.collection('my_positions')
 					resolve()
 				})
 			})
@@ -235,7 +235,7 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\n\tmy_closed_positions collection deleted!')
-					db_my_closed_positions = conf.nestdb.datastore.collection(my_closed_positions)
+					db_my_closed_positions = conf.nestdb.datastore.collection('my_closed_positions')
 					resolve()
 				})
 			})
@@ -245,7 +245,7 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\n\tmy_trades collection deleted!')
-					db_my_trades = conf.nestdb.datastore.collection(my_trades)
+					db_my_trades = conf.nestdb.datastore.collection('my_trades')
 					resolve()
 				})
 			})
@@ -255,7 +255,7 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\n\tsessions collection deleted!')
-					db_sessions = conf.nestdb.datastore.collection(sessions)
+					db_sessions = conf.nestdb.datastore.collection('sessions')
 					resolve()
 				})
 			})
