@@ -18,6 +18,7 @@ conf-*
 conf_*
 conf/*
 !conf-sample.js
+!conf-default.js
 sim_result*
 trade_result*
 paper_result*
