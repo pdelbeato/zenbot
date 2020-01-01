@@ -238,6 +238,7 @@ module.exports = function (program, conf) {
 
 		//Recupera tutte le vecchie posizioni aperte e le copia in s.positions
 		let recover_my_positions = new Promise(function (resolve, reject) {
+			console.log('Recupero le vecchie posizioni aperte')
 			db_my_positions.find({selector: so.selector.normalized}, function (err, my_prev_positions) {
 				if (err) {
 					reject(err)
@@ -265,6 +266,7 @@ module.exports = function (program, conf) {
 
 		//Recupera tutte le vecchie posizioni chiuse e le copia in s.closed_positions
 		let recover_my_closed_positions = new Promise(function (resolve, reject) {
+			console.log('Recupero le vecchie posizioni chiuse')
 			db_my_closed_positions.find({selector: so.selector.normalized}, function (err, my_closed_positions) {
 				if (err) {
 					reject(err)
@@ -294,6 +296,7 @@ module.exports = function (program, conf) {
 			//Quindi engine è quantum-engine(s, conf), dove conf è zenbot.conf da zenbot.js, quindi l'unione
 			// di conf_file, conf.js e conf-sample.js e NON s.options
 			//engine = engineFactory(s, conf)
+			console.log('Fatto tutto!')
 		})
 		.catch(function(error) {
 			console.log(error)
