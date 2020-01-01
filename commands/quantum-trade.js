@@ -196,6 +196,10 @@ module.exports = function (program, conf) {
 
 		var db_log_trades = conf.nestdb.log.trades
 		
+		var db_my_trades_mod = conf.nestdb_mod.my_trades
+		var db_my_positions_mod = conf.nestdb_mod.my_positions
+		var db_my_closed_positions_mod = conf.nestdb_mod.my_closed_positions
+		
 		//Autocompatta i db ogni giorno
 		db_my_trades.persistence.setAutocompactionInterval(86400000)
 		db_my_positions.persistence.setAutocompactionInterval(86400000)
@@ -241,6 +245,16 @@ module.exports = function (program, conf) {
 				if (my_prev_positions.length) {
 					my_prev_positions.forEach(function (position) {
 						position.status = 0
+						//
+						
+							db_my_positions_mod.update({'_id' : position.id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+								if (err) {
+									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_positions_mod')
+									console.error(err)
+								}
+							})
+						
+						//
 					})
 					s.positions = my_prev_positions.slice(0)
 					console.log('Recuperate le vecchie posizioni aperte: ' + s.positions.length)
@@ -256,6 +270,18 @@ module.exports = function (program, conf) {
 					reject(err)
 				}
 				if (my_closed_positions.length) {
+					my_closed_positions.forEach(function (position) {
+						
+						
+							db_my_closed_positions_mod.update({'_id' : position.id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+								if (err) {
+									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions_mod')
+									console.error(err)
+								}
+							})
+						
+						//
+					})
 					s.closed_positions = my_closed_positions.slice(0)
 					console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
 				}
