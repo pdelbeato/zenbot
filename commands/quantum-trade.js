@@ -1540,6 +1540,12 @@ module.exports = function (program, conf) {
 							}
 							if (s.period) {
 								savePeriod(s.period)
+								engine.writeReport(true)
+							} 
+							else {
+								readline.clearLine(process.stdout)
+								readline.cursorTo(process.stdout, 0)
+								process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
 							}
 //							saveSession()
 						})
@@ -1633,18 +1639,20 @@ module.exports = function (program, conf) {
 
 				if (s.db_valid) {
 					db_sessions.update({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
-
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 							console.error(err)
 						}
-						if (s.period) {
-							engine.writeReport(true)
-						} else {
-							readline.clearLine(process.stdout)
-							readline.cursorTo(process.stdout, 0)
-							process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
+						else {
+							debug.msg('Save session.')
 						}
+//						if (s.period) {
+//							engine.writeReport(true)
+//						} else {
+//							readline.clearLine(process.stdout)
+//							readline.cursorTo(process.stdout, 0)
+//							process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
+//						}
 					})
 				}
 			}
