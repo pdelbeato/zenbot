@@ -1511,27 +1511,12 @@ module.exports = function (program, conf) {
 												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
 												console.error(err)
 											}
+											//Se c'è stato un trade, allora è il caso di aggiornare la sessione
+											saveSession()
 										})
 									}
 								})
 								my_trades_size = s.my_trades.length
-							}
-
-							function savePeriod (period) {
-								if (!period.id) {
-									period.id = crypto.randomBytes(4).toString('hex')
-									period.selector = so.selector.normalized
-									period.session_id = session.id
-								}
-								period._id = period.id
-								if (s.db_valid) {
-									db_periods.update({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
-										if (err) {
-											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
-											console.error(err)
-										}
-									})
-								}
 							}
 
 							if (s.lookback.length > lookback_size) {
@@ -1579,12 +1564,28 @@ module.exports = function (program, conf) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
 								console.error(err)
 							}
-							//Se c'è stato un trade, allora è il caso di aggiornare la sessione
-							saveSession()
 						})
 					}
 				}
 				/* End of saveTrade() */
+				
+				function savePeriod (period) {
+					if (!period.id) {
+						period.id = crypto.randomBytes(4).toString('hex')
+						period.selector = so.selector.normalized
+						period.session_id = session.id
+					}
+					period._id = period.id
+					if (s.db_valid) {
+						db_periods.update({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
+							if (err) {
+								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
+								console.error(err)
+							}
+						})
+					}
+				}
+				/* End of savePeriod() */
 			}
 			/* End of forwardScan() */
 
