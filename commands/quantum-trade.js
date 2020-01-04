@@ -101,8 +101,8 @@ module.exports = function (program, conf) {
 
 //		//Se è stata impostata la funzione per il tempo di esecuzione, fissa il tempo di partenza
 //		if (so.run_for) {
-//			debug.msg('Run_for option = ', so.run_for)
-//			var botStartTime = moment().add(so.run_for, 'm')
+//		debug.msg('Run_for option = ', so.run_for)
+//		var botStartTime = moment().add(so.run_for, 'm')
 //		}
 
 		//Dovrebbe cancellare tutte le opzioni passate a riga di comando senza denominazione
@@ -623,7 +623,7 @@ module.exports = function (program, conf) {
 					}})
 					keyMap.set('C', {desc: ('cancel the position'.grey), action: function() {
 						if (s.positions_index != null) {
-//Da sistemare: Attenzione!! Se ordino più cancellazioni in breve lasso di tempo, s.position_index diventa null prima che 
+//							Da sistemare: Attenzione!! Se ordino più cancellazioni in breve lasso di tempo, s.position_index diventa null prima che 
 							// s.positionProcessingQueue possa eseguire le operazioni, quindi non troverà il .id e il programma andrà
 							// in errore.
 							console.log('\nCanceling the position '.yellow + s.positions[s.positions_index].id)
@@ -761,8 +761,8 @@ module.exports = function (program, conf) {
 						console.log('\nDEBUG EXCHANGE mode: ' + (s.exchange.debug_exchange ? 'ON'.green.inverse : 'OFF'.red.inverse))
 					}})
 //					keyMap.set('R', {desc: ('try to recover databases'.grey), 	action: function() {
-//						console.log('\nTrying to recover databases...'.grey)
-//						recoverDB()
+//					console.log('\nTrying to recover databases...'.grey)
+//					recoverDB()
 //					}})
 					keyMap.set('K', {desc: ('clean databases (delete data older than '.grey + so.nestdb.tot_days + ' days)'.grey), action: function() {
 						console.log('\nCleaning databases...'.grey)
@@ -792,62 +792,62 @@ module.exports = function (program, conf) {
 				})
 			}
 
-//Da sistemare: i db risultano chiusi, va aggiornato il codice
+//			Da sistemare: i db risultano chiusi, va aggiornato il codice
 			//Ma in realtà, non mi serve più questa funzione
 //			/* Trying to recover DB connection */
 //			function recoverDB() {
-//				s.db_valid = false
-//
-//				debug.msg('Recupero la connessione con i database...')
-//
-//				var collectionServiceInstance = collectionService(conf, function() {
-//					debug.msg('Ricreo i database...', false)
-//					db_my_positions.drop(function(err) {
-//						if (err) {
-//							console.error('Failed to destroy datastore:', err);
-//						} 
-//						s.positions.forEach(function (position) {
-//							db_my_positions.insert(position, function (err) {
-//								if (err) {
-//									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
-//									console.error(err)
-//								}
-//							})
-//						})
-//						debug.msg('db_my_positions -> fatto!', false)
-//					})
-//
-//					db_my_closed_positions.drop(function(err) {
-//						if (err) {
-//							console.error('Failed to destroy datastore:', err);
-//						} 
-//						s.closed_positions.forEach(function (position) {
-//							db_my_closed_positions.insert(position, function (err) {
-//								if (err) {
-//									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
-//									console.error(err)
-//								}
-//							})
-//						})
-//						debug.msg('db_my_closed_positions -> fatto!', false)
-//					})
-//
-//					db_my_trades.drop(function(err) {
-//						if (err) {
-//							console.error('Failed to destroy datastore:', err);
-//						} 
-//						s.my_trades.forEach(function (position) {
-//							db_my_trades.insert(position, function (err) {
-//								if (err) {
-//									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
-//									console.error(err)
-//								}
-//							})
-//						})
-//						debug.msg('db_my_trades -> fatto!', false)
-//					})
-//					s.db_valid = true
-//				})
+//			s.db_valid = false
+
+//			debug.msg('Recupero la connessione con i database...')
+
+//			var collectionServiceInstance = collectionService(conf, function() {
+//			debug.msg('Ricreo i database...', false)
+//			db_my_positions.drop(function(err) {
+//			if (err) {
+//			console.error('Failed to destroy datastore:', err);
+//			} 
+//			s.positions.forEach(function (position) {
+//			db_my_positions.insert(position, function (err) {
+//			if (err) {
+//			console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
+//			console.error(err)
+//			}
+//			})
+//			})
+//			debug.msg('db_my_positions -> fatto!', false)
+//			})
+
+//			db_my_closed_positions.drop(function(err) {
+//			if (err) {
+//			console.error('Failed to destroy datastore:', err);
+//			} 
+//			s.closed_positions.forEach(function (position) {
+//			db_my_closed_positions.insert(position, function (err) {
+//			if (err) {
+//			console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
+//			console.error(err)
+//			}
+//			})
+//			})
+//			debug.msg('db_my_closed_positions -> fatto!', false)
+//			})
+
+//			db_my_trades.drop(function(err) {
+//			if (err) {
+//			console.error('Failed to destroy datastore:', err);
+//			} 
+//			s.my_trades.forEach(function (position) {
+//			db_my_trades.insert(position, function (err) {
+//			if (err) {
+//			console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
+//			console.error(err)
+//			}
+//			})
+//			})
+//			debug.msg('db_my_trades -> fatto!', false)
+//			})
+//			s.db_valid = true
+//			})
 //			}
 
 
@@ -1323,7 +1323,7 @@ module.exports = function (program, conf) {
 									if (err) throw err
 									var prev_session = prev_sessions[0]
 
-//Da sistemare: ho veramente bisogno di un controllo sul capitale precedente per stabilire che è un prosieguo della vecchia sessione?
+//									Da sistemare: ho veramente bisogno di un controllo sul capitale precedente per stabilire che è un prosieguo della vecchia sessione?
 									//Il controllo sulla precedente sessione, soprattutto quando ci sono più bot che lavorano sullo stesso balance, è destinato la maggior
 									// parte delle volte a fallire. Quindi lo tolgo, anche perchè in ogni caso serve a poco.
 //									if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
@@ -1361,6 +1361,12 @@ module.exports = function (program, conf) {
 									session.start_capital_currency = s.start_capital_currency
 									session.start_capital_asset = s.start_capital_asset
 									session.start_price = s.start_price
+
+									//Primo salvataggio di sessione
+									saveSession()
+
+									//Chiamata alla funzione saveSession() ogni giorno
+									setInterval(saveSession, (60*1000*60*24))
 
 									if (s.lookback.length > so.keep_lookback_periods) {
 										s.lookback.splice(-1,1) //Toglie l'ultimo elemento
@@ -1443,80 +1449,6 @@ module.exports = function (program, conf) {
 			var prev_timeout = null
 			//forwardScan() viene chiamata ogni so.poll_trades
 			function forwardScan() {
-				function saveSession() {
-//					//Check sul run_for
-//					if (botStartTime && botStartTime - moment() < 0 ) {
-//						// Not sure if I should just handle exit code directly or thru printTrade.  Decided on printTrade being if code is added there for clean exits this can just take advantage of it.
-//						engine.exit(() => {
-//							printTrade(true)
-//						})
-//					}
-
-					//Check per invio messaggi di status
-					if (nextUpdateMsg && nextUpdateMsg - moment() < 0) {
-						nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
-						engine.updateMessage()
-					}
-
-//					//Se esiste s.period, aggiorno il database balances
-//					if (s.period) {
-//					session.price = s.period.close
-//					var d = tb().resize(conf.balance_snapshot_period)
-//					var b = {
-//					id: so.selector.normalized + '-' + d.toString(),
-//					selector: so.selector.normalized,
-//					time: d.toMilliseconds(),
-//					currency: s.balance.currency,
-//					asset: s.balance.asset,
-//					price: s.period.close,
-//					//Questi due seguenti a cosa serve memorizzarli nel db dei balances?
-//					start_capital_currency: session.orig_capital_currency,
-//					start_price: session.orig_price,
-//					}
-//					b._id = b.id
-//					b.consolidated = n(s.balance.asset).multiply(s.period.close).add(s.balance.currency).value()
-//					b.profit_currency = (b.consolidated - session.orig_capital_currency) / session.orig_capital_currency
-//					b.buy_hold = s.period.close * (session.orig_asset + session.orig_currency / session.orig_price)
-//					b.buy_hold_profit = (b.buy_hold - session.orig_capital_currency) / session.orig_capital_currency
-//					b.vs_buy_hold = (b.consolidated - b.buy_hold) / b.buy_hold
-//					conf.output.api.on && printTrade(false, false, true)
-//					if (so.mode === 'live' && s.db_valid) {
-//					db_balances.update({'_id': b._id}, {$set: b}, {multi: false, upsert: true}, function (err) {
-//					if (err) {
-//					console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving balance')
-//					console.error(err)
-//					}
-//					})
-//					}
-//					//Con questo, memorizzo valori inutili dentro session.balance.
-//					//              session.balance = b
-//					}
-
-					session.updated = new Date().getTime()
-					session.balance = s.balance
-					session.num_trades = s.my_trades.length
-					session.day_count = s.day_count
-					session.total_fees = s.total_fees
-
-					if (s.db_valid) {
-						db_sessions.update({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
-
-							if (err) {
-								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
-								console.error(err)
-							}
-							if (s.period) {
-								engine.writeReport(true)
-							} else {
-								readline.clearLine(process.stdout)
-								readline.cursorTo(process.stdout, 0)
-								process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
-							}
-						})
-					}
-				}
-				/* End of saveSession()  */
-
 				//To avoid fetching last trade twice on exchange.getTrades() call.
 				// exchange.getTrades()'s "from" argument is inclusive. This modification add a
 				// millisecond to it, in order to avoid fetching a second time the last
@@ -1609,11 +1541,17 @@ module.exports = function (program, conf) {
 							if (s.period) {
 								savePeriod(s.period)
 							}
-							saveSession()
+//							saveSession()
 						})
 					}
-					else {
-						saveSession()
+//					else {
+//						saveSession()
+//					}
+
+					//Check per invio messaggi di status
+					if (nextUpdateMsg && nextUpdateMsg - moment() < 0) {
+						nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
+						engine.updateMessage()
 					}
 				})
 
@@ -1635,12 +1573,83 @@ module.exports = function (program, conf) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
 								console.error(err)
 							}
+							//Se c'è stato un trade, allora è il caso di aggiornare la sessione
+							saveSession()
 						})
 					}
 				}
 				/* End of saveTrade() */
 			}
 			/* End of forwardScan() */
+
+			function saveSession() {
+//				//Check sul run_for
+//				if (botStartTime && botStartTime - moment() < 0 ) {
+//				// Not sure if I should just handle exit code directly or thru printTrade.  Decided on printTrade being if code is added there for clean exits this can just take advantage of it.
+//				engine.exit(() => {
+//				printTrade(true)
+//				})
+//				}
+
+//				//Se esiste s.period, aggiorno il database balances
+//				if (s.period) {
+//				session.price = s.period.close
+//				var d = tb().resize(conf.balance_snapshot_period)
+//				var b = {
+//				id: so.selector.normalized + '-' + d.toString(),
+//				selector: so.selector.normalized,
+//				time: d.toMilliseconds(),
+//				currency: s.balance.currency,
+//				asset: s.balance.asset,
+//				price: s.period.close,
+//				//Questi due seguenti a cosa serve memorizzarli nel db dei balances?
+//				start_capital_currency: session.orig_capital_currency,
+//				start_price: session.orig_price,
+//				}
+//				b._id = b.id
+//				b.consolidated = n(s.balance.asset).multiply(s.period.close).add(s.balance.currency).value()
+//				b.profit_currency = (b.consolidated - session.orig_capital_currency) / session.orig_capital_currency
+//				b.buy_hold = s.period.close * (session.orig_asset + session.orig_currency / session.orig_price)
+//				b.buy_hold_profit = (b.buy_hold - session.orig_capital_currency) / session.orig_capital_currency
+//				b.vs_buy_hold = (b.consolidated - b.buy_hold) / b.buy_hold
+//				conf.output.api.on && printTrade(false, false, true)
+//				if (so.mode === 'live' && s.db_valid) {
+//				db_balances.update({'_id': b._id}, {$set: b}, {multi: false, upsert: true}, function (err) {
+//				if (err) {
+//				console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving balance')
+//				console.error(err)
+//				}
+//				})
+//				}
+//				//Con questo, memorizzo valori inutili dentro session.balance.
+//				//              session.balance = b
+//				}
+
+				session.updated = new Date().getTime()
+				session.balance = s.balance
+				session.num_trades = s.my_trades.length
+				session.day_count = s.day_count
+				session.total_fees = s.total_fees
+
+				if (s.db_valid) {
+					db_sessions.update({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
+
+						if (err) {
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
+							console.error(err)
+						}
+						if (s.period) {
+							engine.writeReport(true)
+						} else {
+							readline.clearLine(process.stdout)
+							readline.cursorTo(process.stdout, 0)
+							process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
+						}
+					})
+				}
+			}
+			/* End of saveSession()  */
+
 		})
 		.catch(function(error) {
 			console.log('Errore nella gestione db!')
