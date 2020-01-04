@@ -1526,7 +1526,10 @@ module.exports = function (program, conf) {
 							}
 							if (s.period) {
 								savePeriod(s.period)
-								engine.writeReport(true)
+								//Timeout per dare il tempo a engine di inizializzare un period (se ce ne fosse bisogno) e non avere una invalid date
+								setTimeout(function() {
+									engine.writeReport(true)
+								}, 1000)
 							} 
 							else {
 								readline.clearLine(process.stdout)
