@@ -286,6 +286,7 @@ module.exports = function (program, conf) {
 					}
 					if (my_prev_trades.length) {
 						s.my_trades = my_prev_trades.slice(0)
+						my_trades_size = s.my_trades.length
 						console.log('Recuperati i vecchi trade: ' + s.my_trades.length)
 					}
 					resolve()
