@@ -183,13 +183,13 @@ module.exports = function (program, conf) {
 		var my_trades_size = 0
 
 		//Recupera tutti i vecchi database
-		var db_my_trades = conf.nestdb.my_trades
-		var db_my_positions = conf.nestdb.my_positions
-		var db_my_closed_positions = conf.nestdb.my_closed_positions
-		var db_periods = conf.nestdb.periods
-		var db_sessions = conf.nestdb.sessions
-		var db_resume_markers = conf.nestdb.resume_markers
-		var db_trades = conf.nestdb.trades
+		var db_my_trades = conf.db.my_trades
+		var db_my_positions = conf.db.my_positions
+		var db_my_closed_positions = conf.db.my_closed_positions
+		var db_periods = conf.db.periods
+		var db_sessions = conf.db.sessions
+		var db_resume_markers = conf.db.resume_markers
+		var db_trades = conf.db.trades
 
 //		s.db_valid = true
 
@@ -212,7 +212,7 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\tCollection my_positions deleted!')
-					db_my_positions = conf.nestdb.datastore.collection('my_positions')
+					db_my_positions = conf.db.datastore.collection('my_positions')
 					resolve()
 				})
 			})
@@ -222,7 +222,7 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\tCollection my_closed_positions deleted!')
-					db_my_closed_positions = conf.nestdb.datastore.collection('my_closed_positions')
+					db_my_closed_positions = conf.db.datastore.collection('my_closed_positions')
 					resolve()
 				})
 			})
@@ -232,7 +232,7 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\tCollection my_trades deleted!')
-					db_my_trades = conf.nestdb.datastore.collection('my_trades')
+					db_my_trades = conf.db.datastore.collection('my_trades')
 					resolve()
 				})
 			})
@@ -242,7 +242,7 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\tCollection sessions deleted!')
-					db_sessions = conf.nestdb.datastore.collection('sessions')
+					db_sessions = conf.db.datastore.collection('sessions')
 					resolve()
 				})
 			})
@@ -767,7 +767,7 @@ module.exports = function (program, conf) {
 //					console.log('\nTrying to recover databases...'.grey)
 //					recoverDB()
 //					}})
-					keyMap.set('K', {desc: ('clean databases (delete data older than '.grey + so.nestdb.tot_days + ' days)'.grey), action: function() {
+					keyMap.set('K', {desc: ('clean databases (delete data older than '.grey + so.db.tot_days + ' days)'.grey), action: function() {
 						console.log('\nCleaning databases...'.grey)
 						cleanDB()
 					}})
@@ -856,7 +856,7 @@ module.exports = function (program, conf) {
 
 			/* To clean databases */
 			function cleanDB() {
-				fromTime = n(moment().subtract(so.nestdb.tot_days, 'd')).value()
+				fromTime = n(moment().subtract(so.db.tot_days, 'd')).value()
 
 				debug.msg('cleanDB - Pulisco il db dei record più vecchi di ' + fromTime + ' (ora è ' + moment() + ')... ')
 
@@ -1155,7 +1155,7 @@ module.exports = function (program, conf) {
 
 //			var output_lines = []
 //			var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
-//			var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
+//			var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(.close)).format('0.00000000')
 
 //			//        var profit = s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)
 //			var profit_currency = n(tmp_capital_currency).subtract(s.orig_capital_currency).divide(s.orig_capital_currency)
