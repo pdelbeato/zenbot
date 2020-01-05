@@ -20,8 +20,8 @@ module.exports = function (program, conf) {
 			process.exit(1)
 		}
 
-		var db_trades = conf.nestdb.trades
-		var db_resume_markers = conf.nestdb.resume_markers
+		var db_trades = conf.db.trades
+		var db_resume_markers = conf.db.resume_markers
 
 		var marker = {
 				id: crypto.randomBytes(4).toString('hex'),
