@@ -154,6 +154,8 @@ module.exports = function (program, conf) {
 			}
 		}
 
+		var nextSessionSave = moment().startOf('day')
+		
 //		E' sbagliato!!! 
 //		if (!so.min_periods) {
 //		so.min_periods = 1
@@ -189,7 +191,7 @@ module.exports = function (program, conf) {
 		var db_resume_markers = conf.nestdb.resume_markers
 		var db_trades = conf.nestdb.trades
 
-		s.db_valid = true
+//		s.db_valid = true
 
 		var marker = {
 			id: crypto.randomBytes(4).toString('hex'),
@@ -882,7 +884,7 @@ module.exports = function (program, conf) {
 					var position = s.positions.find(x => x.id === task.position_id)
 					position._id = position.id
 
-					if (s.db_valid) {
+//					if (s.db_valid) {
 						db_my_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_positions')
@@ -891,7 +893,7 @@ module.exports = function (program, conf) {
 								return callback(err)
 							}
 						})
-					}
+//					}
 //					Da sistemare: se db_valid è falso, allora sto lavorando sul db, quindi devo richiamare la funzione più tardi!!
 
 					break
@@ -899,7 +901,7 @@ module.exports = function (program, conf) {
 				case 'delete': {
 					var position_index = s.positions.findIndex(x => x.id === task.position_id)
 
-					if (s.db_valid) {
+//					if (s.db_valid) {
 						//Cancello la posizione dal db delle posizioni aperte...
 						db_my_positions.remove({'_id' : task.position_id}, function (err) {
 							//In ogni caso, elimino la posizione da s.positions
@@ -927,10 +929,10 @@ module.exports = function (program, conf) {
 								})
 							}
 						})
-					}
-					else {
-						console.log('s.positionProcessingQueue - s.db_valid FALSE!!')
-					}
+//					}
+//					else {
+//						console.log('s.positionProcessingQueue - s.db_valid FALSE!!')
+//					}
 					break
 				}
 				}
@@ -1364,10 +1366,10 @@ module.exports = function (program, conf) {
 									session.start_price = s.start_price
 
 									//Primo salvataggio di sessione
-									saveSession()
+//									saveSession()
 
 									//Chiamata alla funzione saveSession() ogni giorno
-									setInterval(saveSession, (60*1000*60*24))
+//									setInterval(saveSession, (60*1000*60*24))
 
 									if (s.lookback.length > so.keep_lookback_periods) {
 										s.lookback.splice(-1,1) //Toglie l'ultimo elemento
@@ -1496,7 +1498,8 @@ module.exports = function (program, conf) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 								console.error(err)
 							}
-							if (s.db_valid) db_resume_markers.update({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
+//							if (s.db_valid)
+							db_resume_markers.update({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
 								if (err) {
 									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
 									console.error(err)
@@ -1506,7 +1509,7 @@ module.exports = function (program, conf) {
 								s.my_trades.slice(my_trades_size).forEach(function (my_trade) {
 									my_trade._id = my_trade.id
 									my_trade.session_id = session.id
-									if (s.db_valid) {
+//									if (s.db_valid) {
 										db_my_trades.update({'_id' : my_trade._id}, {$set: my_trade}, {multi: false, upsert: true}, function (err) {
 											if (err) {
 												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
@@ -1515,7 +1518,7 @@ module.exports = function (program, conf) {
 											//Se c'è stato un trade, allora è il caso di aggiornare la sessione
 											saveSession()
 										})
-									}
+//									}
 								})
 								my_trades_size = s.my_trades.length
 							}
@@ -1526,10 +1529,7 @@ module.exports = function (program, conf) {
 							}
 							if (s.period) {
 								savePeriod(s.period)
-								//Timeout per dare il tempo a engine di inizializzare un period (se ce ne fosse bisogno) e non avere una invalid date
-//								setTimeout(function() {
-									engine.writeReport(true)
-//								}, 1000)
+								engine.writeReport(true)
 							} 
 							else {
 								readline.clearLine(process.stdout)
@@ -1548,6 +1548,12 @@ module.exports = function (program, conf) {
 						nextUpdateMsg = nextUpdateMsg.add(so.update_msg, 'h')
 						engine.updateMessage()
 					}
+					
+					//Check per salvataggio sessione
+					if (nextSessionSave && nextSessionSave - moment() < 0) {
+						nextSessionSave = nextSessionSave.add(1, 'd')
+						saveSession()
+					}
 				})
 
 				function saveTrade (trade) {
@@ -1561,7 +1567,7 @@ module.exports = function (program, conf) {
 					}
 					marker.to = (marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor)
 					marker.newest_time = Math.max(marker.newest_time, trade.time)
-					if (s.db_valid) {
+//					if (s.db_valid) {
 						db_trades.update({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
 							// ignore duplicate key errors
 							if (err && err.code !== 11000) {
@@ -1569,7 +1575,7 @@ module.exports = function (program, conf) {
 								console.error(err)
 							}
 						})
-					}
+//					}
 				}
 				/* End of saveTrade() */
 				
@@ -1580,14 +1586,14 @@ module.exports = function (program, conf) {
 						period.session_id = session.id
 					}
 					period._id = period.id
-					if (s.db_valid) {
+//					if (s.db_valid) {
 						db_periods.update({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
 								console.error(err)
 							}
 						})
-					}
+//					}
 				}
 				/* End of savePeriod() */
 			}
@@ -1642,7 +1648,7 @@ module.exports = function (program, conf) {
 				session.day_count = s.day_count
 				session.total_fees = s.total_fees
 
-				if (s.db_valid) {
+//				if (s.db_valid) {
 					db_sessions.update({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
@@ -1659,7 +1665,7 @@ module.exports = function (program, conf) {
 //							process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
 //						}
 					})
-				}
+//				}
 			}
 			/* End of saveSession()  */
 
