@@ -284,8 +284,6 @@ module.exports = {
 					]
 				}
 
-//				s.eventBus.emit(sig_kind, signal, position_id, fixed_size, fixed_price, is_reorder, is_taker)
-
 				if (condition.sell[0]) {
 					if (strat_opts.over_and_back) {
 						strat_data.is_over.up = true;
@@ -300,21 +298,6 @@ module.exports = {
 						controlConditions('sell')
 //					}
 				}
-//				if (sell_condition_1 && sell_condition_2) {
-//				s.signal = 'S Bollinger';
-//				strat_data.is_over.up = true
-//				if (!s.in_preroll) {
-//				if (strat_data.max_profit_position.buy && strat_data.max_profit_position.buy.profit_net_pct >= strat_opts.sell_min_pct) {
-//				s.eventBus.emit('bollinger', 'sell', strat_data.max_profit_position.buy.id)
-//				}
-//				else if (sell_condition_3 && !strat_opts.over_and_back) {
-//				s.eventBus.emit('bollinger', 'sell')
-//				}
-//				else {
-//				debug.msg('Strategy Bollinger - No same price protection: s.period.close= ' + s.period.close + ' ; calculated limit_open_price.sell= ' + (strat_data.limit_open_price.sell * (1 + strat_opts.delta_pct/100)))
-//				}
-//				}
-//				}
 				else if (condition.buy[0]) {
 					if (strat_opts.over_and_back) {
 						strat_data.is_over.down = true;

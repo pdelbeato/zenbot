@@ -114,7 +114,8 @@ module.exports = {
 					let max_trail_profit = -100
 					s.positions.forEach(function (position, index) {
 						//Se la posizione non ha ordini aperti in trailing_stop, non è locked in trailing_stop, controllo se il suo profitto ha superato il limite per attivare il trailin stop
-						if (!s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && !s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop') && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
+//						if (!s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && !s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop') && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
+						if (!s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && !position.locked && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
 							s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
 						}
 
@@ -148,7 +149,7 @@ module.exports = {
 						s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 						s.signal = position.side[0].toUpperCase() + ' Trailing stop';
 						let protectionFree = s.protectionFlag['calmdown']
-						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, (strat_opts.order_type === 'taker' ? true : false))
+						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, (strat_opts.order_type === 'taker' ? true : false))
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null
 //						strat_data.max_trail_profit_position_id[position.side] = null
@@ -186,8 +187,9 @@ module.exports = {
 				if (strat.calc_lookback[0]) {
 					let max_trail_profit = -100
 					s.positions.forEach(function (position, index) {
-						//Se la posizione non ha ordini aperti in trailing_stop, non è locked in trailing_stop, controllo se il suo profitto ha superato il limite per attivare il trailin stop
-						if (!s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && !s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop') && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
+						//Se la posizione non ha ordini aperti in trailing_stop, non è locked, controllo se il suo profitto ha superato il limite per attivare il trailin stop
+//						if (!s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && !s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop') && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
+						if (!s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && !position.locked && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
 							s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
 						}
 
@@ -221,7 +223,7 @@ module.exports = {
 						s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 						s.signal = position.side[0].toUpperCase() + ' Trailing stop';
 						let protectionFree = s.protectionFlag['calmdown']
-						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, false, (strat_opts.order_type === 'taker' ? true : false))
+						s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, (strat_opts.order_type === 'taker' ? true : false))
 						position.strategy_parameters.trailing_stop.trailing_stop = null
 						position.strategy_parameters.trailing_stop.trailing_stop_limit = null
 //						strat_data.max_trail_profit_position_id[position.side] = null
