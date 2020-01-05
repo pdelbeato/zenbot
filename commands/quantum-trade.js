@@ -1253,6 +1253,9 @@ module.exports = function (program, conf) {
 					process.exit(code)
 				}
 
+				engine.writeHeader()
+				getNext()
+				
 				function getNext() {
 					var opts = {
 							query: {
@@ -1274,8 +1277,9 @@ module.exports = function (program, conf) {
 						if (err) {
 							throw err
 						}
-
-						//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco
+						
+						//Se ci sono filtered_trades, allora non esegue questo blocco ma esegue engine.update che c'è dopo
+						//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco e non esegue engine.update (perchè c'è un return in questo blocco)
 						if (!filtered_trades.length) {
 							var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
 							console.log(head)
@@ -1434,18 +1438,17 @@ module.exports = function (program, conf) {
 							})
 							return
 						}
+						
 						db_cursor = filtered_trades[filtered_trades.length - 1].time
 						trade_cursor = s.exchange.getCursor(filtered_trades[filtered_trades.length - 1])
 						engine.update(filtered_trades, true, function (err) {
 							if (err) throw err
 							setImmediate(getNext)
 						})
+						
 					})
 				}
 				/* End of getNext() */
-
-				engine.writeHeader()
-				getNext()
 			})
 			/* End of backfiller.on(exit) */
 
