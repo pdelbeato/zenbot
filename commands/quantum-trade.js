@@ -280,6 +280,18 @@ module.exports = function (program, conf) {
 //					resolve()
 //				})
 //			})
+			
+			//Conta le vecchie posizioni chiuse
+			let recover_my_closed_positions = new Promise(function (resolve, reject) {
+				db_my_closed_positions.count({}, function (err, count) {
+					if (err) {
+						reject(err)
+					}
+					console.log('Recuperate le vecchie posizioni chiuse: ' + count)
+					resolve()
+				})
+			})
+			
 			//Recupera tutti i vecchi trade e li copia in s.my_trades
 			let recover_my_trades = new Promise(function (resolve, reject) {
 				db_my_trades.find({selector: so.selector.normalized}).toArray(function (err, my_prev_trades) {
@@ -294,7 +306,7 @@ module.exports = function (program, conf) {
 					resolve()
 				})
 			})
-			promises = [recover_my_positions, recover_my_trades] //, recover_my_closed_positions
+			promises = [recover_my_positions, recover_my_trades, recover_my_closed_positions]
 		}
 
 		//Una volta effettuate le operazioni sui db, proseguo con il resto
