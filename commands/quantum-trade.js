@@ -577,7 +577,7 @@ module.exports = function (program, conf) {
 							console.log('No position in control.')
 						}
 					}})
-					keyMap.set('K', {desc: ('set a manual close order (using actual price) on the position'.grey), action: function() {
+					keyMap.set('K', {desc: ('set a manual close order (with fixed actual price) on the position'.grey), action: function() {
 						if (s.positions_index != null) {
 							if (s.positions[s.positions_index].side === 'buy') {
 								let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
