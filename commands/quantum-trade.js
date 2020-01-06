@@ -930,7 +930,7 @@ module.exports = function (program, conf) {
 									return callback(err)
 								}
 
-								s.tools.functionStrategies ('onPositionClosed', task)
+								s.tools.functionStrategies('onPositionClosed', task)
 							})
 						}
 					})
@@ -992,6 +992,8 @@ module.exports = function (program, conf) {
 				s.exchange.getAllOrders(so.selector, function (err, orders) {
 					if ((orders && orders.length === 0) || so.mode === 'paper') {
 						console.log('\nExiting... ' + '\nWriting statistics...'.grey)
+						//Salvo la sessione
+						saveSession()
 						//Attendo ulteriori 5s per chiudere le statistiche
 						setTimeout(function() { printTrade(true) }, 5000)
 					}
@@ -1370,12 +1372,6 @@ module.exports = function (program, conf) {
 									session.start_capital_asset = s.start_capital_asset
 									session.start_price = s.start_price
 
-									//Primo salvataggio di sessione
-//									saveSession()
-
-									//Chiamata alla funzione saveSession() ogni giorno
-//									setInterval(saveSession, (60*1000*60*24))
-
 									if (s.lookback.length > so.keep_lookback_periods) {
 										s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 									}
@@ -1513,16 +1509,14 @@ module.exports = function (program, conf) {
 								s.my_trades.slice(my_trades_size).forEach(function (my_trade) {
 									my_trade._id = my_trade.id
 									my_trade.session_id = session.id
-//									if (s.db_valid) {
-										db_my_trades.update({'_id' : my_trade._id}, {$set: my_trade}, {multi: false, upsert: true}, function (err) {
-											if (err) {
-												console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
-												console.error(err)
-											}
-											//Se c'è stato un trade, allora è il caso di aggiornare la sessione
-											saveSession()
-										})
-//									}
+									db_my_trades.update({'_id' : my_trade._id}, {$set: my_trade}, {multi: false, upsert: true}, function (err) {
+										if (err) {
+											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
+											console.error(err)
+										}
+										//Se c'è stato un trade, allora è il caso di aggiornare la sessione
+										saveSession()
+									})
 								})
 								my_trades_size = s.my_trades.length
 							}
@@ -1540,12 +1534,8 @@ module.exports = function (program, conf) {
 								readline.cursorTo(process.stdout, 0)
 								process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
 							}
-//							saveSession()
 						})
 					}
-//					else {
-//						saveSession()
-//					}
 
 					//Check per invio messaggi di status
 					if (nextUpdateMsg && nextUpdateMsg - moment() < 0) {
@@ -1652,24 +1642,15 @@ module.exports = function (program, conf) {
 				session.day_count = s.day_count
 				session.total_fees = s.total_fees
 
-//				if (s.db_valid) {
-					db_sessions.update({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
-						if (err) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
-							console.error(err)
-						}
-						else {
-							debug.msg('Save session.')
-						}
-//						if (s.period) {
-//							engine.writeReport(true)
-//						} else {
-//							readline.clearLine(process.stdout)
-//							readline.cursorTo(process.stdout, 0)
-//							process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
-//						}
-					})
-//				}
+				db_sessions.update({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
+					if (err) {
+						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
+						console.error(err)
+					}
+					else {
+						debug.msg('Save session.')
+					}
+				})
 			}
 			/* End of saveSession()  */
 
