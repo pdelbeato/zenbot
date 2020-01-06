@@ -88,7 +88,7 @@ module.exports = function (program, conf) {
 		var so = s.options
 
 		s.positions = []
-		s.closed_positions = []
+//		s.closed_positions = []
 		s.my_trades = []
 //		s.trades = []
 		s.lookback = []
@@ -268,18 +268,18 @@ module.exports = function (program, conf) {
 			})
 
 			//Recupera tutte le vecchie posizioni chiuse e le copia in s.closed_positions
-			let recover_my_closed_positions = new Promise(function (resolve, reject) {
-				db_my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, my_closed_positions) {
-					if (err) {
-						reject(err)
-					}
-					if (my_closed_positions.length) {
-						s.closed_positions = my_closed_positions.slice(0)
-						console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
-					}
-					resolve()
-				})
-			})
+//			let recover_my_closed_positions = new Promise(function (resolve, reject) {
+//				db_my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, my_closed_positions) {
+//					if (err) {
+//						reject(err)
+//					}
+//					if (my_closed_positions.length) {
+//						s.closed_positions = my_closed_positions.slice(0)
+//						console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
+//					}
+//					resolve()
+//				})
+//			})
 			//Recupera tutti i vecchi trade e li copia in s.my_trades
 			let recover_my_trades = new Promise(function (resolve, reject) {
 				db_my_trades.find({selector: so.selector.normalized}).toArray(function (err, my_prev_trades) {
@@ -294,7 +294,7 @@ module.exports = function (program, conf) {
 					resolve()
 				})
 			})
-			promises = [recover_my_positions, recover_my_closed_positions, recover_my_trades]
+			promises = [recover_my_positions, recover_my_trades] //, recover_my_closed_positions
 		}
 
 		//Una volta effettuate le operazioni sui db, proseguo con il resto
@@ -884,55 +884,44 @@ module.exports = function (program, conf) {
 					var position = s.positions.find(x => x.id === task.position_id)
 					position._id = position.id
 
-//					if (s.db_valid) {
-						db_my_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
-							if (err) {
-								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_positions')
-								console.error(err)
+					db_my_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+						if (err) {
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_positions')
+							console.error(err)
 
-								return callback(err)
-							}
-						})
-//					}
-//					Da sistemare: se db_valid è falso, allora sto lavorando sul db, quindi devo richiamare la funzione più tardi!!
-
+							return callback(err)
+						}
+					})
 					break
 				}
 				case 'delete': {
 					var position_index = s.positions.findIndex(x => x.id === task.position_id)
+					var position = s.positions.find(x => x.id === task.position_id)
 
-//					if (s.db_valid) {
-						//Cancello la posizione dal db delle posizioni aperte...
-						db_my_positions.remove({'_id' : task.position_id}, function (err) {
-							//In ogni caso, elimino la posizione da s.positions
-							s.positions.splice(position_index,1)
+					db_my_positions.remove({'_id' : task.position_id}, function (err) {
+						//In ogni caso, elimino la posizione da s.positions
+						s.positions.splice(position_index,1)
 
-							if (err) {
-								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error deleting in db_my_positions')
-								console.error(err)
-								return callback(err)
-							}
+						if (err) {
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error deleting in db_my_positions')
+							console.error(err)
+							return callback(err)
+						}
 
-							//... e inserisco la posizione chiusa del db delle posizioni chiuse
-							var position = s.closed_positions.find(x => x.id === task.position_id)
+						//... e inserisco la posizione chiusa del db delle posizioni chiuse
+						if (position) {
+							position._id = position.id
+							db_my_closed_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+								if (err) {
+									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
+									console.error(err)
+									return callback(err)
+								}
 
-							if (position) {
-								position._id = position.id
-								db_my_closed_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
-									if (err) {
-										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
-										console.error(err)
-										return callback(err)
-									}
-
-									s.tools.functionStrategies ('onPositionClosed', task)
-								})
-							}
-						})
-//					}
-//					else {
-//						console.log('s.positionProcessingQueue - s.db_valid FALSE!!')
-//					}
+								s.tools.functionStrategies ('onPositionClosed', task)
+							})
+						}
+					})
 					break
 				}
 				}
