@@ -156,7 +156,7 @@ module.exports = function (program, conf) {
 
 		var nextSessionSave = moment().startOf('day')
 		
-		Var nextCompactDatabase = moment().startOf('day').add(2, 'd')
+		var nextCompactDatabase = moment().startOf('day').add(2, 'd')
 		
 //		E' sbagliato!!! 
 //		if (!so.min_periods) {
