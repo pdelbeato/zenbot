@@ -23,7 +23,7 @@ var tb = require('timebucket')
 //var exec = require('child_process').exec
 
 //function puts(error, stdout, stderr) { console.log(stdout) }
-function puts(error, stdout) { console.log(stdout) }
+//function puts(error, stdout) { console.log(stdout) }
 
 //Cambia i colori di cliff
 //styles: {                 // Styles applied to stdout
@@ -155,6 +155,8 @@ module.exports = function (program, conf) {
 		}
 
 		var nextSessionSave = moment().startOf('day')
+		
+		Var nextCompactDatabase = moment().startOf('day').add(2, 'd')
 		
 //		E' sbagliato!!! 
 //		if (!so.min_periods) {
@@ -775,10 +777,10 @@ module.exports = function (program, conf) {
 						s.exchange.debug_exchange = !s.exchange.debug_exchange
 						console.log('\nDEBUG EXCHANGE mode: ' + (s.exchange.debug_exchange ? 'ON'.green.inverse : 'OFF'.red.inverse))
 					}})
-//					keyMap.set('R', {desc: ('try to recover databases'.grey), 	action: function() {
-//					console.log('\nTrying to recover databases...'.grey)
-//					recoverDB()
-//					}})
+					keyMap.set('R', {desc: ('compact databases'.grey), 	action: function() {
+						console.log('\nCompacting databases...'.grey)
+						compactDatabases()
+					}})
 					keyMap.set('K', {desc: ('clean databases (delete data older than '.grey + so.db.tot_days + ' days)'.grey), action: function() {
 						console.log('\nCleaning databases...'.grey)
 						cleanDB()
@@ -1548,6 +1550,12 @@ module.exports = function (program, conf) {
 						nextSessionSave = nextSessionSave.add(1, 'd')
 						saveSession()
 					}
+					
+					//Check per compattazione database
+					if (nextCompactDatabase && nextCompactDatabase - moment() < 0) {
+						nextCompactDatabase = nextCompactDatabase.add(2, 'd')
+						compactDatabase()
+					}
 				})
 
 				function saveTrade (trade) {
@@ -1653,6 +1661,16 @@ module.exports = function (program, conf) {
 				})
 			}
 			/* End of saveSession()  */
+			
+			function compactDatabase() {
+				//db_my_trades
+				db_my_positions.compactCollection()
+				//db_my_closed_positions
+				//db_periods
+				db_sessions.compactCollection()
+				db_resume_markers.compactCollection()
+				//db_trades
+			}
 
 		})
 		.catch(function(error) {
