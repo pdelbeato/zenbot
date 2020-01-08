@@ -890,6 +890,17 @@ module.exports = function (program, conf) {
 					debug.msg('cleanDB - ' + numRemoved + ' trade(s) deleted')
 				})
 			}
+			
+			/* To compact databases */
+			function compactDatabase() {
+				//db_my_trades
+				db_my_positions.compactCollection()
+				//db_my_closed_positions
+				//db_periods
+				db_sessions.compactCollection()
+				db_resume_markers.compactCollection()
+				//db_trades
+			}
 
 			/* Funzioni per le operazioni sul database delle posizioni */
 			s.positionProcessingQueue = async.queue(function(task, callback = function () {}) {
@@ -1661,17 +1672,6 @@ module.exports = function (program, conf) {
 				})
 			}
 			/* End of saveSession()  */
-			
-			function compactDatabase() {
-				//db_my_trades
-				db_my_positions.compactCollection()
-				//db_my_closed_positions
-				//db_periods
-				db_sessions.compactCollection()
-				db_resume_markers.compactCollection()
-				//db_trades
-			}
-
 		})
 		.catch(function(error) {
 			console.log('Errore nella gestione db!')
