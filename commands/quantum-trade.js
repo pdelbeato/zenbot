@@ -892,7 +892,7 @@ module.exports = function (program, conf) {
 			}
 			
 			/* To compact databases */
-			function compactDatabase() {
+			function compactDatabases() {
 				//db_my_trades
 				db_my_positions.compactCollection()
 				//db_my_closed_positions
