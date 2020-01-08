@@ -892,13 +892,13 @@ module.exports = function (program, conf) {
 			}
 			
 			/* To compact databases */
-			function compactDatabases() {
+			function compactDatabases(cb = function () {}) {
 				//db_my_trades
-				db_my_positions.compactCollection()
+				db_my_positions.compactCollection(cb)
 				//db_my_closed_positions
 				//db_periods
-				db_sessions.compactCollection()
-				db_resume_markers.compactCollection()
+				db_sessions.compactCollection(cb)
+				db_resume_markers.compactCollection(cb)
 				//db_trades
 			}
 
