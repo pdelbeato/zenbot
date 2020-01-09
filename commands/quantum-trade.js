@@ -1317,6 +1317,7 @@ module.exports = function (program, conf) {
 
 							//Se è attiva l'opzione minimal_db, cancello i db trades e periods
 							if(so.minimal_db) {
+								console.log('Option minimal_db is active! Delete db_periods and db_trades')
 								db_periods = conf.db.periods = null
 								db_trades = conf.db.trades = null
 							}
