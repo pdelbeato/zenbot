@@ -233,8 +233,8 @@ module.exports = function (program, conf) {
 					marker.oldest_time = trade.time
 					marker.newest_time = trade.time
 				}
-				marker.to = marker.to ? Math.max(marker.to, cursor) : cursor
-						marker.newest_time = Math.max(marker.newest_time, trade.time)
+				marker.to = (marker.to ? Math.max(marker.to, cursor) : cursor)
+				marker.newest_time = Math.max(marker.newest_time, trade.time)
 			}
 //			console.log('Backfill - saveTrade - before db_trades.update')
 			return db_trades.update({"_id" : trade._id}, {$set : trade}, {multi: false, upsert : true})
