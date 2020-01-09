@@ -91,7 +91,7 @@ module.exports = function (program, conf) {
 			}
 			last_batch_opts = opts
 			exchange.getTrades(opts, function (err, results) {
-//				console.log('Backfill - exchange.getTrades')
+				console.log('Backfill - exchange.getTrades results= ' + results.length)
 				trades = results
 				if (err) {
 					console.error('err backfilling selector: ' + selector.normalized)
