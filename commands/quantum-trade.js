@@ -1317,7 +1317,7 @@ module.exports = function (program, conf) {
 
 							//Se è attiva l'opzione minimal_db, cancello i db trades e periods
 							if(so.minimal_db) {
-								db_sessions = conf.db.sessions = null
+								db_periods = conf.db.periods = null
 								db_trades = conf.db.trades = null
 							}
 							
