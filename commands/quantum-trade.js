@@ -79,6 +79,7 @@ module.exports = function (program, conf) {
 //	.option('--run_for <minutes>', 'Execute for a period of minutes then exit with status 0', String, conf.run_for)
 //	.option('--update_msg <hours>', 'Send an update message every <hours>', String, conf.update_msg)
 	.option('--debug', 'output detailed debug info')
+	.option('--minimal_db', 'do not create trades and periods databases', Boolean, false)
 	.option('--no_first_message', 'no first update message', Boolean, false)
 //	.option('--no_check_hold', 'no check for funds on hold', Boolean)
 	.action(function (selector, cmd) {
@@ -870,25 +871,30 @@ module.exports = function (program, conf) {
 
 			/* To clean databases */
 			function cleanDB() {
-				fromTime = n(moment().subtract(so.db.tot_days, 'd')).value()
+				if(so.minimal_db) {
+					console.log('Function cleanDB not available! minimal_db option is active.')
+				}
+				else {
+					fromTime = n(moment().subtract(so.db.tot_days, 'd')).value()
 
-				debug.msg('cleanDB - Pulisco il db dei record più vecchi di ' + fromTime + ' (ora è ' + moment() + ')... ')
+					debug.msg('cleanDB - Pulisco il db dei record più vecchi di ' + fromTime + ' (ora è ' + moment() + ')... ')
 
-				db_periods.remove({'time' : { $lt : fromTime }}, function (err, numRemoved) {
-					if (err) {
-						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.periods')
-						console.error(err)
-					}
-					debug.msg('cleanDB - ' + numRemoved + ' period(s) deleted')
-				})
+					db_periods.remove({'time' : { $lt : fromTime }}, function (err, numRemoved) {
+						if (err) {
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.periods')
+							console.error(err)
+						}
+						debug.msg('cleanDB - ' + numRemoved + ' period(s) deleted')
+					})
 
-				db_trades.remove({'time' : { $lt : fromTime }}, function (err, numRemoved) {
-					if (err) {
-						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.trades')
-						console.error(err)
-					}
-					debug.msg('cleanDB - ' + numRemoved + ' trade(s) deleted')
-				})
+					db_trades.remove({'time' : { $lt : fromTime }}, function (err, numRemoved) {
+						if (err) {
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.trades')
+							console.error(err)
+						}
+						debug.msg('cleanDB - ' + numRemoved + ' trade(s) deleted')
+					})
+				}
 			}
 			
 			/* To compact databases */
@@ -1309,6 +1315,12 @@ module.exports = function (program, conf) {
 								console.log('!!! Paper mode enabled. No real trades are performed until you remove --paper from the startup command.')
 							}
 
+							//Se è attiva l'opzione minimal_db, cancello i db trades e periods
+							if(so.minimal_db) {
+								db_sessions = conf.db.sessions = null
+								db_trades = conf.db.trades = null
+							}
+							
 							//Inizializzo i comandi dell'interfaccia
 							changeModeCommand()
 
@@ -1504,20 +1516,23 @@ module.exports = function (program, conf) {
 						trades.forEach(function (trade) {
 							var this_cursor = s.exchange.getCursor(trade)
 							trade_cursor = Math.max(this_cursor, trade_cursor)
-							saveTrade(trade)
+							if (!so.minimal_db) {
+								saveTrade(trade)
+							}
 						})
 						engine.update(trades, function (err) {
 							if (err) {
 								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 								console.error(err)
 							}
-//							if (s.db_valid)
-							db_resume_markers.update({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
-								if (err) {
-									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
-									console.error(err)
-								}
-							})
+							if (!so.minimal_db) {
+								db_resume_markers.update({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
+									if (err) {
+										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
+										console.error(err)
+									}
+								})
+							}
 							if (s.my_trades.length > my_trades_size) {
 								s.my_trades.slice(my_trades_size).forEach(function (my_trade) {
 									my_trade._id = my_trade.id
@@ -1535,11 +1550,15 @@ module.exports = function (program, conf) {
 							}
 
 							if (s.lookback.length > lookback_size) {
-								savePeriod(s.lookback[0])
+								if (!so.minimal_db) {
+									savePeriod(s.lookback[0])
+								}
 								lookback_size = s.lookback.length
 							}
 							if (s.period) {
-								savePeriod(s.period)
+								if (!so.minimal_db) {
+									savePeriod(s.period)
+								}
 								engine.writeReport(true)
 							} 
 							else {
@@ -1580,15 +1599,13 @@ module.exports = function (program, conf) {
 					}
 					marker.to = (marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor)
 					marker.newest_time = Math.max(marker.newest_time, trade.time)
-//					if (s.db_valid) {
-						db_trades.update({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
-							// ignore duplicate key errors
-							if (err && err.code !== 11000) {
-								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
-								console.error(err)
-							}
-						})
-//					}
+					db_trades.update({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
+						// ignore duplicate key errors
+						if (err && err.code !== 11000) {
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
+							console.error(err)
+						}
+					})
 				}
 				/* End of saveTrade() */
 				
@@ -1599,14 +1616,12 @@ module.exports = function (program, conf) {
 						period.session_id = session.id
 					}
 					period._id = period.id
-//					if (s.db_valid) {
-						db_periods.update({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
-							if (err) {
-								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
-								console.error(err)
-							}
-						})
-//					}
+					db_periods.update({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
+						if (err) {
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
+							console.error(err)
+						}
+					})
 				}
 				/* End of savePeriod() */
 			}
