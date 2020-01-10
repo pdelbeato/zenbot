@@ -150,7 +150,48 @@ module.exports = function (program, conf) {
 		}
 
 		function runTasks (trades) {
-			Promise.all(trades.map((trade)=>saveTrade(trade))).then(function(/*results*/){
+			var promises = []
+			
+			trades.forEach(function(trade) {
+				let trade_promise = new Promise(function (resolve, reject) {
+					trade.id = selector.normalized + '-' + String(trade.trade_id)
+					trade._id = trade.id
+					trade.selector = selector.normalized
+					var cursor = exchange.getCursor(trade)
+					if (mode === 'backward') {
+						if (!marker.to) {
+							marker.to = cursor
+							marker.oldest_time = trade.time
+							marker.newest_time = trade.time
+						}
+						marker.from = marker.from ? Math.min(marker.from, cursor) : cursor
+								marker.oldest_time = Math.min(marker.oldest_time, trade.time)
+					}
+					else {
+						if (!marker.from) {
+							marker.from = cursor
+							marker.oldest_time = trade.time
+							marker.newest_time = trade.time
+						}
+						marker.to = (marker.to ? Math.max(marker.to, cursor) : cursor)
+						marker.newest_time = Math.max(marker.newest_time, trade.time)
+					}
+//					console.log('Backfill - saveTrade - before db_trades.update')
+					db_trades.update({"_id" : trade._id}, {$set : trade}, {multi: false, upsert : true}, function(err, result) {
+						if (err) {
+							reject(err)
+						}
+						if (result) {
+							resolve()
+						}
+					})
+				})
+				promises.push(trade_promise)
+				console.log(promises.length)
+			})
+			
+//			Promise.all(trades.map((trade)=>saveTrade(trade))).then(function(/*results*/){
+			Promise.all(promises).then(function(/*results*/){
 				var oldest_time = marker.oldest_time
 				var newest_time = marker.newest_time
 				markers.forEach(function (other_marker) {
@@ -213,31 +254,31 @@ module.exports = function (program, conf) {
 			}
 		}
 
-		function saveTrade (trade) {
-			trade.id = selector.normalized + '-' + String(trade.trade_id)
-			trade._id = trade.id
-			trade.selector = selector.normalized
-			var cursor = exchange.getCursor(trade)
-			if (mode === 'backward') {
-				if (!marker.to) {
-					marker.to = cursor
-					marker.oldest_time = trade.time
-					marker.newest_time = trade.time
-				}
-				marker.from = marker.from ? Math.min(marker.from, cursor) : cursor
-						marker.oldest_time = Math.min(marker.oldest_time, trade.time)
-			}
-			else {
-				if (!marker.from) {
-					marker.from = cursor
-					marker.oldest_time = trade.time
-					marker.newest_time = trade.time
-				}
-				marker.to = (marker.to ? Math.max(marker.to, cursor) : cursor)
-				marker.newest_time = Math.max(marker.newest_time, trade.time)
-			}
-//			console.log('Backfill - saveTrade - before db_trades.update')
-			return db_trades.update({"_id" : trade._id}, {$set : trade}, {multi: false, upsert : true})
-		}
+//		function saveTrade (trade) {
+//			trade.id = selector.normalized + '-' + String(trade.trade_id)
+//			trade._id = trade.id
+//			trade.selector = selector.normalized
+//			var cursor = exchange.getCursor(trade)
+//			if (mode === 'backward') {
+//				if (!marker.to) {
+//					marker.to = cursor
+//					marker.oldest_time = trade.time
+//					marker.newest_time = trade.time
+//				}
+//				marker.from = marker.from ? Math.min(marker.from, cursor) : cursor
+//						marker.oldest_time = Math.min(marker.oldest_time, trade.time)
+//			}
+//			else {
+//				if (!marker.from) {
+//					marker.from = cursor
+//					marker.oldest_time = trade.time
+//					marker.newest_time = trade.time
+//				}
+//				marker.to = (marker.to ? Math.max(marker.to, cursor) : cursor)
+//				marker.newest_time = Math.max(marker.newest_time, trade.time)
+//			}
+////			console.log('Backfill - saveTrade - before db_trades.update')
+//			return db_trades.update({"_id" : trade._id}, {$set : trade}, {multi: false, upsert : true})
+//		}
 	})
 }
