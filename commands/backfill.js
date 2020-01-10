@@ -179,6 +179,7 @@ module.exports = function (program, conf) {
 //					console.log('Backfill - saveTrade - before db_trades.update')
 					db_trades.update({"_id" : trade._id}, {$set : trade}, {multi: false, upsert : true}, function(err, result) {
 						if (err) {
+							console.log('Backfill - runTasks - promise reject. Err= ' + err)
 							reject(err)
 						}
 						if (result) {
@@ -187,7 +188,7 @@ module.exports = function (program, conf) {
 					})
 				})
 				promises.push(trade_promise)
-				console.log(promises.length)
+//				console.log(promises.length)
 			})
 			
 //			Promise.all(trades.map((trade)=>saveTrade(trade))).then(function(/*results*/){
