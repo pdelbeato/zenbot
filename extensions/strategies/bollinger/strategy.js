@@ -43,8 +43,6 @@ var n = require('numbro')
 //		},
 //		rsi: {
 //			rsi: null,
-//			rsi_avg_gain: null,
-//			rsi_avg_loss: null,
 //		},
 //		watchdog: {
 //			pump: false,
