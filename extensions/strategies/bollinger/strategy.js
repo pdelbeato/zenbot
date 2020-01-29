@@ -1,6 +1,7 @@
 var n = require('numbro')
 , bollinger = require('../../../lib/bollinger')
 , rsi = require('../../../lib/rsi')
+, ti_rsi = require('../../../lib/ti_rsi')
 , Phenotypes = require('../../../lib/phenotype')
 , inspect = require('eyes').inspector({maxLength: 4096 })
 , crypto = require('crypto')
@@ -202,7 +203,7 @@ module.exports = {
 		let strat_opts = s.options.strategy.bollinger.opts
 		let strat_data = s.options.strategy.bollinger.data
 		let strat_data_boll = s.options.strategy.bollinger.data.bollinger
-		let strat_data_rsi = s.options.strategy.bollinger.data.rsi
+//		let strat_data_rsi = s.options.strategy.bollinger.data.rsi
 		let max_profit = -100
 
 		strat_data.max_profit_position = {
@@ -233,7 +234,7 @@ module.exports = {
 			let lowerWatchdogBound = lowerBound - (lowerBandwidth * strat_opts.lower_watchdog_pct/100)
 			let upperCalmdownWatchdogBound = upperBound - (upperBandwidth * strat_opts.calmdown_watchdog_pct/100)
 			let lowerCalmdownWatchdogBound = lowerBound + (lowerBandwidth * strat_opts.calmdown_watchdog_pct/100)
-			let rsi = strat_data_rsi.rsi
+//			let rsi = strat_data_rsi.rsi
 
 			//Controllo la minimum_bandwidth
 			if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
@@ -274,12 +275,12 @@ module.exports = {
 				var condition = {
 					buy: [
 						(s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100))),
-						(rsi > strat_opts.rsi_buy_threshold),
+						(strat_data.rsi > strat_opts.rsi_buy_threshold),
 						(strat_opts.no_same_price ? ((s.period.close < (strat_data.limit_open_price.buy * (1 - strat_opts.delta_pct/100))) ? true : false) : true),
 					],
 					sell: [
 						(s.period.close > (upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100))),
-						(rsi < strat_opts.rsi_sell_threshold),
+						(strat_data.rsi < strat_opts.rsi_sell_threshold),
 						(strat_opts.no_same_price ? ((s.period.close > (strat_data.limit_open_price.sell * (1 + strat_opts.delta_pct/100))) ? true : false) : true),
 					]
 				}
@@ -345,8 +346,16 @@ module.exports = {
 		let strat_data = s.options.strategy.bollinger.data
 
 		strat_data.bollinger = bollinger(s, 'bollinger', s.options.strategy.bollinger.opts.size, 'close')
-		strat_data.rsi = rsi(s, 'rsi', s.options.strategy.bollinger.opts.rsi_size, 'bollinger')
-		cb()
+//		strat_data.rsi = rsi(s, 'rsi', s.options.strategy.bollinger.opts.rsi_size, 'bollinger')
+		ti_rsi(s, s.options.strategy.bollinger.opts.rsi_size, s.options.strategy.bollinger.calc_lookback)
+		.then( function(result) {
+			strat_data.rsi = result.rsi
+			cb()
+		})
+		.catch( function(error) {
+			console.log('bollinger strategy - Errore in rsi: ', error)
+			cb()
+		})
 	},
 
 
@@ -366,7 +375,7 @@ module.exports = {
 				let min_bandwidth_pct = strat_opts.min_bandwidth_pct
 				let upperWatchdogBound = strat_data.bollinger.upperBound + (upperBandwidth * strat_opts.upper_watchdog_pct/100)
 				let lowerWatchdogBound = strat_data.bollinger.lowerBound - (lowerBandwidth * strat_opts.lower_watchdog_pct/100)
-				let rsi = strat_data.rsi.rsi
+//				let strat_data_rsi = strat_data.rsi 
 
 				var color_up = 'cyan';
 				var color_down = 'cyan';
@@ -386,10 +395,10 @@ module.exports = {
 
 				//Se siamo oversold, il colore di rsi è rosso.
 				//Se siamo in overbought il colore di rsi è verde
-				if (rsi < strat_opts.rsi_buy_threshold) {
+				if (strat_data.rsi < strat_opts.rsi_buy_threshold) {
 					color_rsi = 'red'
 				}
-				if (rsi > strat_opts.rsi_sell_threshold) {
+				if (strat_data.rsi > strat_opts.rsi_sell_threshold) {
 					color_rsi = 'green'
 				}
 
@@ -401,7 +410,7 @@ module.exports = {
 				cols.push(s.tools.zeroFill(9, n(lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_down])
 				cols.push('<->'.grey)
 				cols.push(s.tools.zeroFill(9, n(upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_up])
-				cols.push('(' + s.tools.zeroFill(2, n(rsi).format('0'), ' ')[color_rsi] + ')')
+				cols.push('(' + s.tools.zeroFill(2, n(strat_data.rsi).format('0'), ' ')[color_rsi] + ')')
 			}
 		}
 		else {
