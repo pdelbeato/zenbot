@@ -1034,7 +1034,7 @@ module.exports = function (program, conf) {
 					}
 				})
 
-				if (s.my_closed_positions.length && gains > 0) {
+				if (gains > 0) {
 					if (!statsOnly) {
 						output_lines.push('win/loss: ' + gains + '/' + losses)
 						output_lines.push('error rate: ' + (n(losses).divide(gains + losses).format('0.00%')).yellow)
@@ -1216,8 +1216,9 @@ module.exports = function (program, conf) {
 				if (code) {
 					process.exit(code)
 				}
-
-				engine.writeHeader()
+				
+				console.log('------------------------------------------ PREROLL PHASE ------------------------------------------'.white)
+				
 				getNext()
 				
 				function getNext() {
