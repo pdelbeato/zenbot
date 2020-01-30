@@ -1023,7 +1023,7 @@ module.exports = function (program, conf) {
 				}
 
 				var losses = 0, gains = 0
-				s.my_closed_positions.forEach(function (position) {
+				db_my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, position) {
 					if (position.profit) {
 						if (position.profit > 0) {
 							gains++
@@ -1293,7 +1293,7 @@ module.exports = function (program, conf) {
 //									orig_price: s.start_price,
 //									day_count: s.day_count,
 //									total_fees: s.total_fees,
-//									total_profit: s.total_profit
+//									total_profit: s.total_profit,
 //									num_trades: s.my_trades.length
 								}
 
