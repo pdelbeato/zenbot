@@ -1560,7 +1560,7 @@ module.exports = function (program, conf) {
 								if (!so.minimal_db) {
 									savePeriod(s.period)
 								}
-								engine.writeReport(true)
+//								engine.writeReport(true)
 							} 
 							else {
 								readline.clearLine(process.stdout)
