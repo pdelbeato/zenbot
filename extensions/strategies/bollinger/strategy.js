@@ -377,17 +377,21 @@ module.exports = {
 
 				var color_up = 'cyan';
 				var color_down = 'cyan';
-				var color_rsi = 'cyan'
-					//Se il prezzo supera un limite del canale, allora il colore del limite è bianco
-					if (s.period.close > (upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100))) {
-						color_up = 'white'
-					}
-					else if (s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100))) {
-						color_down = 'white'
-					}
+				var color_rsi = 'cyan';
+				
+				//Se il prezzo supera un limite del canale, allora il colore del limite è bianco
+				if (s.period.close > (upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100))) {
+					color_up = 'white'
+				}
+				else if (s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100))) {
+					color_down = 'white'
+				}
 
 				//Ma se siamo in dump/pump, allora il colore del limite è rosso
-				if (strat_data.watchdog.pump || strat_data.watchdog.dump) {
+				if (strat_data.watchdog.pump) {
+					color_up = 'red'
+				}
+				if (strat_data.watchdog.dump) {
 					color_down = 'red'
 				}
 
@@ -419,16 +423,18 @@ module.exports = {
 			let position_buy_profit = -1
 			let position_sell_profit = -1
 
-			if (strat_data.max_profit_position.buy != null)
+			if (strat_data.max_profit_position.buy != null) {
 				position_buy_profit = strat_data.max_profit_position.buy.profit_net_pct/100
+			}
 
-				if (strat_data.max_profit_position.sell != null)	
-					position_sell_profit = strat_data.max_profit_position.sell.profit_net_pct/100
+			if (strat_data.max_profit_position.sell != null) {	
+				position_sell_profit = strat_data.max_profit_position.sell.profit_net_pct/100
+			}
 
-					buysell = (position_buy_profit > position_sell_profit ? 'B' : 'S')
-					buysell_profit = (position_buy_profit > position_sell_profit ? formatPercent(position_buy_profit) : formatPercent(position_sell_profit))
+			buysell = (position_buy_profit > position_sell_profit ? 'B' : 'S')
+			buysell_profit = (position_buy_profit > position_sell_profit ? formatPercent(position_buy_profit) : formatPercent(position_sell_profit))
 
-					cols.push(s.tools.zeroFill(8, buysell + buysell_profit, ' ')[n(buysell_profit) > 0 ? 'green' : 'red'])
+			cols.push(s.tools.zeroFill(8, buysell + buysell_profit, ' ')[n(buysell_profit) > 0 ? 'green' : 'red'])
 		}
 		else {
 			cols.push(s.tools.zeroFill(8, '', ' '))
