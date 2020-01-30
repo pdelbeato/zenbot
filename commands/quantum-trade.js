@@ -285,12 +285,12 @@ module.exports = function (program, conf) {
 //			})
 			
 			//Conta le vecchie posizioni chiuse
-			let recover_my_closed_positions = new Promise(function (resolve, reject) {
+			let count_my_closed_positions = new Promise(function (resolve, reject) {
 				db_my_closed_positions.count({}, function (err, count) {
 					if (err) {
 						reject(err)
 					}
-					console.log('Recuperate le vecchie posizioni chiuse: ' + count)
+					console.log('Numero di posizioni chiuse: ' + count)
 					resolve()
 				})
 			})
@@ -309,7 +309,7 @@ module.exports = function (program, conf) {
 					resolve()
 				})
 			})
-			promises = [recover_my_positions, recover_my_trades, recover_my_closed_positions]
+			promises = [recover_my_positions, count_my_closed_positions, recover_my_trades]
 		}
 
 		//Una volta effettuate le operazioni sui db, proseguo con il resto
@@ -810,65 +810,6 @@ module.exports = function (program, conf) {
 				})
 			}
 
-//			Da sistemare: i db risultano chiusi, va aggiornato il codice
-			//Ma in realtà, non mi serve più questa funzione
-//			/* Trying to recover DB connection */
-//			function recoverDB() {
-//			s.db_valid = false
-
-//			debug.msg('Recupero la connessione con i database...')
-
-//			var collectionServiceInstance = collectionService(conf, function() {
-//			debug.msg('Ricreo i database...', false)
-//			db_my_positions.drop(function(err) {
-//			if (err) {
-//			console.error('Failed to destroy datastore:', err);
-//			} 
-//			s.positions.forEach(function (position) {
-//			db_my_positions.insert(position, function (err) {
-//			if (err) {
-//			console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_position')
-//			console.error(err)
-//			}
-//			})
-//			})
-//			debug.msg('db_my_positions -> fatto!', false)
-//			})
-
-//			db_my_closed_positions.drop(function(err) {
-//			if (err) {
-//			console.error('Failed to destroy datastore:', err);
-//			} 
-//			s.closed_positions.forEach(function (position) {
-//			db_my_closed_positions.insert(position, function (err) {
-//			if (err) {
-//			console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
-//			console.error(err)
-//			}
-//			})
-//			})
-//			debug.msg('db_my_closed_positions -> fatto!', false)
-//			})
-
-//			db_my_trades.drop(function(err) {
-//			if (err) {
-//			console.error('Failed to destroy datastore:', err);
-//			} 
-//			s.my_trades.forEach(function (position) {
-//			db_my_trades.insert(position, function (err) {
-//			if (err) {
-//			console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_closed_position')
-//			console.error(err)
-//			}
-//			})
-//			})
-//			debug.msg('db_my_trades -> fatto!', false)
-//			})
-//			s.db_valid = true
-//			})
-//			}
-
-
 			/* To clean databases */
 			function cleanDB() {
 				if(so.minimal_db) {
@@ -1058,10 +999,10 @@ module.exports = function (program, conf) {
 					output_lines.push('vs. SellHold: ' + n(tmp_capital_asset).subtract(sell_hold).divide(sell_hold).format('0.00%').yellow)
 					output_lines.push(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
 					output_lines.push('Total fees: ' + formatCurrency(s.total_fees, s.currency).yellow)
+					output_lines.push('Total profit: ' + formatCurrency(s.total_profit, s.currency).yellow)
 					output_lines.push(s.positions.length + ' positions opened.')
 					output_lines.push(s.orders.length + ' orders opened.')
 					output_lines.push(sizeof(s) + ' size of s')
-//					output_lines.push(sizeof(s.trades) + ' size of s.trades')
 					output_lines.push(sizeof(s.period) + ' size of s.period')
 					output_lines.push(sizeof(s.lookback) + ' size of s.lookback')
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
@@ -1077,13 +1018,14 @@ module.exports = function (program, conf) {
 						buy_hold_profit: n(buy_hold_profit).format('0.00%'),
 						day_count: s.day_count,
 						total_fees: s.total_fees,
+						total_profit: s.total_profit,
 						trade_per_day: n(s.my_trades.length / s.day_count).format('0.00')
 				}
 
 				var losses = 0, gains = 0
-				s.my_trades.forEach(function (trade) {
-					if (trade.profit) {
-						if (trade.profit > 0) {
+				s.my_closed_positions.forEach(function (position) {
+					if (position.profit) {
+						if (position.profit > 0) {
 							gains++
 						}
 						else {
@@ -1092,7 +1034,7 @@ module.exports = function (program, conf) {
 					}
 				})
 
-				if (s.my_trades.length && gains > 0) {
+				if (s.my_closed_positions.length && gains > 0) {
 					if (!statsOnly) {
 						output_lines.push('win/loss: ' + gains + '/' + losses)
 						output_lines.push('error rate: ' + (n(losses).divide(gains + losses).format('0.00%')).yellow)
@@ -1280,13 +1222,13 @@ module.exports = function (program, conf) {
 				
 				function getNext() {
 					var opts = {
-							query: {
-								selector: so.selector.normalized
-							},
-							sort: {
-								time: 1
-							},
-							limit: 1000
+						query: {
+							selector: so.selector.normalized
+						},
+						sort: {
+							time: 1
+						},
+						limit: 1000
 					}
 					if (db_cursor) {
 						opts.query.time = {$gt: db_cursor}
@@ -1301,7 +1243,7 @@ module.exports = function (program, conf) {
 						}
 						
 						//Se ci sono filtered_trades, allora non esegue questo blocco ma esegue engine.update che c'è dopo
-						//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco e non esegue engine.update (perchè c'è un return in questo blocco)
+						//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco e non esegue engine.update (perché c'è un return in questo blocco)
 						if (!filtered_trades.length) {
 							var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
 							console.log(head)
@@ -1351,6 +1293,7 @@ module.exports = function (program, conf) {
 //									orig_price: s.start_price,
 //									day_count: s.day_count,
 //									total_fees: s.total_fees,
+//									total_profit: s.total_profit
 //									num_trades: s.my_trades.length
 								}
 
@@ -1359,21 +1302,15 @@ module.exports = function (program, conf) {
 									if (err) throw err
 									var prev_session = prev_sessions[0]
 
-//									Da sistemare: ho veramente bisogno di un controllo sul capitale precedente per stabilire che è un prosieguo della vecchia sessione?
-									//Il controllo sulla precedente sessione, soprattutto quando ci sono più bot che lavorano sullo stesso balance, è destinato la maggior
-									// parte delle volte a fallire. Quindi lo tolgo, anche perchè in ogni caso serve a poco.
-//									if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
 									if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || so.mode === 'live')) {
-//										debug.msg('getNext() - prev_session')
-//										if (prev_session.orig_capital_currency && prev_session.orig_price && prev_session.deposit === so.deposit && ((so.mode === 'paper' && !raw_opts.currency_capital && !raw_opts.asset_capital) || (so.mode === 'live' && prev_session.balance.asset == s.balance.asset && prev_session.balance.currency == s.balance.currency))) {
-//										s.orig_capital_currency = session.orig_capital_currency = so.currency_capital || prev_session.orig_capital_currency
 										s.orig_currency = session.orig_currency = prev_session.orig_currency
 										s.orig_asset = session.orig_asset = prev_session.orig_asset
 										s.orig_price = session.orig_price = prev_session.orig_price
 										s.orig_capital_currency = session.orig_capital_currency = prev_session.orig_capital_currency
 										s.orig_capital_asset = session.orig_capital_asset = prev_session.orig_capital_asset
-										s.day_count = session.day_count = (prev_session.day_count ? prev_session.day_count : 1)
-										s.total_fees = session.total_fees = (prev_session.total_fees ? prev_session.total_fees : 0)
+										s.day_count = session.day_count = prev_session.day_count 
+										s.total_fees = session.total_fees = prev_session.total_fees
+										s.total_profit = session.total_profit = prev_session.total_profit
 										session.num_trades = prev_session.num_trades
 										debug.obj('getNext() - prev_session', session)
 										if (so.mode === 'paper') {
@@ -1676,6 +1613,7 @@ module.exports = function (program, conf) {
 				session.num_trades = s.my_trades.length
 				session.day_count = s.day_count
 				session.total_fees = s.total_fees
+				session.total_profit = s.total_profit
 
 				db_sessions.update({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
 					if (err) {
