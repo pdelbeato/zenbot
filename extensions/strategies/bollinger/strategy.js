@@ -408,6 +408,9 @@ module.exports = {
 				if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
 					cols.push('*')
 				}
+				else {
+					cols.push(' ')
+				}
 
 				cols.push(s.tools.zeroFill(9, n(lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_down])
 				cols.push('<->'.grey)
