@@ -495,7 +495,7 @@ module.exports = {
 //		position_id: position_id,
 //		}; 
 
-		debug.msg('Strategy - Bollinger - onPositionClosed')
+//		debug.msg('Strategy - Bollinger - onPositionClosed')
 		
 		let strat_opts = s.options.strategy.bollinger.opts
 
