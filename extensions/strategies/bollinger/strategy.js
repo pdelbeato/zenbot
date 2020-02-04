@@ -469,16 +469,6 @@ module.exports = {
 //		};
 		
 		this.onPositionClosed(s, opts, cb)
-//		let strat_opts = s.options.strategy.bollinger.opts
-//
-//		if(strat_opts.no_same_price) {
-//			let limit = {}
-//			limit.buy = Math.min(position.price_open, s.options.strategy.bollinger.data.limit_open_price.buy)
-//			limit.sell = Math.max(position.price_open, s.options.strategy.bollinger.data.limit_open_price.sell)
-//			s.options.strategy.bollinger.data.limit_open_price[position.side] = limit[position.side] 
-//		}
-//
-//		cb()
 	},
 
 	onPositionUpdated: function (s, opts= {}, cb = function() {}) {
