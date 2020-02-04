@@ -290,8 +290,34 @@ module.exports = function (program, conf) {
 				resolve()
 			})
 		})
+		
+		//Recupera tutte le vecchie posizioni aperte e le copia in s.positions
+		let recover_my_trades = new Promise(function (resolve, reject) {
+			console.log('Recupero i vecchi trade')
+			db_my_trades.find({selector: so.selector.normalized}, function (err, my_prev_trades) {
+				if (err) {
+					reject(err)
+				}
+				if (my_prev_trades.length) {
+					my_prev_trades.forEach(function (trade) {
+							
+							db_my_trades_mod.update({'_id' : trade.id}, {$set: trade}, {multi: false, upsert: true}, function (err) {
+								if (err) {
+									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_trades_mod')
+									console.error(err)
+								}
+							})
+						
+						//
+					})
+					s.my_trades = my_prev_trades.slice(0)
+					console.log('Recuperati i vecchi trade: ' + s.my_trades.length)
+				}
+				resolve()
+			})
+		})
 
-		Promise.all([recover_my_positions, recover_my_closed_positions])
+		Promise.all([recover_my_positions, recover_my_closed_positions, recover_my_trades])
 		.then(function() {
 			//Quindi engine è quantum-engine(s, conf), dove conf è zenbot.conf da zenbot.js, quindi l'unione
 			// di conf_file, conf.js e conf-sample.js e NON s.options
