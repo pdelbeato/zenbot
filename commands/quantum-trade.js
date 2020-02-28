@@ -851,6 +851,7 @@ module.exports = function (program, conf) {
 
 			/* Funzioni per le operazioni sul database delle posizioni */
 			s.positionProcessingQueue = async.queue(function(task, callback = function () {}) {
+				s.wait_updatePositions = true
 				switch (task.mode) {
 				case 'update': {
 					var position = s.positions.find(x => x.id === task.position_id)
@@ -897,6 +898,7 @@ module.exports = function (program, conf) {
 					break
 				}
 				}
+				s.wait_updatePositions = false
 				callback(null)
 			})
 
