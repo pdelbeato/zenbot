@@ -233,6 +233,14 @@ module.exports = function sim (conf, s) {
 			getMemory: function() {
 				return 'sim'
 			},
+			
+			cancelConnection: function() {
+				if (exchange.debug_exchange) {
+					debug.msg('exchange.cancelConnection')
+				}
+				real_exchange = require(path.resolve(__dirname, `../${exchange_id}/exchange`))(conf)
+				return
+			}
 
 			processTrade: function(trade) {
 				if (!s.wait_processTrade) {
