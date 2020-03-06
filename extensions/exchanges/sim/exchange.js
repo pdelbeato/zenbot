@@ -240,7 +240,7 @@ module.exports = function sim (conf, s) {
 				}
 				real_exchange = require(path.resolve(__dirname, `../${exchange_id}/exchange`))(conf)
 				return
-			}
+			},
 
 			processTrade: function(trade) {
 				if (!s.wait_processTrade) {
