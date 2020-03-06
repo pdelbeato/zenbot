@@ -309,6 +309,14 @@ module.exports = function binance (conf) {
 					delete exchange_cache.openOrders['~' + opts.order_id]
 				}
 			},
+			
+			cancelConnection: function() {
+				authed_client = null
+				if (exchange.debug_exchange) {
+					debug.msg('exchange.cancelConnection - authedClient = ' + authed_client)
+				}
+				return
+			},
 
 			buy: function (opts, cb) {
 				var func_args = [].slice.call(arguments)
@@ -660,14 +668,6 @@ module.exports = function binance (conf) {
 			
 			getMemory: function() {
 				return sizeof(exchange_cache)
-			},
-			
-			cancelConnection: function() {
-				authed_client = null
-				if (exchange.debug_exchange) {
-					debug.msg('exchange.cancelConnection - authedClient = ' + authed_client)
-				}
-				return
 			}
 	}
 	return exchange
