@@ -1,6 +1,7 @@
 let path = require('path')
 , n = require('numbro')
 , _ = require('lodash')
+, debug = require('../../../lib/debug')
 
 module.exports = function sim (conf, s) {
 
