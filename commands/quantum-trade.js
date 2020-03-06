@@ -259,7 +259,7 @@ module.exports = function (program, conf) {
 					if (err) {
 						reject(err)
 					}
-					if (my_prev_positions.length) {
+					if (my_prev_positions && my_prev_positions.length) {
 						my_prev_positions.forEach(function (position) {
 							position.status = 0
 						})
@@ -301,7 +301,7 @@ module.exports = function (program, conf) {
 					if (err) {
 						reject(err)
 					}
-					if (my_prev_trades.length) {
+					if (my_prev_trades && my_prev_trades.length) {
 						s.my_trades = my_prev_trades.slice(0)
 						my_trades_size = s.my_trades.length
 						console.log('Recuperati i vecchi trade: ' + s.my_trades.length)
