@@ -23,7 +23,9 @@ module.exports = function binance (conf) {
 	}
 
 	function publicClient () {
-		if (!public_client) public_client = new ccxt.binance({ 'apiKey': '', 'secret': '', 'options': { 'adjustForTimeDifference': true } })
+		if (!public_client) {
+			public_client = new ccxt.binance({ 'apiKey': '', 'secret': '', 'options': { 'adjustForTimeDifference': true } })
+		}
 		return public_client
 	}
 
@@ -658,6 +660,10 @@ module.exports = function binance (conf) {
 			
 			getMemory: function() {
 				return sizeof(exchange_cache)
+			},
+			
+			cancelConnection: function() {
+				authedClient = null
 			}
 	}
 	return exchange

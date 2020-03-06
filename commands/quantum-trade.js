@@ -496,6 +496,9 @@ module.exports = function (program, conf) {
 							console.log('No exchange_orders in memory. Try to get the list by pressing "o".')
 						}
 					}})
+					keyMap.set('K', {desc: ('renew the connection with exchange'.grey), action: function() {
+						s.exchange.cancelConnection()
+					}})
 					keyMap.set('c', {desc: ('cancel order'.grey), action: function() {
 						if (s.exchange_orders.length) {
 							let opts_tmp = {
