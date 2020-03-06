@@ -498,7 +498,8 @@ module.exports = function (program, conf) {
 					}})
 					keyMap.set('K', {desc: ('renew the connection with exchange'.grey), action: function() {
 						console.log('\nCancelling connection to exchange for creating a new one'.yellow)
-						s.exchange.cancelConnection
+						console.log(s.exchange)
+						s.exchange.cancelConnection()
 					}})
 					keyMap.set('c', {desc: ('cancel order'.grey), action: function() {
 						if (s.exchange_orders.length) {

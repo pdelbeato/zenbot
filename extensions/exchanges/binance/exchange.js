@@ -663,10 +663,11 @@ module.exports = function binance (conf) {
 			},
 			
 			cancelConnection: function() {
-				authedClient = null
+				authed_client = null
 				if (exchange.debug_exchange) {
-					debug.msg('exchange.cancelConnection - authedClient = ' + authedClient)
+					debug.msg('exchange.cancelConnection - authedClient = ' + authed_client)
 				}
+				return
 			}
 	}
 	return exchange
