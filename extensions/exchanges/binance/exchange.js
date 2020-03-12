@@ -52,9 +52,12 @@ module.exports = function binance (conf) {
 
 	//Da sistemare bene
 	function retry (method, args, waiting_time = 10000, err) {
-		if (method !== 'getTrades' && waiting_time === 10000) {
+//		if (method !== 'getTrades' && waiting_time === 10000) {
+		if (waiting_time === 10000) {
 			console.error(('\nretry - Binance API is down! unable to call ' + method + ', retrying in ' + (waiting_time/1000) + 's').red)
-			if (err) console.error('retry - err= \n\n' + err)
+			if (err) {
+				console.error('retry - err= \n\n' + err)
+			}
 			console.error('\nretry - args.slice')
 			console.error(args.slice(0, -1)) //slice prende l'ultimo valore di args
 		}
@@ -126,7 +129,9 @@ module.exports = function binance (conf) {
 					cb(null, trades)
 				}).catch(function (error) {
 					console.error('An error occurred', error)
-					return retry('getTrades', func_args)
+					//Non ho necessità di richiamare getTrades, in quanto ogni so.poll_trades viene eseguito forwardScan che chiama getTrades
+					//Quindi mi basta attendere il prossimo forwardScan per avere la chiamata a getTrades
+					return //retry('getTrades', func_args)
 				})
 
 			},
@@ -648,9 +653,11 @@ module.exports = function binance (conf) {
 					})
 				}
 				else {
-					debug.msg('exchange.getAllOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+//					debug.msg('exchange.getAllOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					debug.msg('exchange.getAllOrder - Protezione rate limit (now()=' + now() + ' ; next_request ' + next_request + '). Non eseguo la richiesta.')
 //					setTimeout(function() { this.getAllOrders(opts, cb) }, (next_request - now() + 1))
-					retry('getAllOrders', func_args, (next_request - now() + 1))
+//					retry('getAllOrders', func_args, (next_request - now() + 1))
+					
 				}
 			},
 
