@@ -60,6 +60,8 @@ module.exports = function binance (conf) {
 			}
 			console.error('\nretry - args.slice')
 			console.error(args.slice(0, -1)) //slice prende l'ultimo valore di args
+			console.error('\nretry - args')
+			console.error(args)
 		}
 		setTimeout(function () {
 			exchange[method].apply(exchange, args)
