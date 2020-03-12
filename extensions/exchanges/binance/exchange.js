@@ -659,7 +659,7 @@ module.exports = function binance (conf) {
 					debug.msg('exchange.getAllOrder - Protezione rate limit (now()=' + now() + ' ; next_request ' + next_request + '). Non eseguo la richiesta.')
 //					setTimeout(function() { this.getAllOrders(opts, cb) }, (next_request - now() + 1))
 //					retry('getAllOrders', func_args, (next_request - now() + 1))
-					
+					cb('Rate limit protection', null)
 				}
 			},
 
