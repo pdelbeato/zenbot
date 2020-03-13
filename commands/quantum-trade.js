@@ -1310,37 +1310,37 @@ module.exports = function (program, conf) {
 									var prev_session = prev_sessions[0]
 
 									if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || so.mode === 'live')) {
-										s.orig_currency = session.orig_currency = prev_session.orig_currency
-										s.orig_asset = session.orig_asset = prev_session.orig_asset
-										s.orig_price = session.orig_price = prev_session.orig_price
-										s.orig_capital_currency = session.orig_capital_currency = prev_session.orig_capital_currency
-										s.orig_capital_asset = session.orig_capital_asset = prev_session.orig_capital_asset
-										s.day_count = session.day_count = prev_session.day_count 
-										s.total_fees = session.total_fees = prev_session.total_fees
-										s.total_profit = session.total_profit = prev_session.total_profit
-										session.num_trades = prev_session.num_trades
+										s.orig_currency = session.orig_currency = Number(prev_session.orig_currency)
+										s.orig_asset = session.orig_asset = Number(prev_session.orig_asset)
+										s.orig_price = session.orig_price = Number(prev_session.orig_price)
+										s.orig_capital_currency = session.orig_capital_currency = Number(prev_session.orig_capital_currency)
+										s.orig_capital_asset = session.orig_capital_asset = Number(prev_session.orig_capital_asset)
+										s.day_count = session.day_count = Number(prev_session.day_count) 
+										s.total_fees = session.total_fees = Number(prev_session.total_fees)
+										s.total_profit = session.total_profit = Number(prev_session.total_profit)
+										session.num_trades = Number(prev_session.num_trades)
 										debug.obj('getNext() - prev_session', session)
 										if (so.mode === 'paper') {
 											debug.obj('getNext() - paper: ', prev_session.balance)
-											s.balance = prev_session.balance
+											s.balance = Number(prev_session.balance)
 										}
 									}
 									//Non esiste una precedente sessione
 									else {
 										debug.msg('getNext() - no prev_session')
-										s.orig_currency = session.orig_currency = s.balance.currency //raw_opts.currency_capital | s.balance.currency | 0
-										s.orig_asset = session.orig_asset = s.balance.asset //raw_opts.asset_capital | s.balance.asset | 0
-										s.orig_price = session.orig_price = s.start_price
-										s.orig_capital_currency = session.orig_capital_currency = s.start_capital_currency
-										s.orig_capital_asset = session.orig_capital_asset = s.start_capital_asset
+										s.orig_currency = session.orig_currency = Number(s.balance.currency) //raw_opts.currency_capital | s.balance.currency | 0
+										s.orig_asset = session.orig_asset = Number(s.balance.asset) //raw_opts.asset_capital | s.balance.asset | 0
+										s.orig_price = session.orig_price = Number(s.start_price)
+										s.orig_capital_currency = session.orig_capital_currency = Number(s.start_capital_currency)
+										s.orig_capital_asset = session.orig_capital_asset = Number(s.start_capital_asset)
 										debug.msg('getNext() - s.orig_currency = ' + s.orig_currency + ' ; s.orig_asset = ' + s.orig_asset + ' ; s.orig_capital_currency = ' + s.orig_capital_currency + ' ; s.orig_capital_asset = ' + s.orig_capital_asset + ' ; s.orig_price = ' + s.orig_price)
 									}
 
-									s.start_currency = session.start_currency = s.balance.currency
-									s.start_asset = session.start_asset = s.balance.asset
-									session.start_capital_currency = s.start_capital_currency
-									session.start_capital_asset = s.start_capital_asset
-									session.start_price = s.start_price
+									s.start_currency = session.start_currency = Number(s.balance.currency)
+									s.start_asset = session.start_asset = Number(s.balance.asset)
+									session.start_capital_currency = Number(s.start_capital_currency)
+									session.start_capital_asset = Number(s.start_capital_asset)
+									session.start_price = Number(s.start_price)
 
 									if (s.lookback.length > so.keep_lookback_periods) {
 										s.lookback.splice(-1,1) //Toglie l'ultimo elemento
