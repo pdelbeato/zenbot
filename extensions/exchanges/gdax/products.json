@@ -9,6 +9,24 @@
     "label": "ALGO/USD"
   },
   {
+    "asset": "ATOM",
+    "currency": "BTC",
+    "min_size": "0.1",
+    "max_size": "25000",
+    "increment": "0.000001",
+    "asset_increment": "0.1",
+    "label": "ATOM/BTC"
+  },
+  {
+    "asset": "ATOM",
+    "currency": "USD",
+    "min_size": "0.1",
+    "max_size": "25000",
+    "increment": "0.001",
+    "asset_increment": "0.1",
+    "label": "ATOM/USD"
+  },
+  {
     "asset": "BAT",
     "currency": "ETH",
     "min_size": "1",
@@ -270,6 +288,24 @@
     "label": "GNT/USDC"
   },
   {
+    "asset": "KNC",
+    "currency": "BTC",
+    "min_size": "1",
+    "max_size": "600000",
+    "increment": "0.00000001",
+    "asset_increment": "1",
+    "label": "KNC/BTC"
+  },
+  {
+    "asset": "KNC",
+    "currency": "USD",
+    "min_size": "1",
+    "max_size": "500000",
+    "increment": "0.0001",
+    "asset_increment": "1",
+    "label": "KNC/USD"
+  },
+  {
     "asset": "LINK",
     "currency": "ETH",
     "min_size": "1",
@@ -340,6 +376,15 @@
     "increment": "0.000001",
     "asset_increment": "1",
     "label": "MANA/USDC"
+  },
+  {
+    "asset": "OXT",
+    "currency": "USD",
+    "min_size": "1",
+    "max_size": "500000",
+    "increment": "0.0001",
+    "asset_increment": "1",
+    "label": "OXT/USD"
   },
   {
     "asset": "REP",
