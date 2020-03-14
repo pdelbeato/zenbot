@@ -152,6 +152,7 @@ module.exports = function (program, conf) {
 		function runTasks (trades) {
 			var promises = []
 			
+			//La funzione saveTrade non era impiegabile, in quanto il nuovo db non restituisce promesse
 			trades.forEach(function(trade) {
 				let trade_promise = new Promise(function (resolve, reject) {
 					trade.id = selector.normalized + '-' + String(trade.trade_id)
