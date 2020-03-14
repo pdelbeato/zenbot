@@ -24,7 +24,14 @@ module.exports = function binance (conf) {
 
 	function publicClient () {
 		if (!public_client) {
-			public_client = new ccxt.binance({ 'apiKey': '', 'secret': '', 'options': { 'adjustForTimeDifference': true } })
+			public_client = new ccxt.binance({
+				'apiKey': '',
+				'secret': '',
+				'options': {
+					'adjustForTimeDifference': true
+				},
+				enableRateLimit: true
+			})
 		}
 		return public_client
 	}
@@ -34,7 +41,14 @@ module.exports = function binance (conf) {
 			if (!conf.binance || !conf.binance.key || conf.binance.key === 'YOUR-API-KEY') {
 				throw new Error('please configure your Binance credentials in ' + path.resolve(__dirname, 'conf.js'))
 			}
-			authed_client = new ccxt.binance({ 'apiKey': conf.binance.key, 'secret': conf.binance.secret, 'options': { 'adjustForTimeDifference': true }, enableRateLimit: true })
+			authed_client = new ccxt.binance({
+				'apiKey': conf.binance.key,
+				'secret': conf.binance.secret,
+				'options': {
+					'adjustForTimeDifference': true
+				},
+				enableRateLimit: true
+			})
 		}
 		return authed_client
 	}
@@ -53,16 +67,16 @@ module.exports = function binance (conf) {
 	//Da sistemare bene
 	function retry (method, args, waiting_time = 10000, err) {
 //		if (method !== 'getTrades' && waiting_time === 10000) {
-		if (waiting_time === 10000) {
-			console.error(('\nretry - Binance API is down! unable to call ' + method + ', retrying in ' + (waiting_time/1000) + 's').red)
+//		if (waiting_time === 10000) {
+			console.error(('\nexchange.retry - ' + method + ', retrying in ' + (waiting_time/1000) + 's').red)
 			if (err) {
-				console.error('retry - err= \n\n' + err)
+				console.error('exchange.retry - ' + method + ' Error= \n' + err)
 			}
-			console.error('\nretry - args.slice')
+			console.error('\nexchange.retry - args.slice')
 			console.error(args.slice(0, -1)) //slice prende l'ultimo valore di args
-			console.error('\nretry - args')
+			console.error('\nexchange.retry - args')
 			console.error(args)
-		}
+//		}
 		setTimeout(function () {
 			exchange[method].apply(exchange, args)
 		}, waiting_time)
@@ -102,7 +116,6 @@ module.exports = function binance (conf) {
 
 				const symbol = joinProduct(opts.product_id)
 				client.fetchTrades(symbol, startTime, undefined, args).then(result => {
-
 					if (result.length === 0 && opts.from) {
 						// client.fetchTrades() only returns trades in an 1 hour interval.
 						// So we use fetchOHLCV() to detect trade apart from more than 1h.
@@ -130,10 +143,11 @@ module.exports = function binance (conf) {
 					}
 					cb(null, trades)
 				}).catch(function (error) {
-					console.error('An error occurred', error)
+					console.error('\nexchange.getTrades - Skip this call. An error occurred: ', error)
 					//Non ho necessità di richiamare getTrades, in quanto ogni so.poll_trades viene eseguito forwardScan che chiama getTrades
 					//Quindi mi basta attendere il prossimo forwardScan per avere la chiamata a getTrades
-					return //retry('getTrades', func_args)
+//					return retry('getTrades', func_args)
+					return cb(error)
 				})
 
 			},
@@ -165,13 +179,12 @@ module.exports = function binance (conf) {
 						cb(null, balance)
 					})
 					.catch(function (error) {
-						console.error('An error occurred', error)
-						return retry('getBalance', func_args)
+						console.error('\nexchange.getBalance - Retry...')
+						return retry('getBalance', func_args, undefined, error)
 					})
 				}
 				else {
-					debug.msg('exchange.getBalance - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-//					setTimeout(function() { this.getBalance(opts, cb) }, (next_request - now() + 1))
+					debug.msg('\nexchange.getBalance - Rate Limit (now()=' + now() + ' ; next_request ' + next_request + '). Retry...')
 					retry('getBalance', func_args, (next_request - now() + 1))
 				}
 			},
@@ -192,13 +205,12 @@ module.exports = function binance (conf) {
 						cb(null, { bid: result.bid, ask: result.ask })
 					})
 					.catch(function (error) {
-						console.error('An error occurred', error)
-						return retry('getQuote', func_args)
+						console.error('\nexchange.getQuote. Retry...')
+						return retry('getQuote', func_args, undefined, error)
 					})
 				}
 				else {
-					debug.msg('exchange.getQuote - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-//					setTimeout(function() { this.getQuote(opts, cb) }, (next_request - now() + 1))
+					debug.msg('\nexchange.getQuote - Rate Limit (now()=' + now() + ' ; next_request ' + next_request + '). Retry...')
 					retry('getQuote', func_args, (next_request - now() + 1))
 				}
 			},
@@ -210,8 +222,8 @@ module.exports = function binance (conf) {
 					cb(null, result)
 				})
 				.catch(function(error) {
-					console.error('An error ocurred', error)
-					return retry('getDepth', func_args)
+					console.error('\nexchange.getDepth. Retry...')
+					return retry('getDepth', func_args, undefined, error)
 				})
 			},
 
@@ -241,19 +253,21 @@ module.exports = function binance (conf) {
 							// decide if this error is allowed for a retry
 
 							if (err.message && err.message.match(new RegExp(/-2011|UNKNOWN_ORDER/))) {
-								console.error(('\ncancelOrder retry - unknown Order: ' + JSON.stringify(opts) + ' - ' + err).cyan)
+								console.error(('\nexchange.cancelOrder - Unknown Order: ' + JSON.stringify(opts) + ' - ' + err).cyan)
 //								return retry('cancelOrder', func_args, undefined, err)
+								cb(err)
 							} else {
 								// retry is allowed for this error
-								return retry('cancelOrder', func_args, undefined, err)
+								console.error(('\nexchange.cancelOrder - Retry...')
+								return retry('cancelOrder', func_args, 1000, err)
 							}
 						}
 
-						cb()
+						cb(null, body)
 					})
 				}
 				else {
-					debug.msg('exchange.cancelOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					debug.msg('\nexchange.cancelOrder - Rate Limit (now()=' + now() + ' ; next_request ' + next_request + '). Retry...')
 //					setTimeout(function() { this.cancelOrder(opts, cb) }, (next_request - now() + 1))
 					retry('cancelOrder', func_args, (next_request - now() + 1))
 				}
@@ -290,22 +304,26 @@ module.exports = function binance (conf) {
 									// decide if this error is allowed for a retry
 
 									if (err.message && err.message.match(new RegExp(/-2011|UNKNOWN_ORDER/))) {
-										console.error(('\ncancelAllOrder retry - unknown Order: ' + JSON.stringify(opts) + ' - ' + err).cyan)
+										console.error(('\nexchange.cancelAllOrder - Unknown Order: ' + JSON.stringify(opts) + ' - ' + err).cyan)
 //										retry('cancelAllOrder', func_args, undefined, err)
+										cb(err)
 									} else {
 										// retry is allowed for this error
+										console.error(('\nexchange.cancelAllOrder - cancelOrder error. Retry...')
 										retry('cancelAllOrder', func_args, undefined, err)
 									}
 								}
 							})
 						})
+						
 						cb(null, body)
 					}, function(err) {
-						return retry('cancelAllOrders', func_args, err)
+						console.error(('\nexchange.cancelAllOrder - fetchOpenOrders error. Retry...')
+						return retry('cancelAllOrders', func_args, undefined, err)
 					})		
 				}
 				else {
-					debug.msg('exchange.cancelAllOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					debug.msg('\nexchange.cancelAllOrder - Rate Limit (now()=' + now() + ' ; next_request ' + next_request + '). Retry...')
 					retry('cancelAllOrder', func_args, (next_request - now() + 1))
 				}
 			},
@@ -366,7 +384,7 @@ module.exports = function binance (conf) {
 						orders['~' + result.id] = order
 						cb(null, order)
 					}).catch(function (error) {
-						console.error('An error occurred', error)
+						console.error('\nexchange.buy - An error occurred: ', error)
 
 						// decide if this error is allowed for a retry:
 						// {"code":-1013,"msg":"Filter failure: MIN_NOTIONAL"}
@@ -379,11 +397,12 @@ module.exports = function binance (conf) {
 							})
 						}
 
+						console.error('\nexchange.buy - Retry...')
 						return retry('buy', func_args)
 					})
 				}
 				else {
-					debug.msg('exchange.buy - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					debug.msg('\nexchange.buy - Rate Limit (now()=' + now() + ' ; next_request ' + next_request + '). Retry...')
 //					setTimeout(function() { this.buy(opts, cb) }, (next_request - now() + 1))
 					retry('buy', func_args, (next_request - now() + 1))
 				}
@@ -465,7 +484,7 @@ module.exports = function binance (conf) {
 						orders['~' + result.id] = order
 						cb(null, order)
 					}).catch(function (error) {
-						console.error('An error occurred', error)
+						console.error('\nexchange.sell - An error occurred: ', error)
 
 						// decide if this error is allowed for a retry:
 						// {"code":-1013,"msg":"Filter failure: MIN_NOTIONAL"}
@@ -478,11 +497,12 @@ module.exports = function binance (conf) {
 							})
 						}
 
+						console.error('\nexchange.sell - Retry...')
 						return retry('sell', func_args)
 					})
 				}
 				else {
-					debug.msg('exchange.sell - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					debug.msg('\nexchange.sell - Rate Limit (now()=' + now() + ' ; next_request ' + next_request + '). Retry...')
 //					setTimeout(function() { this.sell(opts, cb) }, (next_request - now() + 1))
 					retry('sell', func_args, (next_request - now() + 1))
 				}
@@ -527,7 +547,7 @@ module.exports = function binance (conf) {
 					}
 					
 					if (exchange.debug_exchange) {
-						debug.obj('exchange.getOrder - exchange_cache:', order_cache)
+						debug.obj('\nexchange.getOrder - exchange_cache: ', order_cache)
 					}
 
 					cb(null, order_cache)
@@ -617,11 +637,12 @@ module.exports = function binance (conf) {
 						}
 						cb(null, order_tmp)
 					}, function(err) {
+						console.error(('\nexchange.getOrder - fetchOrder error. Retry...')
 						return retry('getOrder', func_args, undefined, err)
 					})
 				}
 				else {
-					debug.msg('exchange.getOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
+					debug.msg('\nexchange.getOrder - Rate Limit (now()=' + now() + ' ; next_request ' + next_request + '). Retry...')
 //					setTimeout(function() { this.getOrders(opts, cb) }, (next_request - now() + 1))
 					retry('getOrder', func_args, (next_request - now() + 1))
 				}
@@ -655,9 +676,7 @@ module.exports = function binance (conf) {
 					})
 				}
 				else {
-//					debug.msg('exchange.getAllOrder - Attendo... (now()=' + now() + ' ; next_request ' + next_request + ')')
-					debug.msg('exchange.getAllOrder - Protezione rate limit (now()=' + now() + ' ; next_request ' + next_request + '). Non eseguo la richiesta.')
-//					setTimeout(function() { this.getAllOrders(opts, cb) }, (next_request - now() + 1))
+					debug.msg('exchange.getAllOrder - Rate limit (now()=' + now() + ' ; next_request ' + next_request + '). Skipping.')
 //					retry('getAllOrders', func_args, (next_request - now() + 1))
 					cb('Rate limit protection', null)
 				}
