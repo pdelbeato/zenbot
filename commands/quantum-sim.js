@@ -178,7 +178,7 @@ module.exports = function (program, conf) {
 			var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
 
 
-			var profit = )s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0))
+			var profit = (s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0))
 
 			output_lines.push('end balance:     capital currency: ' + n(tmp_capital_currency).format('0.00000000').yellow + '   capital asset: ' + n(tmp_capital_asset).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
 			console.log('\nstart_capital', n(s.start_capital_currency).format('0.00000000').yellow)
