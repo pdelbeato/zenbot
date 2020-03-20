@@ -10,6 +10,7 @@ var tb = require('timebucket')
 //, collectionService = require('../lib/services/collection-service')
 , _ = require('lodash')
 , debug = require('../lib/debug')
+, quantumTools = require ('../lib/quantum-tools')
 
 module.exports = function (program, conf) {
 	program
