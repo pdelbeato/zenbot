@@ -136,9 +136,97 @@ module.exports = function (program, conf) {
 
 		// richiama quantum-engine
 		var engine = engineFactory(s, conf)
-		if (!so.min_periods) so.min_periods = 1
+		
+		if (!so.min_periods) {
+			so.min_periods = 1
+		}
+		
 		var cursor, reversing, reverse_point
 		var query_start = (so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null)
+
+		getNext()
+
+		function getNext () {
+			var opts = {
+				query: {
+					selector: so.selector.normalized
+				},
+				sort: {time: 1},
+				limit: 1000
+			}
+			
+			if (so.end) {
+				opts.query.time = {$lte: so.end}
+			}
+			
+			if (cursor) {
+				if (reversing) {
+					opts.query.time = {}
+					opts.query.time['$lt'] = cursor
+					if (query_start) {
+						opts.query.time['$gte'] = query_start
+					}
+					opts.sort = {time: -1}
+				}
+				else {
+					if (!opts.query.time) opts.query.time = {}
+					opts.query.time['$gt'] = cursor
+				}
+			}
+			else if (query_start) {
+				if (!opts.query.time) opts.query.time = {}
+				opts.query.time['$gte'] = query_start
+			}
+
+			//riordino di tradeCollection
+			var collectionCursor = db_trades.find(opts.query).sort(opts.sort).stream()
+			var numTrades = 0
+			var lastTrade
+
+			collectionCursor.on('data', function(trade){
+				lastTrade = trade
+				numTrades++
+				if (so.symmetrical && reversing) {
+					trade.orig_time = trade.time
+					trade.time = reverse_point + (reverse_point - trade.time)
+				}
+
+				// emit per ogni trade -> va alla funzione   queueTrade che mette in coda il tradeProcessing e quindi onTrade
+				eventBus.emit('trade', trade)
+				if (!s.orig_currency) {
+					s.orig_currency = s.start_currency = so.currency_capital | s.balance.currency | 0
+					s.orig_asset = s.start_asset = so.asset_capital | s.balance.asset | 0
+					engine.syncBalance(function () {
+						s.orig_price = s.start_price
+						s.orig_capital_currency = s.orig_currency + (s.orig_asset * s.orig_price)
+						s.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
+						debug.msg('s.orig_currency= ' + s.orig_currency + ' ; s.orig_capital_currency= ' + s.orig_capital_currency)
+					})
+				}
+			})
+
+			collectionCursor.on('end', function(){
+
+				// se numTrades === 0 chiama engine.exit(exitSim) - se presente esegue onExit della strategia e poi exit di quantum-sim
+				if(numTrades === 0){
+					if (so.symmetrical && !reversing) {
+						reversing = true
+						reverse_point = cursor
+						return getNext()
+					}
+					engine.exit(exitSim)
+					return
+				} else {
+					if (reversing) {
+						cursor = lastTrade.orig_time
+					}
+					else {
+						cursor = lastTrade.time
+					}
+				}
+				setImmediate(getNext)
+			})
+		}
 
 		function exitSim () {
 			if (!s.period) {
@@ -283,87 +371,5 @@ module.exports = function (program, conf) {
 				process.exit(0)
 			})
 		}
-
-		function getNext () {
-			var opts = {
-					query: {
-						selector: so.selector.normalized
-					},
-					sort: {time: 1},
-					limit: 1000
-			}
-			if (so.end) {
-				opts.query.time = {$lte: so.end}
-			}
-			if (cursor) {
-				if (reversing) {
-					opts.query.time = {}
-					opts.query.time['$lt'] = cursor
-					if (query_start) {
-						opts.query.time['$gte'] = query_start
-					}
-					opts.sort = {time: -1}
-				}
-				else {
-					if (!opts.query.time) opts.query.time = {}
-					opts.query.time['$gt'] = cursor
-				}
-			}
-			else if (query_start) {
-				if (!opts.query.time) opts.query.time = {}
-				opts.query.time['$gte'] = query_start
-			}
-
-			//riordino di tradeCollection
-			var collectionCursor = db_trades.find(opts.query).sort(opts.sort).stream()
-			var numTrades = 0
-			var lastTrade
-
-			collectionCursor.on('data', function(trade){
-				lastTrade = trade
-				numTrades++
-				if (so.symmetrical && reversing) {
-					trade.orig_time = trade.time
-					trade.time = reverse_point + (reverse_point - trade.time)
-				}
-
-				// emit per ogni trade -> va alla funzione   queueTrade che mette in coda il tradeProcessing e quindi onTrade
-				eventBus.emit('trade', trade)
-				if (!s.orig_currency) {
-					s.orig_currency = s.start_currency = so.currency_capital | s.balance.currency | 0
-					s.orig_asset = s.start_asset = so.asset_capital | s.balance.asset | 0
-					engine.syncBalance(function () {
-						s.orig_price = s.start_price
-						s.orig_capital_currency = s.orig_currency + (s.orig_asset * s.orig_price)
-						s.orig_capital_asset = s.orig_asset + (s.orig_currency / s.orig_price)
-						debug.msg('s.orig_currency= ' + s.orig_currency + ' ; s.orig_capital_currency= ' + s.orig_capital_currency)
-					})
-				}
-			})
-
-			collectionCursor.on('end', function(){
-
-				// se numTrades === 0 chiama engine.exit(exitSim) - se presente esegue onExit della strategia e poi exit di quantum-sim
-				if(numTrades === 0){
-					if (so.symmetrical && !reversing) {
-						reversing = true
-						reverse_point = cursor
-						return getNext()
-					}
-					engine.exit(exitSim)
-					return
-				} else {
-					if (reversing) {
-						cursor = lastTrade.orig_time
-					}
-					else {
-						cursor = lastTrade.time
-					}
-				}
-				setImmediate(getNext)
-			})
-		}
-
-		getNext()
 	})
 }
