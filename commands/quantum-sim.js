@@ -74,9 +74,11 @@ module.exports = function (program, conf) {
         }
       })
       //  restituisce Collection di mongodb - trades e simResults
-      var tradesCollection = collectionService(conf).getTrades()
-
-      var simResults = collectionService(conf).getSimResults()
+//      var tradesCollection = collectionService(conf).getTrades()
+//      var simResults = collectionService(conf).getSimResults()
+      
+      var db_trades = conf.db.trades
+      var db_simResults = conf.db.sim_results
 
       var eventBus = conf.eventBus
       // chiama la funzione timebucket - riporta in ms
@@ -260,7 +262,7 @@ module.exports = function (program, conf) {
         }
 
         //Corretto per Deprecation Warning
-        simResults.insertOne(options_output)
+        db_simResults.insertOne(options_output)
           .then(() => {
             process.exit(0)
           })
@@ -301,7 +303,7 @@ module.exports = function (program, conf) {
         }
 
         //riordino di tradeCollection
-        var collectionCursor = tradesCollection.find(opts.query).sort(opts.sort).stream()
+        var collectionCursor = db_trades.find(opts.query).sort(opts.sort).stream()
         var numTrades = 0
         var lastTrade
 
