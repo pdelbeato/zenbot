@@ -258,7 +258,7 @@ module.exports = function binance (conf) {
 								cb(err)
 							} else {
 								// retry is allowed for this error
-								console.error(('\nexchange.cancelOrder - Retry...')
+								console.error('\nexchange.cancelOrder - Retry...')
 								return retry('cancelOrder', func_args, 1000, err)
 							}
 						}
@@ -309,7 +309,7 @@ module.exports = function binance (conf) {
 										cb(err)
 									} else {
 										// retry is allowed for this error
-										console.error(('\nexchange.cancelAllOrder - cancelOrder error. Retry...')
+										console.error('\nexchange.cancelAllOrder - cancelOrder error. Retry...')
 										retry('cancelAllOrder', func_args, undefined, err)
 									}
 								}
@@ -318,7 +318,7 @@ module.exports = function binance (conf) {
 						
 						cb(null, body)
 					}, function(err) {
-						console.error(('\nexchange.cancelAllOrder - fetchOpenOrders error. Retry...')
+						console.error('\nexchange.cancelAllOrder - fetchOpenOrders error. Retry...')
 						return retry('cancelAllOrders', func_args, undefined, err)
 					})		
 				}
@@ -637,7 +637,7 @@ module.exports = function binance (conf) {
 						}
 						cb(null, order_tmp)
 					}, function(err) {
-						console.error(('\nexchange.getOrder - fetchOrder error. Retry...')
+						console.error('\nexchange.getOrder - fetchOrder error. Retry...')
 						return retry('getOrder', func_args, undefined, err)
 					})
 				}
