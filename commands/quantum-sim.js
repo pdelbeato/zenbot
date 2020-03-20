@@ -71,7 +71,7 @@ module.exports = function (program, conf) {
 		s.orders = []
 
 		//Carico le funzioni di utilità
-//		quantumTools(s, conf)
+		quantumTools(s, conf)
 
 //		var engine = null
 
