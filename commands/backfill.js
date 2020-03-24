@@ -1,7 +1,7 @@
 var tb = require('timebucket')
 , crypto = require('crypto')
 , objectifySelector = require('../lib/objectify-selector')
-, progressBar = require('ascii-progress');
+, progressBar = require('node-progress-bars');
 
 
 module.exports = function (program, conf) {
