@@ -14,11 +14,11 @@ module.exports = function (program, conf) {
 	.option('--start <unix_in_ms>', 'lower bound as unix time in ms', Number, -1)
 	.option('--end <unix_in_ms>', 'upper bound as unix time in ms', Number, -1)
 	.action(function (selector, cmd) {
-		process.stdout.write('Backfill - downloading data...')
+		process.stdout.write('Backfill - Downloading data...')
 		selector = objectifySelector(selector || conf.selector)
 		var exchange = require(`../extensions/exchanges/${selector.exchange_id}/exchange`)(conf)
 		if (!exchange) {
-			console.error('\nBackfill - cannot backfill ' + selector.normalized + ': exchange not implemented')
+			console.error('\nBackfill - Cannot backfill ' + selector.normalized + ': exchange not implemented')
 			process.exit(1)
 		}
 
@@ -46,7 +46,7 @@ module.exports = function (program, conf) {
 		var markers, trades
 		
 		if (!mode) {
-			console.error('\nBackfill - cannot backfill ' + selector.normalized + ': exchange does not offer historical data')
+			console.error('\nBackfill - Cannot backfill ' + selector.normalized + ': exchange does not offer historical data')
 			process.exit(0)
 		}
 		
@@ -64,7 +64,7 @@ module.exports = function (program, conf) {
 		}
 		
 		db_resume_markers.find({selector: selector.normalized}).toArray(function(err, results) {
-			process.stdout.write(' Markers resumed...')
+			process.stdout.write(' Markers resumed.')
 			markers = results.sort(function (a, b) {
 				if (mode === 'backward') {
 					if (a.to > b.to) return -1
@@ -207,7 +207,7 @@ module.exports = function (program, conf) {
 						}
 						if (result) {
 //							bar.tick();
-							process.stdout.write('.')
+//							process.stdout.write('.')
 							resolve()
 						}
 					})
