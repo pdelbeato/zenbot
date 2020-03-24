@@ -14,7 +14,7 @@ module.exports = function (program, conf) {
 	.option('--start <unix_in_ms>', 'lower bound as unix time in ms', Number, -1)
 	.option('--end <unix_in_ms>', 'upper bound as unix time in ms', Number, -1)
 	.action(function (selector, cmd) {
-		console.log('Backfill - downloading data...')
+		process.stdout.write('Backfill - downloading data...')
 		selector = objectifySelector(selector || conf.selector)
 		var exchange = require(`../extensions/exchanges/${selector.exchange_id}/exchange`)(conf)
 		if (!exchange) {
@@ -64,7 +64,7 @@ module.exports = function (program, conf) {
 		}
 		
 		db_resume_markers.find({selector: selector.normalized}).toArray(function(err, results) {
-			console.log('\nBackfill - Markers resumed...')
+			process.stdout.write(' Markers resumed...')
 			markers = results.sort(function (a, b) {
 				if (mode === 'backward') {
 					if (a.to > b.to) return -1
@@ -97,7 +97,7 @@ module.exports = function (program, conf) {
 			}
 			last_batch_opts = opts
 			exchange.getTrades(opts, function (err, results) {
-				console.log('\nBackfill - Trades downloaded: ' + results.length)
+				process.stdout.write(' Trades downloaded: ' + results.length + '...')
 				trades = results
 				
 				if (err) {
@@ -136,7 +136,7 @@ module.exports = function (program, conf) {
 					process.exit(0)
 				}
 				
-				console.log('Backfill - Sorting trades...')
+				process.stdout.write(' Sorting trades database...')
 				trades.sort(function (a, b) {
 					if (mode === 'backward') {
 						if (a.time > b.time) return -1
@@ -148,7 +148,7 @@ module.exports = function (program, conf) {
 					}
 					return 0
 				})
-				process.stdout.write(' done!')
+				process.stdout.write(' Done!')
 				
 				if (last_batch_id && last_batch_id === trades[0].trade_id) {
 					console.error('\nBackfill - getTrades(): error! Returned duplicate results')
@@ -172,6 +172,8 @@ module.exports = function (program, conf) {
 				total : trades.length
 			});
 
+			bar.update(0);
+			
 			//La funzione saveTrade non era impiegabile, in quanto il nuovo db non restituisce promesse
 			trades.forEach(function(trade) {
 				let trade_promise = new Promise(function (resolve, reject) {
