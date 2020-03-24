@@ -1,7 +1,7 @@
 var tb = require('timebucket')
 , crypto = require('crypto')
 , objectifySelector = require('../lib/objectify-selector')
-, progressBar = require('node-progress-bars');
+//, progressBar = require('node-progress-bars');
 
 
 module.exports = function (program, conf) {
@@ -97,7 +97,7 @@ module.exports = function (program, conf) {
 			}
 			last_batch_opts = opts
 			exchange.getTrades(opts, function (err, results) {
-				process.stdout.write(' Trades downloaded: ' + results.length + '...')
+				process.stdout.write('\nBackfill - Trades downloaded: ' + results.length + '...')
 				trades = results
 				
 				if (err) {
@@ -166,13 +166,13 @@ module.exports = function (program, conf) {
 			var promises = []
 			
 			console.log('\nBackfill - Populating trades database...')
-			var bar = new progressBar({
-				schema: ' Populating [:bar] :percent :etas',
-				width : 80,
-				total : trades.length
-			});
-
-			bar.update(0);
+//			var bar = new progressBar({
+//				schema: ' Populating [:bar] :percent :etas',
+//				width : 80,
+//				total : trades.length
+//			});
+//
+//			bar.update(0);
 			
 			//La funzione saveTrade non era impiegabile, in quanto il nuovo db non restituisce promesse
 			trades.forEach(function(trade) {
@@ -206,7 +206,8 @@ module.exports = function (program, conf) {
 							reject(err)
 						}
 						if (result) {
-							 bar.tick();
+//							bar.tick();
+							process.stdout.write('.')
 							resolve()
 						}
 					})
