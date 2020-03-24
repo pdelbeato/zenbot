@@ -1,6 +1,8 @@
 var tb = require('timebucket')
 , crypto = require('crypto')
 , objectifySelector = require('../lib/objectify-selector')
+, progressBar = require('ascii-progress');
+
 
 module.exports = function (program, conf) {
 	program
@@ -94,8 +96,9 @@ module.exports = function (program, conf) {
 				opts.offset = offset
 			}
 			last_batch_opts = opts
-			exchange.getTrades(opts, function (err, trades) {
-				console.log('\nBackfill - Trades downloaded: ' + trades.length)
+			exchange.getTrades(opts, function (err, results) {
+				console.log('\nBackfill - Trades downloaded: ' + results.length)
+				trades = results
 				
 				if (err) {
 					console.error('\nBackfill - Error backfilling selector: ' + selector.normalized)
@@ -161,6 +164,12 @@ module.exports = function (program, conf) {
 			var promises = []
 			
 			console.log('\nBackfill - Populating trades database...')
+			var bar = new progressBar({
+				schema: ' Populating [:bar] :percent :etas',
+				width : 80,
+				total : trades.length
+			});
+
 			//La funzione saveTrade non era impiegabile, in quanto il nuovo db non restituisce promesse
 			trades.forEach(function(trade) {
 				let trade_promise = new Promise(function (resolve, reject) {
@@ -193,6 +202,7 @@ module.exports = function (program, conf) {
 							reject(err)
 						}
 						if (result) {
+							 bar.tick();
 							resolve()
 						}
 					})
@@ -205,6 +215,7 @@ module.exports = function (program, conf) {
 			Promise.all(promises).then(function(/*results*/){
 				var oldest_time = marker.oldest_time
 				var newest_time = marker.newest_time
+				
 				markers.forEach(function (other_marker) {
 					// for backward scan, if the oldest_time is within another marker's range, skip to the other marker's start point.
 					// for forward scan, if the newest_time is within another marker's range, skip to the other marker's end point.

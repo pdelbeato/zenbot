@@ -29,6 +29,7 @@
   "dependencies": {
     "@babel/core": "^7.9.0",
     "@slack/client": "^5.0.2",
+    "ascii-progress": "^1.0.7",
     "async": "^3.2.0",
     "babel-loader": "^8.1.0",
     "babel-preset-env": "^1.7.0",
