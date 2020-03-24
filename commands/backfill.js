@@ -136,6 +136,7 @@ module.exports = function (program, conf) {
 					process.exit(0)
 				}
 				
+				console.log('Backfill - Sorting trades...')
 				trades.sort(function (a, b) {
 					if (mode === 'backward') {
 						if (a.time > b.time) return -1
@@ -147,6 +148,7 @@ module.exports = function (program, conf) {
 					}
 					return 0
 				})
+				process.stdout.write(' done!')
 				
 				if (last_batch_id && last_batch_id === trades[0].trade_id) {
 					console.error('\nBackfill - getTrades(): error! Returned duplicate results')
