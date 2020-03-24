@@ -16,7 +16,7 @@ module.exports = function (program, conf) {
 		selector = objectifySelector(selector || conf.selector)
 		var exchange = require(`../extensions/exchanges/${selector.exchange_id}/exchange`)(conf)
 		if (!exchange) {
-			console.error('cannot backfill ' + selector.normalized + ': exchange not implemented')
+			console.error('\nBackfill - cannot backfill ' + selector.normalized + ': exchange not implemented')
 			process.exit(1)
 		}
 
@@ -44,7 +44,7 @@ module.exports = function (program, conf) {
 		var markers, trades
 		
 		if (!mode) {
-			console.error('cannot backfill ' + selector.normalized + ': exchange does not offer historical data')
+			console.error('\nBackfill - cannot backfill ' + selector.normalized + ': exchange does not offer historical data')
 			process.exit(0)
 		}
 		
@@ -62,7 +62,7 @@ module.exports = function (program, conf) {
 		}
 		
 		db_resume_markers.find({selector: selector.normalized}).toArray(function(err, results) {
-//			console.log('Backfill - db_resume_markers')
+			console.log('\nBackfill - Markers resumed...')
 			markers = results.sort(function (a, b) {
 				if (mode === 'backward') {
 					if (a.to > b.to) return -1
@@ -83,50 +83,56 @@ module.exports = function (program, conf) {
 				opts.to = marker.from
 			}
 			else {
-				if (marker.to) opts.from = marker.to + 1
-				else opts.from = exchange.getCursor(start_time)
+				if (marker.to) {
+					opts.from = marker.to + 1
+				}
+				else {
+					opts.from = exchange.getCursor(start_time)
+				}
 			}
 			if (offset) {
 				opts.offset = offset
 			}
 			last_batch_opts = opts
-			exchange.getTrades(opts, function (err, results) {
-//				console.log('Backfill - exchange.getTrades results= ' + results.length)
-				trades = results
+			exchange.getTrades(opts, function (err, trades) {
+				console.log('\nBackfill - Trades downloaded: ' + trades.length)
+				
 				if (err) {
-					console.error('err backfilling selector: ' + selector.normalized)
+					console.error('\nBackfill - Error backfilling selector: ' + selector.normalized)
 					console.error(err)
 					if (err.code === 'ETIMEDOUT' || err.code === 'ENOTFOUND' || err.code === 'ECONNRESET') {
-						console.error('retrying...')
+						console.error('\nBackfill - Retrying...')
 						setImmediate(getNext)
 						return
 					}
-					console.error('aborting!')
+					console.error('\Backfill - Aborting!')
 					process.exit(1)
 				}
+				
 				if (mode !== 'backward' && !trades.length) {
 					if (trade_counter) {
-						console.log('\ndownload complete!\n')
+						console.log('\nBackfill - Download complete!\n')
 						process.exit(0)
 					}
 					else {
 						if (get_trade_retry_count < 5) {
-							console.error('\ngetTrades() returned no trades, retrying with smaller interval.')
+							console.error('\nBackfill - getTrades() returned no trades, retrying with smaller interval.')
 							get_trade_retry_count++
 							start_time += (target_time - start_time)*0.4
 							setImmediate(getNext)
 							return
 						}
 						else {
-							console.error('\ngetTrades() returned no trades, --start may be too remotely in the past.')
+							console.error('\nBackfill - getTrades() returned no trades, --start may be too remotely in the past.')
 							process.exit(1)
 						}
 					}
 				}
 				else if (!trades.length) {
-					console.log('\ngetTrades() returned no trades, we may have exhausted the historical data range.')
+					console.log('\nBackfill - getTrades() returned no trades, we may have exhausted the historical data range.')
 					process.exit(0)
 				}
+				
 				trades.sort(function (a, b) {
 					if (mode === 'backward') {
 						if (a.time > b.time) return -1
@@ -138,12 +144,14 @@ module.exports = function (program, conf) {
 					}
 					return 0
 				})
+				
 				if (last_batch_id && last_batch_id === trades[0].trade_id) {
-					console.error('\nerror: getTrades() returned duplicate results')
+					console.error('\nBackfill - getTrades(): error! Returned duplicate results')
 					console.error(opts)
 					console.error(last_batch_opts)
 					process.exit(0)
 				}
+				
 				last_batch_id = trades[0].trade_id
 				runTasks(trades)
 			})
@@ -152,6 +160,7 @@ module.exports = function (program, conf) {
 		function runTasks (trades) {
 			var promises = []
 			
+			console.log('\nBackfill - Populating trades database...')
 			//La funzione saveTrade non era impiegabile, in quanto il nuovo db non restituisce promesse
 			trades.forEach(function(trade) {
 				let trade_promise = new Promise(function (resolve, reject) {
@@ -211,19 +220,18 @@ module.exports = function (program, conf) {
 				var diff
 				if (oldest_time !== marker.oldest_time) {
 					diff = tb(oldest_time - marker.oldest_time).resize('1h').value
-					console.log('\nskipping ' + diff + ' hrs of previously collected data')
+					console.log('\nBackfill - Skipping ' + diff + ' hrs of previously collected data')
 				}
 				else if (newest_time !== marker.newest_time) {
 					diff = tb(marker.newest_time - newest_time).resize('1h').value
-					console.log('\nskipping ' + diff + ' hrs of previously collected data')
+					console.log('\nBackfill - Skipping ' + diff + ' hrs of previously collected data')
 				}
 				db_resume_markers.update({"_id" : marker._id}, {$set : marker}, {multi: false, upsert : true}, function() {
 					setupNext()
 				})
 			}).catch(function(err){
 				if (err) {
-					console.error(err)
-					console.error('retrying...')
+					console.error('Backfill - Retrying populating trades database. Error: ' + err)
 					return setTimeout(runTasks, 10000, trades)
 				}
 			})
@@ -234,7 +242,7 @@ module.exports = function (program, conf) {
 			day_trade_counter += trades.length
 			var current_days_left = 1 + (mode === 'backward' ? tb(marker.oldest_time - target_time).resize('1d').value : tb(target_time - marker.newest_time).resize('1d').value)
 			if (current_days_left >= 0 && current_days_left != days_left) {
-				console.log('\n' + selector.normalized, 'saved', day_trade_counter, 'trades', current_days_left, 'days left')
+				console.log('\nBackfill - ' + selector.normalized, 'saved', day_trade_counter, 'trades', current_days_left, 'days left')
 				day_trade_counter = 0
 				days_left = current_days_left
 			} else {
@@ -242,10 +250,10 @@ module.exports = function (program, conf) {
 			}
 
 			if (mode === 'backward' && marker.oldest_time <= target_time) {
-				console.log('\ndownload complete!\n')
+				console.log('\nBackfill - Download complete!\n')
 				process.exit(0)
 			} else if(cmd.start >= 0 && cmd.end >= 0 && target_time <= marker.newest_time){
-				console.log('\ndownload of span ('+cmd.start+' - '+cmd.end+') complete!\n')
+				console.log('\nBackfill - Download of span ('+cmd.start+' - '+cmd.end+') complete!\n')
 				process.exit(0)
 			}
 
@@ -255,32 +263,5 @@ module.exports = function (program, conf) {
 				setImmediate(getNext)
 			}
 		}
-
-//		function saveTrade (trade) {
-//			trade.id = selector.normalized + '-' + String(trade.trade_id)
-//			trade._id = trade.id
-//			trade.selector = selector.normalized
-//			var cursor = exchange.getCursor(trade)
-//			if (mode === 'backward') {
-//				if (!marker.to) {
-//					marker.to = cursor
-//					marker.oldest_time = trade.time
-//					marker.newest_time = trade.time
-//				}
-//				marker.from = marker.from ? Math.min(marker.from, cursor) : cursor
-//						marker.oldest_time = Math.min(marker.oldest_time, trade.time)
-//			}
-//			else {
-//				if (!marker.from) {
-//					marker.from = cursor
-//					marker.oldest_time = trade.time
-//					marker.newest_time = trade.time
-//				}
-//				marker.to = (marker.to ? Math.max(marker.to, cursor) : cursor)
-//				marker.newest_time = Math.max(marker.newest_time, trade.time)
-//			}
-////			console.log('Backfill - saveTrade - before db_trades.update')
-//			return db_trades.update({"_id" : trade._id}, {$set : trade}, {multi: false, upsert : true})
-//		}
 	})
 }
