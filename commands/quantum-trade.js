@@ -1244,6 +1244,9 @@ module.exports = function (program, conf) {
 						trade_cursor = s.exchange.getCursor(query_start)
 						opts.query.time = {$gte: query_start}
 					}
+					//Il download dei dati ha impiegato molto tempo, e altro tempo lo impiega db_trades.find
+					//Alla fine, quindi, i trades del preroll non saranno tutti, perchè il db scaricato sarà 
+					//completo solo fino al tempo di fine download. 
 					db_trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(function (err, filtered_trades) {
 						if (err) {
 							throw err
@@ -1252,7 +1255,7 @@ module.exports = function (program, conf) {
 						//Se ci sono filtered_trades, allora non esegue questo blocco ma esegue engine.update che c'è dopo
 						//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco e non esegue engine.update (perché c'è un return in questo blocco)
 						if (!filtered_trades.length) {
-							if (engine.tradeProcessing != 0) {
+							if (!engine.tradeProcessing()) {
 								console.log('Pre-roll in progress...')
 								setTimeout(getNext, 1000)
 							}
