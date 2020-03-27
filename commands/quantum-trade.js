@@ -1255,10 +1255,10 @@ module.exports = function (program, conf) {
 						//Se ci sono filtered_trades, allora non esegue questo blocco ma esegue engine.update che c'è dopo
 						//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco e non esegue engine.update (perché c'è un return in questo blocco)
 						if (!filtered_trades.length) {
-							if (!engine.tradeProcessing()) {
-								console.log('Pre-roll in progress...')
-								setTimeout(getNext, 1000)
-							}
+//							if (!engine.tradeProcessing()) {
+//								console.log('Pre-roll in progress...')
+//								setTimeout(getNext, 1000)
+//							}
 							var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
 							console.log(head)
 
@@ -1427,6 +1427,7 @@ module.exports = function (program, conf) {
 			/* End of backfiller.on(exit) */
 
 			var prev_timeout = null
+			
 			//forwardScan() viene chiamata ogni so.poll_trades
 			function forwardScan() {
 				//To avoid fetching last trade twice on exchange.getTrades() call.
@@ -1494,7 +1495,7 @@ module.exports = function (program, conf) {
 											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
 											console.error(err)
 										}
-										//Se c'è stato un trade, allora è il caso di aggiornare la sessione
+										//Se c'è stato un my_trade, allora è il caso di aggiornare la sessione
 										saveSession()
 									})
 								})
@@ -1511,7 +1512,6 @@ module.exports = function (program, conf) {
 								if (!so.minimal_db) {
 									savePeriod(s.period)
 								}
-//								engine.writeReport(true)
 							} 
 							else {
 								readline.clearLine(process.stdout)
@@ -1527,13 +1527,13 @@ module.exports = function (program, conf) {
 						engine.updateMessage()
 					}
 					
-					//Check per salvataggio sessione
+					//Check per salvataggio sessione (una volta al giorno)
 					if (nextSessionSave && nextSessionSave - moment() < 0) {
 						nextSessionSave = nextSessionSave.add(1, 'd')
 						saveSession()
 					}
 					
-					//Check per compattazione database
+					//Check per compattazione database (una volta ogni 2 giorni)
 					if (nextCompactDatabase && nextCompactDatabase - moment() < 0) {
 						nextCompactDatabase = nextCompactDatabase.add(2, 'd')
 						compactDatabase()
@@ -1635,7 +1635,7 @@ module.exports = function (program, conf) {
 						console.error(err)
 					}
 					else {
-						debug.msg('Save session.')
+						debug.msg('quantum-trade - Session saved.')
 					}
 				})
 			}
