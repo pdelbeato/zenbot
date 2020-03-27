@@ -544,7 +544,7 @@ module.exports = function (program, conf) {
 					}
 					else {
 						s.positions_index = null
-						console.log('No position opened.')
+						console.log('\nNo position opened.')
 						break
 					}
 
@@ -557,7 +557,7 @@ module.exports = function (program, conf) {
 							console.log('\nPosition in control: '.yellow + s.positions[s.positions_index].id)
 						}
 						else {
-							console.log('No position opened.')
+							console.log('\nNo position opened.')
 						}
 					}})
 					keyMap.set('-', {desc: ('set position'.grey + ' PREVIOUS'.yellow), action: function() {
@@ -569,7 +569,7 @@ module.exports = function (program, conf) {
 							console.log('\nPosition in control: '.yellow + s.positions[s.positions_index].id)
 						}
 						else {
-							console.log('No position opened.')
+							console.log('\nNo position opened.')
 						}
 					}})
 					keyMap.set('i', {desc: ('get information on the position'.grey), action: function() {
@@ -577,7 +577,7 @@ module.exports = function (program, conf) {
 							debug.obj('\nInformation on position: '.yellow + s.positions[s.positions_index].id, s.positions[s.positions_index], false, true)
 						}
 						else {
-							console.log('No position in control.')
+							console.log('\nNo position in control.')
 						}
 					}})
 					keyMap.set('K', {desc: ('set a manual close order (with fixed actual price) on the position'.grey), action: function() {
@@ -596,7 +596,7 @@ module.exports = function (program, conf) {
 							}
 						}
 						else {
-							console.log('No position in control.')
+							console.log('\nNo position in control.')
 						}
 					}})
 					keyMap.set('F', {desc: ('Free completely the position (cancel ALL orders connected to the position and let it be used)'.grey), action: function() {
@@ -607,7 +607,7 @@ module.exports = function (program, conf) {
 							s.positionProcessingQueue.push({mode: 'update', position_id: s.positions[s.positions_index].id})
 						}
 						else {
-							console.log('No position in control.')
+							console.log('\nNo position in control.')
 						}
 					}})
 					keyMap.set('L', {desc: ('Lock (Manual) the position (does not cancel orders connected to the position)'.grey), action: function() {
@@ -617,7 +617,7 @@ module.exports = function (program, conf) {
 							s.positionProcessingQueue.push({mode: 'update', position_id: s.positions[s.positions_index].id})
 						}
 						else {
-							console.log('No position in control.')
+							console.log('\nNo position in control.')
 						}
 					}})
 					keyMap.set('U', {desc: ('Unlock (Manual) the position (does not cancel orders connected to the position)'.grey), action: function() {
@@ -627,7 +627,7 @@ module.exports = function (program, conf) {
 							s.positionProcessingQueue.push({mode: 'update', position_id: s.positions[s.positions_index].id})
 						}
 						else {
-							console.log('No position in control.')
+							console.log('\nNo position in control.')
 						}
 					}})
 					keyMap.set('c', {desc: ('cancel ALL orders connected to the position, leaving it locked/unlocked'.grey), action: function() {
@@ -636,7 +636,7 @@ module.exports = function (program, conf) {
 							s.tools.positionFlags(s.positions[s.positions_index], 'status', 'Free')
 						}
 						else {
-							console.log('No position in control.')
+							console.log('\nNo position in control.')
 						}
 					}})
 					keyMap.set('C', {desc: ('cancel the position'.grey), action: function() {
@@ -653,7 +653,7 @@ module.exports = function (program, conf) {
 							}, so.order_poll_time)
 						}
 						else {
-							console.log('No position in control.')
+							console.log('\nNo position in control.')
 						}
 					}})
 					break
