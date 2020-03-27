@@ -8,7 +8,6 @@ var tb = require('timebucket')
 , crypto = require('crypto')
 , readline = require('readline')
 , colors = require('colors')
-, inspect = require('eyes').inspector({maxLength: 10000 })
 , output = require('../lib/output')
 , objectifySelector = require('../lib/objectify-selector')
 , engineFactory = require('../lib/quantum-engine')
@@ -360,12 +359,10 @@ module.exports = function (program, conf) {
 				}})
 				keyMap.set('x', {desc: ('print statistical output'.grey), action: function() { printTrade(false)}})
 				keyMap.set('P', {desc: ('list positions opened'.grey), action: function() {
-					console.log('\nListing positions opened...'.grey)
-					console.log(inspect(s.positions))
+					debug.obj('\nListing positions opened...'.grey, s.positions, false, true)
 				}})
 				keyMap.set('O', {desc: ('list orders opened'.grey), action: function() {
-					console.log('\nListing orders opened...'.grey)
-					console.log(inspect(s.orders))
+					debug.obj('\nListing orders opened...'.grey, s.orders, false, true)
 				}})
 				keyMap.set('Q', {desc: ('exit program with statistical output'.grey), action: function() {
 					console.log('\nExiting... ' + '\nCanceling ALL orders...'.grey)
@@ -577,8 +574,7 @@ module.exports = function (program, conf) {
 					}})
 					keyMap.set('i', {desc: ('get information on the position'.grey), action: function() {
 						if (s.positions_index != null) {
-							console.log('\nInformation on position: '.yellow + s.positions[s.positions_index].id)
-							console.log(inspect(s.positions[s.positions_index]))
+							debug.obj('\nInformation on position: '.yellow + s.positions[s.positions_index].id, s.positions[s.positions_index], false, true)
 						}
 						else {
 							console.log('No position in control.')
@@ -742,11 +738,10 @@ module.exports = function (program, conf) {
 					keyMap.set('a', {desc: ('show current trade options in a dirty view (full list)'.grey), action: function() {
 						let so_tmp = JSON.parse(JSON.stringify(so))
 						delete so_tmp.strategy
-						console.log('\n' + inspect(so_tmp))
+						debug.obj('\n', so_tmp, false, true)
 
 						Object.keys(so.strategy).forEach(function (strategy_name, index) {
-							console.log('\n' + strategy_name)
-							console.log('\n' + inspect(so.strategy[strategy_name].opts))
+							debug.obj('\n' + strategy_name, so.strategy[strategy_name].opts, false, true)
 						})
 					}})
 					keyMap.set('O', {desc: ('show current strategies options/data'.grey), action: function() {
