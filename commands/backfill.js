@@ -97,7 +97,7 @@ module.exports = function (program, conf) {
 			}
 			last_batch_opts = opts
 			exchange.getTrades(opts, function (err, results) {
-				process.stdout.write('\nBackfill - Trades downloaded: ' + results.length + '...')
+//				process.stdout.write('\nBackfill - Trades downloaded: ' + results.length + '...')
 				trades = results
 				
 				if (err) {
@@ -136,7 +136,7 @@ module.exports = function (program, conf) {
 					process.exit(0)
 				}
 				
-				process.stdout.write(' Sorting trades database...')
+//				process.stdout.write(' Sorting trades database...')
 				trades.sort(function (a, b) {
 					if (mode === 'backward') {
 						if (a.time > b.time) return -1
@@ -148,7 +148,7 @@ module.exports = function (program, conf) {
 					}
 					return 0
 				})
-				process.stdout.write(' Done!')
+//				process.stdout.write(' Done!')
 				
 				if (last_batch_id && last_batch_id === trades[0].trade_id) {
 					console.error('\nBackfill - getTrades(): error! Returned duplicate results')
@@ -165,7 +165,7 @@ module.exports = function (program, conf) {
 		function runTasks (trades) {
 			var promises = []
 			
-			console.log('\nBackfill - Populating trades database...')
+//			console.log('\nBackfill - Populating trades database...')
 //			var bar = new progressBar({
 //				schema: ' Populating [:bar] :percent :etas',
 //				width : 80,
