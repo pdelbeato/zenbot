@@ -323,7 +323,7 @@ module.exports = {
 			}
 
 			if (condition[side][1]) {
-				s.signal = side[0].toUpperCase() + ' Bollinger';
+				s.signal = side[0].toUpperCase() + ' Boll.';
 
 				if (!s.in_preroll) {
 					if (strat_data.max_profit_position[opposite_side] && strat_data.max_profit_position[opposite_side].profit_net_pct >= min_pct[side]) {
@@ -419,7 +419,7 @@ module.exports = {
 			}
 		}
 		else {
-			cols.push(s.tools.zeroFill(25, '', ' '))
+			cols.push(s.tools.zeroFill(26, '', ' '))
 		}
 
 		if (!s.in_preroll && (strat_data.max_profit_position.buy != null || strat_data.max_profit_position.sell != null)) {
