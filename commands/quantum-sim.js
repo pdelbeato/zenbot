@@ -137,10 +137,15 @@ module.exports = function (program, conf) {
 		// richiama quantum-engine
 		var engine = engineFactory(s, conf)
 		if (!so.min_periods) so.min_periods = 1
-		var cursor, reversing, reverse_point
+		var db_cursor, reversing, reverse_point
 		var query_start = (so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null)
 
 		getNext()
+
+		// engine.update_drain(function() {
+		// 	console.log('Fine simulazione')
+		// 	exitSim()
+		// })
 
 		function getNext () {
 			var numTrades = 0
@@ -157,7 +162,7 @@ module.exports = function (program, conf) {
 				opts.query.time = {$lte: so.end}
 			}
 
-			if (cursor) {
+			if (db_cursor) {
 				if (reversing) {
 					opts.query.time = {}
 					opts.query.time['$lt'] = cursor
@@ -168,7 +173,7 @@ module.exports = function (program, conf) {
 				}
 				else {
 					if (!opts.query.time) opts.query.time = {}
-					opts.query.time['$gt'] = cursor
+					opts.query.time['$gt'] = db_cursor
 				}
 			}
 			else if (query_start) {
@@ -178,19 +183,26 @@ module.exports = function (program, conf) {
 				opts.query.time['$gte'] = query_start
 			}
 
-//			Riordino di tradeCollection
-			db_trades.find(opts.query).sort(opts.sort).toArray(function (err, filtered_trades) {
+			console.log('Estrazione dei trade dal database a gruppi di ' + opts.limit + ' e inserimento in coda.')
+			db_trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(function (err, filtered_trades) {
 				if (err) {
 					throw err
 				}
 
-				engine.update(filtered_trades, false, function (err) {
-					if (err) throw err
-					engine.update_drain(function() {
-						console.log('Fine simulazione')
-						exitSim()
+				if (filtered_trades.length) {
+					db_cursor = filtered_trades[filtered_trades.length - 1].time
+
+					engine.update(filtered_trades, false, function (err) {
+						if (err) throw err
+						setImmediate(getNext)
 					})
-				})
+				}
+				else {
+					console.log('Fine simulazione')
+					setTimeout(exitSim,10000)
+				}
+
+				
 
 //				filtered_trades.forEach(function (trade, index) {
 //				lastTrade = trade

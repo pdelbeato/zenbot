@@ -351,7 +351,7 @@ module.exports = {
 			cb()
 		})
 		.catch( function(error) {
-			console.log('bollinger strategy - Errore in rsi: ', error)
+			// console.log('bollinger strategy - Errore in rsi: ', error)
 			cb()
 		})
 	},
