@@ -93,6 +93,8 @@ module.exports = function (program, conf) {
 //		s.trades = []
 		s.lookback = []
 		s.orders = []
+		
+		s.wait_updatePositions = false
 
 		//Carico le funzioni di utilità
 		quantumTools(s, conf)
