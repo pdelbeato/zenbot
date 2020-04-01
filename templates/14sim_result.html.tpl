@@ -426,13 +426,16 @@ footer  p{
 var withData = function (data, trades, options) {
 
 data=data.reverse();
+
 close_ref=data[0].close;
+console.log(data)
 data = data.map(function (d) {
   d.date = new Date(d.time)
   if (typeof d.strategy === 'object') {
-    d.upperBound=d.strategy.bollinger.data.upperBound
-    d.midBound=d.strategy.bollinger.data.midBound
-    d.lowerBound=d.strategy.bollinger.data.lowerBound
+    d.upperBound=d.strategy.bollinger.data.bollinger.upperBound
+    d.midBound=d.strategy.bollinger.data.bollinger.midBound
+    d.lowerBound=d.strategy.bollinger.data.bollinger.lowerBound
+    
     if (d.upperBound - d.lowerBound>0 && d.midBound!==0) {
       d.boll_perc_B= (d.close - d.lowerBound ) / (d.upperBound - d.lowerBound)
       d.BB_band=(d.upperBound - d.lowerBound)/d.midBound
@@ -444,7 +447,7 @@ data = data.map(function (d) {
   return d
 })
 
-console.log(data)
+
 rem_index=[];var index_trade=[];var trade_closed=[]
 
 trades = trades.map(function (t,index) {
