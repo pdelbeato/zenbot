@@ -257,13 +257,13 @@ module.exports = function (program, conf) {
 
             return data
           })
-					console.log(data[20].strategy.bollinger.data.bollinger)
+					//console.log(data[20].strategy.bollinger.data.bollinger)
           var code = 'var data = ' + JSON.stringify(data) + ';\n'
           code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
 
           code += 'var options = ' + JSON.stringify(s.options) + ';\n'
           // console.log(code)
-          var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '14sim_result.html.tpl'), { encoding: 'utf8' })
+          var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '15sim_result.html.tpl'), { encoding: 'utf8' })
 
 
           var out = tpl
