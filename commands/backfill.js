@@ -15,7 +15,7 @@ module.exports = function (program, conf) {
 		.option('--end <unix_in_ms>', 'upper bound as unix time in ms', Number, -1)
 		.option('--is_sim', 'If is_sim, save trades in MongoDB', Boolean, false)
 		.action(function (selector, cmd) {
-			process.stdout.write('Backfill - Downloading data...' + (conf.is_sim ? ' for SIM purposes (use MongoDB. ' : ''))
+			process.stdout.write('Backfill - Downloading data...' + (conf.is_sim ? ' for SIM purposes (use MongoDB). ' : ''))
 			selector = objectifySelector(selector || conf.selector)
 			var exchange = require(`../extensions/exchanges/${selector.exchange_id}/exchange`)(conf)
 			if (!exchange) {
@@ -116,7 +116,7 @@ module.exports = function (program, conf) {
 					if (mode !== 'backward' && !trades.length) {
 						if (trade_counter) {
 							if (days_left != 0) {
-								console.log('\nBackfill - Downloaded 0 trades, but there is remaining days. Trying to go on...')
+								console.log('\nBackfill - Downloaded 0 trades, but there is ' + days_left + ' remaining days. Trying to go on...')
 								start_time += 1000
 								setImmediate(getNext)
 							}
