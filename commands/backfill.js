@@ -116,9 +116,10 @@ module.exports = function (program, conf) {
 					if (mode !== 'backward' && !trades.length) {
 						if (trade_counter) {
 							if (days_left != 0) {
+								//C'è la possibilità, in caso di coppie poco utilizzate, che non scarichi trades in un periodo passato.
+								//Con questo check, manda avanti il tempo e ritenta il download.
 								console.log('\nBackfill - Downloaded 0 trades, but there is ' + days_left + ' remaining days. Trying to go on...')
-								marker.to = null
-								start_time += 60000
+								marker.to += 60000
 								setImmediate(getNext)
 								return
 							}
