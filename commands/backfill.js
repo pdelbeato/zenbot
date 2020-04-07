@@ -115,7 +115,7 @@ module.exports = function (program, conf) {
 
 					if (mode !== 'backward' && !trades.length) {
 						if (trade_counter) {
-							if (current_days_left != 0) {
+							if (days_left != 0) {
 								console.log('\nBackfill - Downloaded 0 trades, but there is remaining days. Trying to go on...')
 								start_time += 1000
 								setImmediate(getNext)
