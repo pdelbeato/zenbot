@@ -115,8 +115,15 @@ module.exports = function (program, conf) {
 
 					if (mode !== 'backward' && !trades.length) {
 						if (trade_counter) {
-							console.log('\nBackfill - Download complete!\n')
-							process.exit(0)
+							if (current_days_left != 0) {
+								console.log('\nBackfill - Downloaded 0 trades, but there is remaining days. Trying to go on...')
+								start_time += 1000
+								setImmediate(getNext)
+							}
+							else {
+								console.log('\nBackfill - Download complete!\n')
+								process.exit(0)
+							}
 						}
 						else {
 							if (get_trade_retry_count < 5) {
