@@ -58,6 +58,7 @@ module.exports = function (program, conf) {
     .option('--backtester_generation <generation>', 'creates a json file in simulations with the generation number', Number, -1)
     .option('--verbose', 'print status lines on every period')
     .option('--silent', 'only output on completion (can speed up sim)')
+    .option('--debug', 'output detailed debug info')
     .action(function (selector, cmd) {
       //Con le righe seguenti, dovrei mettere in s.options tutte le opzioni passate da riga di comando, niente di più.
       var raw_opts = minimist(process.argv)
