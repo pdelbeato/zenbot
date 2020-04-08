@@ -177,7 +177,7 @@ module.exports = function (program, conf) {
         var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
         s.asset_in_currency = n(s.balance.asset).multiply(s.lookback[s.lookback.length - 1].close).value()
         s.currency_in_asset = n(s.balance.currency).divide(s.lookback[s.lookback.length - 1].close).value()
-        s.start_capital_currency = s.orig_capital_currency = n(s.balance.currency).add(s.asset_in_currency).value()
+        s.start_capital_currency = n(s.balance.currency).add(s.asset_in_currency).value()
         var profit = (s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0))
         //var profit = (s.options.currency_capital ? n(tmp_capital_currency).subtract(s.options.currency_capital).divide(s.options.currency_capital) : n(0))
 
