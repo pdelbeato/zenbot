@@ -426,25 +426,38 @@ footer  p{
 var withData = function (data, trades, options) {
 
 data=data.reverse();
+
 close_ref=data[0].close;
+
+
 data = data.map(function (d) {
   d.date = new Date(d.time)
   if (typeof d.strategy === 'object') {
-    d.upperBound=d.strategy.bollinger.data.upperBound
-    d.midBound=d.strategy.bollinger.data.midBound
-    d.lowerBound=d.strategy.bollinger.data.lowerBound
+  //if (typeof d.strategy.bollinger.data === 'object') {
+    if (typeof d.strategy.bollinger.data.bollinger === 'object') {
+
+      d.upperBound=d.strategy.bollinger.data.bollinger.upperBound
+      d.midBound=d.strategy.bollinger.data.bollinger.midBound
+      d.lowerBound=d.strategy.bollinger.data.bollinger.lowerBound
+    } else {
+      d.upperBound=1000
+      d.midBound=1000
+      d.lowerBound=1000
+      }
     if (d.upperBound - d.lowerBound>0 && d.midBound!==0) {
       d.boll_perc_B= (d.close - d.lowerBound ) / (d.upperBound - d.lowerBound)
       d.BB_band=(d.upperBound - d.lowerBound)/d.midBound
     } else {
       d.boll_perc_B=0
       }
-    }
+
   d.close_norm=d.close/close_ref
   return d
+//}}
+}
 })
 
-console.log(data)
+
 rem_index=[];var index_trade=[];var trade_closed=[]
 
 trades = trades.map(function (t,index) {
@@ -558,7 +571,7 @@ rem_index.reverse().forEach(function(element) {
   });
 
 
-  //console.log(trades)
+console.log(trades)
 
 //var data_trades = data.concat(trades);
 //console.log(data_trades)
@@ -587,11 +600,20 @@ if (trades[i].signal==="sell") {
 if (i===0) {
   init_asset[i]=init_asset[0]
   init_currency[i]=init_currency[0]
+
+  //if (typeof data[i] != "undefined") {
+
   realcapital= (init_asset[i]*data[i].close+init_currency[i])/(init_asset[0]*data[0].close+init_currency[0])
+//} else { realcapital=0}
+
   } else {
     init_asset[i]=init_asset[i-1]+stepC_a
     init_currency[i]=init_currency[i-1]+stepC_c
+
+    //if (typeof data[i] != "undefined") {
     realcapital= (init_asset[i]*trades[i].price+init_currency[i])/(init_asset[0]*data[0].close+init_currency[0])
+    //} else { realcapital=0}
+
     }
   graph_realcapital.push ({
       "value":realcapital,
@@ -660,7 +682,7 @@ var chart = AmCharts.makeChart( "chartdiv", {
 
     "color": "#7f8da9",
     "dataProvider": data,
-//    "title": "BTC-EUR",
+    "title": "BTC-EUR",
     "categoryField": "date",
     "stockEvents": stock_Events
 

@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/zenbot.js",
+            "stopOnEntry": false,
+            "console": "integratedTerminal",
+			"args": [
+                "quantum-sim", "--conf=./conf_files/conf_quantum_Binance_BNB-BTC.js", "--currency_capital=10", "--asset_capital=1000", "--days=4", "--verbose"
+                //"backfill", "--conf=./conf_files/conf_quantum_Binance_BNB-BTC.js", "--days=4", "--is_sim"
+
+			]
+        }
+    ]
+}
