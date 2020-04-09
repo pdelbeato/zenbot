@@ -65,12 +65,12 @@ module.exports = function (program, conf) {
       var s = { options: JSON.parse(JSON.stringify(raw_opts)) }
       var so = s.options
 
-//      s.positions = []
+      s.positions = []
       //		s.closed_positions = []
       s.my_trades = []
       //		s.trades = []
-//      s.lookback = []
-//      s.orders = []
+      s.lookback = []
+      s.orders = []
 
       //Carico le funzioni di utilità
       quantumTools(s, conf)
@@ -103,7 +103,7 @@ module.exports = function (program, conf) {
       //Recupera tutti i vecchi database
       	var db_my_trades = conf.db.my_trades
 		var db_my_positions = conf.db.my_positions
-		var db_my_closed_positions = conf.db.my_closed_positions
+		s.db_my_closed_positions = conf.db.my_closed_positions
 		s.db_periods = conf.db.periods
 		var db_resume_markers = conf.db.resume_markers
 		var db_trades = conf.db.trades
