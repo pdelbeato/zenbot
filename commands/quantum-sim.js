@@ -270,7 +270,7 @@ module.exports = function (program, conf) {
         console.log('\nstart_capital', n(s.start_capital_currency).format('0.00000000').yellow)
 		//console.log('start_price', n(s.start_price).format('0.00000000').yellow)
 //		console.log('start_price', n(s.lookback[s.lookback.length - 1].close).format('0.00000000').yellow)
-        console.log('start_price', s.start_price.format('0.00000000').yellow)
+        console.log('start_price', n(s.start_price).format('0.00000000').yellow)
         console.log('close_price', n(s.period.close).format('0.00000000').yellow)
         var buy_hold = (s.start_price ? n(s.period.close).multiply(n(s.start_capital_currency).divide(s.start_price)) : n(s.balance.currency))
         //console.log('buy hold', buy_hold.format('0.00000000'))

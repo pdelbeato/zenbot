@@ -280,9 +280,10 @@ module.exports = {
 				let position = s.positions.find(x => x.id === opts.position_id)
 				if (position) {
 					let position_locking = (position.locked & ~s.strategyFlag['catching_orders'])
+					let position_status = (position.status & ~s.strategyFlag['catching_orders'])
 					let target_price = null
 
-					if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
+					if (!position_locking && !position_status && !s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
 						let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 						if (position.side === 'buy') {
 							target_price = n(position.price_open).multiply(1 + strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
