@@ -190,7 +190,7 @@ module.exports = function (program, conf) {
 		var db_my_trades = conf.db.my_trades
 		var db_my_positions = conf.db.my_positions
 		var db_my_closed_positions = conf.db.my_closed_positions
-		var db_periods = conf.db.periods
+		s.db_periods = conf.db.periods
 		var db_sessions = conf.db.sessions
 		var db_resume_markers = conf.db.resume_markers
 		var db_trades = conf.db.trades
@@ -821,7 +821,7 @@ module.exports = function (program, conf) {
 
 					debug.msg('cleanDB - Pulisco il db dei record più vecchi di ' + fromTime + ' (ora è ' + moment() + ')... ')
 
-					db_periods.deleteMany({'time' : { $lt : fromTime }}, function (err, numRemoved) {
+					s.db_periods.deleteMany({'time' : { $lt : fromTime }}, function (err, numRemoved) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.periods')
 							console.error(err)
@@ -1271,7 +1271,7 @@ module.exports = function (program, conf) {
 							//Se è attiva l'opzione minimal_db, cancello i db trades e periods
 							if(so.minimal_db) {
 								console.log('Option minimal_db is active! Delete db_periods and db_trades')
-								db_periods = conf.db.periods = null
+								s.db_periods = conf.db.periods = null
 								db_trades = conf.db.trades = null
 							}
 							
@@ -1500,15 +1500,15 @@ module.exports = function (program, conf) {
 							}
 
 							if (s.lookback.length > lookback_size) {
-								if (!so.minimal_db) {
-									savePeriod(s.lookback[0])
-								}
-								lookback_size = s.lookback.length
-							}
-							if (s.period) {
-								if (!so.minimal_db) {
-									savePeriod(s.period)
-								}
+//								if (!so.minimal_db) {
+//									savePeriod(s.lookback[0])
+//								}
+//								lookback_size = s.lookback.length
+//							}
+//							if (s.period) {
+//								if (!so.minimal_db) {
+//									savePeriod(s.period)
+//								}
 							} 
 							else {
 								readline.clearLine(process.stdout)
@@ -1558,20 +1558,14 @@ module.exports = function (program, conf) {
 				}
 				/* End of saveTrade() */
 				
-				function savePeriod (period) {
-					if (!period.id) {
-						period.id = crypto.randomBytes(4).toString('hex')
-						period.selector = so.selector.normalized
-						period.session_id = session.id
-					}
-					period._id = period.id
-					db_periods.updateOne({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
-						if (err) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
-							console.error(err)
-						}
-					})
-				}
+//				function savePeriod (period) {
+//					s.db_periods.updateOne({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
+//						if (err) {
+//							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
+//							console.error(err)
+//						}
+//					})
+//				}
 				/* End of savePeriod() */
 			}
 			/* End of forwardScan() */

@@ -101,8 +101,70 @@ module.exports = function (program, conf) {
       })
 
       //Recupera tutti i vecchi database
-      var db_trades = conf.db.trades
-      var simResults = conf.db.simResults
+      	var db_my_trades = conf.db.my_trades
+		var db_my_positions = conf.db.my_positions
+		var db_my_closed_positions = conf.db.my_closed_positions
+		s.db_periods = conf.db.periods
+		var db_resume_markers = conf.db.resume_markers
+		var db_trades = conf.db.trades
+		
+		s.positionProcessingQueue = async.queue(function(task, callback = function () {}) {
+			s.wait_updatePositions = true
+			switch (task.mode) {
+			case 'update': {
+				var position = s.positions.find(x => x.id === task.position_id)
+				position._id = position.id
+
+				db_my_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+					if (err) {
+						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_positions')
+						console.error(err)
+
+						return callback(err)
+					}
+				})
+				break
+			}
+			case 'delete': {
+				var position_index = s.positions.findIndex(x => x.id === task.position_id)
+				var position = s.positions.find(x => x.id === task.position_id)
+
+				db_my_positions.deleteOne({'_id' : task.position_id}, function (err) {
+					//In ogni caso, elimino la posizione da s.positions
+					s.positions.splice(position_index,1)
+
+					if (err) {
+						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error deleting in db_my_positions')
+						console.error(err)
+						return callback(err)
+					}
+
+					//... e inserisco la posizione chiusa del db delle posizioni chiuse
+					if (position) {
+						position._id = position.id
+						db_my_closed_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+							if (err) {
+								console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
+								console.error(err)
+								return callback(err)
+							}
+
+							s.tools.functionStrategies('onPositionClosed', task)
+						})
+					}
+				})
+				break
+			}
+			}
+			s.wait_updatePositions = false
+			callback(null)
+		})
+
+		
+	
+    
+    
+    
 
       var eventBus = conf.eventBus
 
@@ -140,6 +202,73 @@ module.exports = function (program, conf) {
       if (!so.min_periods) so.min_periods = 1
       var db_cursor, reversing, reverse_point
       var query_start = (so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null)
+
+      getNext()
+
+      function getNext () {
+        var opts = {
+          query: {
+            selector: so.selector.normalized
+          },
+          sort: {time: 1},
+          limit: 1000
+        }
+        if (so.end) {
+          opts.query.time = {$lte: so.end}
+        }
+        if (db_cursor) {
+          if (reversing) {
+            opts.query.time = {}
+            opts.query.time['$lt'] = db_cursor
+            if (query_start) {
+              opts.query.time['$gte'] = query_start
+            }
+            opts.sort = {time: -1}
+          }
+          else {
+            if (!opts.query.time) opts.query.time = {}
+            opts.query.time['$gt'] = db_cursor
+          }
+        }
+        else if (query_start) {
+          if (!opts.query.time) opts.query.time = {}
+          opts.query.time['$gte'] = query_start
+        }
+        var collectionCursor = db_trades.find(opts.query).sort(opts.sort).stream()
+        var numTrades = 0
+        var lastTrade
+
+        collectionCursor.on('data', function(trade){
+          lastTrade = trade
+          numTrades++
+          if (so.symmetrical && reversing) {
+            trade.orig_time = trade.time
+            trade.time = reverse_point + (reverse_point - trade.time)
+          }
+          eventBus.emit('trade', trade)
+        })
+
+        collectionCursor.on('end', function(){
+          if(numTrades === 0){
+            if (so.symmetrical && !reversing) {
+              reversing = true
+              reverse_point = db_cursor
+              return getNext()
+            }
+            engine.exit(exitSim)
+            return
+          } else {
+
+            if (reversing) {
+              db_cursor = lastTrade.orig_time
+            }
+            else {
+              db_cursor = lastTrade.time
+            }
+          }
+          setImmediate(getNext)
+        })
+      }
 
       function exitSim() {
         if (!s.period) {
@@ -288,72 +417,5 @@ module.exports = function (program, conf) {
         //     process.exit(0)
         //   })
       }
-
-      function getNext () {
-        var opts = {
-          query: {
-            selector: so.selector.normalized
-          },
-          sort: {time: 1},
-          limit: 1000
-        }
-        if (so.end) {
-          opts.query.time = {$lte: so.end}
-        }
-        if (db_cursor) {
-          if (reversing) {
-            opts.query.time = {}
-            opts.query.time['$lt'] = db_cursor
-            if (query_start) {
-              opts.query.time['$gte'] = query_start
-            }
-            opts.sort = {time: -1}
-          }
-          else {
-            if (!opts.query.time) opts.query.time = {}
-            opts.query.time['$gt'] = db_cursor
-          }
-        }
-        else if (query_start) {
-          if (!opts.query.time) opts.query.time = {}
-          opts.query.time['$gte'] = query_start
-        }
-        var collectionCursor = db_trades.find(opts.query).sort(opts.sort).stream()
-        var numTrades = 0
-        var lastTrade
-
-        collectionCursor.on('data', function(trade){
-          lastTrade = trade
-          numTrades++
-          if (so.symmetrical && reversing) {
-            trade.orig_time = trade.time
-            trade.time = reverse_point + (reverse_point - trade.time)
-          }
-          eventBus.emit('trade', trade)
-        })
-
-        collectionCursor.on('end', function(){
-          if(numTrades === 0){
-            if (so.symmetrical && !reversing) {
-              reversing = true
-              reverse_point = db_cursor
-              return getNext()
-            }
-            engine.exit(exitSim)
-            return
-          } else {
-
-            if (reversing) {
-              db_cursor = lastTrade.orig_time
-            }
-            else {
-              db_cursor = lastTrade.time
-            }
-          }
-          setImmediate(getNext)
-        })
-      }
-      getNext()
-
     })
 }
