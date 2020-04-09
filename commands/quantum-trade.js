@@ -821,7 +821,7 @@ module.exports = function (program, conf) {
 
 					debug.msg('cleanDB - Pulisco il db dei record più vecchi di ' + fromTime + ' (ora è ' + moment() + ')... ')
 
-					db_periods.remove({'time' : { $lt : fromTime }}, function (err, numRemoved) {
+					db_periods.deleteMany({'time' : { $lt : fromTime }}, function (err, numRemoved) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.periods')
 							console.error(err)
@@ -829,7 +829,7 @@ module.exports = function (program, conf) {
 						debug.msg('cleanDB - ' + numRemoved + ' period(s) deleted')
 					})
 
-					db_trades.remove({'time' : { $lt : fromTime }}, function (err, numRemoved) {
+					db_trades.deleteMany({'time' : { $lt : fromTime }}, function (err, numRemoved) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.trades')
 							console.error(err)
@@ -858,7 +858,7 @@ module.exports = function (program, conf) {
 					var position = s.positions.find(x => x.id === task.position_id)
 					position._id = position.id
 
-					db_my_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+					db_my_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_positions')
 							console.error(err)
@@ -872,7 +872,7 @@ module.exports = function (program, conf) {
 					var position_index = s.positions.findIndex(x => x.id === task.position_id)
 					var position = s.positions.find(x => x.id === task.position_id)
 
-					db_my_positions.remove({'_id' : task.position_id}, function (err) {
+					db_my_positions.deleteOne({'_id' : task.position_id}, function (err) {
 						//In ogni caso, elimino la posizione da s.positions
 						s.positions.splice(position_index,1)
 
@@ -885,7 +885,7 @@ module.exports = function (program, conf) {
 						//... e inserisco la posizione chiusa del db delle posizioni chiuse
 						if (position) {
 							position._id = position.id
-							db_my_closed_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+							db_my_closed_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
 								if (err) {
 									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
 									console.error(err)
@@ -1476,7 +1476,7 @@ module.exports = function (program, conf) {
 								console.error(err)
 							}
 							if (!so.minimal_db) {
-								db_resume_markers.update({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
+								db_resume_markers.updateOne({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
 									if (err) {
 										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
 										console.error(err)
@@ -1487,7 +1487,7 @@ module.exports = function (program, conf) {
 								s.my_trades.slice(my_trades_size).forEach(function (my_trade) {
 									my_trade._id = my_trade.id
 									my_trade.session_id = session.id
-									db_my_trades.update({'_id' : my_trade._id}, {$set: my_trade}, {multi: false, upsert: true}, function (err) {
+									db_my_trades.updateOne({'_id' : my_trade._id}, {$set: my_trade}, {multi: false, upsert: true}, function (err) {
 										if (err) {
 											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
 											console.error(err)
@@ -1548,7 +1548,7 @@ module.exports = function (program, conf) {
 					}
 					marker.to = (marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor)
 					marker.newest_time = Math.max(marker.newest_time, trade.time)
-					db_trades.update({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
+					db_trades.updateOne({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
 						// ignore duplicate key errors
 						if (err && err.code !== 11000) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
@@ -1565,7 +1565,7 @@ module.exports = function (program, conf) {
 						period.session_id = session.id
 					}
 					period._id = period.id
-					db_periods.update({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
+					db_periods.updateOne({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
 							console.error(err)
@@ -1626,7 +1626,7 @@ module.exports = function (program, conf) {
 				session.total_fees = s.total_fees
 				session.total_profit = s.total_profit
 
-				db_sessions.update({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
+				db_sessions.updateOne({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
 					if (err) {
 						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 						console.error(err)
