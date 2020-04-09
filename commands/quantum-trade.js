@@ -211,42 +211,42 @@ module.exports = function (program, conf) {
 		if (cmd.reset) {
 			console.log('\nDeleting my_positions, my_closed_positions, my_trades and sessions collections...')
 			let reset_db_my_positions = new Promise(function (resolve, reject) {
-				db_my_positions.drop(function(err, results) {
+				db_my_positions.deleteMany(function(err, results) {
 					if (err) {
 						reject(err)
 					}
 					console.log('\tCollection my_positions deleted!')
-					db_my_positions = conf.db.datastore.collection('my_positions')
+//					db_my_positions = conf.db.datastore.collection('my_positions')
 					resolve()
 				})
 			})
 			let reset_db_my_closed_positions = new Promise(function (resolve, reject) {
-				db_my_closed_positions.drop(function(err, results) {
+				db_my_closed_positions.deleteMany(function(err, results) {
 					if (err) {
 						reject(err)
 					}
 					console.log('\tCollection my_closed_positions deleted!')
-					db_my_closed_positions = conf.db.datastore.collection('my_closed_positions')
+//					db_my_closed_positions = conf.db.datastore.collection('my_closed_positions')
 					resolve()
 				})
 			})
 			let reset_db_my_trades = new Promise(function (resolve, reject) {
-				db_my_trades.drop(function(err, results) {
+				db_my_trades.deleteMany(function(err, results) {
 					if (err) {
 						reject(err)
 					}
 					console.log('\tCollection my_trades deleted!')
-					db_my_trades = conf.db.datastore.collection('my_trades')
+//					db_my_trades = conf.db.datastore.collection('my_trades')
 					resolve()
 				})
 			})
 			let reset_db_sessions = new Promise(function (resolve, reject) {
-				db_sessions.drop(function(err, results) {
+				db_sessions.deleteMany(function(err, results) {
 					if (err) {
 						reject(err)
 					}
 					console.log('\tCollection sessions deleted!')
-					db_sessions = conf.db.datastore.collection('sessions')
+//					db_sessions = conf.db.datastore.collection('sessions')
 					resolve()
 				})
 			})
