@@ -8,8 +8,8 @@ var tb = require('timebucket')
   , objectifySelector = require('../lib/objectify-selector')
   , engineFactory = require('../lib/quantum-engine')
   //, collectionService = require('../lib/services/collection-service')
-  , _ = require('lodash')
-  , debug = require('../lib/debug')
+  //, _ = require('lodash')
+  //, debug = require('../lib/debug')
   , quantumTools = require('../lib/quantum-tools')
 //, async = require('async')
 
@@ -65,6 +65,9 @@ module.exports = function (program, conf) {
       var s = { options: JSON.parse(JSON.stringify(raw_opts)) }
       var so = s.options
 
+      var data_array =  {}
+
+
       s.positions = []
       //		s.closed_positions = []
       s.my_trades = []
@@ -101,12 +104,12 @@ module.exports = function (program, conf) {
       })
 
       //Recupera tutti i vecchi database
-      	var db_my_trades = conf.db.my_trades
-		var db_my_positions = conf.db.my_positions
-		s.db_my_closed_positions = conf.db.my_closed_positions
-		s.db_periods = conf.db.periods
-		var db_resume_markers = conf.db.resume_markers
-		var db_trades = conf.db.trades
+      //var db_my_trades = conf.db.my_trades
+      //var db_my_positions = conf.db.my_positions
+      s.db_my_closed_positions = conf.db.my_closed_positions
+      s.db_periods = conf.db.periods
+      //var db_resume_markers = conf.db.resume_markers
+      var db_trades = conf.db.trades
 
       var eventBus = conf.eventBus
 
@@ -137,12 +140,13 @@ module.exports = function (program, conf) {
       so.show_options = !cmd.disable_options
       so.verbose = !!cmd.verbose
       so.selector = objectifySelector(selector || conf.selector)
-      so.mode = 'sim';
+      so.mode = 'sim'
 
       // richiama quantum-engine
       var engine = engineFactory(s, conf)
       if (!so.min_periods) so.min_periods = 1
       var db_cursor, reversing, reverse_point
+      var db_data_cursor
       var query_start = (so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null)
 
       getNext()
@@ -242,25 +246,25 @@ module.exports = function (program, conf) {
         //s.balance.currency = n(s.net_currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00000000')
 
         //s.balance.asset = 0
-//        s.lookback.unshift(s.period)
+        //        s.lookback.unshift(s.period)
         s.db_periods.updateOne({'_id': s.period._id}, {$set: s.period}, {multi: false, upsert: true}, function (err) {
-			if (err) {
-				console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ': quantum-sim - exitSim - Error saving db_periods:')
-				console.error(err)
-			}
-		})
-		
+          if (err) {
+            console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ': quantum-sim - exitSim - Error saving db_periods:')
+            console.error(err)
+          }
+        })
+
         //var profit = s.start_capital ? n(s.balance.currency).subtract(s.start_capital).divide(s.start_capital) : n(0)
         var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
         var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
-//        s.start_price esiste
-//        s.start_capital_currency esiste
-//        s.start_capital_asset esiste
-        
-//        s.asset_in_currency = n(s.balance.asset).multiply(s.lookback[s.lookback.length - 1].close).value()
-//        s.currency_in_asset = n(s.balance.currency).divide(s.lookback[s.lookback.length - 1].close).value()
-//        s.start_capital_currency = n(s.balance.currency).add(s.asset_in_currency).value()
-        
+        //        s.start_price esiste
+        //        s.start_capital_currency esiste
+        //        s.start_capital_asset esiste
+
+        //        s.asset_in_currency = n(s.balance.asset).multiply(s.lookback[s.lookback.length - 1].close).value()
+        //        s.currency_in_asset = n(s.balance.currency).divide(s.lookback[s.lookback.length - 1].close).value()
+        //        s.start_capital_currency = n(s.balance.currency).add(s.asset_in_currency).value()
+
         var profit = (s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0))
         //var profit = (s.options.currency_capital ? n(tmp_capital_currency).subtract(s.options.currency_capital).divide(s.options.currency_capital) : n(0))
 
@@ -268,9 +272,10 @@ module.exports = function (program, conf) {
 
         output_lines.push('end balance:     capital currency: ' + n(tmp_capital_currency).format('0.00000000').yellow + '   capital asset: ' + n(tmp_capital_asset).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
         console.log('\nstart_capital', n(s.start_capital_currency).format('0.00000000').yellow)
-		//console.log('start_price', n(s.start_price).format('0.00000000').yellow)
-//		console.log('start_price', n(s.lookback[s.lookback.length - 1].close).format('0.00000000').yellow)
-        console.log('start_price', s.start_price.format('0.00000000').yellow)
+        //console.log('start_price', n(s.start_price).format('0.00000000').yellow)
+        //		console.log('start_price', n(s.lookback[s.lookback.length - 1].close).format('0.00000000').yellow)
+        console.log(s.start_price)
+        console.log('start_price', n(s.start_price).format('0.00000000').yellow)
         console.log('close_price', n(s.period.close).format('0.00000000').yellow)
         var buy_hold = (s.start_price ? n(s.period.close).multiply(n(s.start_capital_currency).divide(s.start_price)) : n(s.balance.currency))
         //console.log('buy hold', buy_hold.format('0.00000000'))
@@ -318,7 +323,7 @@ module.exports = function (program, conf) {
         }
 
         for (var i = 0; i < 4; i++) {
-          	console.log(output_lines[i])
+          console.log(output_lines[i])
         }
 
         if (so.backtester_generation >= 0) {
@@ -330,37 +335,92 @@ module.exports = function (program, conf) {
             return colors.stripColors(line)
           }).join('\n')
 
-//          var data = s.lookback.slice(0, s.lookback.length).map(function (period) {
-          var data = s.db_periods.find({}).map(function (period) {
-            //var data = so.strategy.bollinger.calc_lookback.slice(0, so.strategy.bollinger.calc_lookback.length ).map(function (period) {
-            //var data = s.calc_lookback.slice(0, s.calc_lookback.length ).map(function (period) {
-            // var data = s.calc_lookback.map(function (period) {
-            var data = {}
+
+
+          var opts = {
+            query: {
+              selector: so.selector.normalized
+            },
+            sort: {time: 1},
+            limit: 1000
+          }
+          if (so.end) {
+            opts.query.time = {$lte: so.end}
+          }
+          if (db_data_cursor) {
+            if (!opts.query.time) opts.query.time = {}
+            opts.query.time['$gt'] = db_data_cursor
+            
+          }
+          else if (query_start) {
+            if (!opts.query.time) opts.query.time = {}
+            opts.query.time['$gte'] = query_start
+          }
+
+
+         
+          //          var data = s.lookback.slice(0, s.lookback.length).map(function (period) {
+          var data = s.db_periods.find(opts.query).stream()
+          var numdata = 0
+          data.on('data', function(period){
+            
+            //lastdata = period
+            numdata++
+            var data_el = {}
             var keys = Object.keys(period)
-            for (var i = 0; i < keys.length; i++) {
-              data[keys[i]] = period[keys[i]]
+            for(var i = 0;i < keys.length;i++){
+              data_el[keys[i]] = period[keys[i]]
             }
-
-            return data
+            //return data
+            data_array[numdata]=data_el
+            
           })
-					//console.log(data[20].strategy.bollinger.data.bollinger)
-          var code = 'var data = ' + JSON.stringify(data) + ';\n'
-          code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
+          console.log(data_array)
+          data.on('end', function(){
+            // console.log(data_array)
+            var result = Object.keys(data_array).map(function (key) { 
+          
+              return data_array[key]
+            })
+            var code = 'var data = ' + JSON.stringify(result) + ';\n'
+            code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
+          
+            code += 'var options = ' + JSON.stringify(s.options) + ';\n'
+            // console.log(code)
+            var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '15sim_result.html.tpl'), { encoding: 'utf8' })
+          
+          
+            var out = tpl
+              .replace('{{code}}', code)
+              .replace('{{trend_ema_period}}', so.trend_ema || 36)
+              .replace('{{output}}', html_output)
+              .replace(/\{\{symbol\}\}/g, so.selector.normalized + ' - zenbot ' + require('../package.json').version)
+          
+            var out_target = so.filename || 'simulations/sim_result_' + so.selector.normalized + '_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
+            fs.writeFileSync(out_target, out)
+            console.log('wrote', out_target)
 
-          code += 'var options = ' + JSON.stringify(s.options) + ';\n'
-          // console.log(code)
-          var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '15sim_result.html.tpl'), { encoding: 'utf8' })
 
 
-          var out = tpl
-            .replace('{{code}}', code)
-            .replace('{{trend_ema_period}}', so.trend_ema || 36)
-            .replace('{{output}}', html_output)
-            .replace(/\{\{symbol\}\}/g, so.selector.normalized + ' - zenbot ' + require('../package.json').version)
+            db_data_cursor = data.time
+          })
 
-          var out_target = so.filename || 'simulations/sim_result_' + so.selector.normalized + '_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
-          fs.writeFileSync(out_target, out)
-          console.log('wrote', out_target)
+
+          
+          //var data = so.strategy.bollinger.calc_lookback.slice(0, so.strategy.bollinger.calc_lookback.length ).map(function (period) {
+          //var data = s.calc_lookback.slice(0, s.calc_lookback.length ).map(function (period) {
+          // var data1 = s.lookback.map(function (period1) {
+          //   var data1 = {}
+          //   var keys = Object.keys(period1)
+          //   for (var i = 0; i < keys.length; i++) {
+          //     data1[keys[i]] = period1[keys[i]]
+          //   }
+
+          //   return data1
+          // })
+          //console.log(data[20].strategy.bollinger.data.bollinger)
+          // console.log(data[20])
+
         }
 
         // //Corretto per Deprecation Warning

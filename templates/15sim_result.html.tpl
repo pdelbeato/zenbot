@@ -425,7 +425,7 @@ footer  p{
 
 var withData = function (data, trades, options) {
 
-data=data.reverse();
+//data=data.reverse();
 
 close_ref=data[0].close;
 console.log(data)
