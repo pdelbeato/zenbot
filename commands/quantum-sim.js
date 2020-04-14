@@ -387,7 +387,7 @@ module.exports = function (program, conf) {
 
             code += 'var options = ' + JSON.stringify(s.options) + ';\n'
             // console.log(code)
-            var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart.html.tpl'), { encoding: 'utf8' })
+            var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart3.html.tpl'), { encoding: 'utf8' })
 
 
             var out = tpl
