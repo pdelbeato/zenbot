@@ -350,7 +350,7 @@ module.exports = function (program, conf) {
           if (db_data_cursor) {
             if (!opts.query.time) opts.query.time = {}
             opts.query.time['$gt'] = db_data_cursor
-            
+
           }
           else if (query_start) {
             if (!opts.query.time) opts.query.time = {}
@@ -358,12 +358,12 @@ module.exports = function (program, conf) {
           }
 
 
-         
+
           //          var data = s.lookback.slice(0, s.lookback.length).map(function (period) {
           var data = s.db_periods.find(opts.query).stream()
           var numdata = 0
           data.on('data', function(period){
-            
+
             //lastdata = period
             numdata++
             var data_el = {}
@@ -373,29 +373,29 @@ module.exports = function (program, conf) {
             }
             //return data
             data_array[numdata]=data_el
-            
+
           })
           console.log(data_array)
           data.on('end', function(){
             // console.log(data_array)
-            var result = Object.keys(data_array).map(function (key) { 
-          
+            var result = Object.keys(data_array).map(function (key) {
+
               return data_array[key]
             })
             var code = 'var data = ' + JSON.stringify(result) + ';\n'
             code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
-          
+
             code += 'var options = ' + JSON.stringify(s.options) + ';\n'
             // console.log(code)
-            var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '15sim_result.html.tpl'), { encoding: 'utf8' })
-          
-          
+            var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart.html.tpl'), { encoding: 'utf8' })
+
+
             var out = tpl
               .replace('{{code}}', code)
               .replace('{{trend_ema_period}}', so.trend_ema || 36)
               .replace('{{output}}', html_output)
               .replace(/\{\{symbol\}\}/g, so.selector.normalized + ' - zenbot ' + require('../package.json').version)
-          
+
             var out_target = so.filename || 'simulations/sim_result_' + so.selector.normalized + '_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
             fs.writeFileSync(out_target, out)
             console.log('wrote', out_target)
@@ -406,7 +406,7 @@ module.exports = function (program, conf) {
           })
 
 
-          
+
           //var data = so.strategy.bollinger.calc_lookback.slice(0, so.strategy.bollinger.calc_lookback.length ).map(function (period) {
           //var data = s.calc_lookback.slice(0, s.calc_lookback.length ).map(function (period) {
           // var data1 = s.lookback.map(function (period1) {
