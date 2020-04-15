@@ -65,6 +65,9 @@ module.exports = function (program, conf) {
       var s = { options: JSON.parse(JSON.stringify(raw_opts)) }
       var so = s.options
 
+      var data_array =  {}
+
+
       s.positions = []
       //		s.closed_positions = []
       s.my_trades = []
@@ -101,11 +104,11 @@ module.exports = function (program, conf) {
       })
 
       //Recupera tutti i vecchi database
-      	var db_my_trades = conf.db.my_trades
-		var db_my_positions = conf.db.my_positions
+      //var db_my_trades = conf.db.my_trades
+      //var db_my_positions = conf.db.my_positions
 		s.db_my_closed_positions = conf.db.my_closed_positions
 		s.db_periods = conf.db.periods
-		var db_resume_markers = conf.db.resume_markers
+      //var db_resume_markers = conf.db.resume_markers
 		var db_trades = conf.db.trades
 
       var eventBus = conf.eventBus
@@ -143,6 +146,7 @@ module.exports = function (program, conf) {
       var engine = engineFactory(s, conf)
       if (!so.min_periods) so.min_periods = 1
       var db_cursor, reversing, reverse_point
+      var db_data_cursor
       var query_start = (so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null)
 
       getNext()
@@ -271,6 +275,8 @@ module.exports = function (program, conf) {
 		//console.log('start_price', n(s.start_price).format('0.00000000').yellow)
 //		console.log('start_price', n(s.lookback[s.lookback.length - 1].close).format('0.00000000').yellow)
         console.log('start_price', n(s.start_price).format('0.00000000').yellow)
+        console.log(s.start_price)
+        console.log('start_price', n(s.start_price).format('0.00000000').yellow)
         console.log('close_price', n(s.period.close).format('0.00000000').yellow)
         var buy_hold = (s.start_price ? n(s.period.close).multiply(n(s.start_capital_currency).divide(s.start_price)) : n(s.balance.currency))
         //console.log('buy hold', buy_hold.format('0.00000000'))
@@ -330,26 +336,59 @@ module.exports = function (program, conf) {
             return colors.stripColors(line)
           }).join('\n')
 
+
+
+          var opts = {
+            query: {
+              selector: so.selector.normalized
+            },
+            sort: {time: 1},
+            limit: 1000
+          }
+          if (so.end) {
+            opts.query.time = {$lte: so.end}
+          }
+          if (db_data_cursor) {
+            if (!opts.query.time) opts.query.time = {}
+            opts.query.time['$gt'] = db_data_cursor
+
+          }
+          else if (query_start) {
+            if (!opts.query.time) opts.query.time = {}
+            opts.query.time['$gte'] = query_start
+          }
+
+
+
 //          var data = s.lookback.slice(0, s.lookback.length).map(function (period) {
-          var data = s.db_periods.find({}).map(function (period) {
-            //var data = so.strategy.bollinger.calc_lookback.slice(0, so.strategy.bollinger.calc_lookback.length ).map(function (period) {
-            //var data = s.calc_lookback.slice(0, s.calc_lookback.length ).map(function (period) {
-            // var data = s.calc_lookback.map(function (period) {
-            var data = {}
+          var data = s.db_periods.find(opts.query).stream()
+          var numdata = 0
+          data.on('data', function(period){
+
+            //lastdata = period
+            numdata++
+            var data_el = {}
             var keys = Object.keys(period)
             for (var i = 0; i < keys.length; i++) {
-              data[keys[i]] = period[keys[i]]
+              data_el[keys[i]] = period[keys[i]]
             }
+            //return data
+            data_array[numdata]=data_el
 
-            return data
           })
-					//console.log(data[20].strategy.bollinger.data.bollinger)
-          var code = 'var data = ' + JSON.stringify(data) + ';\n'
+          console.log(data_array)
+          data.on('end', function(){
+            // console.log(data_array)
+            var result = Object.keys(data_array).map(function (key) {
+
+              return data_array[key]
+          })
+            var code = 'var data = ' + JSON.stringify(result) + ';\n'
           code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
 
           code += 'var options = ' + JSON.stringify(s.options) + ';\n'
           // console.log(code)
-          var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '15sim_result.html.tpl'), { encoding: 'utf8' })
+            var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart3.html.tpl'), { encoding: 'utf8' })
 
 
           var out = tpl
@@ -361,6 +400,28 @@ module.exports = function (program, conf) {
           var out_target = so.filename || 'simulations/sim_result_' + so.selector.normalized + '_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
           fs.writeFileSync(out_target, out)
           console.log('wrote', out_target)
+
+
+
+            db_data_cursor = data.time
+          })
+
+
+
+          //var data = so.strategy.bollinger.calc_lookback.slice(0, so.strategy.bollinger.calc_lookback.length ).map(function (period) {
+          //var data = s.calc_lookback.slice(0, s.calc_lookback.length ).map(function (period) {
+          // var data1 = s.lookback.map(function (period1) {
+          //   var data1 = {}
+          //   var keys = Object.keys(period1)
+          //   for (var i = 0; i < keys.length; i++) {
+          //     data1[keys[i]] = period1[keys[i]]
+          //   }
+
+          //   return data1
+          // })
+          //console.log(data[20].strategy.bollinger.data.bollinger)
+          // console.log(data[20])
+
         }
 
         // //Corretto per Deprecation Warning
