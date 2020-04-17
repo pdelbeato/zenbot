@@ -253,18 +253,18 @@ module.exports = function (program, conf) {
 				console.error(err)
 			}
 		})
-		
+
         //var profit = s.start_capital ? n(s.balance.currency).subtract(s.start_capital).divide(s.start_capital) : n(0)
         var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
         var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
 //        s.start_price esiste
 //        s.start_capital_currency esiste
 //        s.start_capital_asset esiste
-        
+
 //        s.asset_in_currency = n(s.balance.asset).multiply(s.lookback[s.lookback.length - 1].close).value()
 //        s.currency_in_asset = n(s.balance.currency).divide(s.lookback[s.lookback.length - 1].close).value()
 //        s.start_capital_currency = n(s.balance.currency).add(s.asset_in_currency).value()
-        
+
         var profit = (s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0))
         //var profit = (s.options.currency_capital ? n(tmp_capital_currency).subtract(s.options.currency_capital).divide(s.options.currency_capital) : n(0))
 
@@ -375,7 +375,7 @@ module.exports = function (program, conf) {
             data_array[numdata]=data_el
 
           })
-          
+
           data.on('end', function(){
             // console.log(data_array)
             var result = Object.keys(data_array).map(function (key) {
@@ -419,9 +419,10 @@ module.exports = function (program, conf) {
             })
 
             var trades_chart_buy=[];var trades_chart_sell=[]
+            var coeff = 1000 * 60;
             trades = s.my_trades.map(function (t,index) {
 
-              t.date = new Date(t.time)
+              t.date = new Date(Math.round(t.time/ coeff) * coeff)
               if (t.signal === "buy" && t.time!==null) {
                 trades_chart_buy.push ([
                   t.date,
