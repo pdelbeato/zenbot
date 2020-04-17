@@ -8,8 +8,8 @@ var tb = require('timebucket')
   , objectifySelector = require('../lib/objectify-selector')
   , engineFactory = require('../lib/quantum-engine')
   //, collectionService = require('../lib/services/collection-service')
-  , _ = require('lodash')
-  , debug = require('../lib/debug')
+  //, _ = require('lodash')
+  //, debug = require('../lib/debug')
   , quantumTools = require('../lib/quantum-tools')
 //, async = require('async')
 
@@ -140,7 +140,7 @@ module.exports = function (program, conf) {
       so.show_options = !cmd.disable_options
       so.verbose = !!cmd.verbose
       so.selector = objectifySelector(selector || conf.selector)
-      so.mode = 'sim';
+      so.mode = 'sim'
 
       // richiama quantum-engine
       var engine = engineFactory(s, conf)
@@ -274,7 +274,6 @@ module.exports = function (program, conf) {
         console.log('\nstart_capital', n(s.start_capital_currency).format('0.00000000').yellow)
 		//console.log('start_price', n(s.start_price).format('0.00000000').yellow)
 //		console.log('start_price', n(s.lookback[s.lookback.length - 1].close).format('0.00000000').yellow)
-        console.log('start_price', n(s.start_price).format('0.00000000').yellow)
         console.log(s.start_price)
         console.log('start_price', n(s.start_price).format('0.00000000').yellow)
         console.log('close_price', n(s.period.close).format('0.00000000').yellow)
@@ -376,19 +375,73 @@ module.exports = function (program, conf) {
             data_array[numdata]=data_el
 
           })
-          console.log(data_array)
+          
           data.on('end', function(){
             // console.log(data_array)
             var result = Object.keys(data_array).map(function (key) {
 
               return data_array[key]
           })
-            var code = 'var data = ' + JSON.stringify(result) + ';\n'
-          code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
+            var data_chart=[]
+            result = result.map(function (d) {
+              d.date = new Date(d.time)
+              if (typeof d.strategy === 'object') {
+                if (typeof d.strategy.bollinger.data.bollinger === 'object') {
+                  d.upperBound=d.strategy.bollinger.data.bollinger.upperBound
+                  d.midBound=d.strategy.bollinger.data.bollinger.midBound
+                  d.lowerBound=d.strategy.bollinger.data.bollinger.lowerBound
+                  } else {
+                    d.upperBound=d.open
+                    d.midBound=d.open
+                    d.lowerBound=d.open
+                    }
 
+                // if (d.upperBound - d.lowerBound>0 && d.midBound!==0) {
+                //   d.boll_perc_B= (d.close - d.lowerBound ) / (d.upperBound - d.lowerBound)
+                //   d.BB_band=(d.upperBound - d.lowerBound)/d.midBound
+                // } else {
+                //   d.boll_perc_B=0
+                //   }
+                // }
+                data_chart.push ([
+                  d.date,
+                  d.open,
+                  d.high,
+                  d.low,
+                  d.close,
+                  d.upperBound,
+                  d.midBound,
+                  d.lowerBound,
+                  d.volume
+                ]);
+              }
+              return d
+            })
+
+            var trades_chart_buy=[];var trades_chart_sell=[]
+            trades = s.my_trades.map(function (t,index) {
+
+              t.date = new Date(t.time)
+              if (t.signal === "buy" && t.time!==null) {
+                trades_chart_buy.push ([
+                  t.date,
+                  t.price
+                ]);
+              }
+              if (t.signal === "sell"&& t.time!==null) {
+                trades_chart_sell.push ([
+                  t.date,
+                  t.price
+                ]);
+              }
+
+            })
+            var code = 'var data = ' + JSON.stringify(data_chart) + ';\n'
+            code += 'var trades_chart_buy = ' + JSON.stringify(trades_chart_buy) + ';\n'
+            code += 'var trades_chart_sell = ' + JSON.stringify(trades_chart_sell) + ';\n'
           code += 'var options = ' + JSON.stringify(s.options) + ';\n'
           // console.log(code)
-            var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart3.html.tpl'), { encoding: 'utf8' })
+            var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart4.html.tpl'), { encoding: 'utf8' })
 
 
           var out = tpl
@@ -407,32 +460,9 @@ module.exports = function (program, conf) {
           })
 
 
-
-          //var data = so.strategy.bollinger.calc_lookback.slice(0, so.strategy.bollinger.calc_lookback.length ).map(function (period) {
-          //var data = s.calc_lookback.slice(0, s.calc_lookback.length ).map(function (period) {
-          // var data1 = s.lookback.map(function (period1) {
-          //   var data1 = {}
-          //   var keys = Object.keys(period1)
-          //   for (var i = 0; i < keys.length; i++) {
-          //     data1[keys[i]] = period1[keys[i]]
-          //   }
-
-          //   return data1
-          // })
-          //console.log(data[20].strategy.bollinger.data.bollinger)
-          // console.log(data[20])
-
         }
 
-        // //Corretto per Deprecation Warning
-        // simResults.insertOne(options_output)
-        //   .then(() => {
-        //     process.exit(0)
-        //   })
-        //   .catch((err) => {
-        //     console.error(err)
-        //     process.exit(0)
-        //   })
+
       }
     })
 }
