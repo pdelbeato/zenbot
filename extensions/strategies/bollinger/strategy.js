@@ -61,7 +61,7 @@ var n = require('numbro')
 //			buy: 1000000,
 //			sell: 0,
 //		},
-//	},	
+//	},
 //	calc_lookback: [],				//****** Old periods for calculation
 //	calc_close_time: 0,				//****** Close time for strategy period
 //	lib: {}							//****** To store all the functions of the strategy
@@ -216,7 +216,7 @@ module.exports = {
 				max_profit = position.profit_net_pct
 				strat_data.max_profit_position[position.side] = position
 //				debug.msg('Bollinger - onTradePeriod - position_max_profit_index= ' + index, false)
-			}						
+			}
 		})
 
 		if (strat_data_boll && strat_data_boll.midBound) {
@@ -265,7 +265,7 @@ module.exports = {
 				}
 				else {
 					s.signal = 'Boll Calm';
-				} 
+				}
 			}
 
 			//Utilizzo la normale strategia
@@ -354,6 +354,7 @@ module.exports = {
 			// console.log('bollinger strategy - Errore in rsi: ', error)
 			cb()
 		})
+
 	},
 
 
@@ -373,12 +374,12 @@ module.exports = {
 				let min_bandwidth_pct = strat_opts.min_bandwidth_pct
 				let upperWatchdogBound = strat_data.bollinger.upperBound + (upperBandwidth * strat_opts.upper_watchdog_pct/100)
 				let lowerWatchdogBound = strat_data.bollinger.lowerBound - (lowerBandwidth * strat_opts.lower_watchdog_pct/100)
-//				let strat_data_rsi = strat_data.rsi 
+//				let strat_data_rsi = strat_data.rsi
 
 				var color_up = 'cyan';
 				var color_down = 'cyan';
 				var color_rsi = 'cyan';
-				
+
 				//Se il prezzo supera un limite del canale, allora il colore del limite è bianco
 				if (s.period.close > (upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100))) {
 					color_up = 'white'
@@ -430,7 +431,7 @@ module.exports = {
 				position_buy_profit = strat_data.max_profit_position.buy.profit_net_pct/100
 			}
 
-			if (strat_data.max_profit_position.sell != null) {	
+			if (strat_data.max_profit_position.sell != null) {
 				position_sell_profit = strat_data.max_profit_position.sell.profit_net_pct/100
 			}
 
@@ -460,14 +461,14 @@ module.exports = {
 		}
 		let result = (side_max_profit ? ('Bollinger position: ' + side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit/100)) : '')
 //		debug.msg('Strategy Bollinger - onUpdateMessage: ' + result)
-		cb(result)		
+		cb(result)
 	},
 
 	onPositionOpened: function (s, opts= {}, cb = function() {}) {
 //		var opts = {
 //		position_id: position_id,
 //		};
-		
+
 		this.onPositionClosed(s, opts, cb)
 	},
 
@@ -483,10 +484,10 @@ module.exports = {
 //		s.closed_positions
 //		var opts = {
 //		position_id: position_id,
-//		}; 
+//		};
 
 //		debug.msg('Strategy - Bollinger - onPositionClosed')
-		
+
 		let strat_opts = s.options.strategy.bollinger.opts
 
 		if(strat_opts.no_same_price) {

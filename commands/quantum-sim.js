@@ -106,10 +106,10 @@ module.exports = function (program, conf) {
       //Recupera tutti i vecchi database
       //var db_my_trades = conf.db.my_trades
       //var db_my_positions = conf.db.my_positions
-		s.db_my_closed_positions = conf.db.my_closed_positions
-		s.db_periods = conf.db.periods
+      s.db_my_closed_positions = conf.db.my_closed_positions
+      s.db_periods = conf.db.periods
       //var db_resume_markers = conf.db.resume_markers
-		var db_trades = conf.db.trades
+      var db_trades = conf.db.trades
 
       var eventBus = conf.eventBus
 
@@ -246,24 +246,24 @@ module.exports = function (program, conf) {
         //s.balance.currency = n(s.net_currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00000000')
 
         //s.balance.asset = 0
-//        s.lookback.unshift(s.period)
+        //        s.lookback.unshift(s.period)
         s.db_periods.updateOne({'_id': s.period._id}, {$set: s.period}, {multi: false, upsert: true}, function (err) {
-			if (err) {
-				console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ': quantum-sim - exitSim - Error saving db_periods:')
-				console.error(err)
-			}
-		})
+          if (err) {
+            console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ': quantum-sim - exitSim - Error saving db_periods:')
+            console.error(err)
+          }
+        })
 
         //var profit = s.start_capital ? n(s.balance.currency).subtract(s.start_capital).divide(s.start_capital) : n(0)
         var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
         var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
-//        s.start_price esiste
-//        s.start_capital_currency esiste
-//        s.start_capital_asset esiste
+        //        s.start_price esiste
+        //        s.start_capital_currency esiste
+        //        s.start_capital_asset esiste
 
-//        s.asset_in_currency = n(s.balance.asset).multiply(s.lookback[s.lookback.length - 1].close).value()
-//        s.currency_in_asset = n(s.balance.currency).divide(s.lookback[s.lookback.length - 1].close).value()
-//        s.start_capital_currency = n(s.balance.currency).add(s.asset_in_currency).value()
+        //        s.asset_in_currency = n(s.balance.asset).multiply(s.lookback[s.lookback.length - 1].close).value()
+        //        s.currency_in_asset = n(s.balance.currency).divide(s.lookback[s.lookback.length - 1].close).value()
+        //        s.start_capital_currency = n(s.balance.currency).add(s.asset_in_currency).value()
 
         var profit = (s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0))
         //var profit = (s.options.currency_capital ? n(tmp_capital_currency).subtract(s.options.currency_capital).divide(s.options.currency_capital) : n(0))
@@ -272,8 +272,8 @@ module.exports = function (program, conf) {
 
         output_lines.push('end balance:     capital currency: ' + n(tmp_capital_currency).format('0.00000000').yellow + '   capital asset: ' + n(tmp_capital_asset).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
         console.log('\nstart_capital', n(s.start_capital_currency).format('0.00000000').yellow)
-		//console.log('start_price', n(s.start_price).format('0.00000000').yellow)
-//		console.log('start_price', n(s.lookback[s.lookback.length - 1].close).format('0.00000000').yellow)
+        //console.log('start_price', n(s.start_price).format('0.00000000').yellow)
+        //		console.log('start_price', n(s.lookback[s.lookback.length - 1].close).format('0.00000000').yellow)
         console.log(s.start_price)
         console.log('start_price', n(s.start_price).format('0.00000000').yellow)
         console.log('close_price', n(s.period.close).format('0.00000000').yellow)
@@ -359,7 +359,7 @@ module.exports = function (program, conf) {
 
 
 
-//          var data = s.lookback.slice(0, s.lookback.length).map(function (period) {
+          //          var data = s.lookback.slice(0, s.lookback.length).map(function (period) {
           var data = s.db_periods.find(opts.query).stream()
           var numdata = 0
           data.on('data', function(period){
@@ -381,28 +381,23 @@ module.exports = function (program, conf) {
             var result = Object.keys(data_array).map(function (key) {
 
               return data_array[key]
-          })
+            })
             var data_chart=[]
             result = result.map(function (d) {
               d.date = new Date(d.time)
               if (typeof d.strategy === 'object') {
-                if (typeof d.strategy.bollinger.data.bollinger === 'object') {
-                  d.upperBound=d.strategy.bollinger.data.bollinger.upperBound
-                  d.midBound=d.strategy.bollinger.data.bollinger.midBound
-                  d.lowerBound=d.strategy.bollinger.data.bollinger.lowerBound
-                  } else {
-                    d.upperBound=d.open
-                    d.midBound=d.open
-                    d.lowerBound=d.open
-                    }
 
-                // if (d.upperBound - d.lowerBound>0 && d.midBound!==0) {
-                //   d.boll_perc_B= (d.close - d.lowerBound ) / (d.upperBound - d.lowerBound)
-                //   d.BB_band=(d.upperBound - d.lowerBound)/d.midBound
-                // } else {
-                //   d.boll_perc_B=0
-                //   }
-                // }
+                
+                // format per bollinger
+                if (typeof d.strategy.bollinger_stocaz.data.bollinger === 'object') {
+                  d.upperBound=d.strategy.bollinger_stocaz.data.bollinger.upperBound
+                  d.midBound=d.strategy.bollinger_stocaz.data.bollinger.midBound
+                  d.lowerBound=d.strategy.bollinger_stocaz.data.bollinger.lowerBound
+                } else {
+                  d.upperBound=d.open
+                  d.midBound=d.open
+                  d.lowerBound=d.open
+                }
                 data_chart.push ([
                   d.date,
                   d.open,
@@ -414,6 +409,8 @@ module.exports = function (program, conf) {
                   d.lowerBound,
                   d.volume
                 ]);
+
+
               }
               return d
             })
@@ -440,20 +437,20 @@ module.exports = function (program, conf) {
             var code = 'var data = ' + JSON.stringify(data_chart) + ';\n'
             code += 'var trades_chart_buy = ' + JSON.stringify(trades_chart_buy) + ';\n'
             code += 'var trades_chart_sell = ' + JSON.stringify(trades_chart_sell) + ';\n'
-          code += 'var options = ' + JSON.stringify(s.options) + ';\n'
-          // console.log(code)
+            code += 'var options = ' + JSON.stringify(s.options) + ';\n'
+            // console.log(code)
             var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart4.html.tpl'), { encoding: 'utf8' })
 
 
-          var out = tpl
-            .replace('{{code}}', code)
-            .replace('{{trend_ema_period}}', so.trend_ema || 36)
-            .replace('{{output}}', html_output)
-            .replace(/\{\{symbol\}\}/g, so.selector.normalized + ' - zenbot ' + require('../package.json').version)
+            var out = tpl
+              .replace('{{code}}', code)
+              .replace('{{trend_ema_period}}', so.trend_ema || 36)
+              .replace('{{output}}', html_output)
+              .replace(/\{\{symbol\}\}/g, so.selector.normalized + ' - zenbot ' + require('../package.json').version)
 
-          var out_target = so.filename || 'simulations/sim_result_' + so.selector.normalized + '_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
-          fs.writeFileSync(out_target, out)
-          console.log('wrote', out_target)
+            var out_target = so.filename || 'simulations/sim_result_' + so.selector.normalized + '_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
+            fs.writeFileSync(out_target, out)
+            console.log('wrote', out_target)
 
 
 
