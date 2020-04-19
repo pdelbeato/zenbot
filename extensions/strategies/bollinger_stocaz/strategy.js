@@ -35,6 +35,13 @@ var n = require('numbro')
 //		no_same_price: true,		//****** Avoid to open a position with an open price not below delta_pct from the minimum open price
 //		delta_pct: 1,				//****** Delta % from minimum open price
 //		over_and_back: false,		//****** Emit signal when price comes back inside the band
+//    stoch_periods:14,			//******* Time period for building the Fast-K line
+//    stoch_k: 3,				//******* Smoothing for making the Slow-K line. Usually set to 3
+//    stoch_k_ma_type: 'SMA',			//******* Type of Moving Average for Slow-K : SMA,EMA,WMA,DEMA,TEMA,TRIMA,KAMA,MAMA,T3
+//    stoch_d: 3,			//******* Smoothing for making the Slow-D line. Usually set to 3
+//    stoch_d_ma_type: 'SMA',			//******* Type of Moving Average for Slow-K : SMA,EMA,WMA,DEMA,TEMA,TRIMA,KAMA,MAMA,T3
+//    stoch_k_sell: 70,			//******* K must be above this before selling
+//    stoch_k_buy: 30,			//******* K must be below this before buying
 //	},
 //	data: {							//****** To store calculated data
 //		bollinger: {
@@ -122,8 +129,7 @@ module.exports = {
 		this.option('bollinger_stocaz', 'no_same_price', 'Avoid to open a position with an open price not below delta_pct from the minimum open price', Boolean, true)
 		this.option('bollinger_stocaz', 'delta_pct', 'Delta % from minimum open price', Number, 1)
 		this.option('bollinger_stocaz', 'over_and_back', 'Emit signal when price comes back inside the band', Boolean, false)
-
-
+		this.option('bollinger_stocaz', 'over_and_back_stoch', 'Emit signal when price comes back inside the Stochastic band', Boolean, false)
 		this.option('bollinger_stocaz','stoch_periods', 'Time period for building the Fast-K line', Number, 14)
     this.option('bollinger_stocaz','stoch_k', 'Smoothing for making the Slow-K line. Usually set to 3', Number, 3)
     this.option('bollinger_stocaz','stoch_k_ma_type','Type of Moving Average for Slow-K : SMA,EMA,WMA,DEMA,TEMA,TRIMA,KAMA,MAMA,T3', String, 'SMA'),
@@ -324,6 +330,39 @@ module.exports = {
 						controlConditions('buy')
 //					}
 				}
+
+///// over_and_back_stoch condition
+				if (condition.sell[3]) {
+					if (strat_opts.over_and_back_stoch) {
+						strat_data.is_over_stoch.up = true;
+					}
+					else {
+						controlConditions('sell')
+					}
+				}
+				else if (strat_data.is_over_stoch.up) {
+					strat_data.is_over_stoch.up = false
+//					if (strat_opts.over_and_back) {
+						controlConditions('sell')
+//					}
+				}
+				else if (condition.buy[3]) {
+					if (strat_opts.over_and_back_stoch) {
+						strat_data.is_over_stoch.down = true;
+					}
+					else {
+						controlConditions('buy')
+					}
+				}
+				else if (strat_data.is_over_stoch.down) {
+					strat_data.is_over_stoch.down = false
+//					if (!strat_opts.over_and_back) {
+						controlConditions('buy')
+//					}
+				}
+
+
+
 			}
 		}
 		cb()
@@ -335,7 +374,7 @@ module.exports = {
 				sell: strat_opts.sell_min_pct,
 			}
 
-			if (condition[side][1] && condition[side][3]) {
+			if (condition[side][1]) {
 				s.signal = side[0].toUpperCase() + ' Boll.';
 
 				if (!s.in_preroll) {
