@@ -383,16 +383,19 @@ module.exports = function (program, conf) {
               return data_array[key]
             })
             var data_chart=[]
+
             result = result.map(function (d) {
               d.date = new Date(d.time)
               if (typeof d.strategy === 'object') {
 
-                
+
                 // format per bollinger
                 if (typeof d.strategy.bollinger_stocaz.data.bollinger === 'object') {
                   d.upperBound=d.strategy.bollinger_stocaz.data.bollinger.upperBound
                   d.midBound=d.strategy.bollinger_stocaz.data.bollinger.midBound
                   d.lowerBound=d.strategy.bollinger_stocaz.data.bollinger.lowerBound
+                  d.stoch_D=d.strategy.bollinger_stocaz.data.stoch_D
+                  d.stoch_K=d.strategy.bollinger_stocaz.data.stoch_K
                 } else {
                   d.upperBound=d.open
                   d.midBound=d.open
@@ -407,7 +410,9 @@ module.exports = function (program, conf) {
                   d.upperBound,
                   d.midBound,
                   d.lowerBound,
-                  d.volume
+                  d.volume,
+                  d.stoch_D,
+                  d.stoch_K
                 ]);
 
 

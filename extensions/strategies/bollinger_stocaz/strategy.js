@@ -124,7 +124,7 @@ module.exports = {
 		this.option('bollinger_stocaz', 'over_and_back', 'Emit signal when price comes back inside the band', Boolean, false)
 
 
-		this.option('bollinger_stocaz','stoch_periods', 'Time period for building the Fast-K line', Number, 5)
+		this.option('bollinger_stocaz','stoch_periods', 'Time period for building the Fast-K line', Number, 14)
     this.option('bollinger_stocaz','stoch_k', 'Smoothing for making the Slow-K line. Usually set to 3', Number, 3)
     this.option('bollinger_stocaz','stoch_k_ma_type','Type of Moving Average for Slow-K : SMA,EMA,WMA,DEMA,TEMA,TRIMA,KAMA,MAMA,T3', String, 'SMA'),
     this.option('bollinger_stocaz','stoch_d', 'Smoothing for making the Slow-D line', Number, 3)

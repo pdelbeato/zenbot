@@ -103,7 +103,7 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
 
 
 
-      // map the data
+      // map the data Bollinger
         mapping_BBu = table.mapAs();
         mapping_BBu.addField('value', 5);
         mapping_BBm = table.mapAs();
@@ -111,7 +111,11 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
         mapping_BBd = table.mapAs();
         mapping_BBd.addField('value', 7);
 
-
+        // map the data Stochastic
+          mapping_Stoch_K = table.mapAs();
+          mapping_Stoch_K.addField('value', 10);
+          mapping_Stoch_D = table.mapAs();
+          mapping_Stoch_D.addField('value', 9);
 
 
       // chart type
@@ -124,6 +128,12 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
       series_BBm.name("BB middle");
       var series_BBd = chart.plot(0).line(mapping_BBd);
       series_BBd.name("BB lower");
+
+      // set the series
+      var series_Stoch_K = chart.plot(1).line(mapping_Stoch_K);
+      series_Stoch_K.name("Stoch K");
+      var series_Stoch_D = chart.plot(1).line(mapping_Stoch_D);
+      series_Stoch_D.name("Stoch D");
 
 
       // create a plot on the chart
