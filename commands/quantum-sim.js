@@ -394,8 +394,7 @@ module.exports = function (program, conf) {
                   d.upperBound=d.strategy.bollinger_stocaz.data.bollinger.upperBound
                   d.midBound=d.strategy.bollinger_stocaz.data.bollinger.midBound
                   d.lowerBound=d.strategy.bollinger_stocaz.data.bollinger.lowerBound
-                  d.stoch_D=d.strategy.bollinger_stocaz.data.stoch_D
-                  d.stoch_K=d.strategy.bollinger_stocaz.data.stoch_K
+                  d.stoch_K=d.strategy.bollinger_stocaz.data.stoch.stoch_K
                 } else {
                   d.upperBound=d.open
                   d.midBound=d.open
@@ -411,7 +410,6 @@ module.exports = function (program, conf) {
                   d.midBound,
                   d.lowerBound,
                   d.volume,
-                  d.stoch_D,
                   d.stoch_K
                 ]);
 

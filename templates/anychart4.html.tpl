@@ -113,9 +113,8 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
 
         // map the data Stochastic
           mapping_Stoch_K = table.mapAs();
-          mapping_Stoch_K.addField('value', 10);
-          mapping_Stoch_D = table.mapAs();
-          mapping_Stoch_D.addField('value', 9);
+          mapping_Stoch_K.addField('value', 9);
+
 
 
       // chart type
@@ -132,8 +131,7 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
       // set the series
       var series_Stoch_K = chart.plot(1).line(mapping_Stoch_K);
       series_Stoch_K.name("Stoch K");
-      var series_Stoch_D = chart.plot(1).line(mapping_Stoch_D);
-      series_Stoch_D.name("Stoch D");
+
 
 
       // create a plot on the chart
