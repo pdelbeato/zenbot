@@ -213,7 +213,7 @@ module.exports = {
 	},
 
 	onTradePeriod: function (s, opts= {}, cb = function() {}) {
-
+		cb()
 	},
 
 	onStrategyPeriod: function (s, opts= {}, cb = function() {}) {
