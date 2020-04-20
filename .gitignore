@@ -6,6 +6,7 @@ t.js
 node_modules
 npm-debug.log
 db.json
+db_*
 dump
 conf/secret.json
 github.pub
