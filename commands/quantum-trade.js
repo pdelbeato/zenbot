@@ -221,7 +221,7 @@ module.exports = function (program, conf) {
 				})
 			})
 			let reset_db_my_closed_positions = new Promise(function (resolve, reject) {
-				db_my_closed_positions.deleteMany(function(err, results) {
+				s.db_my_closed_positions.deleteMany(function(err, results) {
 					if (err) {
 						reject(err)
 					}
@@ -287,7 +287,7 @@ module.exports = function (program, conf) {
 			
 			//Conta le vecchie posizioni chiuse
 			let count_my_closed_positions = new Promise(function (resolve, reject) {
-				db_my_closed_positions.count({}, function (err, count) {
+				s.db_my_closed_positions.count({}, function (err, count) {
 					if (err) {
 						reject(err)
 					}
@@ -885,7 +885,7 @@ module.exports = function (program, conf) {
 						//... e inserisco la posizione chiusa del db delle posizioni chiuse
 						if (position) {
 							position._id = position.id
-							db_my_closed_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+							s.db_my_closed_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
 								if (err) {
 									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
 									console.error(err)
@@ -1026,7 +1026,7 @@ module.exports = function (program, conf) {
 				}
 
 				var losses = 0, gains = 0
-				db_my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, position) {
+				s.db_my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, position) {
 					if (position.profit) {
 						if (position.profit > 0) {
 							gains++
