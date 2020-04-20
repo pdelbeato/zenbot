@@ -38,12 +38,12 @@ module.exports = function binance (conf) {
 
 	function authedClient () {
 		if (!authed_client) {
-			if (!conf.binance || !conf.binance.key || conf.binance.key === 'YOUR-API-KEY') {
+			if (!conf.personal.binance || !conf.personal.binance.key || conf.personal.binance.key === 'YOUR-API-KEY') {
 				throw new Error('please configure your Binance credentials in ' + path.resolve(__dirname, 'conf.js'))
 			}
 			authed_client = new ccxt.binance({
-				'apiKey': conf.binance.key,
-				'secret': conf.binance.secret,
+				'apiKey': conf.personal.binance.key,
+				'secret': conf.personal.binance.secret,
 				'options': {
 					'adjustForTimeDifference': true
 				},

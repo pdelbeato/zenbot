@@ -1286,6 +1286,8 @@ module.exports = function (program, conf) {
 								}
 								let so_tmp = JSON.parse(JSON.stringify(so))
 								delete so_tmp.strategy
+								delete so_tmp.personal
+								delete so_tmp.notifiers
 								session = {
 									id: crypto.randomBytes(4).toString('hex'),
 									selector: so.selector.normalized,
