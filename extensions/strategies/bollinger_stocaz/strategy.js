@@ -12,8 +12,8 @@ var n = require('numbro')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
-//c.strategy['bollinger_stocazz'] = {
-//	name: 'bollinger_stocazz',
+//c.strategy['bollinger_stocaz'] = {
+//	name: 'bollinger_stocaz',
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate Bollinger Bands every period_calc time
 //		min_periods: 21, 			//****** Minimum number of calc_lookback to maintain (timeframe is "period_calc")
