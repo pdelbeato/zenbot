@@ -229,7 +229,7 @@ module.exports = {
 			if (!inres) {
 				return cb()
 			}
-			strat_data.stoch_K = inres.k[inres.k.length-1];
+			strat_data.stoch.stoch_K = inres.k[inres.k.length-1];
 
 			//Aggiorno le posizioni con massimo profitto, tranne che per le posizioni locked
 			strat_data.max_profit_position = {
@@ -298,12 +298,12 @@ module.exports = {
 					var condition = {
 						buy: [
 							(s.period.close < (lowerBound + (lowerBandwidth * strat_opts.lower_bound_pct/100))),
-							(strat_data.stoch_K > strat_opts.stoch_k_buy_threshold),
+							(strat_data.stoch.stoch_K > strat_opts.stoch_k_buy_threshold),
 							(strat_opts.no_same_price ? ((s.period.close < (strat_data.limit_open_price.buy * (1 - strat_opts.delta_pct/100))) ? true : false) : true),
 						],
 						sell: [
 							(s.period.close > (upperBound - (upperBandwidth * strat_opts.upper_bound_pct/100))),
-							(strat_data.stoch_K < strat_opts.stoch_K_sell_threshold),
+							(strat_data.stoch.stoch_K < strat_opts.stoch_K_sell_threshold),
 							(strat_opts.no_same_price ? ((s.period.close > (strat_data.limit_open_price.sell * (1 + strat_opts.delta_pct/100))) ? true : false) : true),
 						]
 					};
