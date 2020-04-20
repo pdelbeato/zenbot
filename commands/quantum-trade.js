@@ -189,8 +189,8 @@ module.exports = function (program, conf) {
 		//Recupera tutti i vecchi database
 		var db_my_trades = conf.db.my_trades
 		var db_my_positions = conf.db.my_positions
-		var db_my_closed_positions = conf.db.my_closed_positions
-		var db_periods = conf.db.periods
+		s.db_my_closed_positions = conf.db.my_closed_positions
+		s.db_periods = conf.db.periods
 		var db_sessions = conf.db.sessions
 		var db_resume_markers = conf.db.resume_markers
 		var db_trades = conf.db.trades
@@ -211,42 +211,42 @@ module.exports = function (program, conf) {
 		if (cmd.reset) {
 			console.log('\nDeleting my_positions, my_closed_positions, my_trades and sessions collections...')
 			let reset_db_my_positions = new Promise(function (resolve, reject) {
-				db_my_positions.drop(function(err, results) {
+				db_my_positions.deleteMany(function(err, results) {
 					if (err) {
 						reject(err)
 					}
 					console.log('\tCollection my_positions deleted!')
-					db_my_positions = conf.db.datastore.collection('my_positions')
+//					db_my_positions = conf.db.datastore.collection('my_positions')
 					resolve()
 				})
 			})
 			let reset_db_my_closed_positions = new Promise(function (resolve, reject) {
-				db_my_closed_positions.drop(function(err, results) {
+				s.db_my_closed_positions.deleteMany(function(err, results) {
 					if (err) {
 						reject(err)
 					}
 					console.log('\tCollection my_closed_positions deleted!')
-					db_my_closed_positions = conf.db.datastore.collection('my_closed_positions')
+//					db_my_closed_positions = conf.db.datastore.collection('my_closed_positions')
 					resolve()
 				})
 			})
 			let reset_db_my_trades = new Promise(function (resolve, reject) {
-				db_my_trades.drop(function(err, results) {
+				db_my_trades.deleteMany(function(err, results) {
 					if (err) {
 						reject(err)
 					}
 					console.log('\tCollection my_trades deleted!')
-					db_my_trades = conf.db.datastore.collection('my_trades')
+//					db_my_trades = conf.db.datastore.collection('my_trades')
 					resolve()
 				})
 			})
 			let reset_db_sessions = new Promise(function (resolve, reject) {
-				db_sessions.drop(function(err, results) {
+				db_sessions.deleteMany(function(err, results) {
 					if (err) {
 						reject(err)
 					}
 					console.log('\tCollection sessions deleted!')
-					db_sessions = conf.db.datastore.collection('sessions')
+//					db_sessions = conf.db.datastore.collection('sessions')
 					resolve()
 				})
 			})
@@ -287,7 +287,7 @@ module.exports = function (program, conf) {
 			
 			//Conta le vecchie posizioni chiuse
 			let count_my_closed_positions = new Promise(function (resolve, reject) {
-				db_my_closed_positions.count({}, function (err, count) {
+				s.db_my_closed_positions.count({}, function (err, count) {
 					if (err) {
 						reject(err)
 					}
@@ -821,7 +821,7 @@ module.exports = function (program, conf) {
 
 					debug.msg('cleanDB - Pulisco il db dei record più vecchi di ' + fromTime + ' (ora è ' + moment() + ')... ')
 
-					db_periods.remove({'time' : { $lt : fromTime }}, function (err, numRemoved) {
+					s.db_periods.deleteMany({'time' : { $lt : fromTime }}, function (err, numRemoved) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.periods')
 							console.error(err)
@@ -829,7 +829,7 @@ module.exports = function (program, conf) {
 						debug.msg('cleanDB - ' + numRemoved + ' period(s) deleted')
 					})
 
-					db_trades.remove({'time' : { $lt : fromTime }}, function (err, numRemoved) {
+					db_trades.deleteMany({'time' : { $lt : fromTime }}, function (err, numRemoved) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.trades')
 							console.error(err)
@@ -858,7 +858,7 @@ module.exports = function (program, conf) {
 					var position = s.positions.find(x => x.id === task.position_id)
 					position._id = position.id
 
-					db_my_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+					db_my_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_positions')
 							console.error(err)
@@ -872,7 +872,7 @@ module.exports = function (program, conf) {
 					var position_index = s.positions.findIndex(x => x.id === task.position_id)
 					var position = s.positions.find(x => x.id === task.position_id)
 
-					db_my_positions.remove({'_id' : task.position_id}, function (err) {
+					db_my_positions.deleteOne({'_id' : task.position_id}, function (err) {
 						//In ogni caso, elimino la posizione da s.positions
 						s.positions.splice(position_index,1)
 
@@ -885,7 +885,7 @@ module.exports = function (program, conf) {
 						//... e inserisco la posizione chiusa del db delle posizioni chiuse
 						if (position) {
 							position._id = position.id
-							db_my_closed_positions.update({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+							s.db_my_closed_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
 								if (err) {
 									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
 									console.error(err)
@@ -1026,7 +1026,7 @@ module.exports = function (program, conf) {
 				}
 
 				var losses = 0, gains = 0
-				db_my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, position) {
+				s.db_my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, position) {
 					if (position.profit) {
 						if (position.profit > 0) {
 							gains++
@@ -1271,7 +1271,7 @@ module.exports = function (program, conf) {
 							//Se è attiva l'opzione minimal_db, cancello i db trades e periods
 							if(so.minimal_db) {
 								console.log('Option minimal_db is active! Delete db_periods and db_trades')
-								db_periods = conf.db.periods = null
+								s.db_periods = conf.db.periods = null
 								db_trades = conf.db.trades = null
 							}
 							
@@ -1476,7 +1476,7 @@ module.exports = function (program, conf) {
 								console.error(err)
 							}
 							if (!so.minimal_db) {
-								db_resume_markers.update({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
+								db_resume_markers.updateOne({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
 									if (err) {
 										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
 										console.error(err)
@@ -1487,7 +1487,7 @@ module.exports = function (program, conf) {
 								s.my_trades.slice(my_trades_size).forEach(function (my_trade) {
 									my_trade._id = my_trade.id
 									my_trade.session_id = session.id
-									db_my_trades.update({'_id' : my_trade._id}, {$set: my_trade}, {multi: false, upsert: true}, function (err) {
+									db_my_trades.updateOne({'_id' : my_trade._id}, {$set: my_trade}, {multi: false, upsert: true}, function (err) {
 										if (err) {
 											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
 											console.error(err)
@@ -1500,15 +1500,15 @@ module.exports = function (program, conf) {
 							}
 
 							if (s.lookback.length > lookback_size) {
-								if (!so.minimal_db) {
-									savePeriod(s.lookback[0])
-								}
-								lookback_size = s.lookback.length
-							}
-							if (s.period) {
-								if (!so.minimal_db) {
-									savePeriod(s.period)
-								}
+//								if (!so.minimal_db) {
+//									savePeriod(s.lookback[0])
+//								}
+//								lookback_size = s.lookback.length
+//							}
+//							if (s.period) {
+//								if (!so.minimal_db) {
+//									savePeriod(s.period)
+//								}
 							} 
 							else {
 								readline.clearLine(process.stdout)
@@ -1548,7 +1548,7 @@ module.exports = function (program, conf) {
 					}
 					marker.to = (marker.to ? Math.max(marker.to, trade_cursor) : trade_cursor)
 					marker.newest_time = Math.max(marker.newest_time, trade.time)
-					db_trades.update({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
+					db_trades.updateOne({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
 						// ignore duplicate key errors
 						if (err && err.code !== 11000) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
@@ -1558,20 +1558,14 @@ module.exports = function (program, conf) {
 				}
 				/* End of saveTrade() */
 				
-				function savePeriod (period) {
-					if (!period.id) {
-						period.id = crypto.randomBytes(4).toString('hex')
-						period.selector = so.selector.normalized
-						period.session_id = session.id
-					}
-					period._id = period.id
-					db_periods.update({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
-						if (err) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
-							console.error(err)
-						}
-					})
-				}
+//				function savePeriod (period) {
+//					s.db_periods.updateOne({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
+//						if (err) {
+//							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
+//							console.error(err)
+//						}
+//					})
+//				}
 				/* End of savePeriod() */
 			}
 			/* End of forwardScan() */
@@ -1626,7 +1620,7 @@ module.exports = function (program, conf) {
 				session.total_fees = s.total_fees
 				session.total_profit = s.total_profit
 
-				db_sessions.update({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
+				db_sessions.updateOne({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
 					if (err) {
 						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
 						console.error(err)
