@@ -115,10 +115,12 @@ module.exports = function (program, conf) {
 
 					if (mode !== 'backward' && !trades.length) {
 						if (trade_counter) {
-							if (days_left != 0) {
+							if (days_left != 0 && get_trade_retry_count < 10) {
+								
 								//C'è la possibilità, in caso di coppie poco utilizzate, che non scarichi trades in un periodo passato.
 								//Con questo check, manda avanti il tempo di 5 minuti e ritenta il download.
-								console.log('\nBackfill - Downloaded 0 trades, but there is ' + days_left + ' remaining days. Trying to go on...')
+								console.log('\nBackfill - Downloaded 0 trades, but there is ' + days_left + ' remaining days. Trying to go on (' + get_trade_retry + ')...')
+								get_trade_retry_count++
 								marker.to += 300000
 								setImmediate(getNext)
 								return
