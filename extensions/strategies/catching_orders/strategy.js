@@ -162,7 +162,7 @@ module.exports = {
 						}
 						debug.msg('Strategy catching_orders - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
 						s.signal = position_opposite_signal[0].toUpperCase() + ' Catching order'
-						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, false)  
+						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, 'maker')  
 					}
 				})
 			}
@@ -206,14 +206,14 @@ module.exports = {
 					console.log('\nCatching Orders - Auto catch '.grey + 'BUY'.green + ' command inserted'.grey)
 					let target_price = n(strat_data.sma).multiply(1 - strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
 					let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-					s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag, 'catching_orders', false, false)
+					s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag, 'catching_orders', false, 'maker')
 				}
 
 				if (strat_opts.catch_auto_short) {
 					console.log('\nCatching Orders - Auto catch '.grey + 'SELL'.red + ' command inserted'.grey)
 					let target_price = n(strat_data.sma).multiply(1 + strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
 					let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-					s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag, 'catching_orders', false, false)
+					s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag, 'catching_orders', false, 'maker')
 				}
 				cb()
 			}, 10*s.options.wait_for_settlement)
@@ -294,7 +294,7 @@ module.exports = {
 						debug.msg('Strategy catching_orders - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
 						let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
 						s.signal = position_opposite_signal[0].toUpperCase() + ' Catching order'
-						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, false)  
+						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, 'maker')  
 					}
 				}
 			}

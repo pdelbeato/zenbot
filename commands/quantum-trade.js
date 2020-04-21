@@ -382,22 +382,22 @@ module.exports = function (program, conf) {
 					keyMap.set('b', {desc: ('limit'.grey + ' BUY'.green), action: function() {
 						console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command inserted'.grey)
 						let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-						s.eventBus.emit('manual', 'buy', null, null, null, protectionFree)
+						s.eventBus.emit('manual', 'buy', null, null, null, protectionFree, 'manual', false, 'maker')
 					}})
 					keyMap.set('B', {desc: ('market'.grey + ' BUY'.green), action: function() {
 						console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command inserted'.grey)
 						let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-						s.eventBus.emit('manual', 'buy', null, null, null, protectionFree, 'manual', false, true)
+						s.eventBus.emit('manual', 'buy', null, null, null, protectionFree, 'manual', false, 'taker')
 					}})
 					keyMap.set('s', {desc: ('limit'.grey + ' SELL'.red), action: function() {
 						console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command inserted'.grey)
 						let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-						s.eventBus.emit('manual', 'sell', null, null, null, protectionFree)
+						s.eventBus.emit('manual', 'sell', null, null, null, protectionFree, 'manual', false, 'maker')
 					}})
 					keyMap.set('S', {desc: ('market'.grey + ' SELL'.red), action: function() {
 						console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command inserted'.grey)
 						let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-						s.eventBus.emit('manual', 'sell', null, null, null, protectionFree, 'manual', false, true)
+						s.eventBus.emit('manual', 'sell', null, null, null, protectionFree, 'manual', false, 'taker')
 					}})
 					keyMap.set('+', {desc: ('Buy gain pct (short position)'.grey + ' INCREASE'.green), action: function() {
 						so.buy_gain_pct = Number((so.buy_gain_pct + 0.5).toFixed(2))
@@ -582,19 +582,19 @@ module.exports = function (program, conf) {
 							console.log('\nNo position in control.')
 						}
 					}})
-					keyMap.set('K', {desc: ('set a manual close order (with fixed actual price) on the position'.grey), action: function() {
+					keyMap.set('K', {desc: ('set a manual '.grey + so.order_type.toUpperCase() + ' close order on the position'.grey), action: function() {
 						if (s.positions_index != null) {
 							if (s.positions[s.positions_index].side === 'buy') {
 								let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
 								let target_price = n(s.quote.ask).format(s.product.increment, Math.floor)
-								console.log('\nSet a manual close ' + 'SELL'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at ' + formatCurrency(target_price, s.currency).yellow)
-								s.eventBus.emit('manual', 'sell', s.positions[s.positions_index].id, null, target_price, protectionFree)
+								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'SELL'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at ' + formatCurrency(target_price, s.currency).yellow)
+								s.eventBus.emit('manual', 'sell', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
 							}
 							else {
 								let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
 								let target_price = n(s.quote.bid).format(s.product.increment, Math.floor)
-								console.log('\nSet a manual close ' + 'BUY'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at ' + formatCurrency(target_price, s.currency).yellow)
-								s.eventBus.emit('manual', 'buy', s.positions[s.positions_index].id, null, target_price, protectionFree)
+								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'BUY'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at ' + formatCurrency(target_price, s.currency).yellow)
+								s.eventBus.emit('manual', 'buy', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
 							}
 						}
 						else {
@@ -1286,6 +1286,8 @@ module.exports = function (program, conf) {
 								}
 								let so_tmp = JSON.parse(JSON.stringify(so))
 								delete so_tmp.strategy
+								delete so_tmp.personal
+								delete so_tmp.notifiers
 								session = {
 									id: crypto.randomBytes(4).toString('hex'),
 									selector: so.selector.normalized,
@@ -1381,23 +1383,28 @@ module.exports = function (program, conf) {
 									}
 
 									//Attivazione del bot di Telegram
-									if (so.telegramBot && so.telegramBot.on) {
+//									if (so.telegramBot && so.telegramBot.on) {
+									if (so.notifiers.telegram && so.notifiers.telegram.on) {
 										const Telegram = require('node-telegram-bot-api')
 										const options = {
 											polling: true,
 										};
-										const telegramBot = new Telegram(so.telegramBot.bot_token, options);
+//										const telegramBot = new Telegram(so.telegramBot.bot_token, options);
+										const telegramBot = new Telegram(so.notifiers.telegram.bot_token, options);
+
 
 										telegramBot.onText(/\/long/, function(msg) {
 											debug.msg('TelegramBot - ' + msg.text.toString())
 											so.active_long_position = !so.active_long_position
-											telegramBot.sendMessage(so.telegramBot.chat_id, (so.active_long_position? 'Long' : 'No long'))
+//											telegramBot.sendMessage(so.telegramBot.chat_id, (so.active_long_position? 'Long' : 'No long'))
+											telegramBot.sendMessage(so.notifiers.telegram.chat_id, (so.active_long_position? 'Long' : 'No long'))
 										})
 
 										telegramBot.onText(/\/short/, function(msg) {
 											debug.msg('TelegramBot - ' + msg.text.toString())
 											so.active_short_position = !so.active_short_position
-											telegramBot.sendMessage(so.telegramBot.chat_id, (so.active_short_position? 'Short' : 'No short'))
+//											telegramBot.sendMessage(so.telegramBot.chat_id, (so.active_short_position? 'Short' : 'No short'))
+											telegramBot.sendMessage(so.notifiers.telegram.chat_id, (so.active_short_position? 'Short' : 'No short'))
 										})
 
 										telegramBot.onText(/\/status/, function(msg) {

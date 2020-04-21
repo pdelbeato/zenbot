@@ -115,11 +115,13 @@ module.exports = function (program, conf) {
 
 					if (mode !== 'backward' && !trades.length) {
 						if (trade_counter) {
-							if (days_left != 0) {
+							if (days_left != 0 && get_trade_retry_count < 10) {
+								
 								//C'è la possibilità, in caso di coppie poco utilizzate, che non scarichi trades in un periodo passato.
-								//Con questo check, manda avanti il tempo e ritenta il download.
-								console.log('\nBackfill - Downloaded 0 trades, but there is ' + days_left + ' remaining days. Trying to go on...')
-								marker.to += 60000
+								//Con questo check, manda avanti il tempo di 5 minuti e ritenta il download.
+								console.log('\nBackfill - Downloaded 0 trades, but there is ' + days_left + ' remaining days. Trying to go on (' + get_trade_retry_count + ')...')
+								get_trade_retry_count++
+								marker.to += 300000
 								setImmediate(getNext)
 								return
 							}
@@ -132,7 +134,9 @@ module.exports = function (program, conf) {
 							if (get_trade_retry_count < 5) {
 								console.error('\nBackfill - getTrades() returned no trades, retrying with smaller interval.')
 								get_trade_retry_count++
-								start_time += (target_time - start_time) * 0.4
+								//Corretto perchè dava valori con la virgola che non piacevano alle funzioni successive
+//								start_time += (target_time - start_time) * 0.4
+								start_time += Math.round((target_time - start_time) * 0.4)
 								setImmediate(getNext)
 								return
 							}
