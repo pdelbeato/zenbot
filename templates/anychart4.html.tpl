@@ -54,16 +54,22 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
 
     var withData = function (data, trades_chart_buy, trades_chart_sell, options) {
 
+  var i =0; var strategy_sel =[]
+  Object.keys(options.chart).map(function (key) {
+    var strategy=key
+    Object.keys(options.chart[strategy].data).map(function (sub_key) {
+      i++
+
+      strategy_sel[i-1]=sub_key
+    })
+    })
 
 
-      anychart.onDocumentReady(function () {
+
+    anychart.onDocumentReady(function () {
     //data=data.reverse();
     data_chart=data
-    //console.log(data)
-
     rem_index=[];var index_trade=[];var trade_closed=[]
-
-
 
       // set the data
       table = anychart.data.table();
@@ -84,25 +90,26 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
       mapping.addField('high', 2);
       mapping.addField('low', 3);
       mapping.addField('close', 4);
-      mapping.addField('volume',8)
+      //mapping.addField('volume',8)
 
-
-
-      // // map the data
+      // // map the data in the strategy period
       // mapping_period = table_period.mapAs();
       // mapping_period.addField('open', 1);
       // mapping_period.addField('high', 2);
       // mapping_period.addField('low', 3);
       // mapping_period.addField('close', 4);
 
-      // map the data
+      // map the trades
       mapping_trades_buy = table_trades_buy.mapAs();
       mapping_trades_buy.addField('value', 1);
       mapping_trades_sell = table_trades_sell.mapAs();
       mapping_trades_sell.addField('value', 1);
 
+      // chart type
+      var chart = anychart.stock();
 
 
+      if (strategy_sel.includes('bollinger')) {
       // map the data Bollinger
         mapping_BBu = table.mapAs();
         mapping_BBu.addField('value', 5);
@@ -111,26 +118,28 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
         mapping_BBd = table.mapAs();
         mapping_BBd.addField('value', 7);
 
+        // set the series
+        var series_BBu = chart.plot(0).line(mapping_BBu);
+        series_BBu.name("BB upper");
+        var series_BBm = chart.plot(0).line(mapping_BBm);
+        series_BBm.name("BB middle");
+        var series_BBd = chart.plot(0).line(mapping_BBd);
+        series_BBd.name("BB lower");
+
+      }
+
+      if (strategy_sel.includes('stoch')) {
         // map the data Stochastic
           mapping_Stoch_K = table.mapAs();
-          mapping_Stoch_K.addField('value', 9);
+          mapping_Stoch_K.addField('value', 8);
+
+          // set the series
+          var series_Stoch_K = chart.plot(1).line(mapping_Stoch_K);
+          series_Stoch_K.name("Stoch K");
+          }
 
 
 
-      // chart type
-      var chart = anychart.stock();
-
-      // set the series
-      var series_BBu = chart.plot(0).line(mapping_BBu);
-      series_BBu.name("BB upper");
-      var series_BBm = chart.plot(0).line(mapping_BBm);
-      series_BBm.name("BB middle");
-      var series_BBd = chart.plot(0).line(mapping_BBd);
-      series_BBd.name("BB lower");
-
-      // set the series
-      var series_Stoch_K = chart.plot(1).line(mapping_Stoch_K);
-      series_Stoch_K.name("Stoch K");
 
 
 
