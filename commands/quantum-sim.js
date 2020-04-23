@@ -382,41 +382,57 @@ module.exports = function (program, conf) {
 
               return data_array[key]
             })
-            var data_chart=[]
+            var data_chart=[]; var i = 0;
 
             result = result.map(function (d) {
               d.date = new Date(d.time)
               if (typeof d.strategy === 'object') {
-
-
-                // format per bollinger
-                if (typeof d.strategy.bollinger_stocaz.data.bollinger === 'object') {
-                  d.upperBound=d.strategy.bollinger_stocaz.data.bollinger.upperBound
-                  d.midBound=d.strategy.bollinger_stocaz.data.bollinger.midBound
-                  d.lowerBound=d.strategy.bollinger_stocaz.data.bollinger.lowerBound
-                  d.stoch_K=d.strategy.bollinger_stocaz.data.stoch.stoch_K
-                } else {
-                  d.upperBound=d.open
-                  d.midBound=d.open
-                  d.lowerBound=d.open
-                }
+                i++
                 data_chart.push ([
                   d.date,
                   d.open,
                   d.high,
                   d.low,
-                  d.close,
-                  d.upperBound,
-                  d.midBound,
-                  d.lowerBound,
-                  d.volume,
-                  d.stoch_K
-                ]);
+                  d.close
+                ])
+                Object.keys(so.chart).map(function (key) {
+                  var strategy=key
+                  
+                  Object.keys(so.chart[key].data).map(function (sub_key) {
+
+                    ///// Grafica bollinger
+                    if (sub_key === 'bollinger') {
+                      if (typeof d.strategy[strategy].data[sub_key] === 'object') {
+                        d.upperBound=d.strategy[strategy].data[sub_key].upperBound
+                        d.midBound=d.strategy[strategy].data[sub_key].midBound
+                        d.lowerBound=d.strategy[strategy].data[sub_key].lowerBound
+
+                      } else {
+                        d.upperBound=d.open
+                        d.midBound=d.open
+                        d.lowerBound=d.open
+                      }
+                      data_chart[i-1].push (d.upperBound)
+                      data_chart[i-1].push (d.midBound)
+                      data_chart[i-1].push (d.lowerBound)
+
+                    }
+                    ///// Grafica stochastic K
+                    if (sub_key === 'stoch') {
+                      if (typeof d.strategy[strategy].data[sub_key] === 'object') {
+
+                        data_chart[i-1].push (d.strategy[strategy].data[sub_key].stoch_K)
+                      }
+                    }
+
+                  })
+                })
 
 
               }
               return d
             })
+
 
             var trades_chart_buy=[];var trades_chart_sell=[]
             var coeff = 1000 * 60;
