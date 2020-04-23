@@ -15,9 +15,10 @@
             "stopOnEntry": false,
             "console": "integratedTerminal",
 			"args": [
-                //"quantum-sim", "--conf=./conf_files/conf_quantum_Binance_BNB-BTC.js", "--currency_capital=10", "--asset_capital=1000", "--days=4", "--verbose"
+                //"quantum-sim", "--conf=./conf_files/conf_quantum_Binance_BTC-TUSD.js", "--currency_capital=10000", "--asset_capital=0", "--days=4", "--verbose", "--debug"
                 //"backfill", "--conf=./conf_files/conf_quantum_Binance_BNB-BTC.js", "--days=4", "--is_sim"
-                "quantum-trade", "--conf=./conf_files/conf_quantum-test.js", "--debug", "--paper", "--currency_capital=10", "--asset_capital=1000"
+                "quantum-trade", "--conf=./conf_files/conf_quantum-test.js", "--debug", "--paper", "--currency_capital=10", "--asset_capital=1000", "--minimal_db"
+                //"quantum-trade", "--conf=./conf_files/conf_quantum_Binance_BTC-TUSD.js", "--debug", "--paper", "--currency_capital=10", "--asset_capital=1000", "--minimal_db"
 			]
         }
     ]

@@ -1252,10 +1252,11 @@ module.exports = function (program, conf) {
 						//Se ci sono filtered_trades, allora non esegue questo blocco ma esegue engine.update che c'è dopo
 						//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco e non esegue engine.update (perché c'è un return in questo blocco)
 						if (!filtered_trades.length) {
-//							if (!engine.tradeProcessing()) {
-//								console.log('Pre-roll in progress...')
-//								setTimeout(getNext, 1000)
-//							}
+							if (s.tradeProcessingQueue.length() != 0) {
+								console.log('Pre-roll in progress...')
+								setTimeout(getNext, 1000)
+								return
+							}
 							var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
 							console.log(head)
 

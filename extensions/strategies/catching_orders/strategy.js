@@ -1,10 +1,10 @@
 var debug = require('../../../lib/debug')
-, { formatPercent } = require('../../../lib/format')
-, z = require('zero-fill')
-, n = require('numbro')
-, sma = require('../../../lib/sma')
-, Phenotypes = require('../../../lib/phenotype')
-, inspect = require('eyes').inspector()
+	, { formatPercent } = require('../../../lib/format')
+	, z = require('zero-fill')
+	, n = require('numbro')
+	, sma = require('../../../lib/sma')
+	, Phenotypes = require('../../../lib/phenotype')
+	, inspect = require('eyes').inspector()
 
 
 //Parte da includere nel file di configurazione
@@ -60,7 +60,8 @@ module.exports = {
 	description: 'Catching Orders strategy',
 	noHoldCheck: true,
 
-	init: function (s) {
+	init: function (s, callback = function () { }) {
+		callback(null, null)
 	},
 
 	getOptions: function () {
@@ -74,204 +75,277 @@ module.exports = {
 		this.option('catching_orders', 'catch_auto_short', 'Option for auto-short catch orders (sell on high) based on SMA', Boolean, false)
 	},
 
-	getCommands: function (s, opts= {}, cb = function() {}) {
+	getCommands: function (s, opts = {}, cb = function () { }) {
 		let strat_opts = s.options.strategy.catching_orders.opts
 		let strat_data = s.options.strategy.catching_orders.data
 
-		this.command('o', {desc: ('Catching orders - List options'.grey), action: function() {
-			s.tools.listStrategyOptions('catching_orders', false)
-		}})
-//		this.command('Y', {desc: ('Catching Orders - Manual catch order '.grey + 'BUY'.green), action: function() {
-//		console.log('\nCatching Orders - Manual catch '.grey + 'BUY'.green + ' command inserted'.grey)
-//		let target_price = n(s.quote.bid).multiply(1 - strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
-//		let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-//		let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
-//		s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag)
-//		}})
-//		this.command('H', {desc: ('Catching Orders - Manual catch order '.grey + 'SELL'.red), action: function() {
-//		console.log('\nCatching Orders - Manual catch '.grey + 'SELL'.red + ' command inserted'.grey)
-//		let target_price = n(s.quote.bid).multiply(1 + strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
-//		let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-//		let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
-//		s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag)
-//		}})
-		this.command('+', {desc: ('Catching Orders - Auto-catch order pct '.grey + 'INCREASE'.green), action: function() {
-			strat_opts.catch_auto_pct = Number((strat_opts.catch_auto_pct + 0.5).toFixed(2))
-			console.log('\n' + 'Catching Orders - Auto-catch order pct ' + 'INCREASE'.green + ' -> ' + strat_opts.catch_auto_pct)
-		}})
-		this.command('-', {desc: ('Catching Orders - Auto-catch order pct (min 1.0%) '.grey + 'DECREASE'.red), action: function() {
-			strat_opts.catch_auto_pct = Number((strat_opts.catch_auto_pct - 0.5).toFixed(2))
-			if (strat_opts.catch_auto_pct <= 1) {
-				strat_opts.catch_auto_pct = 1
+		this.command('o', {
+			desc: ('Catching orders - List options'.grey), action: function () {
+				s.tools.listStrategyOptions('catching_orders', false)
 			}
-			console.log('\n' + 'Catching Orders - Auto-catch order pct (min 1.0%) ' + 'DECREASE'.red + ' -> ' + strat_opts.catch_auto_pct)
-		}})
-		this.command('*', {desc: ('Catching Orders - Auto-catch order value '.grey + 'INCREASE'.green), action: function() {
-			strat_opts.catch_fixed_value += s.options.quantum_value
-			console.log('\n' + 'Catching Orders - Auto-catch order value ' + 'INCREASE'.green + ' -> ' + strat_opts.catch_fixed_value)
-		}})
-		this.command('_', {desc: ('Catching Orders - Auto-catch order value '.grey + 'DECREASE'.red), action: function() {
-			strat_opts.catch_fixed_value -= s.options.quantum_value
-			if (strat_opts.catch_fixed_value < s.options.quantum_value) {
-				strat_opts.catch_fixed_value = s.options.quantum_value
+		})
+		//		this.command('Y', {desc: ('Catching Orders - Manual catch order '.grey + 'BUY'.green), action: function() {
+		//		console.log('\nCatching Orders - Manual catch '.grey + 'BUY'.green + ' command inserted'.grey)
+		//		let target_price = n(s.quote.bid).multiply(1 - strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
+		//		let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+		//		let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
+		//		s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag)
+		//		}})
+		//		this.command('H', {desc: ('Catching Orders - Manual catch order '.grey + 'SELL'.red), action: function() {
+		//		console.log('\nCatching Orders - Manual catch '.grey + 'SELL'.red + ' command inserted'.grey)
+		//		let target_price = n(s.quote.bid).multiply(1 + strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
+		//		let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+		//		let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
+		//		s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag)
+		//		}})
+		this.command('+', {
+			desc: ('Catching Orders - Auto-catch order pct '.grey + 'INCREASE'.green), action: function () {
+				strat_opts.catch_auto_pct = Number((strat_opts.catch_auto_pct + 0.5).toFixed(2))
+				console.log('\n' + 'Catching Orders - Auto-catch order pct ' + 'INCREASE'.green + ' -> ' + strat_opts.catch_auto_pct)
 			}
-			console.log('\n' + 'Catching Orders - Auto-catch order value ' + 'DECREASE'.green + ' -> ' + strat_opts.catch_fixed_value)
-		}})
-		this.command('u', {desc: ('Catching Orders - Toggle '.grey + 'Auto-long'.green + ' (buy on low) catch order'.grey), action: function() {
-			strat_opts.catch_auto_long = !strat_opts.catch_auto_long
-			console.log('\nToggle Auto-long catch order: ' + (strat_opts.catch_auto_long ? 'ON'.green.inverse : 'OFF'.red.inverse))
-		}})
-		this.command('j', {desc: ('Catching Orders - Toggle '.grey + 'Auto-short'.red + ' (sell on high) catch order'.grey), action: function() {
-			strat_opts.catch_auto_short = !strat_opts.catch_auto_short
-			console.log('\nToggle Auto-short catch order: ' + (strat_opts.catch_auto_short ? 'ON'.green.inverse : 'OFF'.red.inverse))
-		}})
-		this.command('i', {desc: ('Catching Orders - Position-catch order pct '.grey + 'INCREASE'.green), action: function() {
-			strat_opts.catch_order_pct = Number((strat_opts.catch_order_pct + 0.5).toFixed(2))
-			console.log('\n' + 'Catching Orders - Position-catch order pct ' + 'INCREASE'.green + ' -> ' + strat_opts.catch_order_pct)
-		}})
-		this.command('k', {desc: ('Catching Orders - Position-catch order pct '.grey + 'DECREASE'.green), action: function() {
-			strat_opts.catch_order_pct = Number((strat_opts.catch_order_pct - 0.5).toFixed(2))
-			if (strat_opts.catch_order_pct <= 0) {
-				strat_opts.catch_order_pct = 0
-			}
-			console.log('\n' + 'Catching Orders - Position-catch order pct ' + 'DECREASE'.green + ' -> ' + strat_opts.catch_order_pct)
-		}})
-		this.command('C', {desc: ('Catching Orders - Cancel all auto-catch orders'.grey), action: function() {
-			console.log('\nCancel'.grey + ' ALL auto-catch orders')
-			s.orders.forEach(function (order, index) {
-				if (order.kind == 'catching_orders' && !order.position.id) {
-					s.tools.orderStatus(order, undefined, 'catching_orders', undefined, 'Unset', 'catching_orders')
+		})
+		this.command('-', {
+			desc: ('Catching Orders - Auto-catch order pct (min 1.0%) '.grey + 'DECREASE'.red), action: function () {
+				strat_opts.catch_auto_pct = Number((strat_opts.catch_auto_pct - 0.5).toFixed(2))
+				if (strat_opts.catch_auto_pct <= 1) {
+					strat_opts.catch_auto_pct = 1
 				}
-			})
-		}})	
-		this.command('A', {desc: ('Catching Orders - Insert position-catch order for ALL free position'.grey), action: function() {
-			if (strat_opts.catch_order_pct > 0) {
-				console.log('\n' + 'Catching Orders - Insert position-catch order for ALL free positions'.grey)
-				s.positions.forEach(function (position, index) {
-					let position_locking = (position.locked & ~s.strategyFlag['catching_orders'])
-					let target_price = null
-
-					if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
-						let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
-						let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
-						if (position.side === 'buy') {
-							target_price = n(position.price_open).multiply(1 + strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
-						}
-						else {
-							target_price = n(position.price_open).multiply(1 - strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
-						}
-						debug.msg('Strategy catching_orders - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
-						s.signal = position_opposite_signal[0].toUpperCase() + ' Catching order'
-						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, 'maker')  
+				console.log('\n' + 'Catching Orders - Auto-catch order pct (min 1.0%) ' + 'DECREASE'.red + ' -> ' + strat_opts.catch_auto_pct)
+			}
+		})
+		this.command('*', {
+			desc: ('Catching Orders - Auto-catch order value '.grey + 'INCREASE'.green), action: function () {
+				strat_opts.catch_fixed_value += s.options.quantum_value
+				console.log('\n' + 'Catching Orders - Auto-catch order value ' + 'INCREASE'.green + ' -> ' + strat_opts.catch_fixed_value)
+			}
+		})
+		this.command('_', {
+			desc: ('Catching Orders - Auto-catch order value '.grey + 'DECREASE'.red), action: function () {
+				strat_opts.catch_fixed_value -= s.options.quantum_value
+				if (strat_opts.catch_fixed_value < s.options.quantum_value) {
+					strat_opts.catch_fixed_value = s.options.quantum_value
+				}
+				console.log('\n' + 'Catching Orders - Auto-catch order value ' + 'DECREASE'.green + ' -> ' + strat_opts.catch_fixed_value)
+			}
+		})
+		this.command('u', {
+			desc: ('Catching Orders - Toggle '.grey + 'Auto-long'.green + ' (buy on low) catch order'.grey), action: function () {
+				strat_opts.catch_auto_long = !strat_opts.catch_auto_long
+				console.log('\nToggle Auto-long catch order: ' + (strat_opts.catch_auto_long ? 'ON'.green.inverse : 'OFF'.red.inverse))
+			}
+		})
+		this.command('j', {
+			desc: ('Catching Orders - Toggle '.grey + 'Auto-short'.red + ' (sell on high) catch order'.grey), action: function () {
+				strat_opts.catch_auto_short = !strat_opts.catch_auto_short
+				console.log('\nToggle Auto-short catch order: ' + (strat_opts.catch_auto_short ? 'ON'.green.inverse : 'OFF'.red.inverse))
+			}
+		})
+		this.command('i', {
+			desc: ('Catching Orders - Position-catch order pct '.grey + 'INCREASE'.green), action: function () {
+				strat_opts.catch_order_pct = Number((strat_opts.catch_order_pct + 0.5).toFixed(2))
+				console.log('\n' + 'Catching Orders - Position-catch order pct ' + 'INCREASE'.green + ' -> ' + strat_opts.catch_order_pct)
+			}
+		})
+		this.command('k', {
+			desc: ('Catching Orders - Position-catch order pct '.grey + 'DECREASE'.green), action: function () {
+				strat_opts.catch_order_pct = Number((strat_opts.catch_order_pct - 0.5).toFixed(2))
+				if (strat_opts.catch_order_pct <= 0) {
+					strat_opts.catch_order_pct = 0
+				}
+				console.log('\n' + 'Catching Orders - Position-catch order pct ' + 'DECREASE'.green + ' -> ' + strat_opts.catch_order_pct)
+			}
+		})
+		this.command('C', {
+			desc: ('Catching Orders - Cancel all auto-catch orders'.grey), action: function () {
+				console.log('\nCancel'.grey + ' ALL auto-catch orders')
+				s.orders.forEach(function (order, index) {
+					if (order.kind == 'catching_orders' && !order.position.id) {
+						s.tools.orderStatus(order, undefined, 'catching_orders', undefined, 'Unset', 'catching_orders')
 					}
 				})
 			}
-			else {
-				console.log('\n' + 'Catching Orders - Catch order pct =< 0!'.red)
+		})
+		this.command('A', {
+			desc: ('Catching Orders - Insert position-catch order for ALL free position'.grey), action: function () {
+				if (strat_opts.catch_order_pct > 0) {
+					console.log('\n' + 'Catching Orders - Insert position-catch order for ALL free positions'.grey)
+					s.positions.forEach(function (position, index) {
+						let position_locking = (position.locked & ~s.strategyFlag['catching_orders'])
+						let target_price = null
+
+						if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
+							let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
+							let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
+							if (position.side === 'buy') {
+								target_price = n(position.price_open).multiply(1 + strat_opts.catch_order_pct / 100).format(s.product.increment, Math.floor)
+							}
+							else {
+								target_price = n(position.price_open).multiply(1 - strat_opts.catch_order_pct / 100).format(s.product.increment, Math.floor)
+							}
+							debug.msg('Strategy catching_orders - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
+							s.signal = position_opposite_signal[0].toUpperCase() + ' Catching order'
+							s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, 'maker')
+						}
+					})
+				}
+				else {
+					console.log('\n' + 'Catching Orders - Catch order pct =< 0!'.red)
+				}
 			}
-		}})
+		})
 
-		cb()
+		cb(null, null)
 	},
 
-	onTrade: function (s, opts= {}, cb= function() {}) {
-		cb()
+	onTrade: function (s, opts = {}, callback = function () { }) {
+		callback(null, null)
 	},
 
 
-	onTradePeriod: function (s, opts= {}, cb= function() {}) {
-		cb()
+	onTradePeriod: function (s, opts = {}, callback = function () { }) {
+		// var opts = {
+		// 		trade: trade,
+		// 		is_preroll: is_preroll
+		// }
+
+		let strat = s.options.strategy[this.name]
+		let strat_opts = s.options.strategy[this.name].opts
+		let strat_data = s.options.strategy[this.name].data
+
+		_onTradePeriod(function (cb) {
+			if (strat_opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
+				strat.calc_lookback.unshift(s.period)
+				strat.lib.onStrategyPeriod(s, opts, callback)
+			}
+			else {
+				callback()
+			}
+		})
+
+		///////////////////////////////////////////
+		// _onTradePeriod
+		///////////////////////////////////////////
+
+		function _onTradePeriod(cb) {
+			//User defined
+			cb()
+		}
 	},
 
-	onStrategyPeriod: function (s, opts= {}, cb= function() {}) {		
+	onStrategyPeriod: function (s, opts = {}, callback = function () { }) {
 		let strat_opts = s.options.strategy.catching_orders.opts
 		let strat_data = s.options.strategy.catching_orders.data
 
-		//Calcolo il pivot price (strat_data.sma)
-		strat_data.sma = roundToNearest(sma(s, null, strat_opts.min_periods, 'close'))
+		_onStrategyPeriod(callback)
 
-		if (strat_data.sma && (strat_opts.catch_auto_long || strat_opts.catch_auto_short)) {
-			//Cancello gli ordini vecchi
-			console.log('\nCatching Orders - '.grey + 'Cancel ALL Auto-catch orders')
-			s.orders.forEach(function (order, index) {
-				if (order.kind == 'catching_orders' && !order.position.id) {
-					s.tools.orderStatus(order, undefined, 'catching_orders', undefined, 'Unset', 'catching_orders')
-				}
+		///////////////////////////////////////////
+		// _onStrategyPeriodPeriod
+		///////////////////////////////////////////
+
+		function _onStrategyPeriod(callback) {
+			//Calcolo il pivot price (strat_data.sma)
+			strat_data.sma = roundToNearest(sma(s, null, strat_opts.min_periods, 'close'))
+
+			if (strat_data.sma && (strat_opts.catch_auto_long || strat_opts.catch_auto_short)) {
+				//Cancello gli ordini vecchi
+				console.log('\nCatching Orders - '.grey + 'Cancel ALL Auto-catch orders')
+				s.orders.forEach(function (order, index) {
+					if (order.kind == 'catching_orders' && !order.position.id) {
+						s.tools.orderStatus(order, undefined, 'catching_orders', undefined, 'Unset', 'catching_orders')
+					}
+				})
+
+				//Immetto gli ordini nuovi dopo aver atteso wait_for_settlement
+				setTimeout(function () {
+					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short'] + s.protectionFlag['only_one_side']
+					if (strat_opts.catch_auto_long) {
+						console.log('\nCatching Orders - Auto catch '.grey + 'BUY'.green + ' command inserted'.grey)
+						let target_price = n(strat_data.sma).multiply(1 - strat_opts.catch_auto_pct / 100).format(s.product.increment, Math.floor)
+						let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+						s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag, 'catching_orders', false, 'maker')
+					}
+
+					if (strat_opts.catch_auto_short) {
+						console.log('\nCatching Orders - Auto catch '.grey + 'SELL'.red + ' command inserted'.grey)
+						let target_price = n(strat_data.sma).multiply(1 + strat_opts.catch_auto_pct / 100).format(s.product.increment, Math.floor)
+						let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+						s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag, 'catching_orders', false, 'maker')
+					}
+				}, 10 * s.options.wait_for_settlement)
+				callback(null, null)
+			}
+			else {
+				callback(null, null)
+			}
+
+			function roundToNearest(numToRound) {
+				var numToRoundTo = (s.product.increment ? s.product.increment : 0.00000001)
+				numToRoundTo = 1 / (numToRoundTo)
+
+				return Math.floor(numToRound * numToRoundTo) / numToRoundTo
+			}
+		}
+	},
+
+	onReport: function (s, opts = {}, callback = function () { }) {
+		let strat_opts = s.options.strategy.catching_orders.opts
+
+		if (opts.actual) {
+			var strat_data = s.options.strategy[this.name].data
+		}
+		else {
+			var strat_data = s.lookback[0].strategy[this.name].data
+		}
+
+		var cols = []
+
+		_onReport(() => {
+			cols.forEach(function (col) {
+				process.stdout.write(col)
 			})
+			callback(null, null)
+		})
+		/////////////////////////////////////////////////////
+		// _onReport() deve inserire in cols[] le informazioni da stampare a video
+		/////////////////////////////////////////////////////
 
-			//Immetto gli ordini nuovi dopo aver atteso wait_for_settlement
-			setTimeout (function() {
-				let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short'] + s.protectionFlag['only_one_side']
-				if (strat_opts.catch_auto_long) {
-					console.log('\nCatching Orders - Auto catch '.grey + 'BUY'.green + ' command inserted'.grey)
-					let target_price = n(strat_data.sma).multiply(1 - strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
-					let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-					s.eventBus.emit('catching_orders', 'buy', null, target_size, target_price, protectionFlag, 'catching_orders', false, 'maker')
-				}
-
-				if (strat_opts.catch_auto_short) {
-					console.log('\nCatching Orders - Auto catch '.grey + 'SELL'.red + ' command inserted'.grey)
-					let target_price = n(strat_data.sma).multiply(1 + strat_opts.catch_auto_pct/100).format(s.product.increment, Math.floor)
-					let target_size = n(strat_opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-					s.eventBus.emit('catching_orders', 'sell', null, target_size, target_price, protectionFlag, 'catching_orders', false, 'maker')
-				}
-				cb()
-			}, 10*s.options.wait_for_settlement)
-		}
-
-		function roundToNearest(numToRound) {
-			var numToRoundTo = (s.product.increment ? s.product.increment : 0.00000001)
-			numToRoundTo = 1 / (numToRoundTo)
-
-			return Math.floor(numToRound * numToRoundTo) / numToRoundTo
+		function _onReport(cb) {
+			//user defined
+			cb()
 		}
 	},
 
-	onReport: function (s, opts= {}, cb = function() {}) {
-//		let strat_opts = s.options.strategy.catching_orders.opts
-//		let strat_data = s.options.strategy.catching_orders.data
-//
-//		var cols = []
-//		if (strat_data.sma) {
-//			cols.push(s.tools.zeroFill(8, strat_data.sma, ' '))
-//		}
-//		cols.forEach(function (col) {
-//			process.stdout.write(col)
-//		})
-		cb()
-	},
-
-	onUpdateMessage: function (s, opts= {}, cb = function() {}) {
+	onUpdateMessage: function (s, opts = {}, cb = function () { }) {
 		let strat_opts = s.options.strategy.catching_orders.opts
 		let result = null
 		if (strat_opts.catch_auto_long || strat_opts.catch_auto_short) {
 			result = 'Auto-catch (Long/Short): ' + strat_opts.catch_auto_long + ' ; ' + strat_opts.catch_auto_short
 		}
-		cb(result)
+		cb(null, result)
 	},
 
-	onPositionOpened: function (s, opts= {}, cb = function() {}) {
-//		var opts = {
-//		position_id: position_id,
-//		};
-		cb()
+	onPositionOpened: function (s, opts = {}, cb = function () { }) {
+		//		var opts = {
+		//		position_id: position_id,
+		//		};
+		cb(null, null)
 	},
 
-	onPositionUpdated: function (s, opts= {}, cb = function() {}) {
-		cb()
+	onPositionUpdated: function (s, opts = {}, cb = function () { }) {
+		cb(null, null)
 	},
 
-	onPositionClosed: function (s, opts= {}, cb = function() {}) {
-		cb()
+	onPositionClosed: function (s, opts = {}, cb = function () { }) {
+		cb(null, null)
 	},
 
-	onOrderExecuted: function (s, opts= {}, cb = function() {}) {
-//		var opts = {
-//		signal: signal,
-//		sig_kind: sig_kind,
-//		position_id: position_id,
-//		is_closed: is_closed,
-//		};
+	onOrderExecuted: function (s, opts = {}, cb = function () { }) {
+		//		var opts = {
+		//		signal: signal,
+		//		sig_kind: sig_kind,
+		//		position_id: position_id,
+		//		is_closed: is_closed,
+		//		};
 		if (!opts.is_closed) {
 			let strat_opts = s.options.strategy.catching_orders.opts
 			let strat_data = s.options.strategy.catching_orders.data
@@ -286,30 +360,30 @@ module.exports = {
 					if (!position_locking && !position_status && !s.tools.positionFlags(position, 'status', 'Check', 'catching_orders')) {
 						let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 						if (position.side === 'buy') {
-							target_price = n(position.price_open).multiply(1 + strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
+							target_price = n(position.price_open).multiply(1 + strat_opts.catch_order_pct / 100).format(s.product.increment, Math.floor)
 						}
 						else {
-							target_price = n(position.price_open).multiply(1 - strat_opts.catch_order_pct/100).format(s.product.increment, Math.floor)
+							target_price = n(position.price_open).multiply(1 - strat_opts.catch_order_pct / 100).format(s.product.increment, Math.floor)
 						}
 						debug.msg('Strategy catching_orders - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
 						let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
 						s.signal = position_opposite_signal[0].toUpperCase() + ' Catching order'
-						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, 'maker')  
+						s.eventBus.emit('catching_orders', position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, 'maker')
 					}
 				}
 			}
 		}
-		cb()
+		cb(null, null)
 	},
 
-	printOptions: function(s, opts= {}, cb = function() {}) {
+	printOptions: function (s, opts = {}, cb = function () { }) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy.stoploss))
 		delete so_tmp.calc_lookback
 		delete so_tmp.calc_close_time
 		delete so_tmp.lib
 
 		console.log('\n' + inspect(so_tmp))
-		cb()
+		cb(null, null)
 	},
 
 	//TOTALMENTE da sistemare, se dovessero servire
@@ -322,7 +396,7 @@ module.exports = {
 		sell_stop_pct: Phenotypes.Range0(1, 50),
 		buy_stop_pct: Phenotypes.Range0(1, 50),
 		profit_stop_enable_pct: Phenotypes.Range0(1, 20),
-		profit_stop_pct: Phenotypes.Range(1,20),
+		profit_stop_pct: Phenotypes.Range(1, 20),
 
 		// -- strategy
 		size: Phenotypes.Range(1, 40),
