@@ -220,12 +220,13 @@ module.exports = {
 		let strat_data = s.options.strategy.bollinger_stocaz.data
 		let strat_opts = s.options.strategy.bollinger_stocaz.opts
 		let strat_data_boll = s.options.strategy.bollinger_stocaz.data.bollinger
+		let strat_data_lookback = s.options.strategy.bollinger_stocaz.calc_lookback
 		let max_profit = -100
 
 		strat_data.bollinger = bollinger(s, 'bollinger_stocaz', s.options.strategy.bollinger_stocaz.opts.size, 'close')
 
-		ta_stoch(s, 'stoch',  s.options.strategy.bollinger_stocaz.opts.stoch_periods, s.options.strategy.bollinger_stocaz.opts.stoch_k, s.options.strategy.bollinger_stocaz.opts.stoch_k_ma_type).
-		then(function(inres) {
+		ta_stoch(s, 'stoch',  s.options.strategy.bollinger_stocaz.opts.stoch_periods, s.options.strategy.bollinger_stocaz.opts.stoch_k, s.options.strategy.bollinger_stocaz.opts.stoch_k_ma_type, undefined, undefined, strat_data_lookback)
+		.then(function(inres) {
 			if (!inres) {
 				return cb()
 			}
