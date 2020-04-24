@@ -42,12 +42,11 @@ module.exports = {
 	noHoldCheck: false,
 
 	init: function (s, callback = function() {}) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = s.options.strategy[strat_name]
+		
 
-		strat_data = {
+		strat.data = {
 			//	data_1: {
 			//		data_1_1: null,
 			//		data_1_2: null,
@@ -58,33 +57,27 @@ module.exports = {
 			//	}
 		}
 
-		strat.calc_lookback= []				//****** Old periods for calculation
-		strat.calc_close_time= 0			//****** Close time for strategy period
-		strat.lib= {}						//****** To store all the functions of the strategy
-
 		callback(null, null)
 	},
 
-	getOptions: function () {
-		this.option(this.name, '_opts_1', 'Description', String, '_default_')
-		this.option(this.name, '_opts_2', 'Description', Number, 30)
-		this.option(this.name, '_opts_3', 'Description', Boolean, true)
+	getOptions: function (strategy_name) {
+		this.option(strategy_name, '_opts_1', 'Description', String, '_default_')
+		this.option(strategy_name, '_opts_2', 'Description', Number, 30)
+		this.option(strategy_name, '_opts_3', 'Description', Boolean, true)
 	},
 
 	getCommands: function (s, opts = {}, callback = function () {}) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = s.options.strategy[strat_name]
 
 		this.command('o', {
 			desc: ('_name_ - List options'.grey), action: function () {
-				s.tools.listStrategyOptions(this.name, false)
+				s.tools.listStrategyOptions(strat_name, false)
 			}
 		})
 		
 		this.command('g', {
-			desc: ('_name_ - Description), action: function () {
+			desc: ('_name_ - Description'), action: function () {
 				//User defined
 			}
 		})
@@ -97,11 +90,9 @@ module.exports = {
 		// 		trade: trade,
 		// 		is_preroll: is_preroll
 		// }
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_opts = s.options.strategy[this.name].opts
-		let strat_data = s.options.strategy[this.name].data
-		
+		let strat = s.options.strategy[strat_name]
+				
 		_onTrade(callback)
 		
 		///////////////////////////////////////////
@@ -121,13 +112,11 @@ module.exports = {
 		// 		is_preroll: is_preroll
 		// }
 
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_opts = s.options.strategy[this.name].opts
-		let strat_data = s.options.strategy[this.name].data
+		let strat = s.options.strategy[strat_name]
 
 		_onTradePeriod(function () {
-			if (strat_opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
+			if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
 				strat.calc_lookback.unshift(s.period)
 				strat.lib.onStrategyPeriod(s, opts, callback)
 			}
@@ -148,10 +137,8 @@ module.exports = {
 	},
 
 	onStrategyPeriod: function (s, opts = {}, callback = function () { }) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = s.options.strategy[strat_name]
 
 		_onStrategyPeriod(callback)
 
@@ -168,16 +155,11 @@ module.exports = {
 
 
 	onReport: function (s, opts = {}, callback = function () { }) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
 
-		if (opts.actual) {
-			var strat_data = s.options.strategy[this.name].data
-		}
-		else {
-			var strat_data = s.lookback[0].strategy[this.name].data
+		if (!opts.actual) {
+			strat.data = s.lookback[0].strategy[strat_name].data
 		}
 
 		var cols = []
@@ -195,17 +177,16 @@ module.exports = {
 
 		function _onReport(cb) {
 			//User defined
-			cols.push('_something_')
+			
+			//cols.push('_something_')
 
 			cb()
 		}
 	},
 
 	onUpdateMessage: function (s, opts = {}, callback) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = s.options.strategy[strat_name]
 
 		_onUpdateMessage(callback)
 
@@ -227,10 +208,8 @@ module.exports = {
 		//	position_id: position_id,
 		//};
 
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = s.options.strategy[strat_name]
 
 		_onPositionOpened(callback)
 
@@ -245,15 +224,13 @@ module.exports = {
 		}
 	},
 
-	onPositionUpdated: function (s, opts = {}, cb = function () { }) {
+	onPositionUpdated: function (s, opts = {}, callback = function () { }) {
 		//var opts = {
 		//	position_id: position_id,
 		//};
 		
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_opts = s.options.strategy[this.name].opts
-		let strat_data = s.options.strategy[this.name].data
+		let strat = s.options.strategy[strat_name]
 
 		_onPositionUpdated(callback)
 		
@@ -268,16 +245,14 @@ module.exports = {
 		}
 	},
 
-	onPositionClosed: function (s, opts = {}, cb = function () { }) {
+	onPositionClosed: function (s, opts = {}, callback = function () { }) {
 		//		s.closed_positions
 		//		var opts = {
 		//		position_id: position_id,
 		//		};
 
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_opts = s.options.strategy[this.name].opts
-		let strat_data = s.options.strategy[this.name].data
+		let strat = s.options.strategy[strat_name]
 
 		_onPositionClosed(callback)
 		
@@ -292,11 +267,9 @@ module.exports = {
 		}
 	},
 
-	onOrderExecuted: function (s, opts = {}, cb = function () { }) {
-		let strat = s.options.strategy[this.name]
+	onOrderExecuted: function (s, opts = {}, callback = function () { }) {
 		let strat_name = this.name
-		let strat_opts = s.options.strategy[this.name].opts
-		let strat_data = s.options.strategy[this.name].data
+		let strat = s.options.strategy[strat_name]
 
 		_onOrderExecuted(callback)
 		

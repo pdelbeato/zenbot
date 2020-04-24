@@ -49,53 +49,45 @@ module.exports = {
 	noHoldCheck: false,
 
 	init: function (s, callback = function() {}) {
-		let strat = s.options.strategy[this.name]
-//		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-//		let strat_opts = s.options.strategy[this.name].opts
+		let strat_name = this.name
+		let strat = s.options.strategy[strat_name]
 
-		strat_data = {
+		strat.data = {
 		}
-
-		strat.calc_lookback= []				//****** Old periods for calculation
-		strat.calc_close_time= 0			//****** Close time for strategy period
-		strat.lib= {}						//****** To store all the functions of the strategy
 
 		callback(null, null)
 	},
 
-	getOptions: function () {
-		this.option(this.name, 'period_calc', 'calculate closing price every period_calc time', String, '15m')
-		this.option(this.name, 'min_periods', 'Min. number of history periods', Number, 2)
-		this.option(this.name, 'order_type', 'Order type (maker/taker)', String, 'maker')
-		this.option(this.name, 'buy_stop_pct', 'For a SELL position, buy if price rise above this % of bought price', Number, 10)
-		this.option(this.name, 'sell_stop_pct', 'For a BUY position, sell if price drops below this % of bought price', Number, 10)
+	getOptions: function (strategy_name) {
+		this.option(strategy_name, 'period_calc', 'calculate closing price every period_calc time', String, '15m')
+		this.option(strategy_name, 'min_periods', 'Min. number of history periods', Number, 2)
+		this.option(strategy_name, 'order_type', 'Order type (maker/taker)', String, 'maker')
+		this.option(strategy_name, 'buy_stop_pct', 'For a SELL position, buy if price rise above this % of bought price', Number, 10)
+		this.option(strategy_name, 'sell_stop_pct', 'For a BUY position, sell if price drops below this % of bought price', Number, 10)
 	},
 
 	getCommands: function (s, opts = {}, callback = function () {}) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = s.options.strategy[strat_name]
 
 		this.command('o', {desc: ('Stoploss - List options'.grey), action: function() {
 			s.tools.listStrategyOptions(this.name, false)
 		}})
 		this.command('u', {desc: ('Stoploss - Buy stop price (short position)'.grey + ' INCREASE'.green), action: function() {
-			strat_opts.buy_stop_pct = Number((strat_opts.buy_stop_pct + 0.05).toFixed(2))
-			console.log('\n' + 'Stoploss - Buy stop price' + ' INCREASE'.green + ' -> ' + strat_opts.buy_stop_pct)
+			strat.opts.buy_stop_pct = Number((strat.opts.buy_stop_pct + 0.05).toFixed(2))
+			console.log('\n' + 'Stoploss - Buy stop price' + ' INCREASE'.green + ' -> ' + strat.opts.buy_stop_pct)
 		}})
 		this.command('j', {desc: ('Stoploss - Buy stop price (short position)'.grey + ' DECREASE'.red), action: function() {
-			strat_opts.buy_stop_pct = Number((strat_opts.buy_stop_pct - 0.05).toFixed(2))
-			console.log('\n' + 'Stoploss - Buy stop price' + ' DECREASE'.red + ' -> ' + strat_opts.buy_stop_pct)
+			strat.opts.buy_stop_pct = Number((strat.opts.buy_stop_pct - 0.05).toFixed(2))
+			console.log('\n' + 'Stoploss - Buy stop price' + ' DECREASE'.red + ' -> ' + strat.opts.buy_stop_pct)
 		}})
 		this.command('i', {desc: ('Stoploss - Sell stop price (long position)'.grey + ' INCREASE'.green), action: function() {
-			strat_opts.sell_stop_pct = Number((strat_opts.sell_stop_pct + 0.05).toFixed(2))
-			console.log('\n' + 'Stoploss - Sell stop price' + ' INCREASE'.green + ' -> ' + strat_opts.sell_stop_pct)
+			strat.opts.sell_stop_pct = Number((strat.opts.sell_stop_pct + 0.05).toFixed(2))
+			console.log('\n' + 'Stoploss - Sell stop price' + ' INCREASE'.green + ' -> ' + strat.opts.sell_stop_pct)
 		}})
 		this.command('k', {desc: ('Stoploss - Sell stop price (long position)'.grey + ' DECREASE'.red), action: function() {
-			strat_opts.sell_stop_pct = Number((strat_opts.sell_stop_pct - 0.05).toFixed(2))
-			console.log('\n' + 'Stoploss - Sell stop price' + ' DECREASE'.green + ' -> ' + strat_opts.sell_stop_pct)
+			strat.opts.sell_stop_pct = Number((strat.opts.sell_stop_pct - 0.05).toFixed(2))
+			console.log('\n' + 'Stoploss - Sell stop price' + ' DECREASE'.green + ' -> ' + strat.opts.sell_stop_pct)
 		}})
 
 		callback(null, null)
@@ -106,10 +98,8 @@ module.exports = {
 		// 		trade: trade,
 		// 		is_preroll: is_preroll
 		// }
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_opts = s.options.strategy[this.name].opts
-		let strat_data = s.options.strategy[this.name].data
+		let strat = s.options.strategy[strat_name]
 		
 		_onTrade(callback)
 		
@@ -130,13 +120,11 @@ module.exports = {
 		// 		is_preroll: is_preroll
 		// }
 
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_opts = s.options.strategy[this.name].opts
-		let strat_data = s.options.strategy[this.name].data
+		let strat = s.options.strategy[strat_name]
 
 		_onTradePeriod(function () {
-			if (strat_opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
+			if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
 				strat.calc_lookback.unshift(s.period)
 				strat.lib.onStrategyPeriod(s, opts, callback)
 			}
@@ -156,10 +144,8 @@ module.exports = {
 	},
 
 	onStrategyPeriod: function (s, opts = {}, callback = function () { }) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = s.options.strategy[strat_name]
 
 		_onStrategyPeriod(callback)
 
@@ -182,7 +168,7 @@ module.exports = {
 						let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
 						s.options.active_long_position = false
 						s.options.active_short_position = false
-						s.eventBus.emit(this.name, position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, strat_opts.order_type)
+						s.eventBus.emit(this.name, position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, strat.opts.order_type)
 					}
 					else {
 						s.signal = null
@@ -196,17 +182,12 @@ module.exports = {
 
 
 	onReport: function (s, opts = {}, callback = function () { }) {
-		let strat = s.options.strategy[this.name]
-		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		// let strat_name = this.name
+		// let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
 
-		if (opts.actual) {
-			var strat_data = s.options.strategy[this.name].data
-		}
-		else {
-			var strat_data = s.lookback[0].strategy[this.name].data
-		}
+		// if (!opts.actual) {
+		// 	strat.data = s.lookback[0].strategy[strat_name].data
+		// }
 
 		var cols = []
 
@@ -223,17 +204,15 @@ module.exports = {
 
 		function _onReport(cb) {
 			//User defined
-			cols.push('_something_')
+			//cols.push('_something_')
 
 			cb()
 		}
 	},
 
 	onUpdateMessage: function (s, opts = {}, callback) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = s.options.strategy[strat_name]
 
 		_onUpdateMessage(callback)
 
@@ -255,10 +234,8 @@ module.exports = {
 		//		position_id: position_id,
 		//		};
 
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = s.options.strategy[strat_name]
 
 		_onPositionOpened(callback)
 
@@ -270,8 +247,8 @@ module.exports = {
 			var position = s.positions.find(x => x.id === opts.position_id)
 			
 			position.strategy_parameters.stoploss = {}
-			position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat_opts.buy_stop_pct/100).format(s.product.increment) : null)
-			position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat_opts.sell_stop_pct/100).format(s.product.increment) : null)
+			position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat.opts.buy_stop_pct/100).format(s.product.increment) : null)
+			position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat.opts.sell_stop_pct/100).format(s.product.increment) : null)
 						
 			cb(null, null)
 		}
@@ -282,10 +259,8 @@ module.exports = {
 		//	position_id: position_id,
 		//};
 		
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_opts = s.options.strategy[this.name].opts
-		let strat_data = s.options.strategy[this.name].data
+		let strat = s.options.strategy[strat_name]
 
 		_onPositionUpdated(callback)
 		
@@ -296,8 +271,8 @@ module.exports = {
 		function _onPositionUpdated(cb) {
 			var position = s.positions.find(x => x.id === opts.position_id)
 			
-			position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat_opts.buy_stop_pct/100).format(s.product.increment) : null)
-			position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat_opts.sell_stop_pct/100).format(s.product.increment) : null)
+			position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat.opts.buy_stop_pct/100).format(s.product.increment) : null)
+			position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat.opts.sell_stop_pct/100).format(s.product.increment) : null)
 //			debug.msg('Strategy Stoploss - position.strategy_parameters.stoploss.sell_stop= ' + position.strategy_parameters.stoploss.sell_stop)
 //			console.log(position)
 			
@@ -311,10 +286,8 @@ module.exports = {
 		//		position_id: position_id,
 		//		};
 
-//		let strat = s.options.strategy[this.name]
-//		let strat_name = this.name
-//		let strat_opts = s.options.strategy[this.name].opts
-//		let strat_data = s.options.strategy[this.name].data
+// 		let strat_name = this.name
+// 		let strat = s.options.strategy[strat_name]
 
 		_onPositionClosed(callback)
 		
@@ -330,10 +303,8 @@ module.exports = {
 	},
 
 	onOrderExecuted: function (s, opts = {}, cb = function () { }) {
-//		let strat = s.options.strategy[this.name]
-//		let strat_name = this.name
-//		let strat_opts = s.options.strategy[this.name].opts
-//		let strat_data = s.options.strategy[this.name].data
+		let strat_name = this.name
+		let strat = s.options.strategy[strat_name]
 
 		_onOrderExecuted(callback)
 		

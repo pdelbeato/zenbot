@@ -47,57 +47,49 @@ module.exports = {
 	noHoldCheck: false,
 
 	init: function (s, callback = function() {}) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = s.options.strategy[strat_name]
 
-		strat_data = {
+		strat.data = {
 				max_trail_profit_position_id: {	//****** Position ids with max trailing profit
 					buy: null,
 					sell: null,
 				}
 		}
 
-		strat.calc_lookback= []				//****** Old periods for calculation
-		strat.calc_close_time= 0			//****** Close time for strategy period
-		strat.lib= {}						//****** To store all the functions of the strategy
-
 		callback(null, null)
 	},
 
-	getOptions: function () {
-		this.option('trailing_stop', 'period_calc', 'Execute trailing stop every period_calc time', String, '15m')
-		this.option('trailing_stop', 'min_periods', 'Min. number of history periods', Number, 2)
-		this.option('trailing_stop', 'order_type', 'Order type (maker/taker)', String, 'maker')
-		this.option('trailing_stop', 'trailing_stop_enable_pct', 'Enable trailing stop when reaching this % profit', Number, 2)
-		this.option('trailing_stop', 'trailing_stop_pct', 'Maintain a trailing stop this % below the high-water mark of profit', Number, 0.5)
+	getOptions: function (strategy_name) {
+		this.option(strategy_name, 'period_calc', 'Execute trailing stop every period_calc time', String, '15m')
+		this.option(strategy_name, 'min_periods', 'Min. number of history periods', Number, 2)
+		this.option(strategy_name, 'order_type', 'Order type (maker/taker)', String, 'maker')
+		this.option(strategy_name, 'trailing_stop_enable_pct', 'Enable trailing stop when reaching this % profit', Number, 2)
+		this.option(strategy_name, 'trailing_stop_pct', 'Maintain a trailing stop this % below the high-water mark of profit', Number, 0.5)
 	},
 
 	getCommands: function (s, opts = {}, callback = function () {}) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = s.options.strategy[strat_name]
 
 		this.command('o', {desc: ('Trailing Stop - List options'.grey), action: function() {
-			s.tools.listStrategyOptions('trailing_stop', false)
+			s.tools.listStrategyOptions(this.name, false)
 		}})
 		this.command('u', {desc: ('Trailing Stop - Enabling pct'.grey + ' INCREASE'.green), action: function() {
-			strat_opts.trailing_stop_enable_pct = Number((strat_opts.trailing_stop_enable_pct + 0.05).toFixed(2))
-			console.log('\n' + 'Trailing Stop - Enabling pct' + ' INCREASE'.green + ' -> ' + strat_opts.trailing_stop_enable_pct)
+			strat.opts.trailing_stop_enable_pct = Number((strat.opts.trailing_stop_enable_pct + 0.05).toFixed(2))
+			console.log('\n' + 'Trailing Stop - Enabling pct' + ' INCREASE'.green + ' -> ' + strat.opts.trailing_stop_enable_pct)
 		}})
 		this.command('j', {desc: ('Trailing Stop - Enabling pct'.grey + ' DECREASE'.green), action: function() {
-			strat_opts.trailing_stop_enable_pct = Number((strat_opts.trailing_stop_enable_pct - 0.05).toFixed(2))
-			console.log('\n' + 'Trailing Stop - Enabling pct' + ' DECREASE'.red + ' -> ' + strat_opts.trailing_stop_enable_pct)
+			strat.opts.trailing_stop_enable_pct = Number((strat.opts.trailing_stop_enable_pct - 0.05).toFixed(2))
+			console.log('\n' + 'Trailing Stop - Enabling pct' + ' DECREASE'.red + ' -> ' + strat.opts.trailing_stop_enable_pct)
 		}})
 		this.command('i', {desc: ('Trailing Stop - Trailing stop pct'.grey + ' INCREASE'.green), action: function() {
-			strat_opts.trailing_stop_pct = Number((strat_opts.trailing_stop_pct + 0.05).toFixed(2))
-			console.log('\n' + 'Trailing Stop - Trailing stop pct' + ' INCREASE'.green + ' -> ' + strat_opts.trailing_stop_pct)
+			strat.opts.trailing_stop_pct = Number((strat.opts.trailing_stop_pct + 0.05).toFixed(2))
+			console.log('\n' + 'Trailing Stop - Trailing stop pct' + ' INCREASE'.green + ' -> ' + strat.opts.trailing_stop_pct)
 		}})
 		this.command('k', {desc: ('Trailing Stop - Trailing stop pct'.grey + ' DECREASE'.red), action: function() {
-			strat_opts.trailing_stop_pct = Number((strat_opts.trailing_stop_pct - 0.05).toFixed(2))
-			console.log('\n' + 'Trailing Stop - Trailing stop pct' + ' DECREASE'.red + ' -> ' + strat_opts.trailing_stop_pct)
+			strat.opts.trailing_stop_pct = Number((strat.opts.trailing_stop_pct - 0.05).toFixed(2))
+			console.log('\n' + 'Trailing Stop - Trailing stop pct' + ' DECREASE'.red + ' -> ' + strat.opts.trailing_stop_pct)
 		}})
 
 		callback(null, null)
@@ -108,10 +100,8 @@ module.exports = {
 		// 		trade: trade,
 		// 		is_preroll: is_preroll
 		// }
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_opts = s.options.strategy[this.name].opts
-		let strat_data = s.options.strategy[this.name].data
+		let strat = s.options.strategy[strat_name]
 		
 		_onTrade(callback)
 		
@@ -122,8 +112,8 @@ module.exports = {
 		function _onTrade(cb) {
 			if (!s.in_preroll) {
 				//Eseguo il controllo su ogni trade solo se non ho specificato period_calc
-				if (!strat_opts.period_calc) {
-					strat_data.max_trail_profit_position_id = {
+				if (!strat.opts.period_calc) {
+					strat.data.max_trail_profit_position_id = {
 						buy: null,
 						sell: null,
 					}
@@ -132,26 +122,26 @@ module.exports = {
 						let max_trail_profit = -100
 						s.positions.forEach(function (position, index) {
 							//Se la posizione non ha ordini aperti in trailing_stop, non è locked in trailing_stop, controllo se il suo profitto ha superato il limite per attivare il trailin stop
-//							if (!s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && !s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop') && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
-							if (!s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && !position.locked && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
-								s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
+//							if (!s.tools.positionFlags(position, 'status', 'Check', this.name) && !s.tools.positionFlags(position, 'locked', 'Check', this.name) && position.profit_net_pct >= strat.opts.trailing_stop_enable_pct) {
+							if (!s.tools.positionFlags(position, 'status', 'Check', this.name) && !position.locked && position.profit_net_pct >= strat.opts.trailing_stop_enable_pct) {
+								s.tools.positionFlags(position, 'locked', 'Set', this.name)
 							}
 
 							//Se la posizione ha il flag trailing_stop, aggiorno i valori del trailing stop
 							// (E' un nuovo if, e non un else al precedente, perchè così esegue i calcoli anche se la posizione è appena entrata in trailing stop)
-							if (s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop')) {
+							if (s.tools.positionFlags(position, 'locked', 'Check', this.name)) {
 								if (position.side === 'buy') {
 									position.strategy_parameters.trailing_stop.trailing_stop_limit = Math.max(position.strategy_parameters.trailing_stop.trailing_stop_limit || opts.trade.price, opts.trade.price)
-									position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit - (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
+									position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit - (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat.opts.trailing_stop_pct / 100))
 								}
 								else {
 									position.strategy_parameters.trailing_stop.trailing_stop_limit = Math.min(position.strategy_parameters.trailing_stop.trailing_stop_limit || opts.trade.price, opts.trade.price)
-									position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
+									position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat.opts.trailing_stop_pct / 100))
 								}
 								//Controllo se la posizione sia quella con il maggiore profitto
 								if (position.profit_net_pct >= max_trail_profit) {
 									max_trail_profit = position.profit_net_pct
-									strat_data.max_trail_profit_position_id[position.side] = position.id
+									strat.data.max_trail_profit_position_id[position.side] = position.id
 //									debug.msg('Strategy Trailing Stop - onTrade - max_trail_profit_position_id.' + position.side + ' = ' + position.id, false)
 								}
 							} 
@@ -161,17 +151,17 @@ module.exports = {
 					s.positions.forEach(function (position, index) {
 						position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 						position_stop = position[position_opposite_signal + '_stop']
-						position_locking = (position.locked & ~s.strategyFlag['trailing_stop'])
-						if (position.strategy_parameters.trailing_stop.trailing_stop && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && ((position.side == 'buy' ? +1 : -1) * (s.period.close - position.strategy_parameters.trailing_stop.trailing_stop) < 0)) {
+						position_locking = (position.locked & ~s.strategyFlag[this.name])
+						if (position.strategy_parameters.trailing_stop.trailing_stop && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', this.name) && ((position.side == 'buy' ? +1 : -1) * (s.period.close - position.strategy_parameters.trailing_stop.trailing_stop) < 0)) {
 							console.log(('\nStrategy trailing_stop - Profit stop triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').green)
 							s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 							s.signal = position.side[0].toUpperCase() + ' Trailing stop';
 							let protectionFree = s.protectionFlag['calmdown']
-							s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, strat_opts.order_type)
+							s.eventBus.emit(this.name, position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, strat.opts.order_type)
 							position.strategy_parameters.trailing_stop.trailing_stop = null
 							position.strategy_parameters.trailing_stop.trailing_stop_limit = null
-//							strat_data.max_trail_profit_position_id[position.side] = null
-							s.tools.positionFlags(position, 'locked', 'Unset', 'trailing_stop')
+//							strat.data.max_trail_profit_position_id[position.side] = null
+							s.tools.positionFlags(position, 'locked', 'Unset', this.name)
 							return
 						}
 //						else {
@@ -191,13 +181,11 @@ module.exports = {
 		// 		is_preroll: is_preroll
 		// }
 
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_opts = s.options.strategy[this.name].opts
-		let strat_data = s.options.strategy[this.name].data
+		let strat = s.options.strategy[strat_name]
 
 		_onTradePeriod(function () {
-			if (strat_opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
+			if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
 				strat.calc_lookback.unshift(s.period)
 				strat.lib.onStrategyPeriod(s, opts, callback)
 			}
@@ -218,10 +206,8 @@ module.exports = {
 	},
 
 	onStrategyPeriod: function (s, opts = {}, callback = function () { }) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = s.options.strategy[strat_name]
 
 		_onStrategyPeriod(callback)
 
@@ -232,9 +218,9 @@ module.exports = {
 		function _onStrategyPeriod(cb) {
 			if (!s.in_preroll) {
 				//Eseguo il controllo ad ogni period_calc solo se è stato specificato, altrimenti il controllo è su ogni trade
-				if (strat_opts.period_calc) {
+				if (strat.opts.period_calc) {
 //					debug.msg('trailing_stop strategy - onStrategyPeriod')
-					strat_data.max_trail_profit_position_id = {
+					strat.data.max_trail_profit_position_id = {
 						buy: null,
 						sell: null,
 					}
@@ -243,26 +229,26 @@ module.exports = {
 						let max_trail_profit = -100
 						s.positions.forEach(function (position, index) {
 							//Se la posizione non ha ordini aperti in trailing_stop, non è locked, controllo se il suo profitto ha superato il limite per attivare il trailin stop
-//							if (!s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && !s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop') && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
-							if (!s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && !position.locked && position.profit_net_pct >= strat_opts.trailing_stop_enable_pct) {
-								s.tools.positionFlags(position, 'locked', 'Set', 'trailing_stop')
+//							if (!s.tools.positionFlags(position, 'status', 'Check', this.name) && !s.tools.positionFlags(position, 'locked', 'Check', this.name) && position.profit_net_pct >= strat.opts.trailing_stop_enable_pct) {
+							if (!s.tools.positionFlags(position, 'status', 'Check', this.name) && !position.locked && position.profit_net_pct >= strat.opts.trailing_stop_enable_pct) {
+								s.tools.positionFlags(position, 'locked', 'Set', this.name)
 							}
 
 							//Se la posizione ha il flag trailing_stop, aggiorno i valori del trailing stop
 							// (E' un nuovo if, e non un else al precedente, perchè così esegue i calcoli anche se la posizione è appena entrata in trailing stop)
-							if (s.tools.positionFlags(position, 'locked', 'Check', 'trailing_stop')) {
+							if (s.tools.positionFlags(position, 'locked', 'Check', this.name)) {
 								if (position.side === 'buy') {
 									position.strategy_parameters.trailing_stop.trailing_stop_limit = Math.max(position.strategy_parameters.trailing_stop.trailing_stop_limit || strat.calc_lookback[0].close, strat.calc_lookback[0].close)
-									position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit - (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
+									position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit - (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat.opts.trailing_stop_pct / 100))
 								}
 								else {
 									position.strategy_parameters.trailing_stop.trailing_stop_limit = Math.min(position.strategy_parameters.trailing_stop.trailing_stop_limit || strat.calc_lookback[0].close, strat.calc_lookback[0].close)
-									position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat_opts.trailing_stop_pct / 100))
+									position.strategy_parameters.trailing_stop.trailing_stop = position.strategy_parameters.trailing_stop.trailing_stop_limit + (position.strategy_parameters.trailing_stop.trailing_stop_limit * (strat.opts.trailing_stop_pct / 100))
 								}
 								//Controllo se la posizione sia quella con il maggiore profitto
 								if (position.profit_net_pct >= max_trail_profit) {
 									max_trail_profit = position.profit_net_pct
-									strat_data.max_trail_profit_position_id[position.side] = position.id
+									strat.data.max_trail_profit_position_id[position.side] = position.id
 //									debug.msg('Strategy Trailing Stop - onStrategyPeriod - max_trail_profit_position_id.' + position.side + ' = ' + position.id, false)
 								}
 							} 
@@ -272,17 +258,17 @@ module.exports = {
 					s.positions.forEach(function (position, index) {
 						position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 						position_stop = position[position_opposite_signal + '_stop']
-						position_locking = (position.locked & ~s.strategyFlag['trailing_stop'])
-						if (position.strategy_parameters.trailing_stop.trailing_stop && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', 'trailing_stop') && ((position.side == 'buy' ? +1 : -1) * (s.period.close - position.strategy_parameters.trailing_stop.trailing_stop) < 0)) { // && position.profit_net_pct > 0) {
+						position_locking = (position.locked & ~s.strategyFlag[this.name])
+						if (position.strategy_parameters.trailing_stop.trailing_stop && !position_locking && !s.tools.positionFlags(position, 'status', 'Check', this.name) && ((position.side == 'buy' ? +1 : -1) * (s.period.close - position.strategy_parameters.trailing_stop.trailing_stop) < 0)) { // && position.profit_net_pct > 0) {
 							console.log(('\nStrategy trailing_stop - Profit stop triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').green)
 							s.tools.pushMessage('Strategy trailing_stop', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
 							s.signal = position.side[0].toUpperCase() + ' Trailing stop';
 							let protectionFree = s.protectionFlag['calmdown']
-							s.eventBus.emit('trailing_stop', position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, strat_opts.order_type)
+							s.eventBus.emit(this.name, position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, strat.opts.order_type)
 							position.strategy_parameters.trailing_stop.trailing_stop = null
 							position.strategy_parameters.trailing_stop.trailing_stop_limit = null
-//							strat_data.max_trail_profit_position_id[position.side] = null
-							s.tools.positionFlags(position, 'locked', 'Unset', 'trailing_stop')
+//							strat.data.max_trail_profit_position_id[position.side] = null
+							s.tools.positionFlags(position, 'locked', 'Unset', this.name)
 							return
 						}
 //						else {
@@ -298,16 +284,11 @@ module.exports = {
 
 
 	onReport: function (s, opts = {}, callback = function () { }) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
 
-		if (opts.actual) {
-			var strat_data = s.options.strategy[this.name].data
-		}
-		else {
-			var strat_data = s.lookback[0].strategy[this.name].data
+		if (!opts.actual) {
+			strat.data = s.lookback[0].strategy[strat_name].data
 		}
 
 		var cols = []
@@ -324,31 +305,31 @@ module.exports = {
 		/////////////////////////////////////////////////////
 
 		function _onReport(cb) {
-			if (strat_data.max_trail_profit_position_id.buy != null || strat_data.max_trail_profit_position_id.sell != null) {
+			if (strat.data.max_trail_profit_position_id.buy != null || strat.data.max_trail_profit_position_id.sell != null) {
 				position_buy_profit = -1
 				position_sell_profit = -1
 				
-				if (strat_data.max_trail_profit_position_id.buy != null) {
-					let position_buy = s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.buy)
+				if (strat.data.max_trail_profit_position_id.buy != null) {
+					let position_buy = s.positions.find(x => x.id === strat.data.max_trail_profit_position_id.buy)
 					//Se per qualche arcano motivo (capita ad esempio se mentre vendo, la posizione viene scelta per essere la max_trail_profit_position)
 					// la posizione non esiste, è meglio azzerare questa variabile
 					if (position_buy) {
 						position_buy_profit = position_buy.profit_net_pct/100
 					}
 					else {
-						strat_data.max_trail_profit_position_id.buy = null
+						strat.data.max_trail_profit_position_id.buy = null
 					}
 				}
 
-				if (strat_data.max_trail_profit_position_id.sell != null) {
-					let position_sell = s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.sell)
+				if (strat.data.max_trail_profit_position_id.sell != null) {
+					let position_sell = s.positions.find(x => x.id === strat.data.max_trail_profit_position_id.sell)
 					//Se per qualche arcano motivo (capita ad esempio se mentre vendo, la posizione viene scelta per essere la max_trail_profit_position)
 					// la posizione non esiste, è meglio azzerare questa variabile
 					if (position_sell) {
 						position_sell_profit = position_sell.profit_net_pct/100
 					}
 					else {
-						strat_data.max_trail_profit_position_id.sell = null
+						strat.data.max_trail_profit_position_id.sell = null
 					}
 				}
 
@@ -370,10 +351,8 @@ module.exports = {
 	},
 
 	onUpdateMessage: function (s, opts = {}, callback) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_data = s.options.strategy[this.name].data
-		let strat_opts = s.options.strategy[this.name].opts
+		let strat = s.options.strategy[strat_name]
 
 		_onUpdateMessage(callback)
 
@@ -390,8 +369,8 @@ module.exports = {
 			
 			if (max_trail_profit_position_id && max_trail_profit_position_id.buy != null || max_trail_profit_position_id.sell != null) {
 				let position = {
-					buy: s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.buy),
-					sell: s.positions.find(x => x.id === strat_data.max_trail_profit_position_id.sell),
+					buy: s.positions.find(x => x.id === strat.data.max_trail_profit_position_id.buy),
+					sell: s.positions.find(x => x.id === strat.data.max_trail_profit_position_id.sell),
 				}
 				
 				side_max_trail_profit =  ((position.buy ? position.buy.profit_net_pct : -100) > (position.sell ? position.sell.profit_net_pct : -100) ? 'buy' : 'sell')
@@ -408,10 +387,8 @@ module.exports = {
 		//	position_id: position_id,
 		//};
 
-//		let strat = s.options.strategy[this.name]
-//		let strat_name = this.name
-//		let strat_data = s.options.strategy[this.name].data
-//		let strat_opts = s.options.strategy[this.name].opts
+		// let strat_name = this.name
+		// let strat = s.options.strategy[strat_name]
 
 		_onPositionOpened(callback)
 
@@ -435,10 +412,8 @@ module.exports = {
 		//	position_id: position_id,
 		//};
 		
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_opts = s.options.strategy[this.name].opts
-		let strat_data = s.options.strategy[this.name].data
+		let strat = s.options.strategy[strat_name]
 
 		_onPositionUpdated(callback)
 		
@@ -459,10 +434,8 @@ module.exports = {
 		//		position_id: position_id,
 		//		};
 
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_opts = s.options.strategy[this.name].opts
-		let strat_data = s.options.strategy[this.name].data
+		let strat = s.options.strategy[strat_name]
 
 		_onPositionClosed(callback)
 		
@@ -478,10 +451,8 @@ module.exports = {
 	},
 
 	onOrderExecuted: function (s, opts = {}, cb = function () { }) {
-		let strat = s.options.strategy[this.name]
 		let strat_name = this.name
-		let strat_opts = s.options.strategy[this.name].opts
-		let strat_data = s.options.strategy[this.name].data
+		let strat = s.options.strategy[strat_name]
 
 		_onOrderExecuted(callback)
 		
