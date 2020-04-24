@@ -32,7 +32,7 @@ var debug = require('../../../lib/debug')
 //---------------------------------------------
 
 
-//position.strategy_parameters.catching_orders: {
+//position.strategy_parameters[this.name]: {
 //}
 
 //---------------------------------------------
@@ -76,8 +76,8 @@ module.exports = {
 	},
 
 	getCommands: function (s, opts = {}, cb = function () { }) {
-		let strat_opts = s.options.strategy.catching_orders.opts
-		let strat_data = s.options.strategy.catching_orders.data
+		let strat_opts = s.options.strategy[this.name].opts
+		let strat_data = s.options.strategy[this.name].data
 
 		this.command('o', {
 			desc: ('Catching orders - List options'.grey), action: function () {
@@ -233,8 +233,8 @@ module.exports = {
 	},
 
 	onStrategyPeriod: function (s, opts = {}, callback = function () { }) {
-		let strat_opts = s.options.strategy.catching_orders.opts
-		let strat_data = s.options.strategy.catching_orders.data
+		let strat_opts = s.options.strategy[this.name].opts
+		let strat_data = s.options.strategy[this.name].data
 
 		_onStrategyPeriod(callback)
 
@@ -288,7 +288,7 @@ module.exports = {
 	},
 
 	onReport: function (s, opts = {}, callback = function () { }) {
-		let strat_opts = s.options.strategy.catching_orders.opts
+		let strat_opts = s.options.strategy[this.name].opts
 
 		if (opts.actual) {
 			var strat_data = s.options.strategy[this.name].data
@@ -316,7 +316,7 @@ module.exports = {
 	},
 
 	onUpdateMessage: function (s, opts = {}, cb = function () { }) {
-		let strat_opts = s.options.strategy.catching_orders.opts
+		let strat_opts = s.options.strategy[this.name].opts
 		let result = null
 		if (strat_opts.catch_auto_long || strat_opts.catch_auto_short) {
 			result = 'Auto-catch (Long/Short): ' + strat_opts.catch_auto_long + ' ; ' + strat_opts.catch_auto_short
@@ -347,8 +347,8 @@ module.exports = {
 		//		is_closed: is_closed,
 		//		};
 		if (!opts.is_closed) {
-			let strat_opts = s.options.strategy.catching_orders.opts
-			let strat_data = s.options.strategy.catching_orders.data
+			let strat_opts = s.options.strategy[this.name].opts
+			let strat_data = s.options.strategy[this.name].data
 
 			if (strat_opts.catch_order_pct > 0) {
 				let position = s.positions.find(x => x.id === opts.position_id)

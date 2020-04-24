@@ -1,0 +1,374 @@
+var n = require('numbro')
+	, Phenotypes = require('../../../lib/phenotype')
+	, inspect = require('eyes').inspector({ maxLength: 4096 })
+	, debug = require('../../../lib/debug')
+	, { formatPercent } = require('../../../lib/format')
+	, z = require('zero-fill')
+
+
+//Parte da includere nel file di configurazione
+//---------------------------------------------
+//c.strategy['stoploss'] = {
+//	opts: {							//****** To store options
+//		period_calc: '15m',			//****** Execute profitstop every period_calc time
+//		min_periods: 2, 			//****** Minimum number of history periods (timeframe period_length)
+//		order_type: 'maker', 		//****** Order type
+//		buy_stop_pct: 10,			//****** For a SELL position, buy if price rise above this % of bought price
+//		sell_stop_pct: 10,			//****** For a BUY position, sell if price drops below this % of bought price
+//	},
+//---------------------------------------------
+
+
+//position.strategy_parameters.stoploss: {
+//		buy_stop: null,				**** Buy stop price (short position)
+//		sell_stop: null,			**** Sell stop price (long position)
+//}
+
+//---------------------------------------------
+//Cambia i colori di cliff
+//styles: {                 // Styles applied to stdout
+//all:     'cyan',      // Overall style applied to everything
+//label:   'underline', // Inspection labels, like 'array' in `array: [1, 2, 3]`
+//other:   'inverted',  // Objects which don't have a literal representation, such as functions
+//key:     'bold',      // The keys in object literals, like 'a' in `{a: 1}`
+//special: 'grey',      // null, undefined...
+//string:  'green',
+//number:  'magenta',
+//bool:    'blue',      // true false
+//regexp:  'green',     // /\d+/
+//},
+
+//pretty: true,             // Indent object literals
+//hideFunctions: false,     // Don't output functions at all
+//stream: process.stdout,   // Stream to write to, or null
+//maxLength: 2048           // Truncate output if longer
+
+module.exports = {
+	name: 'stoploss',
+	description: 'Stoploss strategy',
+	noHoldCheck: false,
+
+	init: function (s, callback = function() {}) {
+		let strat = s.options.strategy[this.name]
+//		let strat_name = this.name
+		let strat_data = s.options.strategy[this.name].data
+//		let strat_opts = s.options.strategy[this.name].opts
+
+		strat_data = {
+		}
+
+		strat.calc_lookback= []				//****** Old periods for calculation
+		strat.calc_close_time= 0			//****** Close time for strategy period
+		strat.lib= {}						//****** To store all the functions of the strategy
+
+		callback(null, null)
+	},
+
+	getOptions: function () {
+		this.option(this.name, 'period_calc', 'calculate closing price every period_calc time', String, '15m')
+		this.option(this.name, 'min_periods', 'Min. number of history periods', Number, 2)
+		this.option(this.name, 'order_type', 'Order type (maker/taker)', String, 'maker')
+		this.option(this.name, 'buy_stop_pct', 'For a SELL position, buy if price rise above this % of bought price', Number, 10)
+		this.option(this.name, 'sell_stop_pct', 'For a BUY position, sell if price drops below this % of bought price', Number, 10)
+	},
+
+	getCommands: function (s, opts = {}, callback = function () {}) {
+		let strat = s.options.strategy[this.name]
+		let strat_name = this.name
+		let strat_data = s.options.strategy[this.name].data
+		let strat_opts = s.options.strategy[this.name].opts
+
+		this.command('o', {desc: ('Stoploss - List options'.grey), action: function() {
+			s.tools.listStrategyOptions(this.name, false)
+		}})
+		this.command('u', {desc: ('Stoploss - Buy stop price (short position)'.grey + ' INCREASE'.green), action: function() {
+			strat_opts.buy_stop_pct = Number((strat_opts.buy_stop_pct + 0.05).toFixed(2))
+			console.log('\n' + 'Stoploss - Buy stop price' + ' INCREASE'.green + ' -> ' + strat_opts.buy_stop_pct)
+		}})
+		this.command('j', {desc: ('Stoploss - Buy stop price (short position)'.grey + ' DECREASE'.red), action: function() {
+			strat_opts.buy_stop_pct = Number((strat_opts.buy_stop_pct - 0.05).toFixed(2))
+			console.log('\n' + 'Stoploss - Buy stop price' + ' DECREASE'.red + ' -> ' + strat_opts.buy_stop_pct)
+		}})
+		this.command('i', {desc: ('Stoploss - Sell stop price (long position)'.grey + ' INCREASE'.green), action: function() {
+			strat_opts.sell_stop_pct = Number((strat_opts.sell_stop_pct + 0.05).toFixed(2))
+			console.log('\n' + 'Stoploss - Sell stop price' + ' INCREASE'.green + ' -> ' + strat_opts.sell_stop_pct)
+		}})
+		this.command('k', {desc: ('Stoploss - Sell stop price (long position)'.grey + ' DECREASE'.red), action: function() {
+			strat_opts.sell_stop_pct = Number((strat_opts.sell_stop_pct - 0.05).toFixed(2))
+			console.log('\n' + 'Stoploss - Sell stop price' + ' DECREASE'.green + ' -> ' + strat_opts.sell_stop_pct)
+		}})
+
+		callback(null, null)
+	},
+
+	onTrade: function (s, opts = {}, callback = function () { }) {
+		// var opts = {
+		// 		trade: trade,
+		// 		is_preroll: is_preroll
+		// }
+		let strat = s.options.strategy[this.name]
+		let strat_name = this.name
+		let strat_opts = s.options.strategy[this.name].opts
+		let strat_data = s.options.strategy[this.name].data
+		
+		_onTrade(callback)
+		
+		///////////////////////////////////////////
+		// _onTrade
+		///////////////////////////////////////////
+		
+		function _onTrade(cb) {
+			//User defined
+
+			cb()
+		}
+	},
+
+	onTradePeriod: function (s, opts = {}, callback = function () { }) {
+		// var opts = {
+		// 		trade: trade,
+		// 		is_preroll: is_preroll
+		// }
+
+		let strat = s.options.strategy[this.name]
+		let strat_name = this.name
+		let strat_opts = s.options.strategy[this.name].opts
+		let strat_data = s.options.strategy[this.name].data
+
+		_onTradePeriod(function () {
+			if (strat_opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
+				strat.calc_lookback.unshift(s.period)
+				strat.lib.onStrategyPeriod(s, opts, callback)
+			}
+			else {
+				callback()
+			}
+		})
+
+		///////////////////////////////////////////
+		// _onTradePeriod
+		///////////////////////////////////////////
+
+		function _onTradePeriod(cb) {
+			//User defined
+			cb()
+		}
+	},
+
+	onStrategyPeriod: function (s, opts = {}, callback = function () { }) {
+		let strat = s.options.strategy[this.name]
+		let strat_name = this.name
+		let strat_data = s.options.strategy[this.name].data
+		let strat_opts = s.options.strategy[this.name].opts
+
+		_onStrategyPeriod(callback)
+
+		///////////////////////////////////////////
+		// _onStrategyPeriod
+		///////////////////////////////////////////
+
+		function _onStrategyPeriod(cb) {
+//			debug.msg('stoploss strategy - onStrategyPeriod')
+			if (!s.in_preroll && s.options.strategy.stoploss.calc_lookback[0].close) {
+				s.positions.forEach( function (position, index) {
+					position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
+					position_stop = position.strategy_parameters.stoploss[position_opposite_signal + '_stop']				
+
+					if (position_stop && !position.locked && !s.tools.positionFlags(position, 'status', 'Check', this.name) && ((position.side == 'buy' ? +1 : -1) * (s.options.strategy.stoploss.calc_lookback[0].close - position_stop) < 0)) {
+						console.log(('\n' + position_opposite_signal.toUpperCase() + ' stop loss triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').red)
+						s.tools.pushMessage('Stop Loss Protection', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
+//						executeSignal(position_opposite_signal, this.name, position.id, undefined, undefined, false, true)
+						s.signal = position_opposite_signal[0].toUpperCase() + ' Stoploss';
+						let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
+						s.options.active_long_position = false
+						s.options.active_short_position = false
+						s.eventBus.emit(this.name, position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, strat_opts.order_type)
+					}
+					else {
+						s.signal = null
+					}
+				})
+			}
+			
+			cb(null, null)
+		}
+	},
+
+
+	onReport: function (s, opts = {}, callback = function () { }) {
+		let strat = s.options.strategy[this.name]
+		let strat_name = this.name
+		let strat_data = s.options.strategy[this.name].data
+		let strat_opts = s.options.strategy[this.name].opts
+
+		if (opts.actual) {
+			var strat_data = s.options.strategy[this.name].data
+		}
+		else {
+			var strat_data = s.lookback[0].strategy[this.name].data
+		}
+
+		var cols = []
+
+		_onReport(function() {
+			cols.forEach(function (col) {
+				process.stdout.write(col)
+			})
+			callback(null, null)
+		})
+		
+		/////////////////////////////////////////////////////
+		// _onReport() deve inserire in cols[] le informazioni da stampare a video
+		/////////////////////////////////////////////////////
+
+		function _onReport(cb) {
+			//User defined
+			cols.push('_something_')
+
+			cb()
+		}
+	},
+
+	onUpdateMessage: function (s, opts = {}, callback) {
+		let strat = s.options.strategy[this.name]
+		let strat_name = this.name
+		let strat_data = s.options.strategy[this.name].data
+		let strat_opts = s.options.strategy[this.name].opts
+
+		_onUpdateMessage(callback)
+
+		///////////////////////////////////////////
+		// _onUpdateMessage
+		// output: cb(null, result)
+		//		result: text to be sent
+		///////////////////////////////////////////
+
+		function _onUpdateMessage(cb) {
+			//User defined
+			
+			cb(null, result)
+		}
+	},
+
+	onPositionOpened: function (s, opts = {}, callback = function () { }) {
+		//		var opts = {
+		//		position_id: position_id,
+		//		};
+
+		let strat = s.options.strategy[this.name]
+		let strat_name = this.name
+		let strat_data = s.options.strategy[this.name].data
+		let strat_opts = s.options.strategy[this.name].opts
+
+		_onPositionOpened(callback)
+
+		///////////////////////////////////////////
+		// _onPositionOpened
+		///////////////////////////////////////////
+
+		function _onPositionOpened(cb) {
+			var position = s.positions.find(x => x.id === opts.position_id)
+			
+			position.strategy_parameters.stoploss = {}
+			position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat_opts.buy_stop_pct/100).format(s.product.increment) : null)
+			position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat_opts.sell_stop_pct/100).format(s.product.increment) : null)
+						
+			cb(null, null)
+		}
+	},
+
+	onPositionUpdated: function (s, opts = {}, cb = function () { }) {
+		//var opts = {
+		//	position_id: position_id,
+		//};
+		
+		let strat = s.options.strategy[this.name]
+		let strat_name = this.name
+		let strat_opts = s.options.strategy[this.name].opts
+		let strat_data = s.options.strategy[this.name].data
+
+		_onPositionUpdated(callback)
+		
+		///////////////////////////////////////////
+		// _onPositionUpdated
+		///////////////////////////////////////////
+		
+		function _onPositionUpdated(cb) {
+			var position = s.positions.find(x => x.id === opts.position_id)
+			
+			position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat_opts.buy_stop_pct/100).format(s.product.increment) : null)
+			position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat_opts.sell_stop_pct/100).format(s.product.increment) : null)
+//			debug.msg('Strategy Stoploss - position.strategy_parameters.stoploss.sell_stop= ' + position.strategy_parameters.stoploss.sell_stop)
+//			console.log(position)
+			
+			cb(null, null)
+		}
+	},
+
+	onPositionClosed: function (s, opts = {}, cb = function () { }) {
+		//		s.closed_positions
+		//		var opts = {
+		//		position_id: position_id,
+		//		};
+
+//		let strat = s.options.strategy[this.name]
+//		let strat_name = this.name
+//		let strat_opts = s.options.strategy[this.name].opts
+//		let strat_data = s.options.strategy[this.name].data
+
+		_onPositionClosed(callback)
+		
+		///////////////////////////////////////////
+		// _onPositionClosed
+		///////////////////////////////////////////
+		
+		function _onPositionClosed(cb) {
+			//User defined
+			
+			cb(null, null)
+		}
+	},
+
+	onOrderExecuted: function (s, opts = {}, cb = function () { }) {
+//		let strat = s.options.strategy[this.name]
+//		let strat_name = this.name
+//		let strat_opts = s.options.strategy[this.name].opts
+//		let strat_data = s.options.strategy[this.name].data
+
+		_onOrderExecuted(callback)
+		
+		///////////////////////////////////////////
+		// _onOrderExecuted
+		///////////////////////////////////////////
+		
+		function _onOrderExecuted(cb) {
+			//User defined
+			
+			cb(null, null)
+		}
+	},
+
+	printOptions: function (s, opts = { only_opts: false }, callback) {
+		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy[this.name]))
+		delete so_tmp.calc_lookback
+		delete so_tmp.calc_close_time
+		delete so_tmp.lib
+
+		if (opts.only_opts) {
+			delete so_tmp.data
+		}
+		console.log('\nSTRATEGY'.grey + '\t' + this.name + '\t' + this.description.grey + '\n')
+		console.log('\n' + inspect(so_tmp))
+		callback(null, null)
+	},
+
+	phenotypes: {
+		// -- common
+		option_1: Phenotypes.RangePeriod(1, 120, 'm'),
+		option_2: Phenotypes.RangeFloat(-1, 5),
+		option_3: Phenotypes.ListOption(['maker', 'taker']),
+		
+		// -- strategy
+		option_4: Phenotypes.Range(1, 40),
+	}
+}
