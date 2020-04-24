@@ -72,13 +72,12 @@ module.exports = {
 		this.option(strategy_name, 'catch_auto_short', 'Option for auto-short catch orders (sell on high) based on SMA', Boolean, false)
 	},
 
-	getCommands: function (s, opts = {}, callback = function () {}) {
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	getCommands: function (s, strategy_name) {
+		let strat = s.options.strategy[strategy_name]
 
 		this.command('o', {
 			desc: ('Catching orders - List options'.grey), action: function () {
-				s.tools.listStrategyOptions(strat_name, false)
+				s.tools.listStrategyOptions(strategy_name, false)
 			}
 		})
 		//		this.command('Y', {desc: ('Catching Orders - Manual catch order '.grey + 'BUY'.green), action: function() {
@@ -156,8 +155,8 @@ module.exports = {
 			desc: ('Catching Orders - Cancel all auto-catch orders'.grey), action: function () {
 				console.log('\nCancel'.grey + ' ALL auto-catch orders')
 				s.orders.forEach(function (order, index) {
-					if (order.kind == this.name && !order.position.id) {
-						s.tools.orderStatus(order, undefined, this.name, undefined, 'Unset', this.name)
+					if (order.kind == strategy_name && !order.position.id) {
+						s.tools.orderStatus(order, undefined, strategy_name, undefined, 'Unset', strategy_name)
 					}
 				})
 			}
@@ -167,10 +166,10 @@ module.exports = {
 				if (strat.opts.catch_order_pct > 0) {
 					console.log('\n' + 'Catching Orders - Insert position-catch order for ALL free positions'.grey)
 					s.positions.forEach(function (position, index) {
-						let position_locking = (position.locked & ~s.strategyFlag[this.name])
+						let position_locking = (position.locked & ~s.strategyFlag[strategy_name])
 						let target_price = null
 
-						if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', this.name)) {
+						if (!position_locking && !s.tools.positionFlags(position, 'status', 'Check', strategy_name)) {
 							let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 							let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
 							if (position.side === 'buy') {
@@ -181,7 +180,7 @@ module.exports = {
 							}
 							debug.msg('Strategy catching_orders - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
 							s.signal = position_opposite_signal[0].toUpperCase() + ' Catching order'
-							s.eventBus.emit(this.name, position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, 'maker')
+							s.eventBus.emit(strategy_name, position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, 'maker')
 						}
 					})
 				}
@@ -190,8 +189,6 @@ module.exports = {
 				}
 			}
 		})
-
-		callback(null, null)
 	},
 
 	onTrade: function (s, opts = {}, callback = function () { }) {
@@ -262,8 +259,8 @@ module.exports = {
 				//Cancello gli ordini vecchi
 				console.log('\nCatching Orders - '.grey + 'Cancel ALL Auto-catch orders')
 				s.orders.forEach(function (order, index) {
-					if (order.kind == this.name && !order.position.id) {
-						s.tools.orderStatus(order, undefined, this.name, undefined, 'Unset', this.name)
+					if (order.kind == strat_name && !order.position.id) {
+						s.tools.orderStatus(order, undefined, strat_name, undefined, 'Unset', strat_name)
 					}
 				})
 
@@ -274,14 +271,14 @@ module.exports = {
 						console.log('\nCatching Orders - Auto catch '.grey + 'BUY'.green + ' command inserted'.grey)
 						let target_price = n(strat.data.sma).multiply(1 - strat.opts.catch_auto_pct / 100).format(s.product.increment, Math.floor)
 						let target_size = n(strat.opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-						s.eventBus.emit(this.name, 'buy', null, target_size, target_price, protectionFlag, this.name, false, 'maker')
+						s.eventBus.emit(strat_name, 'buy', null, target_size, target_price, protectionFlag, strat_name, false, 'maker')
 					}
 
 					if (strat.opts.catch_auto_short) {
 						console.log('\nCatching Orders - Auto catch '.grey + 'SELL'.red + ' command inserted'.grey)
 						let target_price = n(strat.data.sma).multiply(1 + strat.opts.catch_auto_pct / 100).format(s.product.increment, Math.floor)
 						let target_size = n(strat.opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-						s.eventBus.emit(this.name, 'sell', null, target_size, target_price, protectionFlag, this.name, false, 'maker')
+						s.eventBus.emit(strat_name, 'sell', null, target_size, target_price, protectionFlag, strat_name, false, 'maker')
 					}
 				}, 10 * s.options.wait_for_settlement)
 				cb(null, null)
@@ -373,7 +370,7 @@ module.exports = {
 		}
 	},
 
-	onPositionUpdated: function (s, opts = {}, cb = function () { }) {
+	onPositionUpdated: function (s, opts = {}, callback = function () { }) {
 		//		var opts = {
 		//		position_id: position_id,
 		//		};
@@ -392,7 +389,7 @@ module.exports = {
 		}
 	},
 
-	onPositionClosed: function (s, opts = {}, cb = function () { }) {
+	onPositionClosed: function (s, opts = {}, callback = function () { }) {
 		//		s.closed_positions
 		//		var opts = {
 		//		position_id: position_id,
@@ -414,7 +411,14 @@ module.exports = {
 		}
 	},
 
-	onOrderExecuted: function (s, opts = {}, cb = function () { }) {
+	onOrderExecuted: function (s, opts = {}, callback = function () { }) {
+		// var opts = {
+		// 	signal: signal,
+		// 	sig_kind: sig_kind,
+		// 	position_id: position_id,
+		// 	is_closed: is_closed,
+		// }
+		
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 		
@@ -426,17 +430,14 @@ module.exports = {
 		
 		function _onOrderExecuted(cb) {
 			if (!opts.is_closed) {
-				let strat.opts = s.options.strategy[this.name].opts
-				let strat.data = s.options.strategy[this.name].data
-
 				if (strat.opts.catch_order_pct > 0) {
 					let position = s.positions.find(x => x.id === opts.position_id)
 					if (position) {
-						let position_locking = (position.locked & ~s.strategyFlag[this.name])
-						let position_status = (position.status & ~s.strategyFlag[this.name])
+						let position_locking = (position.locked & ~s.strategyFlag[strat_name])
+						let position_status = (position.status & ~s.strategyFlag[strat_name])
 						let target_price = null
 
-						if (!position_locking && !position_status && !s.tools.positionFlags(position, 'status', 'Check', this.name)) {
+						if (!position_locking && !position_status && !s.tools.positionFlags(position, 'status', 'Check', strat_name)) {
 							let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 							if (position.side === 'buy') {
 								target_price = n(position.price_open).multiply(1 + strat.opts.catch_order_pct / 100).format(s.product.increment, Math.floor)
@@ -447,7 +448,7 @@ module.exports = {
 							debug.msg('Strategy catching_orders - Position (' + position.side + ' ' + position.id + ') -> ' + position_opposite_signal.toUpperCase() + ' at ' + target_price + ' (price open= ' + position.price_open + ')')
 							let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['min_profit']
 							s.signal = position_opposite_signal[0].toUpperCase() + ' Catching order'
-							s.eventBus.emit(this.name, position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, 'maker')
+							s.eventBus.emit(strat_name, position_opposite_signal, position.id, undefined, target_price, protectionFlag, 'free', false, 'maker')
 						}
 					}
 				}

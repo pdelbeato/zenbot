@@ -137,14 +137,13 @@ module.exports = {
 		this.option(strategy_name, 'stoch_k_buy_threshold', 'K must be below this before buying', Number, 30)
 	},
 
-	getCommands: function (s, opts = {}, callback = function () { }) {
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	getCommands: function (s, strategy_name) {
+		let strat = s.options.strategy[strategy_name]
 
 //Da correggere
 		this.command('o', {
 			desc: ('Bollinger - List options'.grey), action: function () {
-				s.tools.listStrategyOptions(strat_name, false)
+				s.tools.listStrategyOptions(strategy_name, false)
 			}
 		})
 		this.command('i', {
@@ -218,8 +217,6 @@ module.exports = {
 				console.log('\n' + 'Bollinger - No same price delta %' + ' DECREASE'.red + ' -> ' + strat.opts.delta_pct)
 			}
 		})
-
-		callback(null, null)
 	},
 
 	onTrade: function (s, opts = {}, callback = function () { }) {

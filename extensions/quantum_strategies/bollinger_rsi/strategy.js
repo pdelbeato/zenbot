@@ -121,12 +121,11 @@ module.exports = {
 		this.option(strategy_name, 'over_and_back', 'Emit signal when price comes back inside the band', Boolean, false)
 	},
 
-	getCommands: function (s, opts = {}, callback = function () {}) {
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	getCommands: function (s, strategy_name) {
+		let strat = s.options.strategy[strategy_name]
 
 		this.command('o', {desc: ('Bollinger - List options'.grey), action: function() {
-			s.tools.listStrategyOptions('bollinger', false)
+			s.tools.listStrategyOptions(strategy_name, false)
 		}})
 		this.command('i', {desc: 'Bollinger - Toggle No same price'.grey, action: function() {
 			strat.opts.no_same_price = !strat.opts.no_same_price
@@ -179,8 +178,6 @@ module.exports = {
 			}
 			console.log('\n' + 'Bollinger - No same price delta %' + ' DECREASE'.red + ' -> ' + strat.opts.delta_pct)
 		}})
-
-		callback(null, null)
 	},
 
 	onTrade: function (s, opts = {}, callback = function () { }) {
@@ -501,10 +498,6 @@ module.exports = {
 				cols.push(s.tools.zeroFill(8, '', ' '))
 			}
 
-			cols.forEach(function (col) {
-				process.stdout.write(col)
-			})
-
 			cb()
 		}
 	},
@@ -555,7 +548,7 @@ module.exports = {
 		}
 	},
 
-	onPositionUpdated: function (s, opts = {}, cb = function () { }) {
+	onPositionUpdated: function (s, opts = {}, callback = function () { }) {
 		//		var opts = {
 		//		position_id: position_id,
 		//		};
@@ -574,7 +567,7 @@ module.exports = {
 		}
 	},
 
-	onPositionClosed: function (s, opts = {}, cb = function () { }) {
+	onPositionClosed: function (s, opts = {}, callback = function () { }) {
 		//		s.closed_positions
 		//		var opts = {
 		//		position_id: position_id,
@@ -608,7 +601,7 @@ module.exports = {
 		}
 	},
 
-	onOrderExecuted: function (s, opts = {}, cb = function () { }) {
+	onOrderExecuted: function (s, opts = {}, callback = function () { }) {
 		// let strat_name = this.name
 		// let strat = s.options.strategy[strat_name]
 

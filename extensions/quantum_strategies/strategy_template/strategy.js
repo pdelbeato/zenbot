@@ -66,13 +66,12 @@ module.exports = {
 		this.option(strategy_name, '_opts_3', 'Description', Boolean, true)
 	},
 
-	getCommands: function (s, opts = {}, callback = function () {}) {
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	getCommands: function (s, strategy_name) {
+		let strat = s.options.strategy[strategy_name]
 
 		this.command('o', {
 			desc: ('_name_ - List options'.grey), action: function () {
-				s.tools.listStrategyOptions(strat_name, false)
+				s.tools.listStrategyOptions(strategy_name, false)
 			}
 		})
 		
@@ -81,8 +80,6 @@ module.exports = {
 				//User defined
 			}
 		})
-
-		callback(null, null)
 	},
 
 	onTrade: function (s, opts = {}, callback = function () { }) {

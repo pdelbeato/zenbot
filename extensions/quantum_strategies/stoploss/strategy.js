@@ -66,12 +66,11 @@ module.exports = {
 		this.option(strategy_name, 'sell_stop_pct', 'For a BUY position, sell if price drops below this % of bought price', Number, 10)
 	},
 
-	getCommands: function (s, opts = {}, callback = function () {}) {
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	getCommands: function (s, strategy_name) {
+		let strat = s.options.strategy[strategy_name]
 
 		this.command('o', {desc: ('Stoploss - List options'.grey), action: function() {
-			s.tools.listStrategyOptions(this.name, false)
+			s.tools.listStrategyOptions(strategy_name, false)
 		}})
 		this.command('u', {desc: ('Stoploss - Buy stop price (short position)'.grey + ' INCREASE'.green), action: function() {
 			strat.opts.buy_stop_pct = Number((strat.opts.buy_stop_pct + 0.05).toFixed(2))
@@ -89,8 +88,6 @@ module.exports = {
 			strat.opts.sell_stop_pct = Number((strat.opts.sell_stop_pct - 0.05).toFixed(2))
 			console.log('\n' + 'Stoploss - Sell stop price' + ' DECREASE'.green + ' -> ' + strat.opts.sell_stop_pct)
 		}})
-
-		callback(null, null)
 	},
 
 	onTrade: function (s, opts = {}, callback = function () { }) {
@@ -254,7 +251,7 @@ module.exports = {
 		}
 	},
 
-	onPositionUpdated: function (s, opts = {}, cb = function () { }) {
+	onPositionUpdated: function (s, opts = {}, callback = function () { }) {
 		//var opts = {
 		//	position_id: position_id,
 		//};
@@ -280,7 +277,7 @@ module.exports = {
 		}
 	},
 
-	onPositionClosed: function (s, opts = {}, cb = function () { }) {
+	onPositionClosed: function (s, opts = {}, callback = function () { }) {
 		//		s.closed_positions
 		//		var opts = {
 		//		position_id: position_id,
@@ -302,7 +299,7 @@ module.exports = {
 		}
 	},
 
-	onOrderExecuted: function (s, opts = {}, cb = function () { }) {
+	onOrderExecuted: function (s, opts = {}, callback= function () { }) {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 

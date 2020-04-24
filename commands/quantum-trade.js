@@ -674,11 +674,11 @@ module.exports = function (program, conf) {
 							let actual_key = String.fromCharCode(actual_code)
 							keyMap.set(actual_key, {desc: ('Strategia\t'.grey + strategy_name.white), action: function() {
 								clearStrategyKeys()
-								so.strategy[strategy_name].lib.getCommands.call(key_assign, s)
+								so.strategy[strategy_name].lib.getCommands.call(key_assign, s, strategy_name)
 								listKeys()
 							}})
 							actual_code++
-						}
+						}5
 					})
 
 
