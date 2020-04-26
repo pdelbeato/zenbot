@@ -953,7 +953,10 @@ module.exports = function (program, conf) {
 			//Exit function
 			function exit() {
 				s.exchange.getAllOrders(so.selector, function (err, orders) {
-					if ((orders && orders.length === 0) || so.mode === 'paper') {
+					if (err) {
+						console.log('Quantum-trade - exit() - Errore: ' + err)
+					}
+					else if ((orders && orders.length === 0) || so.mode === 'paper') {
 						console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 						//Salvo la sessione
 						saveSession()
