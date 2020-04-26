@@ -361,12 +361,12 @@ module.exports = {
 								var condition = {
 									buy: [
 										(s.period.close < (lowerBound + (lowerBandwidth * strat.opts.lower_bound_pct / 100))),
-										(strat.data.stoch.stoch_K > strat.opts.stoch_k_buy_threshold),
+										(strat.data.stoch.k > strat.opts.stoch_k_buy_threshold),
 										(strat.opts.no_same_price ? ((s.period.close < (strat.data.limit_open_price.buy * (1 - strat.opts.delta_pct / 100))) ? true : false) : true),
 									],
 									sell: [
 										(s.period.close > (upperBound - (upperBandwidth * strat.opts.upper_bound_pct / 100))),
-										(strat.data.stoch.stoch_K < strat.opts.stoch_K_sell_threshold),
+										(strat.data.stoch.k < strat.opts.stoch_k_sell_threshold),
 										(strat.opts.no_same_price ? ((s.period.close > (strat.data.limit_open_price.sell * (1 + strat.opts.delta_pct / 100))) ? true : false) : true),
 									]
 								};

@@ -1540,7 +1540,7 @@ module.exports = function (program, conf) {
 					//Check per compattazione database (una volta ogni 2 giorni)
 					if (nextCompactDatabase && nextCompactDatabase - moment() < 0) {
 						nextCompactDatabase = nextCompactDatabase.add(2, 'd')
-						compactDatabase()
+						compactDatabases()
 					}
 				})
 
