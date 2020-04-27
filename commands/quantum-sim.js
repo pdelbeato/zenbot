@@ -201,6 +201,8 @@ module.exports = function (program, conf) {
               reverse_point = db_cursor
               return getNext()
             }
+            
+
             engine.exit(exitSim)
             return
           } else {
@@ -209,7 +211,19 @@ module.exports = function (program, conf) {
               db_cursor = lastTrade.orig_time
             }
             else {
-              db_cursor = lastTrade.time
+              async function f() {
+
+                let promise = new Promise((resolve, reject) => {
+                  setTimeout(() => resolve('done!'), 1000)
+                })
+              
+                let result = await promise // wait until the promise resolves (*)
+              
+                db_cursor = lastTrade.time
+              }
+              
+              f()
+              
             }
           }
           setImmediate(getNext)
@@ -382,8 +396,8 @@ module.exports = function (program, conf) {
 
               return data_array[key]
             })
-            var data_chart=[]; var i = 0;
-
+            var data_chart=[]; var i = 0
+            
             result = result.map(function (d) {
               d.date = new Date(d.time)
               if (typeof d.strategy === 'object') {
@@ -397,34 +411,36 @@ module.exports = function (program, conf) {
                 ])
                 Object.keys(so.chart).map(function (key) {
                   var strategy=key
-                  
+
                   Object.keys(so.chart[key].data).map(function (sub_key) {
-
+                    if (typeof d.strategy[strategy] === 'object') {
                     ///// Grafica bollinger
-                    if (sub_key === 'bollinger') {
-                      if (typeof d.strategy[strategy].data[sub_key] === 'object') {
-                        d.upperBound=d.strategy[strategy].data[sub_key].upperBound
-                        d.midBound=d.strategy[strategy].data[sub_key].midBound
-                        d.lowerBound=d.strategy[strategy].data[sub_key].lowerBound
+                      if (sub_key === 'bollinger') {
+                      
+                        if (typeof d.strategy[strategy].data[sub_key] === 'object') {
+                          d.upperBound=d.strategy[strategy].data[sub_key].upperBound
+                          d.midBound=d.strategy[strategy].data[sub_key].midBound
+                          d.lowerBound=d.strategy[strategy].data[sub_key].lowerBound
 
-                      } else {
-                        d.upperBound=d.open
-                        d.midBound=d.open
-                        d.lowerBound=d.open
+                        } else {
+                          d.upperBound=d.open
+                          d.midBound=d.open
+                          d.lowerBound=d.open
+                        }
+                        data_chart[i-1].push (d.upperBound)
+                        data_chart[i-1].push (d.midBound)
+                        data_chart[i-1].push (d.lowerBound)
                       }
-                      data_chart[i-1].push (d.upperBound)
-                      data_chart[i-1].push (d.midBound)
-                      data_chart[i-1].push (d.lowerBound)
+                    
+                      ///// Grafica stochastic K
+                      if (sub_key === 'stoch') {
+                        if (typeof d.strategy[strategy].data[sub_key] === 'object') {
 
-                    }
-                    ///// Grafica stochastic K
-                    if (sub_key === 'stoch') {
-                      if (typeof d.strategy[strategy].data[sub_key] === 'object') {
-
-                        data_chart[i-1].push (d.strategy[strategy].data[sub_key].stoch_K)
+                          data_chart[i-1].push (d.strategy[strategy].data[sub_key].k)
+                        
+                        }
                       }
                     }
-
                   })
                 })
 
@@ -435,21 +451,21 @@ module.exports = function (program, conf) {
 
 
             var trades_chart_buy=[];var trades_chart_sell=[]
-            var coeff = 1000 * 60;
-            trades = s.my_trades.map(function (t,index) {
+            var coeff = 1000 * 60
+            s.my_trades.map(function (t,index) {
 
               t.date = new Date(Math.round(t.time/ coeff) * coeff)
-              if (t.signal === "buy" && t.time!==null) {
+              if (t.signal === 'buy' && t.time!==null) {
                 trades_chart_buy.push ([
                   t.date,
                   t.price
-                ]);
+                ])
               }
-              if (t.signal === "sell"&& t.time!==null) {
+              if (t.signal === 'sell'&& t.time!==null) {
                 trades_chart_sell.push ([
                   t.date,
                   t.price
-                ]);
+                ])
               }
 
             })

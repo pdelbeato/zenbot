@@ -53,6 +53,7 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
 
 
     var withData = function (data, trades_chart_buy, trades_chart_sell, options) {
+      console.log(data)
 
   var i =0; var strategy_sel =[]
   Object.keys(options.chart).map(function (key) {
