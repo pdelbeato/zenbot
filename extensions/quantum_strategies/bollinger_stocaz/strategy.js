@@ -289,8 +289,8 @@ module.exports = {
 
       //		console.error('strategy period');
 
-      //let promise_bollinger2 = ta_bollinger(s, 'close', strat_name, strat.opts.size)
-      let promise_bollinger = bollinger(s, strat_name, s.options.strategy.bollinger_stocaz.opts.size, 'close')
+      let promise_bollinger = ta_bollinger(s, 'close', strat_name, strat.opts.size)
+      // let promise_bollinger = bollinger(s, strat_name, s.options.strategy.bollinger_stocaz.opts.size, 'close')
       let promise_stoch = ta_stoch(s, strat_name, strat.opts.stoch_periods, strat.opts.stoch_k, strat.opts.stoch_k_ma_type, undefined, undefined, strat.calc_lookback)
 
       Promise.all([promise_bollinger, promise_stoch])
