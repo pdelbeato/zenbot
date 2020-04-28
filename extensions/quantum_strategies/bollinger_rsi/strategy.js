@@ -67,7 +67,7 @@ module.exports = {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 
-		strat.data: {							//****** To store calculated data
+		strat.data = {							//****** To store calculated data
 			bollinger: {
 				upperBound: null,
 				midBound: null,
@@ -231,118 +231,119 @@ module.exports = {
 		///////////////////////////////////////////
 
 		function _onTradePeriod(cb) {
-			let strat.data_boll = s.options.strategy[this.name].data.bollinger
-			let max_profit = -100
+			if (!s.in_preroll) {
+				let max_profit = -100
 
-			strat.data.max_profit_position = {
+				strat.data.max_profit_position = {
 					buy: null,
 					sell: null,
-			}
-
-			s.positions.forEach(function (position, index) {
-				//Aggiorno le posizioni con massimo profitto, tranne che per le posizioni locked
-				position_locking = (position.locked & ~s.strategyFlag['bollinger'])
-				if (!position_locking && position.profit_net_pct >= max_profit) {
-					max_profit = position.profit_net_pct
-					strat.data.max_profit_position[position.side] = position
-//					debug.msg('Bollinger - onTradePeriod - position_max_profit_index= ' + index, false)
-				}
-			})
-
-			if (strat.data_boll && strat.data_boll.midBound) {
-//				if (strat.data.upperBound && strat.data.lowerBound) {
-				let upperBound = strat.data_boll.upperBound
-				let lowerBound = strat.data_boll.lowerBound
-				let midBound = strat.data_boll.midBound
-				let upperBandwidth = (strat.data_boll.upperBound - strat.data_boll.midBound)
-				let lowerBandwidth = (strat.data_boll.midBound - strat.data_boll.lowerBound)
-				let bandwidth_pct = (upperBound - lowerBound) / midBound * 100
-				let min_bandwidth_pct = strat.opts.min_bandwidth_pct
-				let upperWatchdogBound = upperBound + (upperBandwidth * strat.opts.upper_watchdog_pct/100)
-				let lowerWatchdogBound = lowerBound - (lowerBandwidth * strat.opts.lower_watchdog_pct/100)
-				let upperCalmdownWatchdogBound = upperBound - (upperBandwidth * strat.opts.calmdown_watchdog_pct/100)
-				let lowerCalmdownWatchdogBound = lowerBound + (lowerBandwidth * strat.opts.calmdown_watchdog_pct/100)
-
-				//Controllo la minimum_bandwidth
-				if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
-//					console.log('bollinger strategy - min_bandwidth_pct= ' + min_bandwidth_pct + ' ; bandwidth_pct= ' + bandwidth_pct)
-					upperBound = midBound * (1 + (min_bandwidth_pct/100)/2)
-					lowerBound = midBound * (1 - (min_bandwidth_pct/100)/2)
-//					console.log('bollinger strategy - nuovi limiti. upperBound ' + upperBound + ' ; lowerBound= ' + lowerBound)
 				}
 
-				strat.data.watchdog.pump = false
-				strat.data.watchdog.dump = false
+				s.positions.forEach(function (position, index) {
+					//Aggiorno le posizioni con massimo profitto, tranne che per le posizioni locked
+					position_locking = (position.locked & ~s.strategyFlag[strat_name])
+					if (!position_locking && position.profit_net_pct >= max_profit) {
+						max_profit = position.profit_net_pct
+						strat.data.max_profit_position[position.side] = position
+						//					debug.msg('Bollinger - onTradePeriod - position_max_profit_index= ' + index, false)
+					}
+				})
 
-				//Se sono attive le opzioni watchdog, controllo se dobbiamo attivare il watchdog
-				if (strat.opts.pump_watchdog && s.period.close > upperWatchdogBound) {
-					s.signal = 'Pump Bollinger';
-					strat.data.watchdog.pump = true
-					strat.data.watchdog.dump = false
-					strat.data.watchdog.calmdown = true
-				}
-				else if (strat.opts.dump_watchdog && s.period.close < lowerWatchdogBound) {
-					s.signal = 'Dump Bollinger';
+				if (strat.data.bollinger && strat.data.bollinger.midBound) {
+					//				if (strat.data.upperBound && strat.data.lowerBound) {
+					let upperBound = strat.data.bollinger.upperBound
+					let lowerBound = strat.data.bollinger.lowerBound
+					let midBound = strat.data.bollinger.midBound
+					let upperBandwidth = (strat.data.bollinger.upperBound - strat.data.bollinger.midBound)
+					let lowerBandwidth = (strat.data.bollinger.midBound - strat.data.bollinger.lowerBound)
+					let bandwidth_pct = (upperBound - lowerBound) / midBound * 100
+					let min_bandwidth_pct = strat.opts.min_bandwidth_pct
+					let upperWatchdogBound = upperBound + (upperBandwidth * strat.opts.upper_watchdog_pct / 100)
+					let lowerWatchdogBound = lowerBound - (lowerBandwidth * strat.opts.lower_watchdog_pct / 100)
+					let upperCalmdownWatchdogBound = upperBound - (upperBandwidth * strat.opts.calmdown_watchdog_pct / 100)
+					let lowerCalmdownWatchdogBound = lowerBound + (lowerBandwidth * strat.opts.calmdown_watchdog_pct / 100)
+
+					//Controllo la minimum_bandwidth
+					if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
+						//					console.log('bollinger strategy - min_bandwidth_pct= ' + min_bandwidth_pct + ' ; bandwidth_pct= ' + bandwidth_pct)
+						upperBound = midBound * (1 + (min_bandwidth_pct / 100) / 2)
+						lowerBound = midBound * (1 - (min_bandwidth_pct / 100) / 2)
+						//					console.log('bollinger strategy - nuovi limiti. upperBound ' + upperBound + ' ; lowerBound= ' + lowerBound)
+					}
+
 					strat.data.watchdog.pump = false
-					strat.data.watchdog.dump = true
-					strat.data.watchdog.calmdown = true
-				}
-				//Non siamo in watchdog, controlliamo se il calmdown è passato
-				else if (strat.data.watchdog.calmdown) {
-					if (s.period.close > lowerCalmdownWatchdogBound && s.period.close < upperCalmdownWatchdogBound) {
-						strat.data.watchdog.calmdown = false
-					}
-					else {
-						s.signal = 'Boll Calm';
-					}
-				}
+					strat.data.watchdog.dump = false
 
-				//Utilizzo la normale strategia
-				if (!strat.data.watchdog.pump && !strat.data.watchdog.dump && !strat.data.watchdog.calmdown) {
-					var condition = {
+					//Se sono attive le opzioni watchdog, controllo se dobbiamo attivare il watchdog
+					if (strat.opts.pump_watchdog && s.period.close > upperWatchdogBound) {
+						s.signal = 'Pump Bollinger';
+						strat.data.watchdog.pump = true
+						strat.data.watchdog.dump = false
+						strat.data.watchdog.calmdown = true
+					}
+					else if (strat.opts.dump_watchdog && s.period.close < lowerWatchdogBound) {
+						s.signal = 'Dump Bollinger';
+						strat.data.watchdog.pump = false
+						strat.data.watchdog.dump = true
+						strat.data.watchdog.calmdown = true
+					}
+					//Non siamo in watchdog, controlliamo se il calmdown è passato
+					else if (strat.data.watchdog.calmdown) {
+						if (s.period.close > lowerCalmdownWatchdogBound && s.period.close < upperCalmdownWatchdogBound) {
+							strat.data.watchdog.calmdown = false
+						}
+						else {
+							s.signal = 'Boll Calm';
+						}
+					}
+
+					//Utilizzo la normale strategia
+					if (!strat.data.watchdog.pump && !strat.data.watchdog.dump && !strat.data.watchdog.calmdown) {
+						var condition = {
 							buy: [
-								(s.period.close < (lowerBound + (lowerBandwidth * strat.opts.lower_bound_pct/100))),
+								(s.period.close < (lowerBound + (lowerBandwidth * strat.opts.lower_bound_pct / 100))),
 								(strat.data.rsi > strat.opts.rsi_buy_threshold),
-								(strat.opts.no_same_price ? ((s.period.close < (strat.data.limit_open_price.buy * (1 - strat.opts.delta_pct/100))) ? true : false) : true),
-								],
-								sell: [
-									(s.period.close > (upperBound - (upperBandwidth * strat.opts.upper_bound_pct/100))),
-									(strat.data.rsi < strat.opts.rsi_sell_threshold),
-									(strat.opts.no_same_price ? ((s.period.close > (strat.data.limit_open_price.sell * (1 + strat.opts.delta_pct/100))) ? true : false) : true),
-									]
-					}
+								(strat.opts.no_same_price ? ((s.period.close < (strat.data.limit_open_price.buy * (1 - strat.opts.delta_pct / 100))) ? true : false) : true),
+							],
+							sell: [
+								(s.period.close > (upperBound - (upperBandwidth * strat.opts.upper_bound_pct / 100))),
+								(strat.data.rsi < strat.opts.rsi_sell_threshold),
+								(strat.opts.no_same_price ? ((s.period.close > (strat.data.limit_open_price.sell * (1 + strat.opts.delta_pct / 100))) ? true : false) : true),
+							]
+						}
 
-					if (condition.sell[0]) {
-						if (strat.opts.over_and_back) {
-							strat.data.is_over.up = true;
+						if (condition.sell[0]) {
+							if (strat.opts.over_and_back) {
+								strat.data.is_over.up = true;
+							}
+							else {
+								controlConditions('sell')
+							}
 						}
-						else {
+						else if (strat.data.is_over.up) {
+							strat.data.is_over.up = false
+							//						if (strat.opts.over_and_back) {
 							controlConditions('sell')
+							//						}
 						}
-					}
-					else if (strat.data.is_over.up) {
-						strat.data.is_over.up = false
-//						if (strat.opts.over_and_back) {
-						controlConditions('sell')
-//						}
-					}
-					else if (condition.buy[0]) {
-						if (strat.opts.over_and_back) {
-							strat.data.is_over.down = true;
+						else if (condition.buy[0]) {
+							if (strat.opts.over_and_back) {
+								strat.data.is_over.down = true;
+							}
+							else {
+								controlConditions('buy')
+							}
 						}
-						else {
+						else if (strat.data.is_over.down) {
+							strat.data.is_over.down = false
+							//						if (!strat.opts.over_and_back) {
 							controlConditions('buy')
+							//						}
 						}
-					}
-					else if (strat.data.is_over.down) {
-						strat.data.is_over.down = false
-//						if (!strat.opts.over_and_back) {
-						controlConditions('buy')
-//						}
 					}
 				}
+				cb()
 			}
-			cb()
 
 			function controlConditions(side) {
 				var opposite_side = (side === 'buy' ? 'sell' : 'buy')
@@ -354,17 +355,17 @@ module.exports = {
 				if (condition[side][1]) {
 					s.signal = side[0].toUpperCase() + ' Boll.';
 
-					if (!s.in_preroll) {
+					// if (!s.in_preroll) {
 						if (strat.data.max_profit_position[opposite_side] && strat.data.max_profit_position[opposite_side].profit_net_pct >= min_pct[side]) {
-							s.eventBus.emit('bollinger', side, strat.data.max_profit_position[opposite_side].id)
+							s.eventBus.emit(strat_name, side, strat.data.max_profit_position[opposite_side].id)
 						}
 						else if (condition[side][2]) {
-							s.eventBus.emit('bollinger', side)
+							s.eventBus.emit(strat_name, side)
 						}
 						else {
 							debug.msg('Strategy Bollinger - No same price protection: s.period.close= ' + s.period.close + '; limit_open_price ' + strat.data.limit_open_price[side] + '; delta limit_open_price ' + (strat.data.limit_open_price[side] * strat.opts.delta_pct/100))
 						}
-					}
+					// }
 				}
 			}
 		}
@@ -381,17 +382,16 @@ module.exports = {
 		///////////////////////////////////////////
 
 		function _onStrategyPeriod(cb) {
-			strat.data.bollinger = bollinger(s, this.name, s.options.strategy[this.name].opts.size, 'close')
-//			strat.data.rsi = rsi(s, 'rsi', s.options.strategy[this.name].opts.rsi_size, 'bollinger')
-			ti_rsi(s, s.options.strategy[this.name].opts.rsi_size, s.options.strategy[this.name].calc_lookback)
-			.then( function(result) {
-				strat.data.rsi = result.rsi
-				cb(null, result)
-			})
-			.catch( function(err) {
-				// console.log('bollinger strategy - Errore in rsi: ', error)
-				cb(err, null)
-			})
+			let promise_bollinger = ta_bollinger(s, 'close', strat_name, strat.opts.size, strat.opts.time, strat.opts.time)
+			let promise_rsi = ti_rsi(s, 'close', strat_name, strat.opts.rsi_size)
+
+			Promise.all([promise_bollinger, promise_rsi])
+				.then(function (result) {
+					cb(null, result)
+				})
+				.catch(function (err) {
+					cb(err, null)
+				})
 		}
 	},
 
@@ -515,7 +515,7 @@ module.exports = {
 		///////////////////////////////////////////
 
 		function _onUpdateMessage(cb) {
-			let max_profit_position = s.options.strategy[this.name].data.max_profit_position
+			let max_profit_position = s.options.strategy[strat_name].data.max_profit_position
 			let side_max_profit = null
 			let pct_max_profit = null
 			if (max_profit_position.buy != null || max_profit_position.sell != null) {
