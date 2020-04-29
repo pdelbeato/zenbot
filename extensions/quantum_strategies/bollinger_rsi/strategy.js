@@ -1,7 +1,8 @@
 var n = require('numbro')
-, bollinger = require('../../../lib/bollinger')
+//, bollinger = require('../../../lib/bollinger')
 , rsi = require('../../../lib/rsi')
-, ti_rsi = require('../../../lib/ti_rsi')
+, ta_rsi = require('../../../lib/ta_rsi')
+, ta_bollinger = require('../../../lib/ta_bollinger')
 , Phenotypes = require('../../../lib/phenotype')
 , inspect = require('eyes').inspector({maxLength: 4096 })
 , crypto = require('crypto')
@@ -343,19 +344,18 @@ module.exports = {
 					}
 				}
 				cb()
-			}
 
-			function controlConditions(side) {
-				var opposite_side = (side === 'buy' ? 'sell' : 'buy')
-				var min_pct = {
-					buy: strat.opts.buy_min_pct,
-					sell: strat.opts.sell_min_pct,
-				}
+				function controlConditions(side) {
+					var opposite_side = (side === 'buy' ? 'sell' : 'buy')
+					var min_pct = {
+						buy: strat.opts.buy_min_pct,
+						sell: strat.opts.sell_min_pct,
+					}
 
-				if (condition[side][1]) {
-					s.signal = side[0].toUpperCase() + ' Boll.';
+					if (condition[side][1]) {
+						s.signal = side[0].toUpperCase() + ' Boll.';
 
-					// if (!s.in_preroll) {
+						// if (!s.in_preroll) {
 						if (strat.data.max_profit_position[opposite_side] && strat.data.max_profit_position[opposite_side].profit_net_pct >= min_pct[side]) {
 							s.eventBus.emit(strat_name, side, strat.data.max_profit_position[opposite_side].id)
 						}
@@ -363,10 +363,14 @@ module.exports = {
 							s.eventBus.emit(strat_name, side)
 						}
 						else {
-							debug.msg('Strategy Bollinger - No same price protection: s.period.close= ' + s.period.close + '; limit_open_price ' + strat.data.limit_open_price[side] + '; delta limit_open_price ' + (strat.data.limit_open_price[side] * strat.opts.delta_pct/100))
+							debug.msg('Strategy Bollinger - No same price protection: s.period.close= ' + s.period.close + '; limit_open_price ' + strat.data.limit_open_price[side] + '; delta limit_open_price ' + (strat.data.limit_open_price[side] * strat.opts.delta_pct / 100))
 						}
-					// }
+						// }
+					}
 				}
+			}
+			else {
+				cb(null, null)
 			}
 		}
 	},
@@ -383,7 +387,7 @@ module.exports = {
 
 		function _onStrategyPeriod(cb) {
 			let promise_bollinger = ta_bollinger(s, 'close', strat_name, strat.opts.size, strat.opts.time, strat.opts.time)
-			let promise_rsi = ti_rsi(s, 'close', strat_name, strat.opts.rsi_size)
+			let promise_rsi = ta_rsi(s, 'close', strat_name, strat.opts.rsi_size)
 
 			Promise.all([promise_bollinger, promise_rsi])
 				.then(function (result) {

@@ -1,6 +1,6 @@
 var n = require('numbro')
   //, ti_rsi = require('../../../lib/ti_rsi')
-  , bollinger = require('../../../lib/bollinger')
+  //, bollinger = require('../../../lib/bollinger')
   , ta_bollinger = require('../../../lib/ta_bollinger')
   , ta_stoch = require('../../../lib/ta_stoch')
   , Phenotypes = require('../../../lib/phenotype')
