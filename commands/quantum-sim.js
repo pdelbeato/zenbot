@@ -192,6 +192,7 @@ module.exports = function (program, conf) {
             trade.time = reverse_point + (reverse_point - trade.time)
           }
           eventBus.emit('trade', trade)
+          
         })
 
         collectionCursor.on('end', function(){
@@ -204,26 +205,19 @@ module.exports = function (program, conf) {
             
 
             engine.exit(exitSim)
-            return
+            //return
           } else {
 
             if (reversing) {
               db_cursor = lastTrade.orig_time
             }
             else {
-              async function f() {
 
-                let promise = new Promise((resolve, reject) => {
-                  setTimeout(() => resolve('done!'), 1000)
-                })
-              
-                let result = await promise // wait until the promise resolves (*)
-              
-                db_cursor = lastTrade.time
-              }
-              
-              f()
-              
+              new Promise(function(resolve, reject) {  
+                setTimeout(() => resolve(), 1000)
+              })
+                .then(db_cursor = lastTrade.time)
+                
             }
           }
           setImmediate(getNext)
