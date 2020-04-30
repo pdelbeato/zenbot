@@ -74,9 +74,7 @@ module.exports = {
 				midBound: null,
 				lowerBound: null,
 			},
-			rsi: {
-				rsi: null,
-			},
+			rsi: null,
 			watchdog: {
 				pump: false,
 				dump: false,
@@ -422,60 +420,58 @@ module.exports = {
 		/////////////////////////////////////////////////////
 
 		function _onReport(cb) {
-			if (strat.data.bollinger && strat.data.rsi) {
-				if (strat.data.bollinger.upperBound && strat.data.bollinger.lowerBound) {
-					let upperBound = strat.data.bollinger.upperBound
-					let lowerBound = strat.data.bollinger.lowerBound
-					let midBound = strat.data.bollinger.midBound
-					let upperBandwidth = (strat.data.bollinger.upperBound - strat.data.bollinger.midBound)
-					let lowerBandwidth = (strat.data.bollinger.midBound - strat.data.bollinger.lowerBound)
-					let bandwidth_pct = (upperBound - lowerBound) / midBound * 100
-					let min_bandwidth_pct = strat.opts.min_bandwidth_pct
-					let upperWatchdogBound = strat.data.bollinger.upperBound + (upperBandwidth * strat.opts.upper_watchdog_pct/100)
-					let lowerWatchdogBound = strat.data.bollinger.lowerBound - (lowerBandwidth * strat.opts.lower_watchdog_pct/100)
+			if (strat.data.bollinger.upperBound && strat.data.bollinger.lowerBound) {
+				let upperBound = strat.data.bollinger.upperBound
+				let lowerBound = strat.data.bollinger.lowerBound
+				let midBound = strat.data.bollinger.midBound
+				let upperBandwidth = (strat.data.bollinger.upperBound - strat.data.bollinger.midBound)
+				let lowerBandwidth = (strat.data.bollinger.midBound - strat.data.bollinger.lowerBound)
+				let bandwidth_pct = (upperBound - lowerBound) / midBound * 100
+				let min_bandwidth_pct = strat.opts.min_bandwidth_pct
+				let upperWatchdogBound = strat.data.bollinger.upperBound + (upperBandwidth * strat.opts.upper_watchdog_pct / 100)
+				let lowerWatchdogBound = strat.data.bollinger.lowerBound - (lowerBandwidth * strat.opts.lower_watchdog_pct / 100)
 
-					var color_up = 'cyan';
-					var color_down = 'cyan';
-					var color_rsi = 'cyan';
+				var color_up = 'cyan';
+				var color_down = 'cyan';
+				var color_rsi = 'cyan';
 
-					//Se il prezzo supera un limite del canale, allora il colore del limite è bianco
-					if (s.period.close > (upperBound - (upperBandwidth * strat.opts.upper_bound_pct/100))) {
-						color_up = 'white'
-					}
-					else if (s.period.close < (lowerBound + (lowerBandwidth * strat.opts.lower_bound_pct/100))) {
-						color_down = 'white'
-					}
-
-					//Ma se siamo in dump/pump, allora il colore del limite è rosso
-					if (strat.data.watchdog.pump) {
-						color_up = 'red'
-					}
-					if (strat.data.watchdog.dump) {
-						color_down = 'red'
-					}
-
-					//Se siamo oversold, il colore di rsi è rosso.
-					//Se siamo in overbought il colore di rsi è verde
-					if (strat.data.rsi < strat.opts.rsi_buy_threshold) {
-						color_rsi = 'red'
-					}
-					if (strat.data.rsi > strat.opts.rsi_sell_threshold) {
-						color_rsi = 'green'
-					}
-
-					//Controllo la minimum_bandwidth
-					if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
-						cols.push('*')
-					}
-					else {
-						cols.push(' ')
-					}
-
-					cols.push(s.tools.zeroFill(9, n(lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_down])
-					cols.push('<->'.grey)
-					cols.push(s.tools.zeroFill(9, n(upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0,9), ' ')[color_up])
-					cols.push('(' + s.tools.zeroFill(2, n(strat.data.rsi).format('0'), ' ')[color_rsi] + ')')
+				//Se il prezzo supera un limite del canale, allora il colore del limite è bianco
+				if (s.period.close > (upperBound - (upperBandwidth * strat.opts.upper_bound_pct / 100))) {
+					color_up = 'white'
 				}
+				else if (s.period.close < (lowerBound + (lowerBandwidth * strat.opts.lower_bound_pct / 100))) {
+					color_down = 'white'
+				}
+
+				//Ma se siamo in dump/pump, allora il colore del limite è rosso
+				if (strat.data.watchdog.pump) {
+					color_up = 'red'
+				}
+				if (strat.data.watchdog.dump) {
+					color_down = 'red'
+				}
+
+				//Se siamo oversold, il colore di rsi è rosso.
+				//Se siamo in overbought il colore di rsi è verde
+				if (strat.data.rsi < strat.opts.rsi_buy_threshold) {
+					color_rsi = 'red'
+				}
+				if (strat.data.rsi > strat.opts.rsi_sell_threshold) {
+					color_rsi = 'green'
+				}
+
+				//Controllo la minimum_bandwidth
+				if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
+					cols.push('*')
+				}
+				else {
+					cols.push(' ')
+				}
+
+				cols.push(s.tools.zeroFill(9, n(lowerBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0, 9), ' ')[color_down])
+				cols.push('<->'.grey)
+				cols.push(s.tools.zeroFill(9, n(upperBound).format(s.product.increment ? s.product.increment : '0.00000000').substring(0, 9), ' ')[color_up])
+				cols.push('(' + s.tools.zeroFill(2, n(strat.data.rsi).format('0'), ' ')[color_rsi] + ')')
 			}
 			else {
 				cols.push(s.tools.zeroFill(26, '', ' '))
