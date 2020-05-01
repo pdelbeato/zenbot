@@ -196,7 +196,7 @@ module.exports = function (program, conf) {
         const collectionCursorStream = collectionCursor.stream()
 
         var numTrades = 0
-        var lastTrade        
+        var lastTrade
 
         var onCollectionCursorEnd = async () => {
           if (numTrades === 0) {
@@ -218,7 +218,6 @@ module.exports = function (program, conf) {
             }
           }
           collectionCursorStream.close()
-          await s.tradeProcessingQueue.drain()
           return getNext()
         }
 
@@ -244,265 +243,281 @@ module.exports = function (program, conf) {
       return getNext()
 
       function exitSim() {
-          if (!s.period) {
-            console.error('no trades found! try running `zenbot backfill ' + so.selector.normalized + '` first')
-            process.exit(1)
+        if (!s.period) {
+          console.error('no trades found! try running `zenbot backfill ' + so.selector.normalized + '` first')
+          process.exit(1)
+        }
+        var option_keys = Object.keys(so)
+        var output_lines = []
+        option_keys.sort(function (a, b) {
+          if (a < b) return -1
+          return 1
+        })
+        var options = {}
+        option_keys.forEach(function (k) {
+          options[k] = so[k]
+        })
+
+        let options_output = options
+        options_output.simresults = {}
+
+        if (s.my_trades.length) {
+          s.my_trades.push({
+            price: s.period.close,
+            size: s.balance.asset,
+            type: 'sell',
+            time: s.period.time
+          })
+        }
+        //s.balance.currency = n(s.net_currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00000000')
+
+        //s.balance.asset = 0
+        //        s.lookback.unshift(s.period)
+        s.db_periods.updateOne({ '_id': s.period._id }, { $set: s.period }, { multi: false, upsert: true }, function (err) {
+          if (err) {
+            console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ': quantum-sim - exitSim - Error saving db_periods:')
+            console.error(err)
           }
-          var option_keys = Object.keys(so)
-          var output_lines = []
-          option_keys.sort(function (a, b) {
-            if (a < b) return -1
-            return 1
-          })
-          var options = {}
-          option_keys.forEach(function (k) {
-            options[k] = so[k]
+        })
+
+        //var profit = s.start_capital ? n(s.balance.currency).subtract(s.start_capital).divide(s.start_capital) : n(0)
+        var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
+        var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
+        //        s.start_price esiste
+        //        s.start_capital_currency esiste
+        //        s.start_capital_asset esiste
+
+        //        s.asset_in_currency = n(s.balance.asset).multiply(s.lookback[s.lookback.length - 1].close).value()
+        //        s.currency_in_asset = n(s.balance.currency).divide(s.lookback[s.lookback.length - 1].close).value()
+        //        s.start_capital_currency = n(s.balance.currency).add(s.asset_in_currency).value()
+
+        var profit = (s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0))
+        //var profit = (s.options.currency_capital ? n(tmp_capital_currency).subtract(s.options.currency_capital).divide(s.options.currency_capital) : n(0))
+
+
+
+        output_lines.push('end balance:     capital currency: ' + n(tmp_capital_currency).format('0.00000000').yellow + '   capital asset: ' + n(tmp_capital_asset).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
+        console.log('\nstart_capital', n(s.start_capital_currency).format('0.00000000').yellow)
+        //console.log('start_price', n(s.start_price).format('0.00000000').yellow)
+        //		console.log('start_price', n(s.lookback[s.lookback.length - 1].close).format('0.00000000').yellow)
+        console.log(s.start_price)
+        console.log('start_price', n(s.start_price).format('0.00000000').yellow)
+        console.log('close_price', n(s.period.close).format('0.00000000').yellow)
+        var buy_hold = (s.start_price ? n(s.period.close).multiply(n(s.start_capital_currency).divide(s.start_price)) : n(s.balance.currency))
+        //console.log('buy hold', buy_hold.format('0.00000000'))
+        var buy_hold_profit = (s.start_capital_currency ? n(buy_hold).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0))
+
+        output_lines.push('buy hold: ' + buy_hold.format('0.00000000').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
+        output_lines.push('vs. buy hold: ' + n(s.currency_capital).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
+        output_lines.push(n(s.my_trades.length).format('0').yellow + ' trades over ' + n(s.day_count).format('0').yellow + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00').yellow + ' trades/day)')
+
+        var losses = 0
+        var wins = 0
+        //console.log(s.my_trades)
+        s.my_trades.forEach(function (trade) {
+
+          if (trade.profit > 0) {
+            wins++
+          } else if (trade.profit < 0) {
+            losses++
+          }
+
+        })
+        if (s.my_trades.length) {
+          //output_lines.push('win/loss: ' + (sells - losses) + '/' + losses)
+          output_lines.push('win/loss for each quantum: ' + n(wins).format('0').yellow + '/' + n(losses).format('0').yellow)
+          output_lines.push('error rate: ' + (wins ? n(losses).divide(wins).format('0.00%') : '0.00%').yellow)
+        }
+        options_output.simresults.start_capital = s.start_capital
+        options_output.simresults.last_buy_price = s.last_buy_price
+        options_output.simresults.last_asset_value = s.start_price
+        options_output.net_currency = s.net_currency
+        options_output.simresults.asset_in_currency = s.asset_in_currency
+        options_output.simresults.currency = n(s.real_capital).value()
+        options_output.simresults.profit = profit.value()
+        options_output.simresults.buy_hold = buy_hold.value()
+        options_output.simresults.buy_hold_profit = buy_hold_profit.value()
+        options_output.simresults.total_trades = s.my_trades.length
+        options_output.simresults.length_days = s.day_count
+        options_output.simresults.total_wins = wins
+        options_output.simresults.total_losses = losses
+        options_output.simresults.vs_buy_hold = n(s.real_capital).subtract(buy_hold).divide(buy_hold).value() * 100.00
+
+        let options_json = JSON.stringify(options_output, null, 2)
+        if (so.show_options) {
+          output_lines.push(options_json)
+        }
+
+        for (var i = 0; i < 4; i++) {
+          console.log(output_lines[i])
+        }
+
+        if (so.backtester_generation >= 0) {
+          fs.writeFileSync(path.resolve(__dirname, '..', 'simulations', 'sim_' + so.strategy.replace('_', '') + '_' + so.selector.normalized.replace('_', '').toLowerCase() + '_' + so.backtester_generation + '.json'), options_json, { encoding: 'utf8' })
+        }
+
+        if (so.filename !== 'none') {
+          var html_output = output_lines.map(function (line) {
+            return colors.stripColors(line)
+          }).join('\n')
+
+
+
+          var opts = {
+            query: {
+              selector: so.selector.normalized
+            },
+            sort: { time: 1 },
+            limit: 1000
+          }
+          if (so.end) {
+            opts.query.time = { $lte: so.end }
+          }
+          if (db_data_cursor) {
+            if (!opts.query.time) opts.query.time = {}
+            opts.query.time['$gt'] = db_data_cursor
+
+          }
+          else if (query_start) {
+            if (!opts.query.time) opts.query.time = {}
+            opts.query.time['$gte'] = query_start
+          }
+
+
+
+          //          var data = s.lookback.slice(0, s.lookback.length).map(function (period) {
+          var data = s.db_periods.find(opts.query).stream()
+          var numdata = 0
+          data.on('data', function (period) {
+
+            //lastdata = period
+            numdata++
+            var data_el = {}
+            var keys = Object.keys(period)
+            for (var i = 0; i < keys.length; i++) {
+              data_el[keys[i]] = period[keys[i]]
+            }
+            //return data
+            data_array[numdata] = data_el
+
           })
 
-          let options_output = options
-          options_output.simresults = {}
+          data.on('end', function () {
+            // console.log(data_array)
+            var result = Object.keys(data_array).map(function (key) {
 
-          if (s.my_trades.length) {
-            s.my_trades.push({
-              price: s.period.close,
-              size: s.balance.asset,
-              type: 'sell',
-              time: s.period.time
+              return data_array[key]
             })
-          }
-          //s.balance.currency = n(s.net_currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00000000')
+            var data_chart = []; var i = 0
 
-          //s.balance.asset = 0
-          //        s.lookback.unshift(s.period)
-          s.db_periods.updateOne({ '_id': s.period._id }, { $set: s.period }, { multi: false, upsert: true }, function (err) {
-            if (err) {
-              console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ': quantum-sim - exitSim - Error saving db_periods:')
-              console.error(err)
-            }
-          })
+            result = result.map(function (d) {
+              d.date = new Date(d.time)
+              if (typeof d.strategy === 'object') {
+                i++
+                data_chart.push([
+                  d.date,
+                  d.open,
+                  d.high,
+                  d.low,
+                  d.close
+                ])
+                Object.keys(so.chart).map(function (key) {
+                  var strategy = key
 
-          //var profit = s.start_capital ? n(s.balance.currency).subtract(s.start_capital).divide(s.start_capital) : n(0)
-          var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
-          var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
-          //        s.start_price esiste
-          //        s.start_capital_currency esiste
-          //        s.start_capital_asset esiste
+                  Object.keys(so.chart[key].data).map(function (sub_key) {
+                    if (typeof d.strategy[strategy] === 'object') {
+                      ///// Grafica bollinger
+                      if (sub_key === 'bollinger') {
 
-          //        s.asset_in_currency = n(s.balance.asset).multiply(s.lookback[s.lookback.length - 1].close).value()
-          //        s.currency_in_asset = n(s.balance.currency).divide(s.lookback[s.lookback.length - 1].close).value()
-          //        s.start_capital_currency = n(s.balance.currency).add(s.asset_in_currency).value()
+                        if (typeof d.strategy[strategy].data[sub_key] === 'object') {
+                          d.upperBound = d.strategy[strategy].data[sub_key].upperBound
+                          d.midBound = d.strategy[strategy].data[sub_key].midBound
+                          d.lowerBound = d.strategy[strategy].data[sub_key].lowerBound
 
-          var profit = (s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0))
-          //var profit = (s.options.currency_capital ? n(tmp_capital_currency).subtract(s.options.currency_capital).divide(s.options.currency_capital) : n(0))
-
-
-
-          output_lines.push('end balance:     capital currency: ' + n(tmp_capital_currency).format('0.00000000').yellow + '   capital asset: ' + n(tmp_capital_asset).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
-          console.log('\nstart_capital', n(s.start_capital_currency).format('0.00000000').yellow)
-          //console.log('start_price', n(s.start_price).format('0.00000000').yellow)
-          //		console.log('start_price', n(s.lookback[s.lookback.length - 1].close).format('0.00000000').yellow)
-          console.log(s.start_price)
-          console.log('start_price', n(s.start_price).format('0.00000000').yellow)
-          console.log('close_price', n(s.period.close).format('0.00000000').yellow)
-          var buy_hold = (s.start_price ? n(s.period.close).multiply(n(s.start_capital_currency).divide(s.start_price)) : n(s.balance.currency))
-          //console.log('buy hold', buy_hold.format('0.00000000'))
-          var buy_hold_profit = (s.start_capital_currency ? n(buy_hold).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0))
-
-          output_lines.push('buy hold: ' + buy_hold.format('0.00000000').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
-          output_lines.push('vs. buy hold: ' + n(s.currency_capital).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
-          output_lines.push(n(s.my_trades.length).format('0').yellow + ' trades over ' + n(s.day_count).format('0').yellow + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00').yellow + ' trades/day)')
-
-          var losses = 0
-          var wins = 0
-          //console.log(s.my_trades)
-          s.my_trades.forEach(function (trade) {
-
-            if (trade.profit > 0) {
-              wins++
-            } else if (trade.profit < 0) {
-              losses++
-            }
-
-          })
-          if (s.my_trades.length) {
-            //output_lines.push('win/loss: ' + (sells - losses) + '/' + losses)
-            output_lines.push('win/loss for each quantum: ' + n(wins).format('0').yellow + '/' + n(losses).format('0').yellow)
-            output_lines.push('error rate: ' + (wins ? n(losses).divide(wins).format('0.00%') : '0.00%').yellow)
-          }
-          options_output.simresults.start_capital = s.start_capital
-          options_output.simresults.last_buy_price = s.last_buy_price
-          options_output.simresults.last_asset_value = s.start_price
-          options_output.net_currency = s.net_currency
-          options_output.simresults.asset_in_currency = s.asset_in_currency
-          options_output.simresults.currency = n(s.real_capital).value()
-          options_output.simresults.profit = profit.value()
-          options_output.simresults.buy_hold = buy_hold.value()
-          options_output.simresults.buy_hold_profit = buy_hold_profit.value()
-          options_output.simresults.total_trades = s.my_trades.length
-          options_output.simresults.length_days = s.day_count
-          options_output.simresults.total_wins = wins
-          options_output.simresults.total_losses = losses
-          options_output.simresults.vs_buy_hold = n(s.real_capital).subtract(buy_hold).divide(buy_hold).value() * 100.00
-
-          let options_json = JSON.stringify(options_output, null, 2)
-          if (so.show_options) {
-            output_lines.push(options_json)
-          }
-
-          for (var i = 0; i < 4; i++) {
-            console.log(output_lines[i])
-          }
-
-          if (so.backtester_generation >= 0) {
-            fs.writeFileSync(path.resolve(__dirname, '..', 'simulations', 'sim_' + so.strategy.replace('_', '') + '_' + so.selector.normalized.replace('_', '').toLowerCase() + '_' + so.backtester_generation + '.json'), options_json, { encoding: 'utf8' })
-          }
-
-          if (so.filename !== 'none') {
-            var html_output = output_lines.map(function (line) {
-              return colors.stripColors(line)
-            }).join('\n')
-
-
-
-            var opts = {
-              query: {
-                selector: so.selector.normalized
-              },
-              sort: { time: 1 },
-              limit: 1000
-            }
-            if (so.end) {
-              opts.query.time = { $lte: so.end }
-            }
-            if (db_data_cursor) {
-              if (!opts.query.time) opts.query.time = {}
-              opts.query.time['$gt'] = db_data_cursor
-
-            }
-            else if (query_start) {
-              if (!opts.query.time) opts.query.time = {}
-              opts.query.time['$gte'] = query_start
-            }
-
-
-
-            //          var data = s.lookback.slice(0, s.lookback.length).map(function (period) {
-            var data = s.db_periods.find(opts.query).stream()
-            var numdata = 0
-            data.on('data', function (period) {
-
-              //lastdata = period
-              numdata++
-              var data_el = {}
-              var keys = Object.keys(period)
-              for (var i = 0; i < keys.length; i++) {
-                data_el[keys[i]] = period[keys[i]]
-              }
-              //return data
-              data_array[numdata] = data_el
-
-            })
-
-            data.on('end', function () {
-              // console.log(data_array)
-              var result = Object.keys(data_array).map(function (key) {
-
-                return data_array[key]
-              })
-              var data_chart = []; var i = 0
-
-              result = result.map(function (d) {
-                d.date = new Date(d.time)
-                if (typeof d.strategy === 'object') {
-                  i++
-                  data_chart.push([
-                    d.date,
-                    d.open,
-                    d.high,
-                    d.low,
-                    d.close
-                  ])
-                  Object.keys(so.chart).map(function (key) {
-                    var strategy = key
-
-                    Object.keys(so.chart[key].data).map(function (sub_key) {
-                      if (typeof d.strategy[strategy] === 'object') {
-                        ///// Grafica bollinger
-                        if (sub_key === 'bollinger') {
-
-                          if (typeof d.strategy[strategy].data[sub_key] === 'object') {
-                            d.upperBound = d.strategy[strategy].data[sub_key].upperBound
-                            d.midBound = d.strategy[strategy].data[sub_key].midBound
-                            d.lowerBound = d.strategy[strategy].data[sub_key].lowerBound
-
-                          } else {
-                            d.upperBound = d.open
-                            d.midBound = d.open
-                            d.lowerBound = d.open
-                          }
-                          data_chart[i - 1].push(d.upperBound)
-                          data_chart[i - 1].push(d.midBound)
-                          data_chart[i - 1].push(d.lowerBound)
+                        } else {
+                          d.upperBound = d.open
+                          d.midBound = d.open
+                          d.lowerBound = d.open
                         }
+                        data_chart[i - 1].push(d.upperBound)
+                        data_chart[i - 1].push(d.midBound)
+                        data_chart[i - 1].push(d.lowerBound)
+                      }
 
-                        ///// Grafica stochastic K
-                        if (sub_key === 'stoch') {
-                          if (typeof d.strategy[strategy].data[sub_key] === 'object') {
+                      ///// Grafica stochastic K
+                      if (sub_key === 'stoch') {
+                        if (typeof d.strategy[strategy].data[sub_key] === 'object') {
 
-                            data_chart[i - 1].push(d.strategy[strategy].data[sub_key].k)
+                          data_chart[i - 1].push(d.strategy[strategy].data[sub_key].k)
 
-                          }
                         }
                       }
-                    })
+                    }
                   })
+                })
 
 
-                }
-                return d
-              })
-
-
-              var trades_chart_buy = []; var trades_chart_sell = []
-              var coeff = 1000 * 60
-              s.my_trades.map(function (t, index) {
-
-                t.date = new Date(Math.round(t.time / coeff) * coeff)
-                if (t.signal === 'buy' && t.time !== null) {
-                  trades_chart_buy.push([
-                    t.date,
-                    t.price
-                  ])
-                }
-                if (t.signal === 'sell' && t.time !== null) {
-                  trades_chart_sell.push([
-                    t.date,
-                    t.price
-                  ])
-                }
-
-              })
-              var code = 'var data = ' + JSON.stringify(data_chart) + ';\n'
-              code += 'var trades_chart_buy = ' + JSON.stringify(trades_chart_buy) + ';\n'
-              code += 'var trades_chart_sell = ' + JSON.stringify(trades_chart_sell) + ';\n'
-              code += 'var options = ' + JSON.stringify(s.options) + ';\n'
-              // console.log(code)
-              var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart4.html.tpl'), { encoding: 'utf8' })
-
-
-              var out = tpl
-                .replace('{{code}}', code)
-                .replace('{{trend_ema_period}}', so.trend_ema || 36)
-                .replace('{{output}}', html_output)
-                .replace(/\{\{symbol\}\}/g, so.selector.normalized + ' - zenbot ' + require('../package.json').version)
-
-              var out_target = so.filename || 'simulations/sim_result_' + so.selector.normalized + '_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
-              fs.writeFileSync(out_target, out)
-              console.log('wrote', out_target)
-
-              db_data_cursor = data.time
+              }
+              return d
             })
-          }
+
+
+            var trades_chart_buy = []; var trades_chart_sell = [];var data_markers_buy=[];var data_markers_sell=[]
+            var coeff = 1000 * 60
+            s.my_trades.map(function (t, index) {
+
+              t.date = new Date(Math.round(t.time / coeff) * coeff)
+              if (t.signal === 'buy' && t.time !== null) {
+                trades_chart_buy.push([
+                  t.date,
+                  t.price,
+                  t.id
+                ])
+                data_markers_buy.push({
+                  "date": t.date,
+                  "description":  t.id,
+                })
+
+              }
+              if (t.signal === 'sell' && t.time !== null) {
+                trades_chart_sell.push([
+                  t.date,
+                  t.price,
+                  t.id
+                ])
+                data_markers_sell.push({
+                  "date": t.date,
+                  "description":  t.id,
+                })
+              }
+
+            })
+
+
+
+            var code = 'var data = ' + JSON.stringify(data_chart) + ';\n'
+            code += 'var trades_chart_buy = ' + JSON.stringify(trades_chart_buy) + ';\n'
+            code += 'var trades_chart_sell = ' + JSON.stringify(trades_chart_sell) + ';\n'
+            code += 'var data_markers_buy = ' + JSON.stringify(data_markers_buy) + ';\n'
+            code += 'var data_markers_sell = ' + JSON.stringify(data_markers_sell) + ';\n'
+            code += 'var options = ' + JSON.stringify(s.options) + ';\n'
+            // console.log(code)
+            var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart4.html.tpl'), { encoding: 'utf8' })
+
+
+            var out = tpl
+              .replace('{{code}}', code)
+              .replace('{{trend_ema_period}}', so.trend_ema || 36)
+              .replace('{{output}}', html_output)
+              .replace(/\{\{symbol\}\}/g, so.selector.normalized + ' - zenbot ' + require('../package.json').version)
+
+            var out_target = so.filename || 'simulations/sim_result_' + so.selector.normalized + '_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
+            fs.writeFileSync(out_target, out)
+            console.log('wrote', out_target)
+
+            db_data_cursor = data.time
+          })
+        }
       }
     })
 }

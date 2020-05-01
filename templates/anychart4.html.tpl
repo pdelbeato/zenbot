@@ -52,8 +52,9 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
   <script type="text/javascript">
 
 
-    var withData = function (data, trades_chart_buy, trades_chart_sell, options) {
-      console.log(data)
+    var withData = function (data, trades_chart_buy, trades_chart_sell, data_markers_buy, options) {
+      console.log(trades_chart_buy[1][0])
+      console.log(trades_chart_sell)
 
   var i =0; var strategy_sel =[]
   Object.keys(options.chart).map(function (key) {
@@ -103,8 +104,11 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
       // map the trades
       mapping_trades_buy = table_trades_buy.mapAs();
       mapping_trades_buy.addField('value', 1);
+
       mapping_trades_sell = table_trades_sell.mapAs();
       mapping_trades_sell.addField('value', 1);
+
+
 
       // chart type
       var chart = anychart.stock();
@@ -180,7 +184,23 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
       series.name("Stock prices");
 
 
-      //
+      //add event markers
+      var data_markers=[
+        {
+          "format": "B",
+          "data": data_markers_buy
+        },
+        {
+          "format": "S",
+          "data": data_markers_sell
+        }
+      ]
+
+      plot.eventMarkers({"groups": data_markers});
+      // bind event markers to the first series
+      plot.eventMarkers().position("series");
+      plot.eventMarkers().seriesId(0);
+
       // // create the second plot on the chart
       // var plot_1 = chart.plot(1);
 
@@ -209,7 +229,7 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
 {{code}}
 //withData(data, trades, options)
   </script>
-  <body onload="withData(data, trades_chart_buy, trades_chart_sell, options)">
+  <body onload="withData(data, trades_chart_buy, trades_chart_sell, data_markers_buy, options)">
 
   <!-- <pre><code>{{output}}</code></pre> -->
   </body>
