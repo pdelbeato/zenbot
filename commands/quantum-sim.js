@@ -467,27 +467,26 @@ module.exports = function (program, conf) {
             s.my_trades.map(function (t, index) {
 
               t.date = new Date(Math.round(t.time / coeff) * coeff)
+              descr1="id: "
               if (t.signal === 'buy' && t.time !== null) {
                 trades_chart_buy.push([
                   t.date,
-                  t.price,
-                  t.id
+                  t.price
                 ])
                 data_markers_buy.push({
                   "date": t.date,
-                  "description":  t.id,
+                  "description":  descr1.concat(t.id,"  timestamp: ", t.time)
                 })
 
               }
               if (t.signal === 'sell' && t.time !== null) {
                 trades_chart_sell.push([
                   t.date,
-                  t.price,
-                  t.id
+                  t.price
                 ])
                 data_markers_sell.push({
                   "date": t.date,
-                  "description":  t.id,
+                  "description":  descr1.concat(t.id,"  timestamp: ", t.time)
                 })
               }
 
