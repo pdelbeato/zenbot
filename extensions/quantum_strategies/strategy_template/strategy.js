@@ -112,15 +112,15 @@ module.exports = {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 
-		_onTradePeriod(function () {
-			if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
-				strat.calc_lookback.unshift(s.period)
-				strat.lib.onStrategyPeriod(s, opts, callback)
-			}
-			else {
-				callback()
-			}
-		})
+		if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
+			strat.calc_lookback.unshift(s.period)
+			strat.lib.onStrategyPeriod(s, opts, function () {
+				_onTradePeriod(callback)
+			})
+		}
+		else {
+			_onTradePeriod(callback)
+		}
 
 		///////////////////////////////////////////
 		// _onTradePeriod

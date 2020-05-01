@@ -215,15 +215,15 @@ module.exports = {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 
-		_onTradePeriod(function () {
-			if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
-				strat.calc_lookback.unshift(s.period)
-				strat.lib.onStrategyPeriod(s, opts, callback)
-			}
-			else {
-				callback()
-			}
-		})
+		if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
+			strat.calc_lookback.unshift(s.period)
+			strat.lib.onStrategyPeriod(s, opts, function () {
+				_onTradePeriod(callback)
+			})
+		}
+		else {
+			_onTradePeriod(callback)
+		}
 
 		///////////////////////////////////////////
 		// _onTradePeriod
@@ -314,36 +314,37 @@ module.exports = {
 						if (condition.sell[0]) {
 							if (strat.opts.over_and_back) {
 								strat.data.is_over.up = true;
+								return cb()
 							}
 							else {
-								controlConditions('sell')
+								return controlConditions('sell', cb)
 							}
 						}
 						else if (strat.data.is_over.up) {
 							strat.data.is_over.up = false
-							//						if (strat.opts.over_and_back) {
-							controlConditions('sell')
-							//						}
+							return controlConditions('sell', cb)
 						}
 						else if (condition.buy[0]) {
 							if (strat.opts.over_and_back) {
 								strat.data.is_over.down = true;
+								return cb()
 							}
 							else {
-								controlConditions('buy')
+								return controlConditions('buy', cb)
 							}
 						}
 						else if (strat.data.is_over.down) {
 							strat.data.is_over.down = false
-							//						if (!strat.opts.over_and_back) {
-							controlConditions('buy')
-							//						}
+							return controlConditions('buy', cb)
 						}
+						return cb()
 					}
 				}
-				cb()
+				else {
+					return cb(null, null)
+				}
 
-				function controlConditions(side) {
+				function controlConditions(side, callback) {
 					var opposite_side = (side === 'buy' ? 'sell' : 'buy')
 					var min_pct = {
 						buy: strat.opts.buy_min_pct,
@@ -365,10 +366,12 @@ module.exports = {
 						}
 						// }
 					}
+
+					callback(null, null)
 				}
 			}
 			else {
-				cb(null, null)
+				return cb(null, null)
 			}
 		}
 	},

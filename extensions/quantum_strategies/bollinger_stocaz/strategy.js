@@ -237,10 +237,6 @@ module.exports = {
     function _onTrade(cb) {
       //User defined
 
-      //Fa schifo!!! Da modificare quando mi viene in mente come fare per far fare init dopo aver recuperato i vecchi db
-      //		if (s.options.strategy[this.name].data.limit_open_price.buy == 1000000 && s.options.strategy[this.name].data.limit_open_price.sell == 0) {
-      //		this.onPositionClosed(s)
-      //		}
       cb()
     }
   },
@@ -254,15 +250,20 @@ module.exports = {
     let strat_name = this.name
     let strat = s.options.strategy[strat_name]
 
-    _onTradePeriod(function () {
-      if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
-        strat.calc_lookback.unshift(s.period)
-        strat.lib.onStrategyPeriod(s, opts, callback)
-      }
-      else {
-        callback()
-      }
-    })
+    if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
+      strat.calc_lookback.unshift(s.period)
+      strat.lib.onStrategyPeriod(s, opts, function (err, result) {
+        if (err) {
+          callback(err, null)
+        }
+        else {
+          _onTradePeriod(callback)
+        }
+      })
+    }
+    else {
+      _onTradePeriod(callback)
+    }
 
     ///////////////////////////////////////////
     // _onTradePeriod
@@ -302,10 +303,10 @@ module.exports = {
 
           //Controllo la minimum_bandwidth
           if (min_bandwidth_pct && (bandwidth_pct < min_bandwidth_pct)) {
-            //								console.log('bollinger strategy - min_bandwidth_pct= ' + min_bandwidth_pct + ' ; bandwidth_pct= ' + bandwidth_pct)
+//					console.log('bollinger strategy - min_bandwidth_pct= ' + min_bandwidth_pct + ' ; bandwidth_pct= ' + bandwidth_pct)
             upperBound = midBound * (1 + (min_bandwidth_pct / 100) / 2)
             lowerBound = midBound * (1 - (min_bandwidth_pct / 100) / 2)
-            //								console.log('bollinger strategy - nuovi limiti. upperBound ' + upperBound + ' ; lowerBound= ' + lowerBound)
+//					console.log('bollinger strategy - nuovi limiti. upperBound ' + upperBound + ' ; lowerBound= ' + lowerBound)
           }
 
           strat.data.watchdog.pump = false
@@ -350,45 +351,53 @@ module.exports = {
             }
 
             //Se sono dentro le soglie stocastiche e il flag "will_trade" era attivo, allora vado a verificare le altre condizioni per un trade
-            if (strat.data.will_trade.buy) {
+            if (strat.data.will_trade.buy && !condition.buy[0] && condition.buy[1]) {
               strat.data.will_trade.buy = false
-              controlConditions('buy')
+              return controlConditions('buy', cb)
             }
 
-            if (strat.data.will_trade.sell) {
+            if (strat.data.will_trade.sell && !condition.sell[0] && condition.sell[1]) {
               strat.data.will_trade.sell = false
-              controlConditions('sell')
+              return controlConditions('sell', cb)
             }
 
+            //Se sono fuori dalla banda di Bollinger...
             if (condition.sell[0]) {
               if (strat.opts.over_and_back) {
                 strat.data.is_over.up = true
+                return cb()
               }
               else {
-                controlConditions('sell')
+                return controlConditions('sell', cb)
               }
             }
             else if (strat.data.is_over.up) {
               strat.data.is_over.up = false
-              controlConditions('sell')
+              controlConditions('sell', cb)
+              return
             }
             else if (condition.buy[0]) {
               if (strat.opts.over_and_back) {
                 strat.data.is_over.down = true
+                return cb()
               }
               else {
-                controlConditions('buy')
+                return controlConditions('buy', cb)
               }
             }
             else if (strat.data.is_over.down) {
               strat.data.is_over.down = false
-              controlConditions('buy')
+              controlConditions('buy', cb)
+              return
             }
+            return cb()
           }
         }
-        cb(null, null)
+        else {
+          return cb(null, null)
+        }
 
-        function controlConditions(side) {
+        function controlConditions(side, cb_cc) {
           var opposite_side = (side === 'buy' ? 'sell' : 'buy')
           var min_pct = {
             buy: strat.opts.buy_min_pct,
@@ -415,10 +424,12 @@ module.exports = {
             strat.data.is_over_stoch[side] = true
             strat.data.will_trade[side] = true
           }
+
+          cb_cc(null, null)
         }
       }
       else {
-        cb(null, null)
+        return cb(null, null)
       }
     }
   },

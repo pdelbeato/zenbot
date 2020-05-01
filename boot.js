@@ -71,6 +71,8 @@ module.exports = function (cb) {
 				cb(null, zenbot)
 				return
 			}
+
+			//Aggiungere catch se non esiste il mongo db
 			var db = client.db(zenbot.conf.mongo.db)
 			_.set(zenbot, 'conf.db.mongo', db)
 
