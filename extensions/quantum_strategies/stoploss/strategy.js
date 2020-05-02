@@ -120,15 +120,15 @@ module.exports = {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 
-		_onTradePeriod(function () {
-			if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
-				strat.calc_lookback.unshift(s.period)
-				strat.lib.onStrategyPeriod(s, opts, callback)
-			}
-			else {
-				callback()
-			}
-		})
+		if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
+			strat.calc_lookback.unshift(s.period)
+			strat.lib.onStrategyPeriod(s, opts, function () {
+				_onTradePeriod(callback)
+			})
+		}
+		else {
+			_onTradePeriod(callback)
+		}
 
 		///////////////////////////////////////////
 		// _onTradePeriod
@@ -157,15 +157,17 @@ module.exports = {
 					position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 					position_stop = position.strategy_parameters.stoploss[position_opposite_signal + '_stop']				
 
-					if (position_stop && !position.locked && !s.tools.positionFlags(position, 'status', 'Check', this.name) && ((position.side == 'buy' ? +1 : -1) * (s.options.strategy.stoploss.calc_lookback[0].close - position_stop) < 0)) {
+					if (position_stop && !position.locked && !s.tools.positionFlags(position, 'status', 'Check', strat_name) && ((position.side == 'buy' ? +1 : -1) * (s.options.strategy.stoploss.calc_lookback[0].close - position_stop) < 0)) {
 						console.log(('\n' + position_opposite_signal.toUpperCase() + ' stop loss triggered at ' + formatPercent(position.profit_net_pct/100) + ' trade profit for position ' + position.id + '\n').red)
 						s.tools.pushMessage('Stop Loss Protection', position.side + ' position ' + position.id + ' (' + formatPercent(position.profit_net_pct/100) + ')', 0)
-//						executeSignal(position_opposite_signal, this.name, position.id, undefined, undefined, false, true)
 						s.signal = position_opposite_signal[0].toUpperCase() + ' Stoploss';
 						let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
-						s.options.active_long_position = false
-						s.options.active_short_position = false
-						s.eventBus.emit(this.name, position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, strat.opts.order_type)
+						if (s.options.mode != 'sim') {
+							s.options.active_long_position = false
+							s.options.active_short_position = false
+						}
+						//s.eventBus.on('manual', (signal, position_id, fixed_size, fixed_price, protectionFree, locking = 'manual', is_reorder = false, maker_taker = undefined) => {
+						s.eventBus.emit(strat_name, position_opposite_signal, position.id, undefined, undefined, protectionFree, 'free', false, strat.opts.order_type)
 					}
 					else {
 						s.signal = null
@@ -231,8 +233,8 @@ module.exports = {
 		//		position_id: position_id,
 		//		};
 
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+		// let strat_name = this.name
+		// let strat = s.options.strategy[strat_name]
 
 		_onPositionOpened(callback)
 
@@ -241,13 +243,7 @@ module.exports = {
 		///////////////////////////////////////////
 
 		function _onPositionOpened(cb) {
-			var position = s.positions.find(x => x.id === opts.position_id)
-			
-			position.strategy_parameters.stoploss = {}
-			position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat.opts.buy_stop_pct/100).format(s.product.increment) : null)
-			position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat.opts.sell_stop_pct/100).format(s.product.increment) : null)
-						
-			cb(null, null)
+			this.onPositionUpdated(s, opts, cb)
 		}
 	},
 
@@ -270,8 +266,6 @@ module.exports = {
 			
 			position.strategy_parameters.stoploss.buy_stop = (position.side == 'sell' ? n(position.price_open).multiply(1 + strat.opts.buy_stop_pct/100).format(s.product.increment) : null)
 			position.strategy_parameters.stoploss.sell_stop = (position.side == 'buy' ? n(position.price_open).multiply(1 - strat.opts.sell_stop_pct/100).format(s.product.increment) : null)
-//			debug.msg('Strategy Stoploss - position.strategy_parameters.stoploss.sell_stop= ' + position.strategy_parameters.stoploss.sell_stop)
-//			console.log(position)
 			
 			cb(null, null)
 		}

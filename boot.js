@@ -60,7 +60,8 @@ module.exports = function (cb) {
 		} else {
 			connectionString = 'mongodb://' + authStr + zenbot.conf.mongo.host + ':' + zenbot.conf.mongo.port + '/' + zenbot.conf.mongo.db + '?' +
 				(zenbot.conf.mongo.replicaSet ? '&replicaSet=' + zenbot.conf.mongo.replicaSet : '') +
-				(authMechanism ? '&authMechanism=' + authMechanism : '')
+				(authMechanism ? '&authMechanism=' + authMechanism : '')+
+				'&socketTimeoutMS=60000'
 		}
 
 		require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {

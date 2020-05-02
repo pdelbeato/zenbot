@@ -200,12 +200,12 @@ module.exports = function (program, conf) {
 
         var onCollectionCursorEnd = async () => {
           if (numTrades === 0) {
-            await s.tradeProcessingQueue.drain()
             if (so.symmetrical && !reversing) {
               reversing = true
               reverse_point = db_cursor
               return getNext()
             }
+            //await s.tradeProcessingQueue.drain()
             exitSim()
             return
           }
