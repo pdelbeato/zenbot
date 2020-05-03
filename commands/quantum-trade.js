@@ -868,32 +868,27 @@ module.exports = function (program, conf) {
 					break
 				}
 				case 'delete': {
-					var position_index = s.positions.findIndex(x => x.id === task.position_id)
+					// var position_index = s.positions.findIndex(x => x.id === task.position_id)
 					var position = s.positions.find(x => x.id === task.position_id)
 
 					db_my_positions.deleteOne({'_id' : task.position_id}, function (err) {
-						//In ogni caso, elimino la posizione da s.positions
-						s.positions.splice(position_index,1)
-
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error deleting in db_my_positions')
 							console.error(err)
 							return callback(err)
 						}
 
-						//... e inserisco la posizione chiusa del db delle posizioni chiuse
-						if (position) {
-							position._id = position.id
-							s.db_my_closed_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
-								if (err) {
-									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
-									console.error(err)
-									return callback(err)
-								}
-
-								s.tools.functionStrategies('onPositionClosed', task)
-							})
-						}
+						// //... e inserisco la posizione chiusa del db delle posizioni chiuse
+						// // if (position) {
+						// 	position._id = position.id
+						// 	s.db_my_closed_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
+						// 		if (err) {
+						// 			console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
+						// 			console.error(err)
+						// 			return callback(err)
+						// 		}
+						// 	})
+						// // }
 					})
 					break
 				}
@@ -1243,7 +1238,7 @@ module.exports = function (program, conf) {
 					//Il download dei dati ha impiegato molto tempo, e altro tempo lo impiega db_trades.find
 					//Alla fine, quindi, i trades del preroll non saranno tutti, perchè il db scaricato sarà 
 					//completo solo fino al tempo di fine download. 
-					db_trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(function (err, filtered_trades) {
+					db_trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(async function (err, filtered_trades) {
 						if (err) {
 							throw err
 						}
@@ -1251,11 +1246,12 @@ module.exports = function (program, conf) {
 						//Se ci sono filtered_trades, allora non esegue questo blocco ma esegue engine.update che c'è dopo
 						//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco e non esegue engine.update (perché c'è un return in questo blocco)
 						if (!filtered_trades.length) {
-							if (s.tradeProcessingQueue.length() != 0) {
-								console.log('Pre-roll in progress...')
-								setTimeout(getNext, 1000)
-								return
-							}
+							// if (s.tradeProcessingQueue.length() != 0) {
+							// 	console.log('Pre-roll in progress...')
+							// 	setTimeout(getNext, 1000)
+							// 	return
+							// }
+							await s.tradeProcessingQueue.drain()
 							var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
 							console.log(head)
 

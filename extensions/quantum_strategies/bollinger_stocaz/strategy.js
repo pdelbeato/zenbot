@@ -108,7 +108,7 @@ module.exports = {
       }
     }
 
-    this.onPositionClosed(s, callback)
+    strat.lib.onPositionClosed(s, callback)
   },
 
   getOptions: function (strategy_name) {
@@ -590,8 +590,8 @@ module.exports = {
     //		position_id: position_id,
     //		};
 
-    // let strat_name = this.name
-    // let strat = s.options.strategy[strat_name]
+    let strat_name = this.name
+    let strat = s.options.strategy[strat_name]
 
     _onPositionOpened(callback)
 
@@ -600,7 +600,7 @@ module.exports = {
     ///////////////////////////////////////////
 
     function _onPositionOpened(cb) {
-      this.onPositionClosed(s, opts, cb)
+      strat.lib.onPositionClosed(s, opts, cb)
     }
   },
 
@@ -656,7 +656,7 @@ module.exports = {
     }
   },
 
-  onOrderExecuted: function (s, opts = {}, cb = function () { }) {
+  onOrderExecuted: function (s, opts = {}, callback = function () { }) {
     // let strat_name = this.name
     // let strat = s.options.strategy[strat_name]
 

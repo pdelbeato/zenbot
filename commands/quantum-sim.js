@@ -218,6 +218,7 @@ module.exports = function (program, conf) {
             }
           }
           collectionCursorStream.close()
+          await s.tradeProcessingQueue.drain()
           return getNext()
         }
 

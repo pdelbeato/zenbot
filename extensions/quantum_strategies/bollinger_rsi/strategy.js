@@ -94,7 +94,7 @@ module.exports = {
 			},
 		},
 
-		this.onPositionClosed(s, callback)
+		strat.lib.onPositionClosed(s, callback)
 	},
 
 	getOptions: function (strategy_name) {
@@ -196,11 +196,6 @@ module.exports = {
 		
 		function _onTrade(cb) {
 			//User defined
-
-			//Fa schifo!!! Da modificare quando mi viene in mente come fare per far fare init dopo aver recuperato i vecchi db
-//			if (s.options.strategy[this.name].data.limit_open_price.buy == 1000000 && s.options.strategy[this.name].data.limit_open_price.sell == 0) {
-//				this.onPositionClosed(s)
-//			}
 			
 			cb()
 		}
