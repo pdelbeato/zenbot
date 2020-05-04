@@ -92,7 +92,13 @@ module.exports = {
 				buy: 1000000,
 				sell: 0,
 			},
-		},
+		}
+
+		// s.positions.forEach(function (position, index) {
+		// 	if (!position.strategy_parameters[strat_name]) {
+		// 		position.strategy_parameters[strat_name] = {}
+		// 	}
+		// })
 
 		strat.lib.onPositionClosed(s, callback)
 	},
