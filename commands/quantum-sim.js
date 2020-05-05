@@ -194,7 +194,6 @@ module.exports = function (program, conf) {
 
         var totalTrades = await collectionCursor.count(true)
         const collectionCursorStream = collectionCursor.stream()
-
         var numTrades = 0
         var lastTrade
 
@@ -245,6 +244,11 @@ module.exports = function (program, conf) {
         collectionCursorStream.on('error', function(err) {
         	console.log('Streaming error: ' + err)
         	return getNext()
+        })
+
+        collectionCursorStream.on('error', function(err) {
+          console.log('Streaming error: ' + err)
+          return getNext()
         })
       }
 

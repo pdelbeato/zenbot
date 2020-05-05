@@ -1254,7 +1254,7 @@ module.exports = function (program, conf) {
 							if (s.tradeProcessingQueue.length()) {
 								await s.tradeProcessingQueue.drain()
 							}
-							
+
 							var head = '\n------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
 							console.log(head)
 
