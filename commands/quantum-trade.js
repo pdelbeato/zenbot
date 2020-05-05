@@ -1251,8 +1251,11 @@ module.exports = function (program, conf) {
 							// 	setTimeout(getNext, 1000)
 							// 	return
 							// }
-							await s.tradeProcessingQueue.drain()
-							var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
+							if (s.tradeProcessingQueue.length()) {
+								await s.tradeProcessingQueue.drain()
+							}
+							
+							var head = '\n------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
 							console.log(head)
 
 							//A che diavolo serve?
