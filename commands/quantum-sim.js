@@ -409,7 +409,7 @@ module.exports = function (program, conf) {
 
               return data_array[key]
             })
-            var data_chart = []; var i = 0
+            var data_chart = []; var i = 0; var data_chart_period = []
 
             result = result.map(function (d) {
               d.date = new Date(d.time)
@@ -420,8 +420,22 @@ module.exports = function (program, conf) {
                   d.open,
                   d.high,
                   d.low,
-                  d.close
+                  d.close,
+                  d.volume
                 ])
+
+                if (d.date.getMinutes() % 15 === 0  ) {
+
+                  data_chart_period.push ([
+                    d.date,
+                    d.open,
+                    d.high,
+                    d.low,
+                    d.close,
+                    d.volume
+
+                  ]);
+                  }
                 Object.keys(so.chart).map(function (key) {
                   var strategy = key
 
@@ -464,7 +478,8 @@ module.exports = function (program, conf) {
 
 
             var trades_chart_buy = []; var trades_chart_sell = [];var data_markers_buy=[];var data_markers_sell=[]
-            var coeff = 1000 * 60
+            var trades_chart_buy_period = [];var trades_chart_sell_period = []
+            var coeff = 1000 * 60; var coeff1= 1000 * 60 *15;
             s.my_trades.map(function (t, index) {
 
               t.date = new Date(Math.round(t.time / coeff) * coeff)
@@ -474,10 +489,16 @@ module.exports = function (program, conf) {
                   t.date,
                   t.price
                 ])
+                trades_chart_buy_period.push([
+                  new Date(Math.round(t.time / coeff1) * coeff1),
+                  t.price
+                ])
                 data_markers_buy.push({
                   "date": t.date,
                   "description":  descr1.concat(t.id,"  timestamp: ", t.time)
                 })
+
+
 
               }
               if (t.signal === 'sell' && t.time !== null) {
@@ -485,9 +506,13 @@ module.exports = function (program, conf) {
                   t.date,
                   t.price
                 ])
+                trades_chart_sell_period.push([
+                  new Date(Math.round(t.time / coeff1) * coeff1),
+                  t.price
+                ])
                 data_markers_sell.push({
                   "date": t.date,
-                  "description":  descr1.concat(t.id,"  timestamp: ", t.time)
+                  "description":  descr1.concat(t.id," timestamp: ", t.time)
                 })
               }
 
@@ -514,6 +539,31 @@ module.exports = function (program, conf) {
             var out_target = so.filename || 'simulations/sim_result_' + so.selector.normalized + '_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
             fs.writeFileSync(out_target, out)
             console.log('wrote', out_target)
+
+            //simulation in Strategy periods
+            var code = 'var data = ' + JSON.stringify(data_chart_period) + ';\n'
+            code += 'var trades_chart_buy_period = ' + JSON.stringify(trades_chart_buy_period) + ';\n'
+            code += 'var trades_chart_sell_period = ' + JSON.stringify(trades_chart_sell_period) + ';\n'
+            code += 'var data_markers_buy = ' + JSON.stringify(data_markers_buy) + ';\n'
+            code += 'var data_markers_sell = ' + JSON.stringify(data_markers_sell) + ';\n'
+            code += 'var options = ' + JSON.stringify(s.options) + ';\n'
+            var tpl2 = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart_Str_period.html.tpl'), { encoding: 'utf8' })
+
+            var json = JSON.stringify(data_chart_period)
+
+
+
+            var out = tpl2
+              .replace('{{code}}', code)
+              .replace('{{trend_ema_period}}', so.trend_ema || 36)
+              .replace('{{output}}', html_output)
+              .replace(/\{\{symbol\}\}/g, so.selector.normalized + ' - zenbot ' + require('../package.json').version)
+
+            var out_target = so.filename || 'simulations/sim_result_Strategy_period' + so.selector.normalized + '_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
+            fs.writeFileSync(out_target, out)
+            fs.writeFileSync("./simulations/indicator_testing/data/data.json", json)
+            console.log('wrote', out_target)
+
 
             db_data_cursor = data.time
           })

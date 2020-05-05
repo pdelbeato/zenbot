@@ -57,6 +57,12 @@ module.exports = {
 				}
 		}
 
+		s.positions.forEach(function (position, index) {
+			if (!position.strategy_parameters[strat_name]) {
+				position.strategy_parameters[strat_name] = {}
+			}
+		})
+
 		callback(null, null)
 	},
 
