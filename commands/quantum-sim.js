@@ -205,7 +205,9 @@ module.exports = function (program, conf) {
               reverse_point = db_cursor
               return getNext()
             }
-            //await s.tradeProcessingQueue.drain()
+            if(s.tradeProcessingQueue.length()) {
+            	await s.tradeProcessingQueue.drain()
+            }
             exitSim()
             return
           }
@@ -227,17 +229,22 @@ module.exports = function (program, conf) {
         }
 
         collectionCursorStream.on('data', function(trade) {
-          lastTrade = trade
-          numTrades++
-          if (so.symmetrical && reversing) {
-            trade.orig_time = trade.time
-            trade.time = reverse_point + (reverse_point - trade.time)
-          }
-          eventBus.emit('trade', trade)
+        	lastTrade = trade
+        	numTrades++
+        	if (so.symmetrical && reversing) {
+        		trade.orig_time = trade.time
+        		trade.time = reverse_point + (reverse_point - trade.time)
+        	}
+        	eventBus.emit('trade', trade)
 
-          if (numTrades && totalTrades && totalTrades == numTrades) {
-            onCollectionCursorEnd()
-          }
+        	if (numTrades && totalTrades && totalTrades == numTrades) {
+        		onCollectionCursorEnd()
+        	}
+        })
+
+        collectionCursorStream.on('error', function(err) {
+        	console.log('Streaming error: ' + err)
+        	return getNext()
         })
       }
 
