@@ -242,11 +242,6 @@ module.exports = function (program, conf) {
         })
 
         collectionCursorStream.on('error', function(err) {
-        	console.log('Streaming error: ' + err)
-        	return getNext()
-        })
-
-        collectionCursorStream.on('error', function(err) {
           console.log('Streaming error: ' + err)
           return getNext()
         })

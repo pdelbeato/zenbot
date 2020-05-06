@@ -869,7 +869,7 @@ module.exports = function (program, conf) {
 				}
 				case 'delete': {
 					// var position_index = s.positions.findIndex(x => x.id === task.position_id)
-					var position = s.positions.find(x => x.id === task.position_id)
+					//var position = s.positions.find(x => x.id === task.position_id)
 
 					db_my_positions.deleteOne({'_id' : task.position_id}, function (err) {
 						if (err) {
