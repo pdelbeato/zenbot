@@ -161,12 +161,12 @@ module.exports = {
 			.then(function (result) {
 				if (strat.opts.activated) {
 					if (strat.data.slope > strat.opts.upper_threshold) {
-						so.active_long_position = true
-						so.active_short_position = false
+						s.options.active_long_position = true
+						s.ootions.active_short_position = false
 					}
 					else if (strat.data.slope < strat.opts.lower_threshold) {
-						so.active_long_position = false
-						so.active_short_position = true
+						s.options.active_long_position = false
+						s.options.active_short_position = true
 					}
 				}
 				cb(null, result)
