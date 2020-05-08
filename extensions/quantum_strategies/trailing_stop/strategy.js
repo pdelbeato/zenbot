@@ -2,6 +2,7 @@ var n = require('numbro')
 	, Phenotypes = require('../../../lib/phenotype')
 	, inspect = require('eyes').inspector({ maxLength: 4096 })
 	, debug = require('../../../lib/debug')
+	, tb = require('timebucket')
 	, { formatPercent } = require('../../../lib/format')
 
 
@@ -10,7 +11,6 @@ var n = require('numbro')
 //c.strategy['trailing_stop'] = {
 //	opts: {							//****** To store options
 //		period_calc: '15m',				//****** Execute trailing stop every period_calc time ('null' -> execute every trade)
-//		min_periods: 2,		 			//****** Minimum number of history periods (timeframe period_length)
 //		order_type: 'taker', 			//****** Order type
 //		trailing_stop_enable_pct: 2,	//****** Enable trailing stop when reaching this % profit
 //		trailing_stop_pct: 0.5,			//****** Maintain a trailing stop this % below the high-water mark of profit
@@ -50,6 +50,14 @@ module.exports = {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 
+		if (!strat.opts.size) {
+			strat.opts.min_periods = 1
+		}
+		
+		if (!strat.opts.min_periods) {
+			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
+		}
+
 		strat.data = {
 				max_trail_profit_position_id: {	//****** Position ids with max trailing profit
 					buy: null,
@@ -57,7 +65,7 @@ module.exports = {
 				}
 		}
 
-		s.positions.forEach(function (position, index) {
+		s.positions.forEach(function (position) {
 			if (!position.strategy_parameters[strat_name]) {
 				position.strategy_parameters[strat_name] = {}
 			}

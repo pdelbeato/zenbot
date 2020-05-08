@@ -2,6 +2,7 @@ var n = require('numbro')
 	, Phenotypes = require('../../../lib/phenotype')
 	, inspect = require('eyes').inspector({ maxLength: 4096 })
 	, debug = require('../../../lib/debug')
+	, tb = require('timebucket')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
@@ -45,6 +46,13 @@ module.exports = {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 		
+		if (!strat.opts.size) {
+			strat.opts.min_periods = 1
+		}
+
+		if (!strat.opts.min_periods) {
+			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
+		}
 
 		strat.data = {
 			//	data_1: {

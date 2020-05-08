@@ -2,6 +2,7 @@ var n = require('numbro')
 , Phenotypes = require('../../../lib/phenotype')
 , inspect = require('eyes').inspector({ maxLength: 4096 })
 , debug = require('../../../lib/debug')
+, tb = require('timebucket')
 , ta_linearRegSlope = require('../../../lib/ta_linearreg_slope')
 , { formatPercent } = require('../../../lib/format')
 
@@ -12,7 +13,6 @@ var n = require('numbro')
 //	name: 'linear_reg_trend',
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate linear regression every period_calc time
-//		min_periods: 1501, 			//****** Minimum number of history periods (timeframe period_length)
 //		size: 100,					//****** Use 'size' period to calculate linear regression
 //		upper_threshold: 2,			//****** Upper threshold (long if price is higher)
 //		lower_threshold: -2,			//****** Lower threshold (short if price is lower)
@@ -51,7 +51,10 @@ module.exports = {
 	init: function (s, callback = function() {}) {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
-		
+
+		if (!strat.opts.min_periods) {
+			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
+		}
 
 		strat.data = {
 			slope: null,
@@ -67,11 +70,11 @@ module.exports = {
 	},
 
 	getOptions: function (strategy_name) {
-		this.option('linear_reg_trend', 'period_calc', 'Calculate Linear Regression Trend every period_calc time', String, '15m')
-		this.option('linear_reg_trend', 'min_periods', 'Min. number of history periods', Number, 1501)
-		this.option('linear_reg_trend', 'size', 'Use \'size\' period to calculate linear regression', Number, 20)
-		this.option('linear_reg_trend', 'upper_threshold', 'Upper threshold (long if price is higher)', Number, 0.5)
-		this.option('linear_reg_trend', 'lower_threshold', 'Lower threshold (short if price is lower)', Number, -0.5)
+		this.option(strategy_name, 'period_calc', 'Calculate Linear Regression Trend every period_calc time', String, '15m')
+		this.option(strategy_name, 'min_periods', 'Min. number of history periods', Number, 1501)
+		this.option(strategy_name, 'size', 'Use \'size\' period to calculate linear regression', Number, 20)
+		this.option(strategy_name, 'upper_threshold', 'Upper threshold (long if price is higher)', Number, 0.5)
+		this.option(strategy_name, 'lower_threshold', 'Lower threshold (short if price is lower)', Number, -0.5)
 	},
 
 	getCommands: function (s, strategy_name) {
@@ -86,8 +89,8 @@ module.exports = {
 		this.command('i', {
 			desc: ('Linear Regression Trend - Toggle activation'.grey),
 			action: function() {
-				strat_opts.activated = !strat_opts.activated
-				console.log('\nToggle activation: ' + (strat_opts.activated ? 'ON'.green.inverse : 'OFF'.red.inverse))
+				strat.opts.activated = !strat.opts.activated
+				console.log('\nToggle activation: ' + (strat.opts.activated ? 'ON'.green.inverse : 'OFF'.red.inverse))
 			}
 		})
 	},
@@ -154,16 +157,23 @@ module.exports = {
 		///////////////////////////////////////////
 
 		function _onStrategyPeriod(cb) {
-			ta_linearRegSlope(s, 'linear_reg_trend', strat.opts.size, 'close')
-			.then(function(result) {
-				if(result && result.outReal) {
-					strat.data.slope = result.outReal
+			ta_linearRegSlope(s, 'close', 'linear_reg_trend', strat.opts.size)
+			.then(function (result) {
+				if (strat.opts.activated) {
+					if (strat.data.slope > strat.opts.upper_threshold) {
+						so.active_long_position = true
+						so.active_short_position = false
+					}
+					else if (strat.data.slope < strat.opts.lower_threshold) {
+						so.active_long_position = false
+						so.active_short_position = true
+					}
 				}
-			}).catch(function(error) {
-				console.log(error)
+				cb(null, result)
 			})
-			
-			cb(null, null)
+			.catch(function (err) {
+				cb(err, null)
+			})
 		}
 	},
 
@@ -203,10 +213,10 @@ module.exports = {
 					color = 'red'
 				}
 
-				cols.push(s.tools.zeroFill(6, ('[' + n(strat.data.slope).format('0.00') + '‰]'), ' ')[color])
+				cols.push(s.tools.zeroFill(9, ('[' + n(strat.data.slope).format('0.00') + '‰]'), ' ')[color])
 			}
 			else {
-				cols.push(s.tools.zeroFill(6, '', ' '))
+				cols.push(s.tools.zeroFill(9, '', ' '))
 			}
 
 			cb()

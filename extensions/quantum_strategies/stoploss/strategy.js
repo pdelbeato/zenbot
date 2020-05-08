@@ -2,6 +2,7 @@ var n = require('numbro')
 	, Phenotypes = require('../../../lib/phenotype')
 	, inspect = require('eyes').inspector({ maxLength: 4096 })
 	, debug = require('../../../lib/debug')
+	, tb = require('timebucket')
 	, { formatPercent } = require('../../../lib/format')
 	, z = require('zero-fill')
 
@@ -11,7 +12,6 @@ var n = require('numbro')
 //c.strategy['stoploss'] = {
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Execute profitstop every period_calc time
-//		min_periods: 2, 			//****** Minimum number of history periods (timeframe period_length)
 //		order_type: 'maker', 		//****** Order type
 //		buy_stop_pct: 10,			//****** For a SELL position, buy if price rise above this % of bought price
 //		sell_stop_pct: 10,			//****** For a BUY position, sell if price drops below this % of bought price
@@ -51,6 +51,14 @@ module.exports = {
 	init: function (s, callback = function() {}) {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
+
+		if (!strat.opts.size) {
+			strat.opts.min_periods = 1
+		}
+
+		if (!strat.opts.min_periods) {
+			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
+		}
 
 		strat.data = {
 		}

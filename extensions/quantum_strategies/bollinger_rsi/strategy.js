@@ -1,5 +1,5 @@
 var n = require('numbro')
-//, bollinger = require('../../../lib/bollinger')
+, tb = require('timebucket')
 , rsi = require('../../../lib/rsi')
 , ta_rsi = require('../../../lib/ta_rsi')
 , ta_bollinger = require('../../../lib/ta_bollinger')
@@ -14,7 +14,6 @@ var n = require('numbro')
 //c.strategy[bollinger_rsi] = {
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate Bollinger Bands every period_calc time
-//		min_periods: 21, 			//****** Minimum number of calc_lookback to maintain (timeframe is "period_calc")
 //		size: 20,					//****** period size
 //		time: 2,					//****** times of standard deviation between the upper/lower band and the moving averages
 //		rsi_size: 15,				//****** period size rsi
@@ -67,6 +66,14 @@ module.exports = {
 	init: function (s, callback = function() {}) {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
+
+		if (!strat.opts.size) {
+			strat.opts.min_periods = 1
+		}
+
+		if (!strat.opts.min_periods) {
+			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
+		}
 
 		strat.data = {							//****** To store calculated data
 			bollinger: {
