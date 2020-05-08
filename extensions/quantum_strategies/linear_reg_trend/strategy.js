@@ -10,12 +10,11 @@ var n = require('numbro')
 //Parte da includere nel file di configurazione
 //---------------------------------------------
 //c.strategy['linear_reg_trend'] = {
-//	name: 'linear_reg_trend',
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate linear regression every period_calc time
-//		size: 100,					//****** Use 'size' period to calculate linear regression
-//		upper_threshold: 2,			//****** Upper threshold (long if price is higher)
-//		lower_threshold: -2,			//****** Lower threshold (short if price is lower)
+//		size: 96,					//****** Use 'size' period to calculate linear regression
+//		upper_threshold: 0.2,		//****** Upper threshold (long if price is higher)
+//		lower_threshold: -0.2,		//****** Lower threshold (short if price is lower)
 //		activated: false,			//****** Activate this strategy
 //	},
 //---------------------------------------------
@@ -71,7 +70,6 @@ module.exports = {
 
 	getOptions: function (strategy_name) {
 		this.option(strategy_name, 'period_calc', 'Calculate Linear Regression Trend every period_calc time', String, '15m')
-		this.option(strategy_name, 'min_periods', 'Min. number of history periods', Number, 1501)
 		this.option(strategy_name, 'size', 'Use \'size\' period to calculate linear regression', Number, 20)
 		this.option(strategy_name, 'upper_threshold', 'Upper threshold (long if price is higher)', Number, 0.5)
 		this.option(strategy_name, 'lower_threshold', 'Lower threshold (short if price is lower)', Number, -0.5)
@@ -86,6 +84,22 @@ module.exports = {
 				s.tools.listStrategyOptions('linear_reg_trend', false)
 			}
 		})
+		this.command('+', {desc: ('Linear Regression Trend - Upper threshold'.grey + ' INCREASE'.green), action: function() {
+			strat.opts.upper_threshold = Number((strat.opts.upper_threshold + 0.01).toFixed(2))
+			console.log('\n' + 'Linear Regression Trend - Upper threshold' + ' INCREASE'.green + ' -> ' + strat.opts.upper_threshold)
+		}})
+		this.command('-', {desc: ('Linear Regression Trend - Upper threshold'.grey + ' DECREASE'.red), action: function() {
+			strat.opts.upper_threshold = Number((strat.opts.upper_threshold - 0.01).toFixed(2))
+			console.log('\n' + 'Linear Regression Trend - Upper threshold' + ' DECREASE'.red + ' -> ' + strat.opts.upper_threshold)
+		}})
+		this.command('*', {desc: ('Linear Regression Trend - Lower threshold'.grey + ' INCREASE'.green), action: function() {
+			strat.opts.lower_threshold = Number((strat.opts.lower_threshold + 0.01).toFixed(2))
+			console.log('\n' + 'Linear Regression Trend - Lower threshold' + ' INCREASE'.green + ' -> ' + strat.opts.lower_threshold)
+		}})
+		this.command('_', {desc: ('Linear Regression Trend - Lower threshold'.grey + ' DECREASE'.red), action: function() {
+			strat.opts.lower_threshold = Number((strat.opts.lower_threshold - 0.01).toFixed(2))
+			console.log('\n' + 'Linear Regression Trend - Lower threshold' + ' DECREASE'.red + ' -> ' + strat.opts.lower_threshold)
+		}})
 		this.command('i', {
 			desc: ('Linear Regression Trend - Toggle activation'.grey),
 			action: function() {

@@ -1258,10 +1258,21 @@ module.exports = function (program, conf) {
 					//Il download dei dati ha impiegato molto tempo, e altro tempo lo impiega db_trades.find
 					//Alla fine, quindi, i trades del preroll non saranno tutti, perchè il db scaricato sarà 
 					//completo solo fino al tempo di fine download. 
-					db_trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(async function (err, filtered_trades) {
+					// db_trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(async function (err, filtered_trades) {
+					db_trades.find(opts.query).sort(opts.sort).toArray(async function (err, filtered_trades) {
 						if (err) {
 							throw err
 						}
+						
+						// db_trades.deleteMany(opts.query, function (err, numRemoved) {
+						// 	if (err) {
+						// 		console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - Pre-roll - error cleaning db_trades')
+						// 		console.error(err)
+						// 	}
+						// 	debug.msg('Pre-roll - ' + numRemoved + ' trades deleted')
+						// })
+						
+						// db_trades.compactCollection()
 						
 						//Se ci sono filtered_trades, allora non esegue questo blocco ma esegue engine.update che c'è dopo
 						//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco e non esegue engine.update (perché c'è un return in questo blocco)
