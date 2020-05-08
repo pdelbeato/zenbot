@@ -594,11 +594,11 @@ module.exports = {
 				strat.data.limit_open_price.buy = 1000000
 				strat.data.limit_open_price.sell = 0
 
-				if (position.id === opts.position_id) {
-					return
-				}
-
 				s.positions.forEach(function (position, index, array) {
+					if (position.id === opts.position_id) {
+						return
+					}
+
 					if (position.side === 'buy') {
 						strat.data.limit_open_price.buy = Math.min(position.price_open, strat.data.limit_open_price.buy)
 					}

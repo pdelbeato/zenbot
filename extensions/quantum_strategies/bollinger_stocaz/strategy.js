@@ -646,24 +646,24 @@ module.exports = {
     ///////////////////////////////////////////
 
     function _onPositionClosed(cb) {
-      if (strat.opts.no_same_price) {
-        strat.data.limit_open_price.buy = 1000000
-        strat.data.limit_open_price.sell = 0
+    	if (strat.opts.no_same_price) {
+    		strat.data.limit_open_price.buy = 1000000
+    		strat.data.limit_open_price.sell = 0
 
-	if (position.id === opts.position_id) {
-		return
-	}
+    		s.positions.forEach(function (position, index, array) {
+    			if (position.id === opts.position_id) {
+    				return
+    			}
 
-        s.positions.forEach(function (position, index, array) {
-          if (position.side === 'buy') {
-            strat.data.limit_open_price.buy = Math.min(position.price_open, strat.data.limit_open_price.buy)
-          }
-          else {
-            strat.data.limit_open_price.sell = Math.max(position.price_open, strat.data.limit_open_price.sell)
-          }
-        })
-      }
-      cb(null, null)
+    			if (position.side === 'buy') {
+    				strat.data.limit_open_price.buy = Math.min(position.price_open, strat.data.limit_open_price.buy)
+    			}
+    			else {
+    				strat.data.limit_open_price.sell = Math.max(position.price_open, strat.data.limit_open_price.sell)
+    			}
+    		})
+    	}
+    	cb(null, null)
     }
   },
 
