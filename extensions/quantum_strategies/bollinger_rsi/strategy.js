@@ -14,9 +14,9 @@ var n = require('numbro')
 //c.strategy[bollinger_rsi] = {
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate Bollinger Bands every period_calc time
-//		size: 20,					//****** period size
+//		size: 20,					//****** Size of period_calc for bollinger
 //		time: 2,					//****** times of standard deviation between the upper/lower band and the moving averages
-//		rsi_size: 15,				//****** period size rsi
+//		rsi_size: 15,				//****** Size of period_calc for rsi
 //		min_bandwidth_pct: 0.50,	//****** minimum pct bandwidth to emit a signal
 //		upper_bound_pct: 0,			//****** pct the current price should be near the bollinger upper bound before we sell
 //		lower_bound_pct: 0,			//****** pct the current price should be near the bollinger lower bound before we buy
@@ -66,10 +66,6 @@ module.exports = {
 	init: function (s, callback = function() {}) {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
-
-		if (!strat.opts.size) {
-			strat.opts.min_periods = 1
-		}
 
 		if (!strat.opts.min_periods) {
 			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value

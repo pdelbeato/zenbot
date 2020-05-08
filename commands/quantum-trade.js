@@ -1210,7 +1210,9 @@ module.exports = function (program, conf) {
 			if (!so.min_periods) {
 				so.min_periods = 1
 				Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
-					so.min_periods = Math.max(so.min_periods, so.strategy[strategy_name].opts.min_periods)
+					if (so.strategy[strategy_name].opts.min_periods) {
+						so.min_periods = Math.max(so.min_periods, so.strategy[strategy_name].opts.min_periods)
+					}
 				})
 			}
 
