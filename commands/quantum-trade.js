@@ -70,7 +70,6 @@ module.exports = function (program, conf) {
 //	.option('--rsi_periods <periods>', 'number of periods to calculate RSI at', Number, conf.rsi_periods)
 //	.option('--poll_trades <ms>', 'poll new trades at this interval in ms', Number, conf.poll_trades)
 	.option('--currency_increment <amount>', 'Currency increment, if different than the asset increment', String, null)
-//	.option('--keep_lookback_periods <amount>', 'Keep this many lookback periods max. ', Number, conf.keep_lookback_periods)
 	.option('--disable_stats', 'disable printing order stats')
 	.option('--reset', 'reset previous positions and start new profit calculation from 0')
 //	.option('--use_fee_asset', 'Using separated asset to pay for fees. Such as binance\'s BNB or Huobi\'s HT', Boolean)
@@ -177,9 +176,16 @@ module.exports = function (program, conf) {
 			so.order_type = 'maker'
 		}
 
-		var db_cursor, trade_cursor
-		var query_start = tb().resize(so.period_length).subtract(so.min_periods * 2).toMilliseconds()
-		var days = Math.ceil((new Date().getTime() - query_start) / 86400000)
+		// if (!so.min_periods) {
+		// 	so.min_periods = 1
+		// 	Object.keys(so.strategy).forEach(function(strategy_name, index, array) {
+		// 		so.min_periods = Math.max(so.min_periods, so.strategy[strategy_name].opts.min_periods)
+		// 	})
+		// }
+
+		// var db_cursor, trade_cursor
+		// var query_start = tb().resize(so.period_length).subtract(so.min_periods * 2).toMilliseconds()
+		// var days = Math.ceil((new Date().getTime() - query_start) / 86400000)
 		var session = null
 
 		var lookback_size = 0
@@ -869,7 +875,7 @@ module.exports = function (program, conf) {
 				}
 				case 'delete': {
 					// var position_index = s.positions.findIndex(x => x.id === task.position_id)
-					var position = s.positions.find(x => x.id === task.position_id)
+					//var position = s.positions.find(x => x.id === task.position_id)
 
 					db_my_positions.deleteOne({'_id' : task.position_id}, function (err) {
 						if (err) {
@@ -1200,6 +1206,20 @@ module.exports = function (program, conf) {
 //			}
 //			/* End of implementing statistical status */
 
+			//Calcola il valore minimo di periodi da caricare per il pre-roll e da mantenere in memoria
+			if (!so.min_periods) {
+				so.min_periods = 1
+				Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
+					if (so.strategy[strategy_name].opts.min_periods) {
+						so.min_periods = Math.max(so.min_periods, so.strategy[strategy_name].opts.min_periods)
+					}
+				})
+			}
+
+			var db_cursor, trade_cursor
+			var query_start = tb().resize(so.period_length).subtract(so.min_periods * 2).toMilliseconds()
+			var days = Math.ceil((new Date().getTime() - query_start) / 86400000)
+
 			//Per caricare i dati dei trades, chiama zenbot.js backfill (so.selector.normalized) --days __ --conf __
 			var zenbot_cmd = process.platform === 'win32' ? 'zenbot.bat' : 'zenbot.sh'; // Use 'win32' for 64 bit windows too
 			var command_args = ['backfill', so.selector.normalized, '--days', days || 1]
@@ -1226,7 +1246,7 @@ module.exports = function (program, conf) {
 						sort: {
 							time: 1
 						},
-						limit: 1000
+						limit: 10000
 					}
 					if (db_cursor) {
 						opts.query.time = {$gt: db_cursor}
@@ -1238,21 +1258,30 @@ module.exports = function (program, conf) {
 					//Il download dei dati ha impiegato molto tempo, e altro tempo lo impiega db_trades.find
 					//Alla fine, quindi, i trades del preroll non saranno tutti, perchè il db scaricato sarà 
 					//completo solo fino al tempo di fine download. 
-					db_trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(async function (err, filtered_trades) {
+					// db_trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(async function (err, filtered_trades) {
+					db_trades.find(opts.query).sort(opts.sort).toArray(async function (err, filtered_trades) {
 						if (err) {
 							throw err
 						}
 						
+						// db_trades.deleteMany(opts.query, function (err, numRemoved) {
+						// 	if (err) {
+						// 		console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - Pre-roll - error cleaning db_trades')
+						// 		console.error(err)
+						// 	}
+						// 	debug.msg('Pre-roll - ' + numRemoved + ' trades deleted')
+						// })
+						
+						// db_trades.compactCollection()
+						
 						//Se ci sono filtered_trades, allora non esegue questo blocco ma esegue engine.update che c'è dopo
 						//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco e non esegue engine.update (perché c'è un return in questo blocco)
 						if (!filtered_trades.length) {
-							// if (s.tradeProcessingQueue.length() != 0) {
-							// 	console.log('Pre-roll in progress...')
-							// 	setTimeout(getNext, 1000)
-							// 	return
-							// }
-							await s.tradeProcessingQueue.drain()
-							var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
+							if (s.tradeProcessingQueue.length()) {
+								await s.tradeProcessingQueue.drain()
+							}
+
+							var head = '\n------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
 							console.log(head)
 
 							//A che diavolo serve?
@@ -1344,7 +1373,7 @@ module.exports = function (program, conf) {
 									session.start_capital_asset = Number(s.start_capital_asset)
 									session.start_price = Number(s.start_price)
 
-									if (s.lookback.length > so.keep_lookback_periods) {
+									if (s.lookback.length > so.min_periods) {
 										s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 									}
 
@@ -1379,27 +1408,23 @@ module.exports = function (program, conf) {
 									}
 
 									//Attivazione del bot di Telegram
-//									if (so.telegramBot && so.telegramBot.on) {
 									if (so.notifiers.telegram && so.notifiers.telegram.on) {
 										const Telegram = require('node-telegram-bot-api')
 										const options = {
 											polling: true,
 										};
-//										const telegramBot = new Telegram(so.telegramBot.bot_token, options);
 										const telegramBot = new Telegram(so.notifiers.telegram.bot_token, options);
 
 
 										telegramBot.onText(/\/long/, function(msg) {
 											debug.msg('TelegramBot - ' + msg.text.toString())
 											so.active_long_position = !so.active_long_position
-//											telegramBot.sendMessage(so.telegramBot.chat_id, (so.active_long_position? 'Long' : 'No long'))
 											telegramBot.sendMessage(so.notifiers.telegram.chat_id, (so.active_long_position? 'Long' : 'No long'))
 										})
 
 										telegramBot.onText(/\/short/, function(msg) {
 											debug.msg('TelegramBot - ' + msg.text.toString())
 											so.active_short_position = !so.active_short_position
-//											telegramBot.sendMessage(so.telegramBot.chat_id, (so.active_short_position? 'Short' : 'No short'))
 											telegramBot.sendMessage(so.notifiers.telegram.chat_id, (so.active_short_position? 'Short' : 'No short'))
 										})
 

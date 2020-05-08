@@ -194,7 +194,6 @@ module.exports = function (program, conf) {
 
         var totalTrades = await collectionCursor.count(true)
         const collectionCursorStream = collectionCursor.stream()
-
         var numTrades = 0
         var lastTrade
 
@@ -205,7 +204,9 @@ module.exports = function (program, conf) {
               reverse_point = db_cursor
               return getNext()
             }
-            //await s.tradeProcessingQueue.drain()
+            if(s.tradeProcessingQueue.length()) {
+            	await s.tradeProcessingQueue.drain()
+            }
             exitSim()
             return
           }
@@ -227,28 +228,23 @@ module.exports = function (program, conf) {
         }
 
         collectionCursorStream.on('data', function(trade) {
-          lastTrade = trade
-          numTrades++
-          if (so.symmetrical && reversing) {
-            trade.orig_time = trade.time
-            trade.time = reverse_point + (reverse_point - trade.time)
-          }
+        	lastTrade = trade
+        	numTrades++
+        	if (so.symmetrical && reversing) {
+        		trade.orig_time = trade.time
+        		trade.time = reverse_point + (reverse_point - trade.time)
+        	}
+          
+        	eventBus.emit('trade', trade)
 
-          form_date=GetFormattedDate(new Date(trade.time))
-          new_signal=so.signal.find(x => x.Date === form_date)
-          if (typeof new_signal !== 'undefined') {
-            if (new_signal.json_signal=="buy"){
-              so.active_long_position=true
-              so.active_short_position=false
-            }else{
-              so.active_long_position=false
-              so.active_short_position=true
-            }
-          }
-          eventBus.emit('trade', trade)
-          if (numTrades && totalTrades && totalTrades == numTrades) {
-            onCollectionCursorEnd()
-          }
+        	if (numTrades && totalTrades && totalTrades == numTrades) {
+        		onCollectionCursorEnd()
+        	}
+        })
+
+        collectionCursorStream.on('error', function(err) {
+          console.log('Streaming error: ' + err)
+          return getNext()
         })
       }
 

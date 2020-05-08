@@ -1,11 +1,9 @@
 var n = require('numbro')
-  //, ti_rsi = require('../../../lib/ti_rsi')
-  //, bollinger = require('../../../lib/bollinger')
   , ta_bollinger = require('../../../lib/ta_bollinger')
   , ta_stoch = require('../../../lib/ta_stoch')
   , Phenotypes = require('../../../lib/phenotype')
   , inspect = require('eyes').inspector({ maxLength: 4096 })
-  //, crypto = require('crypto')
+  , tb = require('timebucket')
   , { formatPercent } = require('../../../lib/format')
   , debug = require('../../../lib/debug')
 
@@ -14,7 +12,6 @@ var n = require('numbro')
 //c.strategy[this.name] = {
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate Bollinger Bands every period_calc time
-//		min_periods: 21, 			//****** Minimum number of calc_lookback to maintain (timeframe is "period_calc")
 //		size: 20,					//****** period size
 //		time: 2,					//****** times of standard deviation between the upper/lower band and the moving averages
 //		min_bandwidth_pct: 0.50,	//****** minimum pct bandwidth to emit a signal
@@ -72,6 +69,10 @@ module.exports = {
     let strat_name = this.name
     let strat = s.options.strategy[strat_name]
 
+    if (!strat.opts.min_periods) {
+		strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
+    }
+    
     strat.data = {
       bollinger: {
         upperBound: null,
@@ -645,20 +646,24 @@ module.exports = {
     ///////////////////////////////////////////
 
     function _onPositionClosed(cb) {
-      if (strat.opts.no_same_price) {
-        strat.data.limit_open_price.buy = 1000000
-        strat.data.limit_open_price.sell = 0
+    	if (strat.opts.no_same_price) {
+    		strat.data.limit_open_price.buy = 1000000
+    		strat.data.limit_open_price.sell = 0
 
-        s.positions.forEach(function (position, index, array) {
-          if (position.side === 'buy') {
-            strat.data.limit_open_price.buy = Math.min(position.price_open, strat.data.limit_open_price.buy)
-          }
-          else {
-            strat.data.limit_open_price.sell = Math.max(position.price_open, strat.data.limit_open_price.sell)
-          }
-        })
-      }
-      cb(null, null)
+    		s.positions.forEach(function (position, index, array) {
+    			if (position.id === opts.position_id) {
+    				return
+    			}
+
+    			if (position.side === 'buy') {
+    				strat.data.limit_open_price.buy = Math.min(position.price_open, strat.data.limit_open_price.buy)
+    			}
+    			else {
+    				strat.data.limit_open_price.sell = Math.max(position.price_open, strat.data.limit_open_price.sell)
+    			}
+    		})
+    	}
+    	cb(null, null)
     }
   },
 

@@ -2,6 +2,7 @@ var n = require('numbro')
 	, Phenotypes = require('../../../lib/phenotype')
 	, inspect = require('eyes').inspector({ maxLength: 4096 })
 	, debug = require('../../../lib/debug')
+	, tb = require('timebucket')
 	, { formatPercent } = require('../../../lib/format')
 	, z = require('zero-fill')
 	, sma = require('../../../lib/sma')
@@ -12,11 +13,10 @@ var n = require('numbro')
 //c.strategy['catching_orders'] = {
 //	opts: {								//****** To store options
 //		period_calc: '1h',					//****** After how much time the auto-catch orders must be tuned 
-//		min_periods: 2, 						//****** Minimum number of calc_lookback to maintain (timeframe is "period_calc")
+//		size: 60,						//****** SMA size in period_length
 //		catch_order_pct: 3,					//****** pct for position catch order
 //		catch_auto_pct: 5,					//****** pct for auto catch order
 //		catch_fixed_value: 500,				//****** Currency value for auto catch order
-//		catch_SMA: 60,						//****** SMA size in period_length
 //		catch_auto_long: false,				//****** Option for auto-long catch orders (buy on low) based on SMA
 //		catch_auto_short: false,			//****** Option for auto-short catch orders (sell on high) based on SMA
 //	},
@@ -54,6 +54,10 @@ module.exports = {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 
+		if (!strat.opts.min_periods) {
+			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
+		}
+
 		strat.data = {
 			sma: null,
 		}
@@ -69,11 +73,10 @@ module.exports = {
 
 	getOptions: function (strategy_name) {
 		this.option(strategy_name, 'period_calc', 'After how many periods the auto-catch orders must be tuned', String, '1h')
-		this.option(strategy_name, 'min_periods', 'Min. number of history periods', Number, 61)
+		this.option(strategy_name, 'size', 'SMA size in period_length for auto-catch orders', Number, 60)
 		this.option(strategy_name, 'catch_order_pct', '% for position-catch orders', Number, 3)
 		this.option(strategy_name, 'catch_auto_pct', '% for auto-catch order', Number, 5)
 		this.option(strategy_name, 'catch_fixed_value', 'Amount of currency for auto-catch order', Number, 500)
-		this.option(strategy_name, 'catch_SMA', 'SMA size in period_length for auto-catch orders', Number, 60)
 		this.option(strategy_name, 'catch_auto_long', 'Option for auto-long catch orders (buy on low) based on SMA', Boolean, false)
 		this.option(strategy_name, 'catch_auto_short', 'Option for auto-short catch orders (sell on high) based on SMA', Boolean, false)
 	},
@@ -259,7 +262,7 @@ module.exports = {
 
 		function _onStrategyPeriod(cb) {
 			//Calcolo il pivot price (strat.data.sma)
-			strat.data.sma = roundToNearest(sma(s, null, strat.opts.min_periods, 'close'))
+			strat.data.sma = roundToNearest(sma(s, null, strat.opts.size, 'close'))
 
 			if (strat.data.sma && (strat.opts.catch_auto_long || strat.opts.catch_auto_short)) {
 				//Cancello gli ordini vecchi

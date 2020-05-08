@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{symbol}} sim result</title>
+  <style type="text/css">
+  html, body, #container {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+  </style>
+</head>
+<body>
+<div id="anychart-embed-samples-bct-marker-chart-04" class="anychart-embed anychart-embed-samples-bct-marker-chart-04">
+<script src="https://cdn.anychart.com/releases/8.7.1/js/anychart-base.min.js?hcode=a0c21fc77e1449cc86299c5faa067dc4"></script>
+<script src="https://cdn.anychart.com/releases/8.7.1/js/anychart-exports.min.js?hcode=a0c21fc77e1449cc86299c5faa067dc4"></script>
+<script src="https://cdn.anychart.com/releases/8.7.1/js/anychart-ui.min.js?hcode=a0c21fc77e1449cc86299c5faa067dc4"></script>
+<div id="ac_style_samples-bct-marker-chart-04" style="display:none;">
+html, body, #container {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+</div>
+<script>(function(){
+function ac_add_to_head(el){
+	var head = document.getElementsByTagName('head')[0];
+	head.insertBefore(el,head.firstChild);
+}
+function ac_add_link(url){
+	var el = document.createElement('link');
+	el.rel='stylesheet';el.type='text/css';el.media='all';el.href=url;
+	ac_add_to_head(el);
+}
+function ac_add_style(css){
+	var ac_style = document.createElement('style');
+	if (ac_style.styleSheet) ac_style.styleSheet.cssText = css;
+	else ac_style.appendChild(document.createTextNode(css));
+	ac_add_to_head(ac_style);
+}
+ac_add_link('https://cdn.anychart.com/releases/8.7.1/css/anychart-ui.min.css?hcode=a0c21fc77e1449cc86299c5faa067dc4');
+ac_add_style(document.getElementById("ac_style_samples-bct-marker-chart-04").innerHTML);
+ac_add_style(".anychart-embed-samples-bct-marker-chart-04{width:600px;height:450px;}");
+})();</script>
+<div id="container"></div>
+<script>
+anychart.onDocumentReady(function () {
+
+  // create data
+    var data1 = [
+    {x: 2000, value: 1100},
+    {x: 2001, value: 800},
+    {x: 2002, value: 1100},
+    {x: 2003, value: 1500},
+    {x: 2004, value: 921},
+    {x: 2005, value: 1000},
+    {x: 2006, value: 1400}
+  ];
+
+  var data2 = [
+    {x: 2000, value: 900},
+    {x: 2001, value: 950},
+    {x: 2002, value: 800},
+    {x: 2003, value: 1000},
+    {x: 2004, value: 800},
+    {x: 2005, value: 790},
+    {x: 2006, value: 800}
+  ];
+
+  // create a chart
+  var chart = anychart.cartesian();
+
+  // set the interactivity mode
+  chart.interactivity().hoverMode("by-x");
+
+  // create the first series and set the data
+  series1 = chart.marker(data1);
+
+  // configure the visual settings of the first series
+  series1.normal().fill("#00cc99", 0.3);
+  series1.hovered().fill("#00cc99", 0.1);
+  series1.selected().fill("#00cc99", 0.5);
+  series1.normal().stroke("#00cc99", 1, "10 5", "round");
+  series1.hovered().stroke("#00cc99", 2, "10 5", "round");
+  series1.selected().stroke("#00cc99", 4, "10 5", "round");
+
+  // create the second series and set the data
+  series2 = chart.marker(data2);
+
+  // configure the visual settings of the second series
+  series2.normal().fill("#0066cc", 0.3);
+  series2.hovered().fill("#0066cc", 0.1);
+  series2.selected().fill("#0066cc", 0.5);
+  series2.normal().hatchFill("percent50", "#0066cc");
+  series2.hovered().hatchFill("percent50", "#0066cc");
+  series2.selected().hatchFill("percent50", "#0066cc");
+  series2.normal().stroke("#0066cc");
+  series2.hovered().stroke("#0066cc", 2);
+  series2.selected().stroke("#0066cc", 4);
+
+  // set the size of markers
+  series1.normal().size(15);
+  series1.hovered().size(20);
+  series1.selected().size(20);
+  series2.normal().size(15);
+  series2.hovered().size(20);
+  series2.selected().size(20);
+
+  // set the chart title
+  chart.title("Marker Chart: Appearance");
+
+  // set the titles of the axes
+  chart.xAxis().title("Year");
+  chart.yAxis().title("Sales, $");
+
+  // set the container id
+  chart.container("container");
+
+  // initiate drawing the chart
+  chart.draw();
+});
+</script>
+</div></body>
+</html>

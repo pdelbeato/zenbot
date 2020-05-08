@@ -1,5 +1,5 @@
 var n = require('numbro')
-//, bollinger = require('../../../lib/bollinger')
+, tb = require('timebucket')
 , rsi = require('../../../lib/rsi')
 , ta_rsi = require('../../../lib/ta_rsi')
 , ta_bollinger = require('../../../lib/ta_bollinger')
@@ -14,10 +14,9 @@ var n = require('numbro')
 //c.strategy[bollinger_rsi] = {
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate Bollinger Bands every period_calc time
-//		min_periods: 21, 			//****** Minimum number of calc_lookback to maintain (timeframe is "period_calc")
-//		size: 20,					//****** period size
+//		size: 20,					//****** Size of period_calc for bollinger
 //		time: 2,					//****** times of standard deviation between the upper/lower band and the moving averages
-//		rsi_size: 15,				//****** period size rsi
+//		rsi_size: 15,				//****** Size of period_calc for rsi
 //		min_bandwidth_pct: 0.50,	//****** minimum pct bandwidth to emit a signal
 //		upper_bound_pct: 0,			//****** pct the current price should be near the bollinger upper bound before we sell
 //		lower_bound_pct: 0,			//****** pct the current price should be near the bollinger lower bound before we buy
@@ -67,6 +66,10 @@ module.exports = {
 	init: function (s, callback = function() {}) {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
+
+		if (!strat.opts.min_periods) {
+			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
+		}
 
 		strat.data = {							//****** To store calculated data
 			bollinger: {
@@ -592,6 +595,10 @@ module.exports = {
 				strat.data.limit_open_price.sell = 0
 
 				s.positions.forEach(function (position, index, array) {
+					if (position.id === opts.position_id) {
+						return
+					}
+
 					if (position.side === 'buy') {
 						strat.data.limit_open_price.buy = Math.min(position.price_open, strat.data.limit_open_price.buy)
 					}

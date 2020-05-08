@@ -2,7 +2,6 @@ var n = require('numbro')
 	, Phenotypes = require('../../../lib/phenotype')
 	, inspect = require('eyes').inspector({ maxLength: 4096 })
 	, debug = require('../../../lib/debug')
-	, tb = require('timebucket')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
@@ -37,6 +36,39 @@ var n = require('numbro')
 //stream: process.stdout,   // Stream to write to, or null
 //maxLength: 2048           // Truncate output if longer
 
+//{ name: 'CDLMARUBOZU',
+//	group: 'Pattern Recognition',
+//	hint: 'Marubozu',
+//	inputs: [ { name: 'inPriceOHLC', type: 'price', flags: [Object] } ],
+//	optInputs: [],
+//	outputs: [ { '0': 'line', name: 'outInteger', type: 'integer', flags: {} } ] } 
+
+	 /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - long real body
+    * - no or very short upper and lower shadow
+    * The meaning of "long" and "very short" is specified with TA_SetCandleSettings
+    * outInteger is positive (1 to 100) when white (bullish), negative (-1 to -100) when black (bearish)
+    */
+	
+//	{ name: 'CDLKICKINGBYLENGTH',
+//	group: 'Pattern Recognition',
+//	hint: 'Kicking - bull/bear determined by the longer marubozu', 
+//inputs: [ { name: 'inPriceOHLC', type: 'price', flags: [Object] } ], 
+// optInputs: [], 
+// outputs: 
+// [ { '0': 'line', name: 'outInteger', type: 'integer', flags: {} } ] }
+	
+	  /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: marubozu
+    * - second candle: opposite color marubozu
+    * - gap between the two candles: upside gap if black then white, downside gap if white then black
+    * The meaning of "long body" and "very short shadow" is specified with TA_SetCandleSettings
+    * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish; the longer of the two
+    * marubozu determines the bullishness or bearishness of this pattern
+    */
+	
 module.exports = {
 	name: '_name_',
 	description: '_Description_',
@@ -46,10 +78,6 @@ module.exports = {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 		
-		//Only if there is a "size"
-		if (!strat.opts.min_periods) {
-			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
-		}
 
 		strat.data = {
 			//	data_1: {

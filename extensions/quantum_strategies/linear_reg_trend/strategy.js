@@ -1,17 +1,22 @@
 var n = require('numbro')
-	, Phenotypes = require('../../../lib/phenotype')
-	, inspect = require('eyes').inspector({ maxLength: 4096 })
-	, debug = require('../../../lib/debug')
-	, tb = require('timebucket')
+, Phenotypes = require('../../../lib/phenotype')
+, inspect = require('eyes').inspector({ maxLength: 4096 })
+, debug = require('../../../lib/debug')
+, tb = require('timebucket')
+, ta_linearRegSlope = require('../../../lib/ta_linearreg_slope')
+, { formatPercent } = require('../../../lib/format')
+
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
-//c.strategy[_name_] = {
+//c.strategy['linear_reg_trend'] = {
 //	opts: {							//****** To store options
-//		option_1: null,
-//		option_2: null,
-//	}
-//}
+//		period_calc: '15m',			//****** Calculate linear regression every period_calc time
+//		size: 96,					//****** Use 'size' period to calculate linear regression
+//		upper_threshold: 0.2,		//****** Upper threshold (long if price is higher)
+//		lower_threshold: -0.2,		//****** Lower threshold (short if price is lower)
+//		activated: false,			//****** Activate this strategy
+//	},
 //---------------------------------------------
 
 
@@ -38,57 +43,68 @@ var n = require('numbro')
 //maxLength: 2048           // Truncate output if longer
 
 module.exports = {
-	name: '_name_',
-	description: '_Description_',
+	name: 'linear_reg_trend',
+	description: 'Set active long/short based on linear regression trend',
 	noHoldCheck: false,
 
 	init: function (s, callback = function() {}) {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
-		
-		//Only if there is a "size"
+
 		if (!strat.opts.min_periods) {
 			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
 		}
 
 		strat.data = {
-			//	data_1: {
-			//		data_1_1: null,
-			//		data_1_2: null,
-			//	},
-			//	data_2: {
-			//		data_2_1: null,
-			//		data_2_2: null,
-			//	}
+			slope: null,
 		}
 
-		s.positions.forEach(function (position, index) {
-			if (!position.strategy_parameters[strat_name]) {
-				position.strategy_parameters[strat_name] = {}
-			}
-		})
+//		s.positions.forEach(function (position, index) {
+//			if (!position.strategy_parameters[strat_name]) {
+//				position.strategy_parameters[strat_name] = {}
+//			}
+//		})
 
 		callback(null, null)
 	},
 
 	getOptions: function (strategy_name) {
-		this.option(strategy_name, '_opts_1', 'Description', String, '_default_')
-		this.option(strategy_name, '_opts_2', 'Description', Number, 30)
-		this.option(strategy_name, '_opts_3', 'Description', Boolean, true)
+		this.option(strategy_name, 'period_calc', 'Calculate Linear Regression Trend every period_calc time', String, '15m')
+		this.option(strategy_name, 'size', 'Use \'size\' period to calculate linear regression', Number, 20)
+		this.option(strategy_name, 'upper_threshold', 'Upper threshold (long if price is higher)', Number, 0.5)
+		this.option(strategy_name, 'lower_threshold', 'Lower threshold (short if price is lower)', Number, -0.5)
 	},
 
 	getCommands: function (s, strategy_name) {
 		let strat = s.options.strategy[strategy_name]
 
 		this.command('o', {
-			desc: ('_name_ - List options'.grey), action: function () {
-				s.tools.listStrategyOptions(strategy_name, false)
+			desc: ('Linear Regression Trend - List options'.grey),
+			action: function() {
+				s.tools.listStrategyOptions('linear_reg_trend', false)
 			}
 		})
-		
-		this.command('g', {
-			desc: ('_name_ - Description'), action: function () {
-				//User defined
+		this.command('+', {desc: ('Linear Regression Trend - Upper threshold'.grey + ' INCREASE'.green), action: function() {
+			strat.opts.upper_threshold = Number((strat.opts.upper_threshold + 0.01).toFixed(2))
+			console.log('\n' + 'Linear Regression Trend - Upper threshold' + ' INCREASE'.green + ' -> ' + strat.opts.upper_threshold)
+		}})
+		this.command('-', {desc: ('Linear Regression Trend - Upper threshold'.grey + ' DECREASE'.red), action: function() {
+			strat.opts.upper_threshold = Number((strat.opts.upper_threshold - 0.01).toFixed(2))
+			console.log('\n' + 'Linear Regression Trend - Upper threshold' + ' DECREASE'.red + ' -> ' + strat.opts.upper_threshold)
+		}})
+		this.command('*', {desc: ('Linear Regression Trend - Lower threshold'.grey + ' INCREASE'.green), action: function() {
+			strat.opts.lower_threshold = Number((strat.opts.lower_threshold + 0.01).toFixed(2))
+			console.log('\n' + 'Linear Regression Trend - Lower threshold' + ' INCREASE'.green + ' -> ' + strat.opts.lower_threshold)
+		}})
+		this.command('_', {desc: ('Linear Regression Trend - Lower threshold'.grey + ' DECREASE'.red), action: function() {
+			strat.opts.lower_threshold = Number((strat.opts.lower_threshold - 0.01).toFixed(2))
+			console.log('\n' + 'Linear Regression Trend - Lower threshold' + ' DECREASE'.red + ' -> ' + strat.opts.lower_threshold)
+		}})
+		this.command('i', {
+			desc: ('Linear Regression Trend - Toggle activation'.grey),
+			action: function() {
+				strat.opts.activated = !strat.opts.activated
+				console.log('\nToggle activation: ' + (strat.opts.activated ? 'ON'.green.inverse : 'OFF'.red.inverse))
 			}
 		})
 	},
@@ -155,9 +171,23 @@ module.exports = {
 		///////////////////////////////////////////
 
 		function _onStrategyPeriod(cb) {
-			//User defined
-			
-			cb(null, null)
+			ta_linearRegSlope(s, 'close', 'linear_reg_trend', strat.opts.size)
+			.then(function (result) {
+				if (strat.opts.activated) {
+					if (strat.data.slope > strat.opts.upper_threshold) {
+						s.options.active_long_position = true
+						s.options.active_short_position = false
+					}
+					else if (strat.data.slope < strat.opts.lower_threshold) {
+						s.options.active_long_position = false
+						s.options.active_short_position = true
+					}
+				}
+				cb(null, result)
+			})
+			.catch(function (err) {
+				cb(err, null)
+			})
 		}
 	},
 
@@ -184,9 +214,24 @@ module.exports = {
 		/////////////////////////////////////////////////////
 
 		function _onReport(cb) {
-			//User defined
+			var color = null
 			
-			//cols.push('_something_')
+			if (strat.data.slope) {			
+				if (strat.data.slope > strat.opts.upper_threshold) {
+					color = 'green'
+				}
+				else if (strat.data.slope > strat.opts.lower_threshold) {
+					color = 'white'
+				}
+				else {
+					color = 'red'
+				}
+
+				cols.push(s.tools.zeroFill(8, ('[' + n(strat.data.slope).format('0.00') + '‰]'), ' ')[color])
+			}
+			else {
+				cols.push(s.tools.zeroFill(8, '', ' '))
+			}
 
 			cb()
 		}
