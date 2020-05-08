@@ -67,7 +67,6 @@ module.exports = function (program, conf) {
 
       var data_array =  {}
 
-
       s.positions = []
       //		s.closed_positions = []
       s.my_trades = []
@@ -149,7 +148,8 @@ module.exports = function (program, conf) {
       var db_data_cursor
       var query_start = (so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null)
       //var query_start = 1588202900000
-
+      so.signal = JSON.parse(fs.readFileSync('data.json'));
+      console.log(so.signal[0].Date)
       var getNext = async () => {
         var opts = {
           query: {
@@ -233,8 +233,19 @@ module.exports = function (program, conf) {
             trade.orig_time = trade.time
             trade.time = reverse_point + (reverse_point - trade.time)
           }
-          eventBus.emit('trade', trade)
 
+          form_date=GetFormattedDate(new Date(trade.time))
+          new_signal=so.signal.find(x => x.Date === form_date)
+          if (typeof new_signal !== 'undefined') {
+            if (new_signal.json_signal=="buy"){
+              so.active_long_position=true
+              so.active_short_position=false
+            }else{
+              so.active_long_position=false
+              so.active_short_position=true
+            }
+          }
+          eventBus.emit('trade', trade)
           if (numTrades && totalTrades && totalTrades == numTrades) {
             onCollectionCursorEnd()
           }
@@ -242,6 +253,19 @@ module.exports = function (program, conf) {
       }
 
       return getNext()
+
+
+      function GetFormattedDate(unform_date) {
+        var month = unform_date .getMonth()+1
+        if (month < 10) {
+          month="0".concat(month)}
+        var day = unform_date .getDate()
+        if (day < 10) {
+          day="0".concat(day)}
+        var year = unform_date .getFullYear()
+        return year + "-" + day + "-" + month;
+      }
+
 
       function exitSim() {
         if (!s.period) {
@@ -301,7 +325,7 @@ module.exports = function (program, conf) {
         console.log('\nstart_capital', n(s.start_capital_currency).format('0.00000000').yellow)
         //console.log('start_price', n(s.start_price).format('0.00000000').yellow)
         //		console.log('start_price', n(s.lookback[s.lookback.length - 1].close).format('0.00000000').yellow)
-        console.log(s.start_price)
+
         console.log('start_price', n(s.start_price).format('0.00000000').yellow)
         console.log('close_price', n(s.period.close).format('0.00000000').yellow)
         var buy_hold = (s.start_price ? n(s.period.close).multiply(n(s.start_capital_currency).divide(s.start_price)) : n(s.balance.currency))
@@ -495,7 +519,10 @@ module.exports = function (program, conf) {
                 ])
                 data_markers_buy.push({
                   "date": t.date,
-                  "description":  descr1.concat(t.id,"  timestamp: ", t.time)
+                  "description":  descr1.concat(t.id,"  timestamp: ", t.time),
+                  "id": t.id,
+                  "value":t.price,
+                  "time":t.time
                 })
 
 
@@ -512,7 +539,10 @@ module.exports = function (program, conf) {
                 ])
                 data_markers_sell.push({
                   "date": t.date,
-                  "description":  descr1.concat(t.id," timestamp: ", t.time)
+                  "description":  descr1.concat(t.id," timestamp: ", t.time),
+                  "id": t.id,
+                  "value":t.price,
+                  "time":t.time
                 })
               }
 
@@ -520,6 +550,24 @@ module.exports = function (program, conf) {
 
 
 
+
+
+            var trade_segment = []
+            data_markers_buy.map(function (t) {
+              var id_match=data_markers_sell.find(x => x.id === t.id)
+              if (typeof id_match!== 'undefined'){
+                console.log(id_match)
+                trade_segment.push({
+                  xAnchor: GetFormattedDate(new Date(t.time)),
+                  valueAnchor: t.value,
+                  secondXAnchor: GetFormattedDate(new Date(id_match.time)),
+                  secondValueAnchor: id_match.match
+
+                })
+              }
+
+            })
+            console.log(trade_segment)
             var code = 'var data = ' + JSON.stringify(data_chart) + ';\n'
             code += 'var trades_chart_buy = ' + JSON.stringify(trades_chart_buy) + ';\n'
             code += 'var trades_chart_sell = ' + JSON.stringify(trades_chart_sell) + ';\n'

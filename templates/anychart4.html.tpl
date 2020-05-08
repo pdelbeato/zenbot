@@ -52,9 +52,11 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
   <script type="text/javascript">
 
 
-    var withData = function (data, trades_chart_buy, trades_chart_sell, data_markers_buy, options) {
+    var withData = function (data, trades_chart_buy, trades_chart_sell, data_markers_buy, data_markers_sell, options) {
 
 
+      console.log(data_markers_buy)
+      console.log(data_markers_sell)
   var i =0; var strategy_sel =[]
   Object.keys(options.chart).map(function (key) {
     var strategy=key
@@ -228,7 +230,7 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
 {{code}}
 //withData(data, trades, options)
   </script>
-  <body onload="withData(data, trades_chart_buy, trades_chart_sell, data_markers_buy, options)">
+  <body onload="withData(data, trades_chart_buy, trades_chart_sell, data_markers_buy,data_markers_sell, options)">
 
   <!-- <pre><code>{{output}}</code></pre> -->
   </body>
