@@ -176,7 +176,7 @@ module.exports = {
 				if (strat.opts.activated) {
 					if (strat.data.slope > strat.opts.upper_threshold) {
 						s.options.active_long_position = true
-						s.ootions.active_short_position = false
+						s.options.active_short_position = false
 					}
 					else if (strat.data.slope < strat.opts.lower_threshold) {
 						s.options.active_long_position = false
@@ -227,10 +227,10 @@ module.exports = {
 					color = 'red'
 				}
 
-				cols.push(s.tools.zeroFill(9, ('[' + n(strat.data.slope).format('0.00') + '‰]'), ' ')[color])
+				cols.push(s.tools.zeroFill(8, ('[' + n(strat.data.slope).format('0.00') + '‰]'), ' ')[color])
 			}
 			else {
-				cols.push(s.tools.zeroFill(9, '', ' '))
+				cols.push(s.tools.zeroFill(8, '', ' '))
 			}
 
 			cb()
