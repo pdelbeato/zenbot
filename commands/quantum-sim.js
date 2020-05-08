@@ -234,7 +234,17 @@ module.exports = function (program, conf) {
         		trade.orig_time = trade.time
         		trade.time = reverse_point + (reverse_point - trade.time)
         	}
-          
+          form_date=GetFormattedDate(new Date(trade.time))
+          new_signal=so.signal.find(x => x.Date === form_date)
+          if (typeof new_signal !== 'undefined') {
+            if (new_signal.json_signal=="buy"){
+              so.active_long_position=true
+              so.active_short_position=false
+            }else{
+              so.active_long_position=false
+              so.active_short_position=true
+            }
+          }
         	eventBus.emit('trade', trade)
 
         	if (numTrades && totalTrades && totalTrades == numTrades) {
