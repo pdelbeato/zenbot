@@ -467,7 +467,7 @@ module.exports = {
     let strat_name = this.name
     let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
 
-    if (!opts.actual) {
+    if (!opts.actual && s.lookback[0]) {
       strat.data = s.lookback[0].strategy[strat_name].data
     }
 
@@ -579,12 +579,14 @@ module.exports = {
       let max_profit_position = s.options.strategy[strat_name].data.max_profit_position
       let side_max_profit = null
       let pct_max_profit = null
+      let result = null
+
       if (max_profit_position.buy != null || max_profit_position.sell != null) {
         side_max_profit = ((max_profit_position.buy ? max_profit_position.buy.profit_net_pct : -100) > (max_profit_position.sell ? max_profit_position.sell.profit_net_pct : -100) ? 'buy' : 'sell')
         pct_max_profit = max_profit_position[side_max_profit].profit_net_pct
+        result = ('Bollinger position: ' + side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit / 100))
       }
-      let result = (side_max_profit ? ('Bollinger position: ' + side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit / 100)) : '')
-      //			debug.msg('Strategy Bollinger - onUpdateMessage: ' + result)
+      
       cb(null, result)
     }
   },

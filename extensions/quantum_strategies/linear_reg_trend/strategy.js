@@ -201,7 +201,7 @@ module.exports = {
 		let strat_name = this.name
 		let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
 
-		if (!opts.actual) {
+		if (!opts.actual && s.lookback[0]) {
 			strat.data = s.lookback[0].strategy[strat_name].data
 		}
 
@@ -255,7 +255,11 @@ module.exports = {
 		///////////////////////////////////////////
 
 		function _onUpdateMessage(cb) {
-			let result = ('Linear Regression slope: ' + n(strat.data.slope).format('0.00') + '‰]')
+			let result = null
+
+			if (strat.data.slope) {
+				result = ('Linear Regression slope: ' + n(strat.data.slope).format('0.00') + '‰]')
+			}
 			
 			cb(null, result)
 		}

@@ -298,7 +298,7 @@ module.exports = {
 		let strat_name = this.name
 		let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
 
-		if (!opts.actual) {
+		if (!opts.actual && s.lookback[0]) {
 			strat.data = s.lookback[0].strategy[strat_name].data
 		}
 
@@ -353,7 +353,7 @@ module.exports = {
 				cols.push(s.tools.zeroFill(8, '', ' '))
 			}
 
-			cb(null, null)
+			cb()
 		}
 	},
 
@@ -373,6 +373,7 @@ module.exports = {
 			let max_trail_profit_position_id = s.options.strategy.trailing_stop.data.max_trail_profit_position_id
 			let side_max_trail_profit = null
 			let pct_max_trail_profit = null
+			let result = null
 			
 			if (max_trail_profit_position_id && max_trail_profit_position_id.buy != null || max_trail_profit_position_id.sell != null) {
 				let position = {
@@ -382,8 +383,8 @@ module.exports = {
 				
 				side_max_trail_profit =  ((position.buy ? position.buy.profit_net_pct : -100) > (position.sell ? position.sell.profit_net_pct : -100) ? 'buy' : 'sell')
 				pct_max_trail_profit = position[side_max_trail_profit].profit_net_pct
+				result = ('Trailing position: ' + (side_max_trail_profit[0].toUpperCase() + formatPercent(pct_max_trail_profit/100)))
 			}
-			let result = (side_max_trail_profit ? ('Trailing position: ' + (side_max_trail_profit[0].toUpperCase() + formatPercent(pct_max_trail_profit/100))) : '')
 			
 			cb(null, result)
 		}

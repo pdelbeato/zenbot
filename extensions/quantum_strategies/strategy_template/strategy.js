@@ -171,7 +171,7 @@ module.exports = {
 		let strat_name = this.name
 		let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
 
-		if (!opts.actual) {
+		if (!opts.actual && s.lookback[0]) {
 			strat.data = s.lookback[0].strategy[strat_name].data
 		}
 
