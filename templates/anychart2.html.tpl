@@ -52,34 +52,125 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
   <script type="text/javascript">
 
 
-    var withData = function (data, trades_chart_buy, trades_chart_sell, data_markers_buy, data_markers_sell, options) {
-
-
-      console.log(data_markers_buy)
-      console.log(data_markers_sell)
-  var i =0; var strategy_sel =[]
-  Object.keys(options.chart).map(function (key) {
-    var strategy=key
-    Object.keys(options.chart[strategy].data).map(function (sub_key) {
-      i++
-
-      strategy_sel[i-1]=sub_key
-    })
-    })
+    var withData = function (data, trades, options) {
 
 
 
-    anychart.onDocumentReady(function () {
+      anychart.onDocumentReady(function () {
     //data=data.reverse();
-    data_chart=data
+
+    close_ref=data[0].close;
+
+    data = data.map(function (d) {
+      d.date = new Date(d.time)
+      if (typeof d.strategy === 'object') {
+        if (typeof d.strategy.bollinger.data.bollinger === 'object') {
+          d.upperBound=d.strategy.bollinger.data.bollinger.upperBound
+          d.midBound=d.strategy.bollinger.data.bollinger.midBound
+          d.lowerBound=d.strategy.bollinger.data.bollinger.lowerBound
+          } else {
+            d.upperBound=d.open
+            d.midBound=d.open
+            d.lowerBound=d.open
+            }
+
+        if (d.upperBound - d.lowerBound>0 && d.midBound!==0) {
+          d.boll_perc_B= (d.close - d.lowerBound ) / (d.upperBound - d.lowerBound)
+          d.BB_band=(d.upperBound - d.lowerBound)/d.midBound
+        } else {
+          d.boll_perc_B=0
+          }
+        }
+      d.close_norm=d.close/close_ref
+      return d
+    })
+
+    console.log(data)
+
+    var i= 0;
+    var data_chart=[];data_chart_period=[]
+    data = data.map(function (d) {
+      i++
+      if (i% 15 == 0) {
+        data_chart_period.push ([
+          d.date,
+          d.open,
+          d.high,
+          d.low,
+          d.close,
+          d.upperBound,
+          d.midBound,
+          d.lowerBound,
+          d.volume
+        ]);
+        }
+      data_chart.push ([
+        d.date,
+        d.open,
+        d.high,
+        d.low,
+        d.close,
+        d.upperBound,
+        d.midBound,
+        d.lowerBound,
+        d.volume
+      ]);
+      return d
+    })
+console.log(data_chart)
+console.log(data_chart_period)
+
     rem_index=[];var index_trade=[];var trade_closed=[]
+
+
+
+    var trades_chart_buy=[];var trades_chart_sell=[]
+    trades = trades.map(function (t,index) {
+
+      t.date = new Date(t.time)
+      if (t.signal === "buy") {
+        trades_chart_buy.push ([
+          t.date,
+          t.price
+        ]);
+      }
+      if (t.signal === "sell") {
+        trades_chart_sell.push ([
+          t.date,
+          t.price
+        ]);
+      }
+      if (t.time===null) {
+          rem_index.push(index)
+       }
+
+       // index_trade=trades.map(function(e) { return e.id; }).indexOf(t.id)
+       // if (index_trade!==index) {
+       //   trade_closed.push ({
+       //     "id": t.id,
+       //     "date_open": (trades[index_trade].date).toUTCString(),
+       //     "date_close": (t.date).toUTCString(),
+       //     "exposure": (t.date - trades[index_trade].date),
+       //     "price_open": trades[index_trade].price,
+       //     "price_close": t.price,
+       //     "size": t.size,
+       //     "profit": (Math.round(((t.price - trades[index_trade].price)*t.size) * 100) / 100),
+       //   });
+       //
+       // }
+      return t
+    })
+    console.log(trades)
+
+
+
 
       // set the data
       table = anychart.data.table();
       table.addData(data_chart);
 
-      // table_period = anychart.data.table();
-      // table_period.addData(data_chart_period);
+      table_period = anychart.data.table();
+      table_period.addData(data_chart_period);
 
       table_trades_buy = anychart.data.table();
       table_trades_buy.addData(trades_chart_buy);
@@ -93,60 +184,46 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
       mapping.addField('high', 2);
       mapping.addField('low', 3);
       mapping.addField('close', 4);
-      mapping.addField('volume',5)
+      mapping.addField('volume',8)
 
-      // // map the data in the strategy period
-      // mapping_period = table_period.mapAs();
-      // mapping_period.addField('open', 1);
-      // mapping_period.addField('high', 2);
-      // mapping_period.addField('low', 3);
-      // mapping_period.addField('close', 4);
 
-      // map the trades
+
+      // map the data
+      mapping_period = table_period.mapAs();
+      mapping_period.addField('open', 1);
+      mapping_period.addField('high', 2);
+      mapping_period.addField('low', 3);
+      mapping_period.addField('close', 4);
+
+      // map the data
       mapping_trades_buy = table_trades_buy.mapAs();
       mapping_trades_buy.addField('value', 1);
-
       mapping_trades_sell = table_trades_sell.mapAs();
       mapping_trades_sell.addField('value', 1);
+
+
+
+      // map the data
+        mapping_BBu = table.mapAs();
+        mapping_BBu.addField('value', 5);
+        mapping_BBm = table.mapAs();
+        mapping_BBm.addField('value', 6);
+        mapping_BBd = table.mapAs();
+        mapping_BBd.addField('value', 7);
+
 
 
 
       // chart type
       var chart = anychart.stock();
 
-
-      if (strategy_sel.includes('bollinger')) {
-      // map the data Bollinger
-        mapping_BBu = table.mapAs();
-        mapping_BBu.addField('value', 6);
-        mapping_BBm = table.mapAs();
-        mapping_BBm.addField('value', 7);
-        mapping_BBd = table.mapAs();
-        mapping_BBd.addField('value', 8);
-
-        // set the series
-        var series_BBu = chart.plot(0).line(mapping_BBu);
-        series_BBu.name("BB upper");
-        var series_BBm = chart.plot(0).line(mapping_BBm);
-        series_BBm.name("BB middle");
-        var series_BBd = chart.plot(0).line(mapping_BBd);
-        series_BBd.name("BB lower");
-
-      }
-
-      if (strategy_sel.includes('stoch')) {
-        // map the data Stochastic
-          mapping_Stoch_K = table.mapAs();
-          mapping_Stoch_K.addField('value', 9);
-
-          // set the series
-          var series_Stoch_K = chart.plot(1).line(mapping_Stoch_K);
-          series_Stoch_K.name("Stoch K");
-          }
-
-
-
-
+      // set the series
+      var series_BBu = chart.plot(0).line(mapping_BBu);
+      series_BBu.name("BB upper");
+      var series_BBm = chart.plot(0).line(mapping_BBm);
+      series_BBm.name("BB middle");
+      var series_BBd = chart.plot(0).line(mapping_BBd);
+      series_BBd.name("BB lower");
 
 
       // create a plot on the chart
@@ -164,14 +241,14 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
 
       // set the series
       var series_trades_buy = chart.plot(0).marker(mapping_trades_buy);
-      series_trades_buy.size(7)
+      series_trades_buy.size(10)
       series_trades_buy.fill("#0BE518")
       series_trades_buy.name("BUY_trades");
       series_trades_buy.stroke({color: '#000000', thickness: 1, lineCap: 'round'});
       var series_trades_sell = chart.plot(0).marker(mapping_trades_sell);
       series_trades_sell.name("SELL_trades");
       series_trades_sell.fill("#FF0000")
-      series_trades_sell.size(7)
+      series_trades_sell.size(10)
       series_trades_sell.stroke({color: '#000000', thickness: 1,  lineCap: 'round'});
 
       var rangePicker = anychart.ui.rangePicker();
@@ -185,31 +262,15 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
       series.name("Stock prices");
 
 
-      //add event markers
-      var data_markers=[
-        {
-          "format": "B",
-          "data": data_markers_buy
-        },
-        {
-          "format": "S",
-          "data": data_markers_sell
-        }
-      ]
 
-      plot.eventMarkers({"groups": data_markers});
-      // bind event markers to the first series
-      plot.eventMarkers().position("series");
-      plot.eventMarkers().seriesId(0);
-
-      // // create the second plot on the chart
-      // var plot_1 = chart.plot(1);
+      // create the second plot on the chart
+      var plot_1 = chart.plot(1);
 
       // create a Volume + MA indicator
-      // var volumeMa = plot_1.volumeMa(mapping);
-      // volumeMa.volumeSeries().stroke(null);
-      // volumeMa.volumeSeries().fill("#00838f 0.4");
-      //volumeMa.maSeries().stroke("1.5 #00838f");
+      var volumeMa = plot_1.volumeMa(mapping);
+      volumeMa.volumeSeries().stroke(null);
+      volumeMa.volumeSeries().fill("#00838f 0.4");
+      volumeMa.maSeries().stroke("1.5 #00838f");
 
       chart.title('Stock Candlestick Simulation: Stock prices \n(Array data notation)');
       chart.container('container');
@@ -218,11 +279,9 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
 
 
 
-      // // Render the range picker into an instance of a stock chart
+      // Render the range picker into an instance of a stock chart
       rangePicker.render(chart);
       rangeSelector.render(chart);
-
-
 
       })
   };</script></body>
@@ -230,7 +289,7 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
 {{code}}
 //withData(data, trades, options)
   </script>
-  <body onload="withData(data, trades_chart_buy, trades_chart_sell, data_markers_buy,data_markers_sell, options)">
+  <body onload="withData(data, trades, options)">
 
   <!-- <pre><code>{{output}}</code></pre> -->
   </body>
