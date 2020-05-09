@@ -142,6 +142,9 @@ module.exports = function (program, conf) {
       so.selector = objectifySelector(selector || conf.selector)
       so.mode = 'sim'
 
+      //Aumento il poll time per evitare che i trade si sovrappongano al flusso dei checkOrder
+      so.order_poll_time = 60000
+
       // richiama quantum-engine
       var engine = engineFactory(s, conf)
       if (!so.min_periods) so.min_periods = 1
@@ -234,15 +237,24 @@ module.exports = function (program, conf) {
         		trade.orig_time = trade.time
         		trade.time = reverse_point + (reverse_point - trade.time)
         	}
-        	eventBus.emit('trade', trade)
+        	eventBus.emit('trade', trade, function (err, result) {})
 
         	if (numTrades && totalTrades && totalTrades == numTrades) {
         		onCollectionCursorEnd()
         	}
         })
 
-        collectionCursorStream.on('error', function(err) {
+        collectionCursorStream.on('error', function (err) {
           console.log('Streaming error: ' + err)
+
+          if (reversing) {
+            db_cursor = lastTrade.orig_time
+          }
+          else {
+            db_cursor = (lastTrade ? lastTrade.time : db_cursor)
+          }
+
+          collectionCursorStream.close()
           return getNext()
         })
       }

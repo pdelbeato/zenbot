@@ -125,8 +125,13 @@ module.exports = {
 
 		if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
 			strat.calc_lookback.unshift(s.period)
-			strat.lib.onStrategyPeriod(s, opts, function () {
-				_onTradePeriod(callback)
+			strat.lib.onStrategyPeriod(s, opts, function (err, result) {
+				if (err) {
+					callback(err, null)
+				}
+				else {
+					_onTradePeriod(callback)
+				}
 			})
 		}
 		else {
@@ -214,10 +219,13 @@ module.exports = {
 	onPositionOpened: function (s, opts = {}, callback = function () { }) {
 		//var opts = {
 		//	position_id: position_id,
+		//	position: position
 		//};
 
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
+
+		opts.position.strategy_parameters[strat_name] = {}
 
 		_onPositionOpened(callback)
 
@@ -235,6 +243,7 @@ module.exports = {
 	onPositionUpdated: function (s, opts = {}, callback = function () { }) {
 		//var opts = {
 		//	position_id: position_id,
+		//	position: position
 		//};
 		
 		let strat_name = this.name
@@ -254,10 +263,10 @@ module.exports = {
 	},
 
 	onPositionClosed: function (s, opts = {}, callback = function () { }) {
-		//		s.closed_positions
-		//		var opts = {
-		//		position_id: position_id,
-		//		};
+		//var opts = {
+		//	position_id: position_id,
+		//	position: position
+		//};
 
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
@@ -270,7 +279,7 @@ module.exports = {
 		
 		function _onPositionClosed(cb) {
 			//User defined
-			
+			//e.g. strat.lib.onPositionOpened()
 			cb(null, null)
 		}
 	},

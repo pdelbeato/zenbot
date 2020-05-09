@@ -109,26 +109,26 @@ module.exports = {
 		})
 	},
 
-	onTrade: function (s, opts = {}, callback = function () { }) {
-		// var opts = {
-		// 		trade: trade,
-		// 		is_preroll: is_preroll
-		// }
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	// onTrade: function (s, opts = {}, callback = function () { }) {
+	// 	// var opts = {
+	// 	// 		trade: trade,
+	// 	// 		is_preroll: is_preroll
+	// 	// }
+	// 	let strat_name = this.name
+	// 	let strat = s.options.strategy[strat_name]
 				
-		_onTrade(callback)
+	// 	_onTrade(callback)
 		
-		///////////////////////////////////////////
-		// _onTrade
-		///////////////////////////////////////////
+	// 	///////////////////////////////////////////
+	// 	// _onTrade
+	// 	///////////////////////////////////////////
 		
-		function _onTrade(cb) {
-			//User defined
+	// 	function _onTrade(cb) {
+	// 		//User defined
 
-			cb()
-		}
-	},
+	// 		cb()
+	// 	}
+	// },
 
 	onTradePeriod: function (s, opts = {}, callback = function () { }) {
 		// var opts = {
@@ -141,8 +141,13 @@ module.exports = {
 
 		if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
 			strat.calc_lookback.unshift(s.period)
-			strat.lib.onStrategyPeriod(s, opts, function () {
-				_onTradePeriod(callback)
+			strat.lib.onStrategyPeriod(s, opts, function (err, result) {
+				if (err) {
+					callback(err, null)
+				}
+				else {
+					_onTradePeriod(callback)
+				}
 			})
 		}
 		else {
@@ -250,92 +255,96 @@ module.exports = {
 		///////////////////////////////////////////
 
 		function _onUpdateMessage(cb) {
-			//User defined
+			let result = ('Linear Regression slope: ' + n(strat.data.slope).format('0.00') + '‰]')
 			
 			cb(null, result)
 		}
 	},
 
-	onPositionOpened: function (s, opts = {}, callback = function () { }) {
-		//var opts = {
-		//	position_id: position_id,
-		//};
+	// onPositionOpened: function (s, opts = {}, callback = function () { }) {
+	// 	//var opts = {
+	// 	//	position_id: position_id,
+	// 	//	position: position
+	// 	//};
 
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	// 	let strat_name = this.name
+	// 	let strat = s.options.strategy[strat_name]
 
-		_onPositionOpened(callback)
+	// 	opts.position.strategy_parameters[strat_name] = {}
 
-		///////////////////////////////////////////
-		// _onPositionOpened
-		///////////////////////////////////////////
+	// 	_onPositionOpened(callback)
 
-		function _onPositionOpened(cb) {
-			//User defined
+	// 	///////////////////////////////////////////
+	// 	// _onPositionOpened
+	// 	///////////////////////////////////////////
+
+	// 	function _onPositionOpened(cb) {
+	// 		//User defined
 			
-			cb(null, null)
-		}
-	},
+	// 		cb(null, null)
+	// 	}
+	// },
 
-	onPositionUpdated: function (s, opts = {}, callback = function () { }) {
-		//var opts = {
-		//	position_id: position_id,
-		//};
+	// onPositionUpdated: function (s, opts = {}, callback = function () { }) {
+	// 	//var opts = {
+	// 	//	position_id: position_id,
+	// 	//	position: position
+	// 	//};
 		
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	// 	let strat_name = this.name
+	// 	let strat = s.options.strategy[strat_name]
 
-		_onPositionUpdated(callback)
+	// 	_onPositionUpdated(callback)
 		
-		///////////////////////////////////////////
-		// _onPositionUpdated
-		///////////////////////////////////////////
+	// 	///////////////////////////////////////////
+	// 	// _onPositionUpdated
+	// 	///////////////////////////////////////////
 		
-		function _onPositionUpdated(cb) {
-			//User defined
+	// 	function _onPositionUpdated(cb) {
+	// 		//User defined
 			
-			cb(null, null)
-		}
-	},
+	// 		cb(null, null)
+	// 	}
+	// },
 
-	onPositionClosed: function (s, opts = {}, callback = function () { }) {
-		//		s.closed_positions
-		//		var opts = {
-		//		position_id: position_id,
-		//		};
+	// onPositionClosed: function (s, opts = {}, callback = function () { }) {
+	// 	//var opts = {
+	// 	//	position_id: position_id,
+	// 	//	position: position
+	// 	//};
 
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	// 	let strat_name = this.name
+	// 	let strat = s.options.strategy[strat_name]
 
-		_onPositionClosed(callback)
+	// 	_onPositionClosed(callback)
 		
-		///////////////////////////////////////////
-		// _onPositionClosed
-		///////////////////////////////////////////
+	// 	///////////////////////////////////////////
+	// 	// _onPositionClosed
+	// 	///////////////////////////////////////////
 		
-		function _onPositionClosed(cb) {
-			//User defined
+	// 	function _onPositionClosed(cb) {
+	// 		//User defined
 			
-			cb(null, null)
-		}
-	},
+	// 		cb(null, null)
+	// 	}
+	// },
 
-	onOrderExecuted: function (s, opts = {}, callback = function () { }) {
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	// onOrderExecuted: function (s, opts = {}, callback = function () { }) {
+	// 	let strat_name = this.name
+	// 	let strat = s.options.strategy[strat_name]
 
-		_onOrderExecuted(callback)
+	// 	_onOrderExecuted(callback)
 		
-		///////////////////////////////////////////
-		// _onOrderExecuted
-		///////////////////////////////////////////
+	// 	///////////////////////////////////////////
+	// 	// _onOrderExecuted
+	// 	///////////////////////////////////////////
 		
-		function _onOrderExecuted(cb) {
-			//User defined
+	// 	function _onOrderExecuted(cb) {
+	// 		//User defined
 			
-			cb(null, null)
-		}
-	},
+	// 		cb(null, null)
+	// 	}
+	// },
 
 	printOptions: function (s, opts = { only_opts: false }, callback) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy[this.name]))

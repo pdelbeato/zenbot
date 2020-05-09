@@ -108,7 +108,6 @@ module.exports = {
 
 	getOptions: function (strategy_name) {
 		this.option(strategy_name, 'period_calc', 'calculate Bollinger Bands every period_calc time', String, '15m')
-		this.option(strategy_name, 'min_periods', 'Min. number of history periods', Number, 301)
 		this.option(strategy_name, 'size', 'period size', Number, 20)
 		this.option(strategy_name, 'time', 'times of standard deviation between the upper/lower band and the moving averages', Number, 1.5)
 		this.option(strategy_name, 'rsi_size', 'period size rsi', Number, 15)
@@ -188,27 +187,27 @@ module.exports = {
 		}})
 	},
 
-	onTrade: function (s, opts = {}, callback = function () { }) {
-		// var opts = {
-		// 		trade: trade,
-		// 		is_preroll: is_preroll
-		// }
+	// onTrade: function (s, opts = {}, callback = function () { }) {
+	// 	// var opts = {
+	// 	// 		trade: trade,
+	// 	// 		is_preroll: is_preroll
+	// 	// }
 		
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	// 	let strat_name = this.name
+	// 	let strat = s.options.strategy[strat_name]
 		
-		_onTrade(callback)
+	// 	_onTrade(callback)
 		
-		///////////////////////////////////////////
-		// _onTrade
-		///////////////////////////////////////////
+	// 	///////////////////////////////////////////
+	// 	// _onTrade
+	// 	///////////////////////////////////////////
 		
-		function _onTrade(cb) {
-			//User defined
+	// 	function _onTrade(cb) {
+	// 		//User defined
 			
-			cb()
-		}
-	},
+	// 		cb()
+	// 	}
+	// },
 
 	onTradePeriod: function (s, opts = {}, callback = function () { }) {
 		// var opts = {
@@ -221,8 +220,13 @@ module.exports = {
 
 		if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
 			strat.calc_lookback.unshift(s.period)
-			strat.lib.onStrategyPeriod(s, opts, function () {
-				_onTradePeriod(callback)
+			strat.lib.onStrategyPeriod(s, opts, function (err, result) {
+				if (err) {
+					callback(err, null)
+				}
+				else {
+					_onTradePeriod(callback)
+				}
 			})
 		}
 		else {
@@ -318,7 +322,7 @@ module.exports = {
 						if (condition.sell[0]) {
 							if (strat.opts.over_and_back) {
 								strat.data.is_over.up = true;
-								return cb()
+								return cb(null, null)
 							}
 							else {
 								return controlConditions('sell', cb)
@@ -331,7 +335,7 @@ module.exports = {
 						else if (condition.buy[0]) {
 							if (strat.opts.over_and_back) {
 								strat.data.is_over.down = true;
-								return cb()
+								return cb(null, null)
 							}
 							else {
 								return controlConditions('buy', cb)
@@ -341,14 +345,14 @@ module.exports = {
 							strat.data.is_over.down = false
 							return controlConditions('buy', cb)
 						}
-						return cb()
+						return cb(null, null)
 					}
 				}
 				else {
 					return cb(null, null)
 				}
 
-				function controlConditions(side, callback) {
+				function controlConditions(side, cb_cc) {
 					var opposite_side = (side === 'buy' ? 'sell' : 'buy')
 					var min_pct = {
 						buy: strat.opts.buy_min_pct,
@@ -371,7 +375,7 @@ module.exports = {
 						// }
 					}
 
-					callback(null, null)
+					cb_cc(null, null)
 				}
 			}
 			else {
@@ -505,7 +509,7 @@ module.exports = {
 				cols.push(s.tools.zeroFill(8, '', ' '))
 			}
 
-			cb()
+			cb(null, null)
 		}
 	},
 
@@ -537,12 +541,15 @@ module.exports = {
 	},
 
 	onPositionOpened: function (s, opts = {}, callback = function () { }) {
-		//		var opts = {
-		//		position_id: position_id,
-		//		};
+		//var opts = {
+		//	position_id: position_id,
+		//	position: position
+		//};
 
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
+
+		// opts.position.strategy_parameters[strat_name] = {}
 
 		_onPositionOpened(callback)
 
@@ -555,30 +562,31 @@ module.exports = {
 		}
 	},
 
-	onPositionUpdated: function (s, opts = {}, callback = function () { }) {
-		//		var opts = {
-		//		position_id: position_id,
-		//		};
+	// onPositionUpdated: function (s, opts = {}, callback = function () { }) {
+	// 	//var opts = {
+	// 	//	position_id: position_id,
+	// 	//	position: position
+	// 	//};
 		
-		// let strat_name = this.name
-		// let strat = s.options.strategy[strat_name]
+	// 	// let strat_name = this.name
+	// 	// let strat = s.options.strategy[strat_name]
 
-		_onPositionUpdated(callback)
+	// 	_onPositionUpdated(callback)
 		
-		///////////////////////////////////////////
-		// _onPositionUpdated
-		///////////////////////////////////////////
+	// 	///////////////////////////////////////////
+	// 	// _onPositionUpdated
+	// 	///////////////////////////////////////////
 		
-		function _onPositionUpdated(cb) {
-			cb(null, null)
-		}
-	},
+	// 	function _onPositionUpdated(cb) {
+	// 		cb(null, null)
+	// 	}
+	// },
 
 	onPositionClosed: function (s, opts = {}, callback = function () { }) {
-		//		s.closed_positions
-		//		var opts = {
-		//		position_id: position_id,
-		//		};
+		//var opts = {
+		//	position_id: position_id,
+		//	position: position
+		//};
 
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
@@ -590,20 +598,20 @@ module.exports = {
 		///////////////////////////////////////////
 		
 		function _onPositionClosed(cb) {
-			if(strat.opts.no_same_price) {
+			if (strat.opts.no_same_price) {
 				strat.data.limit_open_price.buy = 1000000
 				strat.data.limit_open_price.sell = 0
 
 				s.positions.forEach(function (position, index, array) {
-					if (position.id === opts.position_id) {
-						return
-					}
+					// if (position.id === opts.position_id) {
+					// 	return cb(null, null)
+					// }
 
 					if (position.side === 'buy') {
-						strat.data.limit_open_price.buy = Math.min(position.price_open, strat.data.limit_open_price.buy)
+						strat.data.limit_open_price.buy = Math.min(Number(position.price_open), strat.data.limit_open_price.buy)
 					}
 					else {
-						strat.data.limit_open_price.sell = Math.max(position.price_open, strat.data.limit_open_price.sell)
+						strat.data.limit_open_price.sell = Math.max(Number(position.price_open), strat.data.limit_open_price.sell)
 					}
 				})
 			}
@@ -612,20 +620,20 @@ module.exports = {
 		}
 	},
 
-	onOrderExecuted: function (s, opts = {}, callback = function () { }) {
-		// let strat_name = this.name
-		// let strat = s.options.strategy[strat_name]
+	// onOrderExecuted: function (s, opts = {}, callback = function () { }) {
+	// 	// let strat_name = this.name
+	// 	// let strat = s.options.strategy[strat_name]
 
-		_onOrderExecuted(callback)
+	// 	_onOrderExecuted(callback)
 		
-		///////////////////////////////////////////
-		// _onOrderExecuted
-		///////////////////////////////////////////
+	// 	///////////////////////////////////////////
+	// 	// _onOrderExecuted
+	// 	///////////////////////////////////////////
 		
-		function _onOrderExecuted(cb) {
-			cb(null, null)
-		}
-	},
+	// 	function _onOrderExecuted(cb) {
+	// 		cb(null, null)
+	// 	}
+	// },
 
 	printOptions: function (s, opts = { only_opts: false }, callback) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy[this.name]))

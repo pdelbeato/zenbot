@@ -200,26 +200,26 @@ module.exports = {
 		})
 	},
 
-	onTrade: function (s, opts = {}, callback = function () { }) {
-		// var opts = {
-		// 		trade: trade,
-		// 		is_preroll: is_preroll
-		// }
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	// onTrade: function (s, opts = {}, callback = function () { }) {
+	// 	// var opts = {
+	// 	// 		trade: trade,
+	// 	// 		is_preroll: is_preroll
+	// 	// }
+	// 	let strat_name = this.name
+	// 	let strat = s.options.strategy[strat_name]
 		
-		_onTrade(callback)
+	// 	_onTrade(callback)
 		
-		///////////////////////////////////////////
-		// _onTrade
-		///////////////////////////////////////////
+	// 	///////////////////////////////////////////
+	// 	// _onTrade
+	// 	///////////////////////////////////////////
 		
-		function _onTrade(cb) {
-			//User defined
+	// 	function _onTrade(cb) {
+	// 		//User defined
 
-			cb()
-		}
-	},
+	// 		cb()
+	// 	}
+	// },
 
 	onTradePeriod: function (s, opts = {}, callback = function () { }) {
 		// var opts = {
@@ -230,15 +230,20 @@ module.exports = {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 
-		_onTradePeriod(function () {
-			if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
-				strat.calc_lookback.unshift(s.period)
-				strat.lib.onStrategyPeriod(s, opts, callback)
-			}
-			else {
-				callback()
-			}
-		})
+		if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
+			strat.calc_lookback.unshift(s.period)
+			strat.lib.onStrategyPeriod(s, opts, function (err, result) {
+				if (err) {
+					callback(err, null)
+				}
+				else {
+					_onTradePeriod(callback)
+				}
+			})
+		}
+		else {
+			_onTradePeriod(callback)
+		}
 
 		///////////////////////////////////////////
 		// _onTradePeriod
@@ -261,79 +266,84 @@ module.exports = {
 		///////////////////////////////////////////
 
 		function _onStrategyPeriod(cb) {
-			//Calcolo il pivot price (strat.data.sma)
-			strat.data.sma = roundToNearest(sma(s, null, strat.opts.size, 'close'))
+			if (!s.in_preroll) {
+				//Calcolo il pivot price (strat.data.sma)
+				strat.data.sma = roundToNearest(sma(s, null, strat.opts.size, 'close'))
 
-			if (strat.data.sma && (strat.opts.catch_auto_long || strat.opts.catch_auto_short)) {
-				//Cancello gli ordini vecchi
-				console.log('\nCatching Orders - '.grey + 'Cancel ALL Auto-catch orders')
-				s.orders.forEach(function (order, index) {
-					if (order.kind == strat_name && !order.position.id) {
-						s.tools.orderStatus(order, undefined, strat_name, undefined, 'Unset', strat_name)
-					}
-				})
+				if (strat.data.sma && (strat.opts.catch_auto_long || strat.opts.catch_auto_short)) {
+					//Cancello gli ordini vecchi
+					console.log('\nCatching Orders - '.grey + 'Cancel ALL Auto-catch orders')
+					s.orders.forEach(function (order, index) {
+						if (order.kind == strat_name && !order.position.id) {
+							s.tools.orderStatus(order, undefined, strat_name, undefined, 'Unset', strat_name)
+						}
+					})
 
-				//Immetto gli ordini nuovi dopo aver atteso wait_for_settlement
-				setTimeout(function () {
-					let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short'] + s.protectionFlag['only_one_side']
-					if (strat.opts.catch_auto_long) {
-						console.log('\nCatching Orders - Auto catch '.grey + 'BUY'.green + ' command inserted'.grey)
-						let target_price = n(strat.data.sma).multiply(1 - strat.opts.catch_auto_pct / 100).format(s.product.increment, Math.floor)
-						let target_size = n(strat.opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-						s.eventBus.emit(strat_name, 'buy', null, target_size, target_price, protectionFlag, strat_name, false, 'maker')
-					}
+					//Immetto gli ordini nuovi dopo aver atteso wait_for_settlement
+					setTimeout(function () {
+						let protectionFlag = s.protectionFlag['calmdown'] + s.protectionFlag['long_short'] + s.protectionFlag['only_one_side']
+						if (strat.opts.catch_auto_long) {
+							console.log('\nCatching Orders - Auto catch '.grey + 'BUY'.green + ' command inserted'.grey)
+							let target_price = n(strat.data.sma).multiply(1 - strat.opts.catch_auto_pct / 100).format(s.product.increment, Math.floor)
+							let target_size = n(strat.opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+							s.eventBus.emit(strat_name, 'buy', null, target_size, target_price, protectionFlag, strat_name, false, 'maker')
+						}
 
-					if (strat.opts.catch_auto_short) {
-						console.log('\nCatching Orders - Auto catch '.grey + 'SELL'.red + ' command inserted'.grey)
-						let target_price = n(strat.data.sma).multiply(1 + strat.opts.catch_auto_pct / 100).format(s.product.increment, Math.floor)
-						let target_size = n(strat.opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
-						s.eventBus.emit(strat_name, 'sell', null, target_size, target_price, protectionFlag, strat_name, false, 'maker')
-					}
-				}, 10 * s.options.wait_for_settlement)
-				cb(null, null)
+						if (strat.opts.catch_auto_short) {
+							console.log('\nCatching Orders - Auto catch '.grey + 'SELL'.red + ' command inserted'.grey)
+							let target_price = n(strat.data.sma).multiply(1 + strat.opts.catch_auto_pct / 100).format(s.product.increment, Math.floor)
+							let target_size = n(strat.opts.catch_fixed_value).divide(target_price).format(s.product.asset_increment ? s.product.asset_increment : '0.00000000')
+							s.eventBus.emit(strat_name, 'sell', null, target_size, target_price, protectionFlag, strat_name, false, 'maker')
+						}
+					}, 10 * s.options.wait_for_settlement)
+					cb(null, null)
+				}
+				else {
+					cb(null, null)
+				}
+
+				function roundToNearest(numToRound) {
+					var numToRoundTo = (s.product.increment ? s.product.increment : 0.00000001)
+					numToRoundTo = 1 / (numToRoundTo)
+
+					return Math.floor(numToRound * numToRoundTo) / numToRoundTo
+				}
 			}
 			else {
-				cb(null, null)
-			}
-
-			function roundToNearest(numToRound) {
-				var numToRoundTo = (s.product.increment ? s.product.increment : 0.00000001)
-				numToRoundTo = 1 / (numToRoundTo)
-
-				return Math.floor(numToRound * numToRoundTo) / numToRoundTo
+				return cb(null, null)
 			}
 		}
 	},
 
 
-	onReport: function (s, opts = {}, callback = function () { }) {
-		// let strat_name = this.name
-		// let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
+	// onReport: function (s, opts = {}, callback = function () { }) {
+	// 	// let strat_name = this.name
+	// 	// let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
 
-		// if (!opts.actual) {
-		// 	strat.data = s.lookback[0].strategy[strat_name].data
-		// }
+	// 	// if (!opts.actual) {
+	// 	// 	strat.data = s.lookback[0].strategy[strat_name].data
+	// 	// }
 
-		var cols = []
+	// 	var cols = []
 
-		_onReport(function() {
-			cols.forEach(function (col) {
-				process.stdout.write(col)
-			})
-			callback(null, null)
-		})
+	// 	_onReport(function() {
+	// 		cols.forEach(function (col) {
+	// 			process.stdout.write(col)
+	// 		})
+	// 		callback(null, null)
+	// 	})
 		
-		/////////////////////////////////////////////////////
-		// _onReport() deve inserire in cols[] le informazioni da stampare a video
-		/////////////////////////////////////////////////////
+	// 	/////////////////////////////////////////////////////
+	// 	// _onReport() deve inserire in cols[] le informazioni da stampare a video
+	// 	/////////////////////////////////////////////////////
 
-		function _onReport(cb) {
-			//User defined
-			//cols.push('_something_')
+	// 	function _onReport(cb) {
+	// 		//User defined
+	// 		//cols.push('_something_')
 
-			cb()
-		}
-	},
+	// 		cb()
+	// 	}
+	// },
 
 	onUpdateMessage: function (s, opts = {}, callback) {
 		let strat_name = this.name
@@ -358,67 +368,71 @@ module.exports = {
 		}
 	},
 
-	onPositionOpened: function (s, opts = {}, callback = function () { }) {
-		//		var opts = {
-		//		position_id: position_id,
-		//		};
+	// onPositionOpened: function (s, opts = {}, callback = function () { }) {
+	// 	//var opts = {
+	// 	//	position_id: position_id,
+	// 	//	position: position
+	// 	//};
 
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	// 	// let strat_name = this.name
+	// 	// let strat = s.options.strategy[strat_name]
 
-		_onPositionOpened(callback)
+	// 	// opts.position.strategy_parameters[strat_name] = {}
 
-		///////////////////////////////////////////
-		// _onPositionOpened
-		///////////////////////////////////////////
+	// 	_onPositionOpened(callback)
 
-		function _onPositionOpened(cb) {
-			//User defined
+	// 	///////////////////////////////////////////
+	// 	// _onPositionOpened
+	// 	///////////////////////////////////////////
+
+	// 	function _onPositionOpened(cb) {
+	// 		//User defined
 			
-			cb(null, null)
-		}
-	},
+	// 		cb(null, null)
+	// 	}
+	// },
 
-	onPositionUpdated: function (s, opts = {}, callback = function () { }) {
-		//		var opts = {
-		//		position_id: position_id,
-		//		};
+	// onPositionUpdated: function (s, opts = {}, callback = function () { }) {
+	// 	//var opts = {
+	// 	//	position_id: position_id,
+	// 	//	position: position
+	// 	//};
 		
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	// 	// let strat_name = this.name
+	// 	// let strat = s.options.strategy[strat_name]
 
-		_onPositionUpdated(callback)
+	// 	_onPositionUpdated(callback)
 		
-		///////////////////////////////////////////
-		// _onPositionUpdated
-		///////////////////////////////////////////
+	// 	///////////////////////////////////////////
+	// 	// _onPositionUpdated
+	// 	///////////////////////////////////////////
 		
-		function _onPositionUpdated(cb) {
-			cb(null, null)
-		}
-	},
+	// 	function _onPositionUpdated(cb) {
+	// 		cb(null, null)
+	// 	}
+	// },
 
-	onPositionClosed: function (s, opts = {}, callback = function () { }) {
-		//		s.closed_positions
-		//		var opts = {
-		//		position_id: position_id,
-		//		};
+	// onPositionClosed: function (s, opts = {}, callback = function () { }) {
+	// 	//var opts = {
+	// 	//	position_id: position_id,
+	// 	//	position: position
+	// 	//};
 
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	// 	// let strat_name = this.name
+	// 	// let strat = s.options.strategy[strat_name]
 
-		_onPositionClosed(callback)
+	// 	_onPositionClosed(callback)
 		
-		///////////////////////////////////////////
-		// _onPositionClosed
-		///////////////////////////////////////////
+	// 	///////////////////////////////////////////
+	// 	// _onPositionClosed
+	// 	///////////////////////////////////////////
 		
-		function _onPositionClosed(cb) {
-			//User defined
+	// 	function _onPositionClosed(cb) {
+	// 		//User defined
 			
-			cb(null, null)
-		}
-	},
+	// 		cb(null, null)
+	// 	}
+	// },
 
 	onOrderExecuted: function (s, opts = {}, callback = function () { }) {
 		// var opts = {
