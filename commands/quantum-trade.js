@@ -587,18 +587,18 @@ module.exports = function (program, conf) {
 							console.log('\nNo position in control.')
 						}
 					}})
-					keyMap.set('K', {desc: ('set a manual '.grey + so.order_type.toUpperCase() + ' close order on the position'.grey), action: function() {
+					keyMap.set('K', {desc: ('set a manual '.grey + so.order_type.toUpperCase() + ' close order (fixed price) on the position'.grey), action: function() {
 						if (s.positions_index != null) {
 							if (s.positions[s.positions_index].side === 'buy') {
 								let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
 								let target_price = n(s.quote.ask).format(s.product.increment, Math.floor)
-								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'SELL'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at ' + formatCurrency(target_price, s.currency).yellow)
+								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'SELL'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at fixed ' + formatCurrency(target_price, s.currency).yellow)
 								s.eventBus.emit('manual', 'sell', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
 							}
 							else {
 								let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
 								let target_price = n(s.quote.bid).format(s.product.increment, Math.floor)
-								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'BUY'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at ' + formatCurrency(target_price, s.currency).yellow)
+								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'BUY'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at fixed ' + formatCurrency(target_price, s.currency).yellow)
 								s.eventBus.emit('manual', 'buy', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
 							}
 						}
@@ -1207,17 +1207,17 @@ module.exports = function (program, conf) {
 //			/* End of implementing statistical status */
 
 			//Calcola il valore minimo di periodi da caricare per il pre-roll e da mantenere in memoria
-			if (!so.min_periods) {
+			// if (!so.min_periods) {
 				so.min_periods = 1
 				Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
 					if (so.strategy[strategy_name].opts.min_periods) {
 						so.min_periods = Math.max(so.min_periods, so.strategy[strategy_name].opts.min_periods)
 					}
 				})
-			}
+			// }
 
 			var db_cursor, trade_cursor
-			var query_start = tb().resize(so.period_length).subtract(so.min_periods * 2).toMilliseconds()
+			var query_start = tb().resize(so.period_length).subtract(so.min_periods + 10).toMilliseconds()
 			var days = Math.ceil((new Date().getTime() - query_start) / 86400000)
 
 			//Per caricare i dati dei trades, chiama zenbot.js backfill (so.selector.normalized) --days __ --conf __

@@ -47,35 +47,46 @@ module.exports = {
 	description: 'Set active long/short based on linear regression trend',
 	noHoldCheck: false,
 
-	init: function (s, callback = function() {}) {
+	init: function (s, callback = function () { }) {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 
-		if (!strat.opts.min_periods) {
-			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
-		}
+		try {
+			if (!strat.opts.min_periods) {
+				strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
+			}
 
-		strat.data = {
-			slope: null,
-		}
+			strat.data = {
+				slope: null,
+			}
 
-//		s.positions.forEach(function (position, index) {
-//			if (!position.strategy_parameters[strat_name]) {
-//				position.strategy_parameters[strat_name] = {}
-//			}
-//		})
+			//		s.positions.forEach(function (position, index) {
+			//			if (!position.strategy_parameters[strat_name]) {
+			//				position.strategy_parameters[strat_name] = {}
+			//			}
+			//		})
+		}
+		catch (err) {
+			console.log(strat_name + ' init err= ' + err)
+		}
 
 		callback(null, null)
 	},
 
 	getOptions: function (strategy_name) {
+		try {
 		this.option(strategy_name, 'period_calc', 'Calculate Linear Regression Trend every period_calc time', String, '15m')
 		this.option(strategy_name, 'size', 'Use \'size\' period to calculate linear regression', Number, 20)
 		this.option(strategy_name, 'upper_threshold', 'Upper threshold (long if price is higher)', Number, 0.5)
 		this.option(strategy_name, 'lower_threshold', 'Lower threshold (short if price is lower)', Number, -0.5)
+		}
+		catch (err) {
+			console.log(strat_name + ' getOptions err= ' + err)
+		}
 	},
 
 	getCommands: function (s, strategy_name) {
+		try {
 		let strat = s.options.strategy[strategy_name]
 
 		this.command('o', {
@@ -107,6 +118,10 @@ module.exports = {
 				console.log('\nToggle activation: ' + (strat.opts.activated ? 'ON'.green.inverse : 'OFF'.red.inverse))
 			}
 		})
+	}
+	catch (err) {
+		console.log(strat_name + ' getCommands err= ' + err)
+	}
 	},
 
 	// onTrade: function (s, opts = {}, callback = function () { }) {
@@ -136,12 +151,21 @@ module.exports = {
 		// 		is_preroll: is_preroll
 		// }
 
+		try {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 
 		if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
 			strat.calc_lookback.unshift(s.period)
 			strat.lib.onStrategyPeriod(s, opts, function (err, result) {
+				if (strat.opts.period_calc) {
+					strat.calc_close_time = tb(opts.trade.time).resize(strat.opts.period_calc).add(1).toMilliseconds() - 1
+				}
+
+				if (strat.opts.min_periods && (strat.calc_lookback.length > strat.opts.min_periods)) {
+					strat.calc_lookback.splice(strat.opts.min_periods, (strat.calc_lookback.length - strat.opts.min_periods))
+				}
+
 				if (err) {
 					callback(err, null)
 				}
@@ -163,9 +187,14 @@ module.exports = {
 			
 			cb()
 		}
+	}
+	catch (err) {
+		console.log(strat_name + ' onTrade err= ' + err)
+	}
 	},
 
 	onStrategyPeriod: function (s, opts = {}, callback = function () { }) {
+		try {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 
@@ -194,16 +223,21 @@ module.exports = {
 				cb(err, null)
 			})
 		}
+	}
+	catch (err) {
+		console.log(strat_name + ' onStrategyPeriod err= ' + err)
+	}
 	},
 
 
 	onReport: function (s, opts = {}, callback = function () { }) {
+		try {
 		let strat_name = this.name
 		let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
 
-		if (!opts.actual && s.lookback[0]) {
-			strat.data = s.lookback[0].strategy[strat_name].data
-		}
+		// if (!opts.actual && s.lookback[0]) {
+		// 	strat.data = s.lookback[0].strategy[strat_name].data
+		// }
 
 		var cols = []
 
@@ -240,9 +274,14 @@ module.exports = {
 
 			cb()
 		}
+	}
+	catch (err) {
+		console.log(strat_name + ' onReport err= ' + err)
+	}
 	},
 
 	onUpdateMessage: function (s, opts = {}, callback) {
+		try {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 
@@ -263,6 +302,10 @@ module.exports = {
 			
 			cb(null, result)
 		}
+	}
+	catch (err) {
+		console.log(strat_name + ' onUpdateMessage err= ' + err)
+	}
 	},
 
 	// onPositionOpened: function (s, opts = {}, callback = function () { }) {

@@ -221,6 +221,14 @@ module.exports = {
 		if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
 			strat.calc_lookback.unshift(s.period)
 			strat.lib.onStrategyPeriod(s, opts, function (err, result) {
+				if (strat.opts.period_calc) {
+					strat.calc_close_time = tb(opts.trade.time).resize(strat.opts.period_calc).add(1).toMilliseconds() - 1
+				}
+
+				if (strat.opts.min_periods && (strat.calc_lookback.length > strat.opts.min_periods)) {
+					strat.calc_lookback.splice(strat.opts.min_periods, (strat.calc_lookback.length - strat.opts.min_periods))
+				}
+
 				if (err) {
 					callback(err, null)
 				}
@@ -413,9 +421,9 @@ module.exports = {
 		let strat_name = this.name
 		let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
 
-		if (!opts.actual && s.lookback[0]) {
-			strat.data = s.lookback[0].strategy[strat_name].data
-		}
+		// if (!opts.actual && s.lookback[0]) {
+		// 	strat.data = s.lookback[0].strategy[strat_name].data
+		// }
 
 		var cols = []
 
