@@ -828,7 +828,7 @@ module.exports = function (program, conf) {
 
 					s.db_periods.deleteMany({'time' : { $lt : fromTime }}, function (err, numRemoved) {
 						if (err) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.periods')
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db_periods')
 							console.error(err)
 						}
 						debug.msg('cleanDB - ' + numRemoved + ' period(s) deleted')
@@ -836,7 +836,7 @@ module.exports = function (program, conf) {
 
 					db_trades.deleteMany({'time' : { $lt : fromTime }}, function (err, numRemoved) {
 						if (err) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.trades')
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db_trades')
 							console.error(err)
 						}
 						debug.msg('cleanDB - ' + numRemoved + ' trade(s) deleted')
@@ -1026,7 +1026,12 @@ module.exports = function (program, conf) {
 				}
 
 				var losses = 0, gains = 0
-				s.db_my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, position) {
+				s.db_my_closed_positions.find({ selector: so.selector.normalized }).toArray(function (err, position) {
+					if (err) {
+						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error finding in db_my_closed_positions')
+						console.error(err)
+					}
+
 					if (position.profit) {
 						if (position.profit > 0) {
 							gains++
@@ -1261,6 +1266,8 @@ module.exports = function (program, conf) {
 					// db_trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(async function (err, filtered_trades) {
 					db_trades.find(opts.query).sort(opts.sort).toArray(async function (err, filtered_trades) {
 						if (err) {
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error finding in db_trades')
+							console.error(err)
 							throw err
 						}
 						
@@ -1337,7 +1344,10 @@ module.exports = function (program, conf) {
 
 								session._id = session.id
 								db_sessions.find({selector: so.selector.normalized}).limit(1).sort({started: -1}).toArray(function (err, prev_sessions) {
-									if (err) throw err
+									if (err) {
+										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error finding in db_sessions')
+										console.error(err)
+									}
 									var prev_session = prev_sessions[0]
 
 									if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || so.mode === 'live')) {
@@ -1506,7 +1516,7 @@ module.exports = function (program, conf) {
 							if (!so.minimal_db) {
 								db_resume_markers.updateOne({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
 									if (err) {
-										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
+										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving in db_resume_markers')
 										console.error(err)
 									}
 								})
@@ -1517,7 +1527,7 @@ module.exports = function (program, conf) {
 									my_trade.session_id = session.id
 									db_my_trades.updateOne({'_id' : my_trade._id}, {$set: my_trade}, {multi: false, upsert: true}, function (err) {
 										if (err) {
-											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
+											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving in db_my_trades')
 											console.error(err)
 										}
 										//Se c'è stato un my_trade, allora è il caso di aggiornare la sessione
@@ -1579,7 +1589,7 @@ module.exports = function (program, conf) {
 					db_trades.updateOne({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
 						// ignore duplicate key errors
 						if (err && err.code !== 11000) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving in db_trades')
 							console.error(err)
 						}
 					})
@@ -1650,7 +1660,7 @@ module.exports = function (program, conf) {
 
 				db_sessions.updateOne({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
 					if (err) {
-						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
+						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving in db_sessions')
 						console.error(err)
 					}
 					else {

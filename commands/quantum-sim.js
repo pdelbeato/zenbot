@@ -319,7 +319,7 @@ module.exports = function (program, conf) {
         //        s.lookback.unshift(s.period)
         s.db_periods.updateOne({ '_id': s.period._id }, { $set: s.period }, { multi: false, upsert: true }, function (err) {
           if (err) {
-            console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ': quantum-sim - exitSim - Error saving db_periods:')
+            console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ': quantum-sim - exitSim - Error saving in db_periods:')
             console.error(err)
           }
         })

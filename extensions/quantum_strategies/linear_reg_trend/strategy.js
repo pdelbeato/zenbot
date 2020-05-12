@@ -52,8 +52,11 @@ module.exports = {
 		let strat = s.options.strategy[strat_name]
 
 		try {
-			if (!strat.opts.min_periods) {
+			if (strat.opts.size && strat.opts.period_calc) {
 				strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
+			}
+			else {
+				strat.opts.min_periods = 0
 			}
 
 			strat.data = {

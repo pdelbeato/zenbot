@@ -60,9 +60,20 @@ module.exports = function (cb) {
 		} else {
 			connectionString = 'mongodb://' + authStr + zenbot.conf.mongo.host + ':' + zenbot.conf.mongo.port + '/' + zenbot.conf.mongo.db + '?' +
 				(zenbot.conf.mongo.replicaSet ? '&replicaSet=' + zenbot.conf.mongo.replicaSet : '') +
-				(authMechanism ? '&authMechanism=' + authMechanism : '')+
-				'&socketTimeoutMS=90000'
+				(authMechanism ? '&authMechanism=' + authMechanism : '')
+				//+ '&keepAlive=true' +
+				// '&poolSize=30' +
+				// '&autoReconnect=true' +
+				// '&socketTimeoutMS=360000' +
+				// '&connectTimeoutMS=360000' +
+				// '&useMongoClient=true'
 		}
+
+		//Da vedere se può essere utile
+		// process.on('unhandledRejection', error => {
+
+		// 	console.log('unhandledRejection', error.message);
+		//   });
 
 		require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
 			if (err) {
