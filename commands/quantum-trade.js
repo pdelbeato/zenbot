@@ -86,9 +86,7 @@ module.exports = function (program, conf) {
 		var so = s.options
 
 		s.positions = []
-//		s.closed_positions = []
 		s.my_trades = []
-//		s.trades = []
 		s.lookback = []
 		s.orders = []
 		
@@ -157,17 +155,6 @@ module.exports = function (program, conf) {
 		var nextSessionSave = moment().startOf('day')
 		
 		var nextCompactDatabase = moment().startOf('day').add(2, 'd')
-		
-//		E' sbagliato!!! 
-//		if (!so.min_periods) {
-//		so.min_periods = 1
-//		Object.keys(s.options.strategy).forEach(function (strategy_name, index, array) {			
-//		if (so.strategy[strategy_name].opts.min_periods) {
-//		so.min_periods = Math.max(so.strategy[strategy_name].opts.min_periods, so.min_periods)
-//		}
-//		})
-////		debug.msg('quantum-trade - so.min_periods= ' + so.min_periods)
-//		}
 
 		so.selector = objectifySelector(selector || conf.selector)
 
@@ -176,16 +163,6 @@ module.exports = function (program, conf) {
 			so.order_type = 'maker'
 		}
 
-		// if (!so.min_periods) {
-		// 	so.min_periods = 1
-		// 	Object.keys(so.strategy).forEach(function(strategy_name, index, array) {
-		// 		so.min_periods = Math.max(so.min_periods, so.strategy[strategy_name].opts.min_periods)
-		// 	})
-		// }
-
-		// var db_cursor, trade_cursor
-		// var query_start = tb().resize(so.period_length).subtract(so.min_periods * 2).toMilliseconds()
-		// var days = Math.ceil((new Date().getTime() - query_start) / 86400000)
 		var session = null
 
 		var lookback_size = 0
@@ -199,8 +176,6 @@ module.exports = function (program, conf) {
 		var db_sessions = conf.db.sessions
 		var db_resume_markers = conf.db.resume_markers
 		var db_trades = conf.db.trades
-
-//		s.db_valid = true
 
 		var marker = {
 			id: crypto.randomBytes(4).toString('hex'),
@@ -221,7 +196,6 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\tCollection my_positions deleted!')
-//					db_my_positions = conf.db.datastore.collection('my_positions')
 					resolve()
 				})
 			})
@@ -231,7 +205,6 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\tCollection my_closed_positions deleted!')
-//					db_my_closed_positions = conf.db.datastore.collection('my_closed_positions')
 					resolve()
 				})
 			})
@@ -241,7 +214,6 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\tCollection my_trades deleted!')
-//					db_my_trades = conf.db.datastore.collection('my_trades')
 					resolve()
 				})
 			})
@@ -251,7 +223,6 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\tCollection sessions deleted!')
-//					db_sessions = conf.db.datastore.collection('sessions')
 					resolve()
 				})
 			})
@@ -275,20 +246,6 @@ module.exports = function (program, conf) {
 					resolve()
 				})
 			})
-
-			//Recupera tutte le vecchie posizioni chiuse e le copia in s.closed_positions
-//			let recover_my_closed_positions = new Promise(function (resolve, reject) {
-//				db_my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, my_closed_positions) {
-//					if (err) {
-//						reject(err)
-//					}
-//					if (my_closed_positions.length) {
-//						s.closed_positions = my_closed_positions.slice(0)
-//						console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
-//					}
-//					resolve()
-//				})
-//			})
 			
 			//Conta le vecchie posizioni chiuse
 			let count_my_closed_positions = new Promise(function (resolve, reject) {
@@ -860,7 +817,7 @@ module.exports = function (program, conf) {
 				s.wait_updatePositions = true
 				switch (task.mode) {
 				case 'update': {
-					var position = s.positions.find(x => x.id === task.position_id)
+					let position = s.positions.find(x => x.id === task.position_id)
 					position._id = position.id
 
 					db_my_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
@@ -874,27 +831,13 @@ module.exports = function (program, conf) {
 					break
 				}
 				case 'delete': {
-					// var position_index = s.positions.findIndex(x => x.id === task.position_id)
-					//var position = s.positions.find(x => x.id === task.position_id)
-
 					db_my_positions.deleteOne({'_id' : task.position_id}, function (err) {
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error deleting in db_my_positions')
 							console.error(err)
+
 							return callback(err)
 						}
-
-						// //... e inserisco la posizione chiusa del db delle posizioni chiuse
-						// // if (position) {
-						// 	position._id = position.id
-						// 	s.db_my_closed_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
-						// 		if (err) {
-						// 			console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
-						// 			console.error(err)
-						// 			return callback(err)
-						// 		}
-						// 	})
-						// // }
 					})
 					break
 				}
@@ -904,9 +847,9 @@ module.exports = function (program, conf) {
 			})
 
 			// Assegna una funzione di uscita
-			s.positionProcessingQueue.drain(function() {
-				debug.msg('s.positionProcessingQueue - All items have been processed')
-			})
+			// s.positionProcessingQueue.drain(function() {
+			// 	debug.msg('s.positionProcessingQueue - All items have been processed')
+			// })
 			/* End funzioni per le operazioni sul database delle posizioni */
 
 			/* To list options*/
@@ -1216,14 +1159,12 @@ module.exports = function (program, conf) {
 //			/* End of implementing statistical status */
 
 			//Calcola il valore minimo di periodi da caricare per il pre-roll e da mantenere in memoria
-			// if (!so.min_periods) {
-				so.min_periods = 1
-				Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
-					if (so.strategy[strategy_name].opts.min_periods) {
-						so.min_periods = Math.max(so.min_periods, so.strategy[strategy_name].opts.min_periods)
-					}
-				})
-			// }
+			so.min_periods = 1
+			Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
+				if (so.strategy[strategy_name].opts.min_periods) {
+					so.min_periods = Math.max(so.min_periods, so.strategy[strategy_name].opts.min_periods)
+				}
+			})
 
 			var db_cursor, trade_cursor
 			var query_start = tb().resize(so.period_length).subtract(so.min_periods + 10).toMilliseconds()
@@ -1274,16 +1215,6 @@ module.exports = function (program, conf) {
 							console.error(err)
 							throw err
 						}
-						
-						// db_trades.deleteMany(opts.query, function (err, numRemoved) {
-						// 	if (err) {
-						// 		console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - Pre-roll - error cleaning db_trades')
-						// 		console.error(err)
-						// 	}
-						// 	debug.msg('Pre-roll - ' + numRemoved + ' trades deleted')
-						// })
-						
-						// db_trades.compactCollection()
 						
 						//Se ci sono filtered_trades, allora non esegue questo blocco ma esegue engine.update che c'è dopo
 						//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco e non esegue engine.update (perché c'è un return in questo blocco)
@@ -1541,22 +1472,22 @@ module.exports = function (program, conf) {
 								my_trades_size = s.my_trades.length
 							}
 
-							if (s.lookback.length > lookback_size) {
-//								if (!so.minimal_db) {
-//									savePeriod(s.lookback[0])
-//								}
-//								lookback_size = s.lookback.length
-//							}
-//							if (s.period) {
-//								if (!so.minimal_db) {
-//									savePeriod(s.period)
-//								}
-							} 
-							else {
-								readline.clearLine(process.stdout)
-								readline.cursorTo(process.stdout, 0)
-								process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
-							}
+// 							if (s.lookback.length > lookback_size) {
+// //								if (!so.minimal_db) {
+// //									savePeriod(s.lookback[0])
+// //								}
+// //								lookback_size = s.lookback.length
+// //							}
+// //							if (s.period) {
+// //								if (!so.minimal_db) {
+// //									savePeriod(s.period)
+// //								}
+// 							} 
+							// else {
+							// 	readline.clearLine(process.stdout)
+							// 	readline.cursorTo(process.stdout, 0)
+							// 	process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
+							// }
 						})
 					}
 
@@ -1599,16 +1530,6 @@ module.exports = function (program, conf) {
 					})
 				}
 				/* End of saveTrade() */
-				
-//				function savePeriod (period) {
-//					s.db_periods.updateOne({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
-//						if (err) {
-//							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
-//							console.error(err)
-//						}
-//					})
-//				}
-				/* End of savePeriod() */
 			}
 			/* End of forwardScan() */
 
