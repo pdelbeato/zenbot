@@ -1353,29 +1353,34 @@ module.exports = function (program, conf) {
 									}
 
 									//Attivazione del bot di Telegram
+//									if (so.telegramBot && so.telegramBot.on) {
 									if (so.notifiers.telegram && so.notifiers.telegram.on) {
-										const Telegram = require('node-telegram-bot-api')
-										const options = {
-											polling: true,
-										};
-										const telegramBot = new Telegram(so.notifiers.telegram.bot_token, options);
+//										const Telegram = require('node-telegram-bot-api')
+										
+//										const telegramBot = new Telegram(so.telegramBot.bot_token, options);
+//										const telegramBot = new Telegram(so.notifiers.telegram.bot_token, options);
 
 
-										telegramBot.onText(/\/long/, function(msg) {
-											debug.msg('TelegramBot - ' + msg.text.toString())
-											so.active_long_position = !so.active_long_position
-											telegramBot.sendMessage(so.notifiers.telegram.chat_id, (so.active_long_position? 'Long' : 'No long'))
-										})
-
-										telegramBot.onText(/\/short/, function(msg) {
-											debug.msg('TelegramBot - ' + msg.text.toString())
-											so.active_short_position = !so.active_short_position
-											telegramBot.sendMessage(so.notifiers.telegram.chat_id, (so.active_short_position? 'Short' : 'No short'))
-										})
-
-										telegramBot.onText(/\/status/, function(msg) {
-											debug.msg('TelegramBot - ' + msg.text.toString())
-											engine.updateMessage()
+										telegramBot.onMessage(function(msg) {
+											switch (msg) {
+											case '/\/long/': {
+//												debug.msg('TelegramBot - ' + msg.text.toString())
+												so.active_long_position = !so.active_long_position
+												s.tools.pushMessage((so.active_long_position? 'Long' : 'No long'))
+												break
+											}
+											case '/\/short/': {
+//												debug.msg('TelegramBot - ' + msg.text.toString())
+												so.active_short_position = !so.active_short_position
+												s.tools.pushMessage((so.active_short_position? 'Short' : 'No short'))
+												break
+											}
+											case '/\/status/': {
+												debug.msg('TelegramBot - ' + msg.text.toString())
+												engine.updateMessage()
+												break
+											}											
+											}
 										})
 									}
 								})
