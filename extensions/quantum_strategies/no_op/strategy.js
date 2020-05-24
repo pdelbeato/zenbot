@@ -6,10 +6,8 @@ var n = require('numbro')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
-//c.strategy[_name_] = {
+//c.strategy['no_op'] = {
 //	opts: {							//****** To store options
-//		option_1: null,
-//		option_2: null,
 //	}
 //}
 //---------------------------------------------
@@ -215,14 +213,14 @@ module.exports = {
 
 		///////////////////////////////////////////
 		// _onUpdateMessage
-		// output: cb(null, result)
+		// 		output: cb(null, result)
 		//		result: text to be sent
 		///////////////////////////////////////////
 
 		function _onUpdateMessage(cb) {
 			//User defined
 			
-			cb(null, result)
+			cb(null, null)
 		}
 	},
 
