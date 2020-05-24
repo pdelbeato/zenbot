@@ -1,11 +1,9 @@
 var n = require('numbro')
 , tb = require('timebucket')
-, rsi = require('../../../lib/rsi')
 , ta_rsi = require('../../../lib/ta_rsi')
 , ta_bollinger = require('../../../lib/ta_bollinger')
 , Phenotypes = require('../../../lib/phenotype')
 , inspect = require('eyes').inspector({maxLength: 4096 })
-, crypto = require('crypto')
 , { formatPercent } = require('../../../lib/format')
 , debug = require('../../../lib/debug')
 
@@ -222,14 +220,17 @@ module.exports = {
 		let strat = s.options.strategy[strat_name]
 
 		if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
-			strat.calc_lookback.unshift(s.period)
+			strat.calc_lookback.unshift(strat.period)
+			strat.period = {}
+			s.tools.initPeriod(strat.period, opts.trade, strat.opts.period_calc)
 			strat.lib.onStrategyPeriod(s, opts, function (err, result) {
 				if (strat.opts.period_calc) {
 					strat.calc_close_time = tb(opts.trade.time).resize(strat.opts.period_calc).add(1).toMilliseconds() - 1
 				}
 
+				// Ripulisce so.strategy[strategy_name].calc_lookback a un max di valori
 				if (strat.opts.min_periods && (strat.calc_lookback.length > strat.opts.min_periods)) {
-					strat.calc_lookback.splice(strat.opts.min_periods, (strat.calc_lookback.length - strat.opts.min_periods))
+					strat.calc_lookback.pop()
 				}
 
 				if (err) {
@@ -293,13 +294,13 @@ module.exports = {
 					strat.data.watchdog.dump = false
 
 					//Se sono attive le opzioni watchdog, controllo se dobbiamo attivare il watchdog
-					if (strat.opts.pump_watchdog && s.period.close > upperWatchdogBound) {
+					if (strat.opts.pump_watchdog && strat.period.close > upperWatchdogBound) {
 						s.signal = 'Pump Bollinger';
 						strat.data.watchdog.pump = true
 						strat.data.watchdog.dump = false
 						strat.data.watchdog.calmdown = true
 					}
-					else if (strat.opts.dump_watchdog && s.period.close < lowerWatchdogBound) {
+					else if (strat.opts.dump_watchdog && strat.period.close < lowerWatchdogBound) {
 						s.signal = 'Dump Bollinger';
 						strat.data.watchdog.pump = false
 						strat.data.watchdog.dump = true
@@ -307,7 +308,7 @@ module.exports = {
 					}
 					//Non siamo in watchdog, controlliamo se il calmdown è passato
 					else if (strat.data.watchdog.calmdown) {
-						if (s.period.close > lowerCalmdownWatchdogBound && s.period.close < upperCalmdownWatchdogBound) {
+						if (s.period.close > lowerCalmdownWatchdogBound && strat.period.close < upperCalmdownWatchdogBound) {
 							strat.data.watchdog.calmdown = false
 						}
 						else {
@@ -358,6 +359,9 @@ module.exports = {
 						}
 						return cb(null, null)
 					}
+					else {
+						return cb(null, null)
+					}
 				}
 				else {
 					return cb(null, null)
@@ -381,7 +385,7 @@ module.exports = {
 							s.eventBus.emit(strat_name, side)
 						}
 						else {
-							debug.msg('Strategy Bollinger - No same price protection: s.period.close= ' + s.period.close + '; limit_open_price ' + strat.data.limit_open_price[side] + '; delta limit_open_price ' + (strat.data.limit_open_price[side] * strat.opts.delta_pct / 100))
+							debug.msg('Strategy Bollinger - No same price protection: strat.period.close= ' + strat.period.close + '; limit_open_price ' + strat.data.limit_open_price[side] + '; delta limit_open_price ' + (strat.data.limit_open_price[side] * strat.opts.delta_pct / 100))
 						}
 						// }
 					}
@@ -422,11 +426,7 @@ module.exports = {
 
 	onReport: function (s, opts = {}, callback = function () { }) {
 		let strat_name = this.name
-		let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
-
-		// if (!opts.actual && s.lookback[0]) {
-		// 	strat.data = s.lookback[0].strategy[strat_name].data
-		// }
+		let strat = s.options.strategy[strat_name]
 
 		var cols = []
 
@@ -450,8 +450,8 @@ module.exports = {
 				let lowerBandwidth = (strat.data.bollinger.midBound - strat.data.bollinger.lowerBound)
 				let bandwidth_pct = (upperBound - lowerBound) / midBound * 100
 				let min_bandwidth_pct = strat.opts.min_bandwidth_pct
-				let upperWatchdogBound = strat.data.bollinger.upperBound + (upperBandwidth * strat.opts.upper_watchdog_pct / 100)
-				let lowerWatchdogBound = strat.data.bollinger.lowerBound - (lowerBandwidth * strat.opts.lower_watchdog_pct / 100)
+				// let upperWatchdogBound = strat.data.bollinger.upperBound + (upperBandwidth * strat.opts.upper_watchdog_pct / 100)
+				// let lowerWatchdogBound = strat.data.bollinger.lowerBound - (lowerBandwidth * strat.opts.lower_watchdog_pct / 100)
 
 				var color_up = 'cyan';
 				var color_down = 'cyan';
@@ -537,14 +537,13 @@ module.exports = {
 		///////////////////////////////////////////
 
 		function _onUpdateMessage(cb) {
-			let max_profit_position = s.options.strategy[strat_name].data.max_profit_position
 			let side_max_profit = null
 			let pct_max_profit = null
 			let result = null
 			
-			if (max_profit_position.buy != null || max_profit_position.sell != null) {
-				side_max_profit =  ((max_profit_position.buy ? max_profit_position.buy.profit_net_pct : -100) > (max_profit_position.sell ? max_profit_position.sell.profit_net_pct : -100) ? 'buy' : 'sell')
-				pct_max_profit = max_profit_position[side_max_profit].profit_net_pct
+			if (strat.data.max_profit_position.buy != null || strat.data.max_profit_position.sell != null) {
+				side_max_profit =  ((strat.data.max_profit_position.buy ? strat.data.max_profit_position.buy.profit_net_pct : -100) > (strat.data.max_profit_position.sell ? strat.data.max_profit_position.sell.profit_net_pct : -100) ? 'buy' : 'sell')
+				pct_max_profit = strat.data.max_profit_position[side_max_profit].profit_net_pct
 				result = ('Bollinger position: ' + side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit/100))
 			}
 						

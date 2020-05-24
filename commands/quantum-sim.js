@@ -249,7 +249,10 @@ module.exports = function (program, conf) {
               so.active_short_position=true
             }
           }
-        	eventBus.emit('trade', trade, function (err, result) {})
+          eventBus.emit('trade', trade
+          , function (err, result) { 
+            let a = result
+          })
 
         	if (numTrades && totalTrades && totalTrades == numTrades) {
         		onCollectionCursorEnd()

@@ -260,27 +260,30 @@ module.exports = {
     let strat = s.options.strategy[strat_name]
 
     if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
-      strat.calc_lookback.unshift(s.period)
-      strat.lib.onStrategyPeriod(s, opts, function (err, result) {
-        if (strat.opts.period_calc) {
+			strat.calc_lookback.unshift(strat.period)
+			strat.period = {}
+			s.tools.initPeriod(strat.period, opts.trade, strat.opts.period_calc)
+			strat.lib.onStrategyPeriod(s, opts, function (err, result) {
+				if (strat.opts.period_calc) {
 					strat.calc_close_time = tb(opts.trade.time).resize(strat.opts.period_calc).add(1).toMilliseconds() - 1
 				}
 
-        if (strat.opts.min_periods && (strat.calc_lookback.length > strat.opts.min_periods)) {
-					strat.calc_lookback.splice(strat.opts.min_periods, (strat.calc_lookback.length - strat.opts.min_periods))
+				// Ripulisce so.strategy[strategy_name].calc_lookback a un max di valori
+				if (strat.opts.min_periods && (strat.calc_lookback.length > strat.opts.min_periods)) {
+					strat.calc_lookback.pop()
 				}
 
-        if (err) {
-          callback(err, null)
-        }
-        else {
-          _onTradePeriod(callback)
-        }
-      })
-    }
-    else {
-      _onTradePeriod(callback)
-    }
+				if (err) {
+					callback(err, null)
+				}
+				else {
+					_onTradePeriod(callback)
+				}
+			})
+		}
+		else {
+			_onTradePeriod(callback)
+		}
 
     ///////////////////////////////////////////
     // _onTradePeriod
@@ -476,11 +479,7 @@ module.exports = {
 
   onReport: function (s, opts = {}, callback = function () { }) {
     let strat_name = this.name
-    let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
-
-    if (!opts.actual && s.lookback[0]) {
-      strat.data = s.lookback[0].strategy[strat_name].data
-    }
+    let strat = s.options.strategy[strat_name]
 
     var cols = []
 

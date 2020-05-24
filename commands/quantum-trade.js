@@ -898,7 +898,7 @@ module.exports = function (program, conf) {
 				s.exchange.getAllOrders(so.selector, function (err, orders) {
 					if (err) {
 						console.log('quantum-trade - exit err= ' + err)
-						setTimeout(function() { exit() }, so.order_poll_time)
+						return setTimeout(function() { exit() }, so.order_poll_time)
 					}
 					if ((orders && orders.length === 0) || so.mode === 'paper') {
 						console.log('\nExiting... ' + '\nWriting statistics...'.grey)

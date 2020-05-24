@@ -38,8 +38,8 @@ var n = require('numbro')
 //maxLength: 2048           // Truncate output if longer
 
 module.exports = {
-	name: '_name_',
-	description: '_Description_',
+	name: 'no_op',
+	description: 'No operation',
 	noHoldCheck: false,
 
 	init: function (s, callback = function() {}) {
@@ -83,13 +83,13 @@ module.exports = {
 		let strat = s.options.strategy[strategy_name]
 
 		this.command('o', {
-			desc: ('_name_ - List options'.grey), action: function () {
+			desc: ('no_op - List options'.grey), action: function () {
 				s.tools.listStrategyOptions(strategy_name, false)
 			}
 		})
 		
 		this.command('g', {
-			desc: ('_name_ - Description'), action: function () {
+			desc: ('no_op - Description'), action: function () {
 				//User defined
 			}
 		})
@@ -100,8 +100,9 @@ module.exports = {
 		// 		trade: trade,
 		// 		is_preroll: is_preroll
 		// }
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+
+		// let strat_name = this.name
+		// let strat = s.options.strategy[strat_name]
 				
 		_onTrade(callback)
 		
@@ -116,93 +117,95 @@ module.exports = {
 		}
 	},
 
-	onTradePeriod: function (s, opts = {}, callback = function () { }) {
-		// var opts = {
-		// 		trade: trade,
-		// 		is_preroll: is_preroll
-		// }
+	// onTradePeriod: function (s, opts = {}, callback = function () { }) {
+	// 	// var opts = {
+	// 	// 		trade: trade,
+	// 	// 		is_preroll: is_preroll
+	// 	// }
 
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	// 	let strat_name = this.name
+	// 	let strat = s.options.strategy[strat_name]
 
-		if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
-			strat.calc_lookback.unshift(strat.period)
-			strat.period = {}
-			s.tools.initPeriod(strat.period, opts.trade, strat.opts.period_calc)
-			strat.lib.onStrategyPeriod(s, opts, function (err, result) {
-				strat.calc_close_time = tb(opts.trade.time).resize(strat.opts.period_calc).add(1).toMilliseconds() - 1
+	// 	if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
+	// 		strat.calc_lookback.unshift(strat.period)
+	// 		strat.period = {}
+	// 		s.tools.initPeriod(strat.period, opts.trade, strat.opts.period_calc)
+	// 		strat.lib.onStrategyPeriod(s, opts, function (err, result) {
+	// 			if (strat.opts.period_calc) {
+	// 				strat.calc_close_time = tb(opts.trade.time).resize(strat.opts.period_calc).add(1).toMilliseconds() - 1
+	// 			}
 
-				// Ripulisce so.strategy[strategy_name].calc_lookback a un max di valori
-				if (strat.opts.min_periods && (strat.calc_lookback.length > strat.opts.min_periods)) {
-					strat.calc_lookback.pop()
-				}
+	// 			// Ripulisce so.strategy[strategy_name].calc_lookback a un max di valori
+	// 			if (strat.opts.min_periods && (strat.calc_lookback.length > strat.opts.min_periods)) {
+	// 				strat.calc_lookback.pop()
+	// 			}
 
-				if (err) {
-					callback(err, null)
-				}
-				else {
-					_onTradePeriod(callback)
-				}
-			})
-		}
-		else {
-			_onTradePeriod(callback)
-		}
+	// 			if (err) {
+	// 				callback(err, null)
+	// 			}
+	// 			else {
+	// 				_onTradePeriod(callback)
+	// 			}
+	// 		})
+	// 	}
+	// 	else {
+	// 		_onTradePeriod(callback)
+	// 	}
 
-		///////////////////////////////////////////
-		// _onTradePeriod
-		///////////////////////////////////////////
+	// 	///////////////////////////////////////////
+	// 	// _onTradePeriod
+	// 	///////////////////////////////////////////
 
-		function _onTradePeriod(cb) {
-			//User defined
+	// 	function _onTradePeriod(cb) {
+	// 		//User defined
 			
-			cb()
-		}
-	},
+	// 		cb()
+	// 	}
+	// },
 
-	onStrategyPeriod: function (s, opts = {}, callback = function () { }) {
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+	// onStrategyPeriod: function (s, opts = {}, callback = function () { }) {
+	// 	// let strat_name = this.name
+	// 	// let strat = s.options.strategy[strat_name]
 
-		_onStrategyPeriod(callback)
-
-		///////////////////////////////////////////
-		// _onStrategyPeriod
-		///////////////////////////////////////////
-
-		function _onStrategyPeriod(cb) {
-			//User defined
-			
-			cb(null, null)
-		}
-	},
-
-
-	onReport: function (s, opts = {}, callback = function () { }) {
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
-
-		var cols = []
-
-		_onReport(function() {
-			cols.forEach(function (col) {
-				process.stdout.write(col)
-			})
-			callback(null, null)
-		})
+	// 	_onStrategyPeriod(callback)
 		
-		/////////////////////////////////////////////////////
-		// _onReport() deve inserire in cols[] le informazioni da stampare a video
-		/////////////////////////////////////////////////////
+	// 	///////////////////////////////////////////
+	// 	// _onStrategyPeriod
+	// 	///////////////////////////////////////////
 
-		function _onReport(cb) {
-			//User defined
+	// 	function _onStrategyPeriod(cb) {
+	// 		//User defined
 			
-			//cols.push('_something_')
+	// 		cb(null, null)
+	// 	}
+	// },
 
-			cb()
-		}
-	},
+
+	// onReport: function (s, opts = {}, callback = function () { }) {
+	// 	let strat_name = this.name
+	// 	let strat = s.options.strategy[strat_name]
+
+	// 	var cols = []
+
+	// 	_onReport(function() {
+	// 		cols.forEach(function (col) {
+	// 			process.stdout.write(col)
+	// 		})
+	// 		callback(null, null)
+	// 	})
+		
+	// 	/////////////////////////////////////////////////////
+	// 	// _onReport() deve inserire in cols[] le informazioni da stampare a video
+	// 	/////////////////////////////////////////////////////
+
+	// 	function _onReport(cb) {
+	// 		//User defined
+			
+	// 		//cols.push('_something_')
+
+	// 		cb()
+	// 	}
+	// },
 
 	onUpdateMessage: function (s, opts = {}, callback) {
 		let strat_name = this.name
@@ -257,7 +260,7 @@ module.exports = {
 		let strat = s.options.strategy[strat_name]
 
 		_onPositionUpdated(callback)
-		
+
 		///////////////////////////////////////////
 		// _onPositionUpdated
 		///////////////////////////////////////////
@@ -279,7 +282,7 @@ module.exports = {
 		let strat = s.options.strategy[strat_name]
 
 		_onPositionClosed(callback)
-		
+
 		///////////////////////////////////////////
 		// _onPositionClosed
 		///////////////////////////////////////////
@@ -296,7 +299,7 @@ module.exports = {
 		let strat = s.options.strategy[strat_name]
 
 		_onOrderExecuted(callback)
-		
+
 		///////////////////////////////////////////
 		// _onOrderExecuted
 		///////////////////////////////////////////

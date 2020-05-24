@@ -4,7 +4,6 @@ var n = require('numbro')
 , debug = require('../../../lib/debug')
 , tb = require('timebucket')
 , ta_linearRegSlope = require('../../../lib/ta_linearreg_slope')
-, { formatPercent } = require('../../../lib/format')
 
 
 //Parte da includere nel file di configurazione
@@ -155,92 +154,90 @@ module.exports = {
 		// }
 
 		try {
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+			let strat_name = this.name
+			let strat = s.options.strategy[strat_name]
 
-		if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
-			strat.calc_lookback.unshift(s.period)
-			strat.lib.onStrategyPeriod(s, opts, function (err, result) {
-				if (strat.opts.period_calc) {
-					strat.calc_close_time = tb(opts.trade.time).resize(strat.opts.period_calc).add(1).toMilliseconds() - 1
-				}
+			if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
+				strat.calc_lookback.unshift(strat.period)
+				strat.period = {}
+				s.tools.initPeriod(strat.period, opts.trade, strat.opts.period_calc)
+				strat.lib.onStrategyPeriod(s, opts, function (err, result) {
+					if (strat.opts.period_calc) {
+						strat.calc_close_time = tb(opts.trade.time).resize(strat.opts.period_calc).add(1).toMilliseconds() - 1
+					}
 
-				if (strat.opts.min_periods && (strat.calc_lookback.length > strat.opts.min_periods)) {
-					strat.calc_lookback.splice(strat.opts.min_periods, (strat.calc_lookback.length - strat.opts.min_periods))
-				}
+					// Ripulisce so.strategy[strategy_name].calc_lookback a un max di valori
+					if (strat.opts.min_periods && (strat.calc_lookback.length > strat.opts.min_periods)) {
+						strat.calc_lookback.pop()
+					}
 
-				if (err) {
-					callback(err, null)
-				}
-				else {
-					_onTradePeriod(callback)
-				}
-			})
+					if (err) {
+						callback(err, null)
+					}
+					else {
+						_onTradePeriod(callback)
+					}
+				})
+			}
+			else {
+				_onTradePeriod(callback)
+			}
+
+			///////////////////////////////////////////
+			// _onTradePeriod
+			///////////////////////////////////////////
+
+			function _onTradePeriod(cb) {
+				//User defined
+
+				cb()
+			}
 		}
-		else {
-			_onTradePeriod(callback)
+		catch (err) {
+			console.log(strat_name + ' onTrade err= ' + err)
 		}
-
-		///////////////////////////////////////////
-		// _onTradePeriod
-		///////////////////////////////////////////
-
-		function _onTradePeriod(cb) {
-			//User defined
-			
-			cb()
-		}
-	}
-	catch (err) {
-		console.log(strat_name + ' onTrade err= ' + err)
-	}
 	},
 
 	onStrategyPeriod: function (s, opts = {}, callback = function () { }) {
 		try {
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+			let strat_name = this.name
+			let strat = s.options.strategy[strat_name]
 
-		_onStrategyPeriod(callback)
+			_onStrategyPeriod(callback)
 
-		///////////////////////////////////////////
-		// _onStrategyPeriod
-		///////////////////////////////////////////
+			///////////////////////////////////////////
+			// _onStrategyPeriod
+			///////////////////////////////////////////
 
-		function _onStrategyPeriod(cb) {
-			ta_linearRegSlope(s, 'close', 'linear_reg_trend', strat.opts.size)
-			.then(function (result) {
-				if (strat.opts.activated) {
-					if (strat.data.slope > strat.opts.upper_threshold) {
-						s.options.active_long_position = true
-						s.options.active_short_position = false
-					}
-					else if (strat.data.slope < strat.opts.lower_threshold) {
-						s.options.active_long_position = false
-						s.options.active_short_position = true
-					}
-				}
-				cb(null, result)
-			})
-			.catch(function (err) {
-				cb(err, null)
-			})
+			function _onStrategyPeriod(cb) {
+				ta_linearRegSlope(s, 'close', 'linear_reg_trend', strat.opts.size)
+					.then(function (result) {
+						if (strat.opts.activated) {
+							if (strat.data.slope > strat.opts.upper_threshold) {
+								s.options.active_long_position = true
+								s.options.active_short_position = false
+							}
+							else if (strat.data.slope < strat.opts.lower_threshold) {
+								s.options.active_long_position = false
+								s.options.active_short_position = true
+							}
+						}
+						cb(null, result)
+					})
+					.catch(function (err) {
+						cb(err, null)
+					})
+			}
 		}
-	}
-	catch (err) {
-		console.log(strat_name + ' onStrategyPeriod err= ' + err)
-	}
+		catch (err) {
+			console.log(strat_name + ' onStrategyPeriod err= ' + err)
+		}
 	},
 
 
 	onReport: function (s, opts = {}, callback = function () { }) {
-		try {
 		let strat_name = this.name
-		let strat = JSON.parse(JSON.stringify(s.options.strategy[strat_name]))
-
-		// if (!opts.actual && s.lookback[0]) {
-		// 	strat.data = s.lookback[0].strategy[strat_name].data
-		// }
+		let strat = s.options.strategy[strat_name]
 
 		var cols = []
 
@@ -277,10 +274,6 @@ module.exports = {
 
 			cb()
 		}
-	}
-	catch (err) {
-		console.log(strat_name + ' onReport err= ' + err)
-	}
 	},
 
 	onUpdateMessage: function (s, opts = {}, callback) {
