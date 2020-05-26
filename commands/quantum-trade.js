@@ -1332,12 +1332,12 @@ module.exports = function (program, conf) {
 											switch (msg) {
 												case '/long': {
 													so.active_long_position = !so.active_long_position
-													s.tools.pushMessage((so.active_long_position ? 'Long' : 'No long'))
+													s.tools.pushMessage('', (so.active_long_position ? 'Long' : 'No long'))
 													break
 												}
 												case '/short': {
 													so.active_short_position = !so.active_short_position
-													s.tools.pushMessage((so.active_short_position ? 'Short' : 'No short'))
+													s.tools.pushMessage('', (so.active_short_position ? 'Short' : 'No short'))
 													break
 												}
 												case '/status': {

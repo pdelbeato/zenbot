@@ -8,10 +8,10 @@ var n = require('numbro')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
-//c.strategy['auto_catching'] = {
+//c.strategy['auto_catching_2'] = {
 //	opts: {								//****** To store options
-//		period_calc: '1h',					//****** After how much time the auto-catch orders must be tuned 
-//		size: 60,							//****** SMA size in period_length
+//		period_calc: '1d',					//****** After how much time the auto-catch orders must be tuned 
+//		size: 1,							//****** SMA size in period_length
 //		catch_gain_pct: 3,					//****** gain pct for closing position catch order
 //		catch_auto_pct: 5,					//****** pct for auto catch order
 //		catch_fixed_value: 500,				//****** Currency value for auto catch order
@@ -45,7 +45,7 @@ var n = require('numbro')
 
 module.exports = {
 	name: 'auto_catching_2',
-	description: 'Auto-Auto-catching Orders strategy',
+	description: 'Auto-catching Orders strategy',
 	noHoldCheck: true,
 
 	init: function (s, callback = function() {}) {
@@ -153,12 +153,18 @@ module.exports = {
 			}
 		})
 		this.command('k', {
-			desc: ('Auto-catching Orders - CLosing position gain pct '.grey + 'DECREASE'.red), action: function () {
+			desc: ('Auto-catching Orders - Closing position gain pct '.grey + 'DECREASE'.red), action: function () {
 				strat.opts.catch_gain_pct = Number((strat.opts.catch_gain_pct - 0.5).toFixed(2))
 				if (strat.opts.catch_gain_pct < 1) {
 					strat.opts.catch_gain_pct = 1
 				}
 				console.log('\n' + 'Auto-catching Orders - Closing position gain pct ' + 'DECREASE'.red + ' -> ' + strat.opts.catch_gain_pct)
+			}
+		})
+		this.command('A', {
+			desc: ('Auto-catching Orders - Insert auto-catch order now'.grey), action: function () {
+				strat.lib.onStrategyPeriod(s)
+				console.log('\n' + 'Auto-catching Orders - Auto-catch order inserted')
 			}
 		})
 		this.command('C', {

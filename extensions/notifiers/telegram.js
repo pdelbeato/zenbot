@@ -24,17 +24,17 @@ module.exports = function telegram (config) {
 			})
 		},
 
-		pushMessageMaster: function(title, message) {
-			var bot = new TelegramBot(config.bot_token)
+// 		pushMessageMaster: function(title, message) {
+// 			var bot = new TelegramBot(config.bot_token)
 
-			if (config.chat_id_master) {
-				bot.sendMessage(config.chat_id_master, title + ': ' + message).catch(function (error) {
-					console.error('\nNotifiers - Telegram - error: ')
-//					console.log(error.response.body) // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
-					console.log(error)
-				})
-			}
-		},
+// 			if (config.chat_id_master) {
+// 				bot.sendMessage(config.chat_id_master, title + ': ' + message).catch(function (error) {
+// 					console.error('\nNotifiers - Telegram - error: ')
+// //					console.log(error.response.body) // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+// 					console.log(error)
+// 				})
+// 			}
+// 		},
 		onMessage: function (callback) {
 			bot.on('message', wrapper(callback))
 			bot.on('webhook_error', (error) => {

@@ -153,12 +153,18 @@ module.exports = {
 			}
 		})
 		this.command('k', {
-			desc: ('Auto-catching Orders - CLosing position gain pct '.grey + 'DECREASE'.red), action: function () {
+			desc: ('Auto-catching Orders - Closing position gain pct '.grey + 'DECREASE'.red), action: function () {
 				strat.opts.catch_gain_pct = Number((strat.opts.catch_gain_pct - 0.5).toFixed(2))
 				if (strat.opts.catch_gain_pct < 1) {
 					strat.opts.catch_gain_pct = 1
 				}
 				console.log('\n' + 'Auto-catching Orders - Closing position gain pct ' + 'DECREASE'.red + ' -> ' + strat.opts.catch_gain_pct)
+			}
+		})
+		this.command('A', {
+			desc: ('Auto-catching Orders - Insert auto-catch order now'.grey), action: function () {
+				strat.lib.onStrategyPeriod(s)
+				console.log('\n' + 'Auto-catching Orders - Auto-catch order inserted')
 			}
 		})
 		this.command('C', {
