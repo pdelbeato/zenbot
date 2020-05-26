@@ -1,9 +1,9 @@
 var n = require('numbro')
-, Phenotypes = require('../../../lib/phenotype')
-, inspect = require('eyes').inspector({ maxLength: 4096 })
-, debug = require('../../../lib/debug')
-, tb = require('timebucket')
-, ta_linearRegSlope = require('../../../lib/ta_linearreg_slope')
+	, Phenotypes = require('../../../lib/phenotype')
+	, inspect = require('eyes').inspector({ maxLength: 4096 })
+	, debug = require('../../../lib/debug')
+	, tb = require('timebucket')
+	, ta_linearRegSlope = require('../../../lib/ta_linearreg_slope')
 
 
 //Parte da includere nel file di configurazione
@@ -77,10 +77,10 @@ module.exports = {
 
 	getOptions: function (strategy_name) {
 		try {
-		this.option(strategy_name, 'period_calc', 'Calculate Linear Regression Trend every period_calc time', String, '15m')
-		this.option(strategy_name, 'size', 'Use \'size\' period to calculate linear regression', Number, 20)
-		this.option(strategy_name, 'upper_threshold', 'Upper threshold (long if price is higher)', Number, 0.5)
-		this.option(strategy_name, 'lower_threshold', 'Lower threshold (short if price is lower)', Number, -0.5)
+			this.option(strategy_name, 'period_calc', 'Calculate Linear Regression Trend every period_calc time', String, '15m')
+			this.option(strategy_name, 'size', 'Use \'size\' period to calculate linear regression', Number, 20)
+			this.option(strategy_name, 'upper_threshold', 'Upper threshold (long if price is higher)', Number, 0.5)
+			this.option(strategy_name, 'lower_threshold', 'Lower threshold (short if price is lower)', Number, -0.5)
 		}
 		catch (err) {
 			console.log(strat_name + ' getOptions err= ' + err)
@@ -89,41 +89,49 @@ module.exports = {
 
 	getCommands: function (s, strategy_name) {
 		try {
-		let strat = s.options.strategy[strategy_name]
+			let strat = s.options.strategy[strategy_name]
 
-		this.command('o', {
-			desc: ('Linear Regression Trend - List options'.grey),
-			action: function() {
-				s.tools.listStrategyOptions('linear_reg_trend', false)
-			}
-		})
-		this.command('+', {desc: ('Linear Regression Trend - Upper threshold'.grey + ' INCREASE'.green), action: function() {
-			strat.opts.upper_threshold = Number((strat.opts.upper_threshold + 0.01).toFixed(2))
-			console.log('\n' + 'Linear Regression Trend - Upper threshold' + ' INCREASE'.green + ' -> ' + strat.opts.upper_threshold)
-		}})
-		this.command('-', {desc: ('Linear Regression Trend - Upper threshold'.grey + ' DECREASE'.red), action: function() {
-			strat.opts.upper_threshold = Number((strat.opts.upper_threshold - 0.01).toFixed(2))
-			console.log('\n' + 'Linear Regression Trend - Upper threshold' + ' DECREASE'.red + ' -> ' + strat.opts.upper_threshold)
-		}})
-		this.command('*', {desc: ('Linear Regression Trend - Lower threshold'.grey + ' INCREASE'.green), action: function() {
-			strat.opts.lower_threshold = Number((strat.opts.lower_threshold + 0.01).toFixed(2))
-			console.log('\n' + 'Linear Regression Trend - Lower threshold' + ' INCREASE'.green + ' -> ' + strat.opts.lower_threshold)
-		}})
-		this.command('_', {desc: ('Linear Regression Trend - Lower threshold'.grey + ' DECREASE'.red), action: function() {
-			strat.opts.lower_threshold = Number((strat.opts.lower_threshold - 0.01).toFixed(2))
-			console.log('\n' + 'Linear Regression Trend - Lower threshold' + ' DECREASE'.red + ' -> ' + strat.opts.lower_threshold)
-		}})
-		this.command('i', {
-			desc: ('Linear Regression Trend - Toggle activation'.grey),
-			action: function() {
-				strat.opts.activated = !strat.opts.activated
-				console.log('\nToggle activation: ' + (strat.opts.activated ? 'ON'.green.inverse : 'OFF'.red.inverse))
-			}
-		})
-	}
-	catch (err) {
-		console.log(strat_name + ' getCommands err= ' + err)
-	}
+			this.command('o', {
+				desc: ('Linear Regression Trend - List options'.grey),
+				action: function () {
+					s.tools.listStrategyOptions('linear_reg_trend', false)
+				}
+			})
+			this.command('+', {
+				desc: ('Linear Regression Trend - Upper threshold'.grey + ' INCREASE'.green), action: function () {
+					strat.opts.upper_threshold = Number((strat.opts.upper_threshold + 0.01).toFixed(2))
+					console.log('\n' + 'Linear Regression Trend - Upper threshold' + ' INCREASE'.green + ' -> ' + strat.opts.upper_threshold)
+				}
+			})
+			this.command('-', {
+				desc: ('Linear Regression Trend - Upper threshold'.grey + ' DECREASE'.red), action: function () {
+					strat.opts.upper_threshold = Number((strat.opts.upper_threshold - 0.01).toFixed(2))
+					console.log('\n' + 'Linear Regression Trend - Upper threshold' + ' DECREASE'.red + ' -> ' + strat.opts.upper_threshold)
+				}
+			})
+			this.command('*', {
+				desc: ('Linear Regression Trend - Lower threshold'.grey + ' INCREASE'.green), action: function () {
+					strat.opts.lower_threshold = Number((strat.opts.lower_threshold + 0.01).toFixed(2))
+					console.log('\n' + 'Linear Regression Trend - Lower threshold' + ' INCREASE'.green + ' -> ' + strat.opts.lower_threshold)
+				}
+			})
+			this.command('_', {
+				desc: ('Linear Regression Trend - Lower threshold'.grey + ' DECREASE'.red), action: function () {
+					strat.opts.lower_threshold = Number((strat.opts.lower_threshold - 0.01).toFixed(2))
+					console.log('\n' + 'Linear Regression Trend - Lower threshold' + ' DECREASE'.red + ' -> ' + strat.opts.lower_threshold)
+				}
+			})
+			this.command('i', {
+				desc: ('Linear Regression Trend - Toggle activation'.grey),
+				action: function () {
+					strat.opts.activated = !strat.opts.activated
+					console.log('\nToggle activation: ' + (strat.opts.activated ? 'ON'.green.inverse : 'OFF'.red.inverse))
+				}
+			})
+		}
+		catch (err) {
+			console.log(strat_name + ' getCommands err= ' + err)
+		}
 	},
 
 	// onTrade: function (s, opts = {}, callback = function () { }) {
@@ -133,13 +141,13 @@ module.exports = {
 	// 	// }
 	// 	let strat_name = this.name
 	// 	let strat = s.options.strategy[strat_name]
-				
+
 	// 	_onTrade(callback)
-		
+
 	// 	///////////////////////////////////////////
 	// 	// _onTrade
 	// 	///////////////////////////////////////////
-		
+
 	// 	function _onTrade(cb) {
 	// 		//User defined
 
@@ -167,7 +175,7 @@ module.exports = {
 					}
 
 					// Ripulisce so.strategy[strategy_name].calc_lookback a un max di valori
-					if (strat.opts.min_periods && (strat.calc_lookback.length > strat.opts.min_periods)) {
+					if (strat.opts.size && (strat.calc_lookback.length > strat.opts.size)) {
 						strat.calc_lookback.pop()
 					}
 
@@ -241,21 +249,21 @@ module.exports = {
 
 		var cols = []
 
-		_onReport(function() {
+		_onReport(function () {
 			cols.forEach(function (col) {
 				process.stdout.write(col)
 			})
 			callback(null, null)
 		})
-		
+
 		/////////////////////////////////////////////////////
 		// _onReport() deve inserire in cols[] le informazioni da stampare a video
 		/////////////////////////////////////////////////////
 
 		function _onReport(cb) {
 			var color = null
-			
-			if (strat.data.slope) {			
+
+			if (strat.data.slope) {
 				if (strat.data.slope > strat.opts.upper_threshold) {
 					color = 'green'
 				}
@@ -278,30 +286,30 @@ module.exports = {
 
 	onUpdateMessage: function (s, opts = {}, callback) {
 		try {
-		let strat_name = this.name
-		let strat = s.options.strategy[strat_name]
+			let strat_name = this.name
+			let strat = s.options.strategy[strat_name]
 
-		_onUpdateMessage(callback)
+			_onUpdateMessage(callback)
 
-		///////////////////////////////////////////
-		// _onUpdateMessage
-		// output: cb(null, result)
-		//		result: text to be sent
-		///////////////////////////////////////////
+			///////////////////////////////////////////
+			// _onUpdateMessage
+			// output: cb(null, result)
+			//		result: text to be sent
+			///////////////////////////////////////////
 
-		function _onUpdateMessage(cb) {
-			let result = null
+			function _onUpdateMessage(cb) {
+				let result = null
 
-			if (strat.data.slope) {
-				result = ('Linear Regression slope: ' + n(strat.data.slope).format('0.00') + '‰]')
+				if (strat.data.slope) {
+					result = ('Linear Regression slope: ' + n(strat.data.slope).format('0.00') + '‰]')
+				}
+
+				cb(null, result)
 			}
-			
-			cb(null, result)
 		}
-	}
-	catch (err) {
-		console.log(strat_name + ' onUpdateMessage err= ' + err)
-	}
+		catch (err) {
+			console.log(strat_name + ' onUpdateMessage err= ' + err)
+		}
 	},
 
 	// onPositionOpened: function (s, opts = {}, callback = function () { }) {
@@ -323,7 +331,7 @@ module.exports = {
 
 	// 	function _onPositionOpened(cb) {
 	// 		//User defined
-			
+
 	// 		cb(null, null)
 	// 	}
 	// },
@@ -333,19 +341,19 @@ module.exports = {
 	// 	//	position_id: position_id,
 	// 	//	position: position
 	// 	//};
-		
+
 	// 	let strat_name = this.name
 	// 	let strat = s.options.strategy[strat_name]
 
 	// 	_onPositionUpdated(callback)
-		
+
 	// 	///////////////////////////////////////////
 	// 	// _onPositionUpdated
 	// 	///////////////////////////////////////////
-		
+
 	// 	function _onPositionUpdated(cb) {
 	// 		//User defined
-			
+
 	// 		cb(null, null)
 	// 	}
 	// },
@@ -360,14 +368,14 @@ module.exports = {
 	// 	let strat = s.options.strategy[strat_name]
 
 	// 	_onPositionClosed(callback)
-		
+
 	// 	///////////////////////////////////////////
 	// 	// _onPositionClosed
 	// 	///////////////////////////////////////////
-		
+
 	// 	function _onPositionClosed(cb) {
 	// 		//User defined
-			
+
 	// 		cb(null, null)
 	// 	}
 	// },
@@ -377,14 +385,14 @@ module.exports = {
 	// 	let strat = s.options.strategy[strat_name]
 
 	// 	_onOrderExecuted(callback)
-		
+
 	// 	///////////////////////////////////////////
 	// 	// _onOrderExecuted
 	// 	///////////////////////////////////////////
-		
+
 	// 	function _onOrderExecuted(cb) {
 	// 		//User defined
-			
+
 	// 		cb(null, null)
 	// 	}
 	// },
@@ -408,7 +416,7 @@ module.exports = {
 		option_1: Phenotypes.RangePeriod(1, 120, 'm'),
 		option_2: Phenotypes.RangeFloat(-1, 5),
 		option_3: Phenotypes.ListOption(['maker', 'taker']),
-		
+
 		// -- strategy
 		option_4: Phenotypes.Range(1, 40),
 	}

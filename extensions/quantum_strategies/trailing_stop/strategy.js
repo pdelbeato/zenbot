@@ -203,7 +203,7 @@ module.exports = {
 				strat.calc_close_time = tb(opts.trade.time).resize(strat.opts.period_calc).add(1).toMilliseconds() - 1
 
 				// Ripulisce so.strategy[strategy_name].calc_lookback a un max di valori
-				if (strat.opts.min_periods && (strat.calc_lookback.length > strat.opts.min_periods)) {
+				if (strat.opts.size && (strat.calc_lookback.length > strat.opts.size)) {
 					strat.calc_lookback.pop()
 				}
 

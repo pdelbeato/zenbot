@@ -953,10 +953,10 @@ module.exports = function (program, conf) {
 					output_lines.push(s.positions.length + ' positions opened.')
 					output_lines.push(s.orders.length + ' orders opened.')
 					output_lines.push(sizeof(s) + ' size of s')
-					output_lines.push(sizeof(s.period) + ' size of s.period')
-					output_lines.push(sizeof(s.lookback) + ' size of s.lookback')
+					output_lines.push(sizeof(s.period) + ' size of s.period (' + s.period.length + ')')
+					output_lines.push(sizeof(s.lookback) + ' size of s.lookback (' + s.lookback.length + ')')
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
-						output_lines.push(sizeof(s.options.strategy[strategy_name].calc_lookback) + ' size of ' + strategy_name + ' calc_lookback')
+						output_lines.push(sizeof(s.options.strategy[strategy_name].calc_lookback) + ' size of ' + strategy_name + ' calc_lookback (' + s.options.strategy[strategy_name].calc_lookback.length + ')')
 					})
 					output_lines.push(s.exchange.getMemory() + ' size of cache in exchange')
 				}
