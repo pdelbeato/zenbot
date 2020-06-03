@@ -4,16 +4,17 @@ var n = require('numbro')
 	, debug = require('../../../lib/debug')
 	, tb = require('timebucket')
 	, vwap = require('../../../lib/vwap')
-	, ema = require('../../../lib/ema')
-	, sma = require('../../../lib/sma')
+	, { formatPercent } = require('../../../lib/format')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
-//c.strategy[_name_] = {
+//c.strategy['crossover_vwap'] = {
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate VWAP every period_calc time
 //		size: 10,					//****** Min period_calc for vwap to start
 //		vwap_max: 8000,				//****** Max history for vwap. Increasing this makes it more sensitive to short-term changes
+//		upper_threshold_pct: 0.2,		//****** Upper threshold percentage (buy if price goes higher)
+//		lower_threshold_pct: 0.2,		//****** Lower threshold percentage (sell if price goes lower)
 //		order_type: 'taker',		//****** Order type ['taker', 'maker'] (if null, order_type as conf_file)
 //		on_trade_period: false		//****** If true, signal will be shot on trade period, not on strategy pariod
 //	}
@@ -61,11 +62,13 @@ module.exports = {
 
 		strat.data = {
 			vwap: {
-	    		  vwap: 0, 
-	    		  vwapMultiplier: 0, 
-	    		  vwapDivider: 0,
-	    		  vwapCount: 0
-	      },
+				vwap: 0,
+				vwapMultiplier: 0,
+				vwapDivider: 0,
+				vwapCount: 0
+			},
+			vwap_upper: null,
+			vwap_lower: null,
 		}
 
 		s.positions.forEach(function (position, index) {
@@ -80,7 +83,9 @@ module.exports = {
 	getOptions: function (strategy_name) {
 		this.option(strategy_name, 'period_calc', 'Calculate VWAP every period_calc time', String, '15m')
 	    this.option(strategy_name, 'vwap_length', 'Min periods for vwap to start', Number, 10 )
-	    this.option(strategy_name, 'vwap_max', 'Max history for vwap. Increasing this makes it more sensitive to short-term changes', Number, 8000)
+		this.option(strategy_name, 'vwap_max', 'Max history for vwap. Increasing this makes it more sensitive to short-term changes', Number, 8000)
+		this.option(strategy_name, 'upper_threshold_pct', 'Upper threshold percentage (buy if price goes higher)', Number, 0.1)
+		this.option(strategy_name, 'lower_threshold_pct', 'Lower threshold percentage (sell if price goes lower)', Number, 0.1)
 	    this.option(strategy_name, 'order_type', 'Order type [taker, maker] (if null, order_type as conf_file)', String, null)
 	},
 
@@ -90,6 +95,36 @@ module.exports = {
 		this.command('o', {
 			desc: ('Crossover VWAP - List options'.grey), action: function () {
 				s.tools.listStrategyOptions(strategy_name, false)
+			}
+		})
+		this.command('+', {
+			desc: ('Crossover VWAP - Upper threshold pct '.grey + 'INCREASE'.green), action: function () {
+				strat.opts.upper_threshold_pct = Number((strat.opts.upper_threshold_pct + 0.1).toFixed(2))
+				console.log('\n' + 'Crossover VWAP - Upper threshold pct ' + 'INCREASE'.green + ' -> ' + strat.opts.upper_threshold_pct)
+			}
+		})
+		this.command('-', {
+			desc: ('Crossover VWAP - Upper threshold pct (min 0.0%) '.grey + 'DECREASE'.red), action: function () {
+				strat.opts.upper_threshold_pct = Number((strat.opts.upper_threshold_pct - 0.1).toFixed(2))
+				if (strat.opts.upper_threshold_pct < 0) {
+					strat.opts.upper_threshold_pct = 0
+				}
+				console.log('\n' + 'Crossover VWAP - Upper threshold pct (min 0.0%) ' + 'DECREASE'.red + ' -> ' + strat.opts.upper_threshold_pct)
+			}
+		})
+		this.command('*', {
+			desc: ('Crossover VWAP - Lower threshold pct '.grey + 'INCREASE'.green), action: function () {
+				strat.opts.lower_threshold_pct = Number((strat.opts.lower_threshold_pct + 0.1).toFixed(2))
+				console.log('\n' + 'Crossover VWAP - Lower threshold pct ' + 'INCREASE'.green + ' -> ' + strat.opts.lower_threshold_pct)
+			}
+		})
+		this.command('_', {
+			desc: ('Crossover VWAP - Lower threshold pct (min 0.0%) '.grey + 'DECREASE'.red), action: function () {
+				strat.opts.lower_threshold_pct = Number((strat.opts.lower_threshold_pct - 0.1).toFixed(2))
+				if (strat.opts.lower_threshold_pct < 0) {
+					strat.opts.lower_threshold_pct = 0
+				}
+				console.log('\n' + 'Crossover VWAP - Lower threshold pct (min 0.0%) ' + 'DECREASE'.red + ' -> ' + strat.opts.lower_threshold_pct)
 			}
 		})
 		
@@ -159,25 +194,26 @@ module.exports = {
 		///////////////////////////////////////////
 
 		function _onTradePeriod(cb) {
-			if (!s.in_preroll && strat.opts.on_trade_period) {
+			if (!s.in_preroll && strat.opts.on_trade_period && strat.period.vwap) {
 				let position_tmp = null
 
 				//vwap(s, strat_name, strat.opts.vwap_length, strat.opts.vwap_max, 'close')
 
-				s.positions.forEach(function (position, index) {
+				s.positions.some(function (position, index) {
 					//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
 					let position_locking = (position.locked & ~s.strategyFlag[strat_name])
 					let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
 					if (!position_locking && !position_opened_by) {
 						position_tmp = position
-						break
+						return true
 					}
 				})
  
-				if (s.period.open > strat.period.vwap) {
+				if (s.period.open > strat.data.vwap_upper) {
 					strat.period.trend = 'up'
 				}
-				else {
+
+				if (s.period.open < strat.data.vwap_lower) {
 					strat.period.trend = 'down'
 				}
 
@@ -212,38 +248,43 @@ module.exports = {
 			if (!s.in_preroll && !strat.opts.on_trade_period) {
 				let position_tmp = null
 
-				vwap(s, strat_name, strat.opts.vwap_length, strat.opts.vwap_max, 'close')
+				strat.period.vwap = vwap(s, strat_name, strat.opts.vwap_length, strat.opts.vwap_max, 'close')
+				strat.data.vwap_upper = strat.period.vwap * (1 + strat.opts.upper_threshold_pct/100)
+				strat.data.vwap_lower = strat.period.vwap * (1 - strat.opts.lower_threshold_pct/100)
 
-				s.positions.forEach(function (position, index) {
-					//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
-					let position_locking = (position.locked & ~s.strategyFlag[strat_name])
-					let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
-					if (!position_locking && !position_opened_by) {
-						position_tmp = position
-						break
+				if (strat.period.vwap) {
+					s.positions.some(function (position, index) {
+						//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
+						let position_locking = (position.locked & ~s.strategyFlag[strat_name])
+						let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
+						if (!position_locking && !position_opened_by) {
+							position_tmp = position
+							return true
+						}
+					})
+
+					if (s.period.open > strat.data.vwap_upper) {
+						strat.period.trend = 'up'
 					}
-				})
-
-				if (strat.period.open > strat.period.vwap) {
-					strat.period.trend = 'up'
-				}
-				else {
-					strat.period.trend = 'down'
-				}
-
-				if (strat.calc_lookback[0].trend != strat.period.trend) {
-					let side = (strat.period.trend == 'up' ? 'buy' : 'sell')
-					if (position_tmp && position_tmp.side != side) {
-						//s.eventBus.on(strat_name, side,  posit_id, fixedSize, fixdPrice,   protect,   locking,   reorder, maker_taker)
-						s.eventBus.emit(strat_name, side, position_tmp.id, undefined, undefined, undefined, undefined, undefined, strat.opts.order_type)
+	
+					if (s.period.open < strat.data.vwap_lower) {
+						strat.period.trend = 'down'
 					}
-					else {
-						//s.eventBus.on(strat_name, side,  posit_id, fixedSize, fixdPrice,   protect,   locking,   reorder, maker_taker)
-						s.eventBus.emit(strat_name, side, undefined, undefined, undefined, undefined, undefined, undefined, strat.opts.order_type)
+
+					if (strat.calc_lookback[0].trend && (strat.calc_lookback[0].trend != strat.period.trend)) {
+						let side = (strat.period.trend == 'up' ? 'buy' : 'sell')
+						if (position_tmp && position_tmp.side != side) {
+							//s.eventBus.on(strat_name, side,  posit_id, fixedSize, fixdPrice,   protect,   locking,   reorder, maker_taker)
+							s.eventBus.emit(strat_name, side, position_tmp.id, undefined, undefined, undefined, undefined, undefined, strat.opts.order_type)
+						}
+						else {
+							//s.eventBus.on(strat_name, side,  posit_id, fixedSize, fixdPrice,   protect,   locking,   reorder, maker_taker)
+							s.eventBus.emit(strat_name, side, undefined, undefined, undefined, undefined, undefined, undefined, strat.opts.order_type)
+						}
 					}
 				}
 			}
-			
+
 			cb(null, null)
 		}
 	},
@@ -268,12 +309,22 @@ module.exports = {
 
 		function _onReport(cb) {
 			if (strat.data.vwap.vwap) {
-			color_vwap = (strat.period.trend == 'up' ? 'green' : 'red')
-//			cols.push('(' + s.tools.zeroFill(2, n(strat.data.rsi).format('0'), ' ')[color_rsi] + ')')
-			cols.push(s.tools.zeroFill(10, n(strat.data.vwap.vwap).format(s.product.increment ? s.product.increment : '0.00000000').substring(0, 9), ' ')[color_vwap])
+				color_vwap = (strat.period.trend == 'up' ? 'green' : 'red')
+				//			cols.push('(' + s.tools.zeroFill(2, n(strat.data.rsi).format('0'), ' ')[color_rsi] + ')')
+				cols.push(s.tools.zeroFill(10, n(strat.data.vwap.vwap).format(s.product.increment ? s.product.increment : '0.00000000').substring(0, 9), ' ')[color_vwap])
+
+				s.positions.some(function (position, index) {
+					//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
+					let position_locking = (position.locked & ~s.strategyFlag[strat_name])
+					let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
+					if (!position_locking && !position_opened_by) {
+						cols.push(s.tools.zeroFill(8, position.profit, ' ')[n(position.profit) > 0 ? 'green' : 'red'])
+						return true
+					}
+				})
 			}
 			else {
-				cols.push(s.tools.zeroFill(10, '', ' '))
+				cols.push(s.tools.zeroFill(18, '', ' '))
 			}
 
 			cb()
@@ -293,7 +344,19 @@ module.exports = {
 		///////////////////////////////////////////
 
 		function _onUpdateMessage(cb) {
-			//User defined
+			let result = null
+			
+			if (strat.data.vwap.vwap) {
+				s.positions.some(function (position, index) {
+					//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
+					let position_locking = (position.locked & ~s.strategyFlag[strat_name])
+					let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
+					if (!position_locking && !position_opened_by) {
+						result = ('Crossover VWAP position: ' + formatPercent(position.profit/100))
+						return true
+					}
+				})
+			}			
 			
 			cb(null, result)
 		}
