@@ -439,7 +439,7 @@ module.exports = {
 		///////////////////////////////////////////
 		
 		function _onOrderExecuted(cb) {
-			if (!opts.is_closed) {
+			if (!opts.is_closed && (strat.opts.catch_auto_long || strat.opts.catch_auto_short)) {
 				let position = s.positions.find(x => x.id === opts.position_id)
 				if (position) {
 					let position_locking = (position.locked & ~s.strategyFlag[strat_name])
