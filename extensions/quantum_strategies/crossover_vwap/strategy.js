@@ -311,20 +311,20 @@ module.exports = {
 			if (strat.data.vwap.vwap) {
 				color_vwap = (strat.period.trend == 'up' ? 'green' : 'red')
 				//			cols.push('(' + s.tools.zeroFill(2, n(strat.data.rsi).format('0'), ' ')[color_rsi] + ')')
-				cols.push(s.tools.zeroFill(10, n(strat.data.vwap.vwap).format(s.product.increment ? s.product.increment : '0.00000000').substring(0, 9), ' ')[color_vwap])
+				cols.push(s.tools.zeroFill(9, n(strat.data.vwap.vwap).format(s.product.increment ? s.product.increment : '0.00000000').substring(0, 9), ' ')[color_vwap])
 
 				s.positions.some(function (position, index) {
 					//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
 					let position_locking = (position.locked & ~s.strategyFlag[strat_name])
 					let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
-					if (!position_locking && !position_opened_by) {
-						cols.push(s.tools.zeroFill(8, position.profit, ' ')[n(position.profit) > 0 ? 'green' : 'red'])
+					if (!position_locking && !position_opened_by && position.profit_net_pct) {
+						cols.push(s.tools.zeroFill(8, formatPercent(position.profit_net_pct/100), ' ')[n(position.profit_net_pct) > 0 ? 'green' : 'red'])
 						return true
 					}
 				})
 			}
 			else {
-				cols.push(s.tools.zeroFill(18, '', ' '))
+				cols.push(s.tools.zeroFill(17, '', ' '))
 			}
 
 			cb()
@@ -351,8 +351,8 @@ module.exports = {
 					//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
 					let position_locking = (position.locked & ~s.strategyFlag[strat_name])
 					let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
-					if (!position_locking && !position_opened_by) {
-						result = ('Crossover VWAP position: ' + formatPercent(position.profit/100))
+					if (!position_locking && !position_opened_by && position.profit_net_pct) {
+						result = ('Crossover VWAP position: ' + formatPercent(position.profit_net_pct/100))
 						return true
 					}
 				})
