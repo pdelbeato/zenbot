@@ -129,12 +129,10 @@ module.exports = {
 	// 		strat.period = {}
 	// 		s.tools.initPeriod(strat.period, opts.trade, strat.opts.period_calc)
 	// 		strat.lib.onStrategyPeriod(s, opts, function (err, result) {
-	// 			if (strat.opts.period_calc) {
-	// 				strat.calc_close_time = tb(opts.trade.time).resize(strat.opts.period_calc).add(1).toMilliseconds() - 1
-	// 			}
+	// 			strat.calc_close_time = tb(opts.trade.time).resize(strat.opts.period_calc).add(1).toMilliseconds() - 1
 
 				// // Ripulisce so.strategy[strategy_name].calc_lookback a un max di valori
-				// if (strat.opts.size && (strat.calc_lookback.length > strat.opts.size)) {
+				// if (strat.calc_lookback.length > strat.opts.min_periods) {
 				// 	strat.calc_lookback.pop()
 				// }
 
