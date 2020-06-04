@@ -505,6 +505,16 @@ module.exports = function (program, conf) {
                         data_chart[i - 1].push(d.lowerBound)
                       }
 
+                      if (sub_key === 'vwap') {
+
+                        if (typeof d.strategy[strategy].data[sub_key] === 'object') {
+                          if (d.strategy[strategy].data[sub_key].vwap>0) {
+                            data_chart[i - 1].push(d.strategy[strategy].data[sub_key].vwap)
+                          }else{
+                            data_chart[i - 1].push(d.open)
+                          }
+                        }
+                      }
                       ///// Grafica stochastic K
                       if (sub_key === 'stoch') {
                         if (typeof d.strategy[strategy].data[sub_key] === 'object') {
