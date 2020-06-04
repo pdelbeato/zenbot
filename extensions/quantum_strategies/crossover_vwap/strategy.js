@@ -203,7 +203,7 @@ module.exports = {
 					//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
 					let position_locking = (position.locked & ~s.strategyFlag[strat_name])
 					let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
-					let position_protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
+					var position_protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
 					if (!position_locking && !position_opened_by) {
 						position_tmp = position
 						return true
@@ -258,7 +258,7 @@ module.exports = {
 						//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
 						let position_locking = (position.locked & ~s.strategyFlag[strat_name])
 						let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
-						let position_protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
+						var position_protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
 						if (!position_locking && !position_opened_by) {
 							position_tmp = position
 							return true
