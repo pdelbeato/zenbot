@@ -203,6 +203,7 @@ module.exports = {
 					//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
 					let position_locking = (position.locked & ~s.strategyFlag[strat_name])
 					let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
+					let position_protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
 					if (!position_locking && !position_opened_by) {
 						position_tmp = position
 						return true
@@ -220,13 +221,13 @@ module.exports = {
 				if (strat.calc_lookback[0].trend != strat.period.trend) {
 					let side = (strat.period.trend == 'up' ? 'buy' : 'sell')
 					if (position_tmp && position_tmp.side != side) {
-						//s.eventBus.on(strat_name, side,  posit_id, fixedSize, fixdPrice,   protect,   locking,   reorder, maker_taker)
-						s.eventBus.emit(strat_name, side, position_tmp.id, undefined, undefined, undefined, undefined, undefined, strat.opts.order_type)
-					}
-					else {
-						//s.eventBus.on(strat_name, side,  posit_id, fixedSize, fixdPrice,   protect,   locking,   reorder, maker_taker)
-						s.eventBus.emit(strat_name, side, undefined, undefined, undefined, undefined, undefined, undefined, strat.opts.order_type)
-					}
+							//s.eventBus.on(strat_name, side, position_tmp_id, fixedSize, fixdPrice,          protectionFree,    locking,   reorder, maker_taker)
+							s.eventBus.emit(strat_name, side, position_tmp.id, undefined, undefined, position_protectionFree, strat_name, undefined, strat.opts.order_type)
+						}
+						else {
+							//s.eventBus.on(strat_name, side,  posit_id, fixedSize, fixdPrice,          protectionFree,    locking,   reorder, maker_taker)
+							s.eventBus.emit(strat_name, side, undefined, undefined, undefined, position_protectionFree, strat_name, undefined, strat.opts.order_type)
+						}
 				}
 			}
 			
@@ -245,18 +246,19 @@ module.exports = {
 		///////////////////////////////////////////
 
 		function _onStrategyPeriod(cb) {
-			if (!s.in_preroll && !strat.opts.on_trade_period) {
+			if (!s.in_preroll) {
 				let position_tmp = null
 
 				strat.period.vwap = vwap(s, strat_name, strat.opts.vwap_length, strat.opts.vwap_max, 'close')
 				strat.data.vwap_upper = strat.period.vwap * (1 + strat.opts.upper_threshold_pct/100)
 				strat.data.vwap_lower = strat.period.vwap * (1 - strat.opts.lower_threshold_pct/100)
 
-				if (strat.period.vwap) {
+				if (strat.period.vwap && !strat.opts.on_trade_period) {
 					s.positions.some(function (position, index) {
 						//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
 						let position_locking = (position.locked & ~s.strategyFlag[strat_name])
 						let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
+						let position_protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
 						if (!position_locking && !position_opened_by) {
 							position_tmp = position
 							return true
@@ -274,12 +276,12 @@ module.exports = {
 					if (strat.calc_lookback[0].trend && (strat.calc_lookback[0].trend != strat.period.trend)) {
 						let side = (strat.period.trend == 'up' ? 'buy' : 'sell')
 						if (position_tmp && position_tmp.side != side) {
-							//s.eventBus.on(strat_name, side,  posit_id, fixedSize, fixdPrice,   protect,   locking,   reorder, maker_taker)
-							s.eventBus.emit(strat_name, side, position_tmp.id, undefined, undefined, undefined, undefined, undefined, strat.opts.order_type)
+							//s.eventBus.on(strat_name, side, position_tmp_id, fixedSize, fixdPrice,          protectionFree,    locking,   reorder, maker_taker)
+							s.eventBus.emit(strat_name, side, position_tmp.id, undefined, undefined, position_protectionFree, strat_name, undefined, strat.opts.order_type)
 						}
 						else {
-							//s.eventBus.on(strat_name, side,  posit_id, fixedSize, fixdPrice,   protect,   locking,   reorder, maker_taker)
-							s.eventBus.emit(strat_name, side, undefined, undefined, undefined, undefined, undefined, undefined, strat.opts.order_type)
+							//s.eventBus.on(strat_name, side,  posit_id, fixedSize, fixdPrice,          protectionFree,    locking,   reorder, maker_taker)
+							s.eventBus.emit(strat_name, side, undefined, undefined, undefined, position_protectionFree, strat_name, undefined, strat.opts.order_type)
 						}
 					}
 				}
