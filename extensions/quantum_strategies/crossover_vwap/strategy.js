@@ -196,6 +196,7 @@ module.exports = {
 		function _onTradePeriod(cb) {
 			if (!s.in_preroll && strat.opts.on_trade_period && strat.period.vwap) {
 				let position_tmp = null
+				var position_protectionFree
 
 				//vwap(s, strat_name, strat.opts.vwap_length, strat.opts.vwap_max, 'close')
 
@@ -203,7 +204,7 @@ module.exports = {
 					//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
 					let position_locking = (position.locked & ~s.strategyFlag[strat_name])
 					let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
-					var position_protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
+					position_protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
 					if (!position_locking && !position_opened_by) {
 						position_tmp = position
 						return true
@@ -248,6 +249,7 @@ module.exports = {
 		function _onStrategyPeriod(cb) {
 			if (!s.in_preroll) {
 				let position_tmp = null
+				var position_protectionFree
 
 				strat.period.vwap = vwap(s, strat_name, strat.opts.vwap_length, strat.opts.vwap_max, 'close')
 				strat.data.vwap_upper = strat.period.vwap * (1 + strat.opts.upper_threshold_pct/100)
@@ -258,7 +260,7 @@ module.exports = {
 						//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
 						let position_locking = (position.locked & ~s.strategyFlag[strat_name])
 						let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
-						var position_protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
+						position_protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['max_slippage'] + s.protectionFlag['min_profit']
 						if (!position_locking && !position_opened_by) {
 							position_tmp = position
 							return true
