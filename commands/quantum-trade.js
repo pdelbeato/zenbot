@@ -612,7 +612,7 @@ module.exports = function (program, conf) {
 
 							s.tools.positionFlags(s.positions[s.positions_index], 'status', 'Free')
 							setTimeout(function() {
-								let position = s.positions.splice(position_index, 1)[0]
+								let position = s.positions.splice(s.position_index, 1)[0]
 								s.positionProcessingQueue.push({mode: 'delete', position_id: position.id})
 								s.positions_index = null
 							}, so.order_poll_time)
