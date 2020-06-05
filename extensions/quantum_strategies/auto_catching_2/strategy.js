@@ -346,7 +346,7 @@ module.exports = {
 			let result = null
 			
 			if (strat.opts.catch_auto_long || strat.opts.catch_auto_short) {
-				result = 'Auto-catching 2 (Long/Short): ' + strat.opts.catch_auto_long + ' ; ' + strat.opts.catch_auto_short
+				result = 'AutoCatching 2 (Long/Short): ' + strat.opts.catch_auto_long + ' ; ' + strat.opts.catch_auto_short
 			}
 			
 			cb(null, result)

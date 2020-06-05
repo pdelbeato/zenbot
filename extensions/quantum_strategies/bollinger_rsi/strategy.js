@@ -258,7 +258,7 @@ module.exports = {
 
 				s.positions.forEach(function (position, index) {
 					//Aggiorno le posizioni con massimo profitto, tranne che per le posizioni locked
-					position_locking = (position.locked & ~s.strategyFlag[strat_name])
+					let position_locking = (position.locked & ~s.strategyFlag[strat_name])
 					if (!position_locking && position.profit_net_pct >= max_profit) {
 						max_profit = position.profit_net_pct
 						strat.data.max_profit_position[position.side] = position
