@@ -134,6 +134,17 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
 
       }
 
+      if (strategy_sel.includes('vwap')) {
+        // map the data Stochastic
+          mapping_vwap = table.mapAs();
+          mapping_vwap.addField('value', 6);
+
+          // set the series
+          var series_vwap = chart.plot(0).line(mapping_vwap);
+          series_vwap.name("VWAP");
+          }
+
+
       if (strategy_sel.includes('stoch')) {
         // map the data Stochastic
           mapping_Stoch_K = table.mapAs();
