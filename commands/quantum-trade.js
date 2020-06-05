@@ -714,13 +714,13 @@ module.exports = function (program, conf) {
 							s.tools.listStrategyOptions(strategy_name, false)
 						})
 					}})
-					keyMap.set('z', {desc: ('toggle Long Position'.grey), action: function() {
+					keyMap.set('z', {desc: ('toggle '.grey + 'Long'.white + ' mode'.grey), action: function() {
 						so.active_long_position = !so.active_long_position
-						console.log('\nToggle Long position: ' + (so.active_long_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
+						console.log('\nToggle Long mode: ' + (so.active_long_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
 					}})
-					keyMap.set('Z', {desc: ('toggle Short Position'.grey), action: function() {
+					keyMap.set('Z', {desc: ('toggle '.grey + 'Short'.white + ' mode'.grey), action: function() {
 						so.active_short_position = !so.active_short_position
-						console.log('\nToggle Short position: ' + (so.active_short_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
+						console.log('\nToggle Short mode: ' + (so.active_short_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
 					}})
 					keyMap.set('h', {desc: ('dump statistical output to HTML file'.grey), action: function() {
 						console.log('\nDumping statistics...'.grey)
@@ -1344,6 +1344,19 @@ module.exports = function (program, conf) {
 												case '/status': {
 													engine.updateMessage()
 													break
+												}
+												case '/stop': {
+													debug.msg('Emergency stop!! - Deactivate long/short mode')
+													so.active_long_position = false
+													so.active_short_position = false
+													debug.msg('Emergency stop!! - Cancel all orders')
+													s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
+													setTimeout(function() {
+														debug.msg('Emergency stop!! - Cancel all further orders remained on exchange')
+														s.exchange.cancelAllOrders(opts_tmp, function() {
+															debug.msg('Emergency stop!! - Remaining orders on the exchange canceled')
+														})
+													}, so.wait_for_settlement)
 												}
 											}
 										})
