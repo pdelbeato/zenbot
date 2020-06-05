@@ -220,12 +220,13 @@ module.exports = {
 		let strat_data = s.options.strategy.bollinger_stocaz.data
 		let strat_opts = s.options.strategy.bollinger_stocaz.opts
 		let strat_data_boll = s.options.strategy.bollinger_stocaz.data.bollinger
+		let strat_data_lookback = s.options.strategy.bollinger_stocaz.calc_lookback
 		let max_profit = -100
 
 		strat_data.bollinger = bollinger(s, 'bollinger_stocaz', s.options.strategy.bollinger_stocaz.opts.size, 'close')
 
-		ta_stoch(s, 'stoch',  s.options.strategy.bollinger_stocaz.opts.stoch_periods, s.options.strategy.bollinger_stocaz.opts.stoch_k, s.options.strategy.bollinger_stocaz.opts.stoch_k_ma_type).
-		then(function(inres) {
+		ta_stoch(s, 'stoch',  s.options.strategy.bollinger_stocaz.opts.stoch_periods, s.options.strategy.bollinger_stocaz.opts.stoch_k, s.options.strategy.bollinger_stocaz.opts.stoch_k_ma_type, undefined, undefined, strat_data_lookback)
+		.then(function(inres) {
 			if (!inres) {
 				return cb()
 			}
@@ -237,7 +238,7 @@ module.exports = {
 					sell: null,
 			}
 
-			s.positions.forEach(function (position, index) {	
+			s.positions.forEach(function (position, index) {
 				position_locking = (position.locked & ~s.strategyFlag['bollinger_stocaz'])
 				if (!position_locking && position.profit_net_pct >= max_profit) {
 					max_profit = position.profit_net_pct
@@ -417,7 +418,7 @@ module.exports = {
 				if (strat_data.watchdog.dump) {
 					color_down = 'red'
 				}
-				
+
 				//Codice colori per i fuori soglia stochastic
 				if (strat_data.stoch.stoch_K > strat_opts.stoch_k_sell_threshold || strat_data.stoch.stoch_K < strat_opts.stoch_k_buy_threshold) {
 					color_stoch = 'red';

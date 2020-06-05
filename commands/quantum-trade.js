@@ -11,7 +11,6 @@ var tb = require('timebucket')
 , output = require('../lib/output')
 , objectifySelector = require('../lib/objectify-selector')
 , engineFactory = require('../lib/quantum-engine')
-//, collectionService = require('../lib/services/collection-service')
 , { formatAsset, formatPercent, formatCurrency } = require('../lib/format')
 , debug = require('../lib/debug')
 , sizeof = require('object-sizeof')
@@ -71,7 +70,6 @@ module.exports = function (program, conf) {
 //	.option('--rsi_periods <periods>', 'number of periods to calculate RSI at', Number, conf.rsi_periods)
 //	.option('--poll_trades <ms>', 'poll new trades at this interval in ms', Number, conf.poll_trades)
 	.option('--currency_increment <amount>', 'Currency increment, if different than the asset increment', String, null)
-//	.option('--keep_lookback_periods <amount>', 'Keep this many lookback periods max. ', Number, conf.keep_lookback_periods)
 	.option('--disable_stats', 'disable printing order stats')
 	.option('--reset', 'reset previous positions and start new profit calculation from 0')
 //	.option('--use_fee_asset', 'Using separated asset to pay for fees. Such as binance\'s BNB or Huobi\'s HT', Boolean)
@@ -88,9 +86,7 @@ module.exports = function (program, conf) {
 		var so = s.options
 
 		s.positions = []
-//		s.closed_positions = []
 		s.my_trades = []
-//		s.trades = []
 		s.lookback = []
 		s.orders = []
 		
@@ -159,17 +155,6 @@ module.exports = function (program, conf) {
 		var nextSessionSave = moment().startOf('day')
 		
 		var nextCompactDatabase = moment().startOf('day').add(2, 'd')
-		
-//		E' sbagliato!!! 
-//		if (!so.min_periods) {
-//		so.min_periods = 1
-//		Object.keys(s.options.strategy).forEach(function (strategy_name, index, array) {			
-//		if (so.strategy[strategy_name].opts.min_periods) {
-//		so.min_periods = Math.max(so.strategy[strategy_name].opts.min_periods, so.min_periods)
-//		}
-//		})
-////		debug.msg('quantum-trade - so.min_periods= ' + so.min_periods)
-//		}
 
 		so.selector = objectifySelector(selector || conf.selector)
 
@@ -178,9 +163,6 @@ module.exports = function (program, conf) {
 			so.order_type = 'maker'
 		}
 
-		var db_cursor, trade_cursor
-		var query_start = tb().resize(so.period_length).subtract(so.min_periods * 2).toMilliseconds()
-		var days = Math.ceil((new Date().getTime() - query_start) / 86400000)
 		var session = null
 
 		var lookback_size = 0
@@ -194,8 +176,6 @@ module.exports = function (program, conf) {
 		var db_sessions = conf.db.sessions
 		var db_resume_markers = conf.db.resume_markers
 		var db_trades = conf.db.trades
-
-//		s.db_valid = true
 
 		var marker = {
 			id: crypto.randomBytes(4).toString('hex'),
@@ -216,7 +196,6 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\tCollection my_positions deleted!')
-//					db_my_positions = conf.db.datastore.collection('my_positions')
 					resolve()
 				})
 			})
@@ -226,7 +205,6 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\tCollection my_closed_positions deleted!')
-//					db_my_closed_positions = conf.db.datastore.collection('my_closed_positions')
 					resolve()
 				})
 			})
@@ -236,7 +214,6 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\tCollection my_trades deleted!')
-//					db_my_trades = conf.db.datastore.collection('my_trades')
 					resolve()
 				})
 			})
@@ -246,7 +223,6 @@ module.exports = function (program, conf) {
 						reject(err)
 					}
 					console.log('\tCollection sessions deleted!')
-//					db_sessions = conf.db.datastore.collection('sessions')
 					resolve()
 				})
 			})
@@ -270,20 +246,6 @@ module.exports = function (program, conf) {
 					resolve()
 				})
 			})
-
-			//Recupera tutte le vecchie posizioni chiuse e le copia in s.closed_positions
-//			let recover_my_closed_positions = new Promise(function (resolve, reject) {
-//				db_my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, my_closed_positions) {
-//					if (err) {
-//						reject(err)
-//					}
-//					if (my_closed_positions.length) {
-//						s.closed_positions = my_closed_positions.slice(0)
-//						console.log('Recuperate le vecchie posizioni chiuse: ' + s.closed_positions.length)
-//					}
-//					resolve()
-//				})
-//			})
 			
 			//Conta le vecchie posizioni chiuse
 			let count_my_closed_positions = new Promise(function (resolve, reject) {
@@ -582,18 +544,18 @@ module.exports = function (program, conf) {
 							console.log('\nNo position in control.')
 						}
 					}})
-					keyMap.set('K', {desc: ('set a manual '.grey + so.order_type.toUpperCase() + ' close order on the position'.grey), action: function() {
+					keyMap.set('K', {desc: ('set a manual '.grey + so.order_type.toUpperCase() + ' close order (fixed price) on the position'.grey), action: function() {
 						if (s.positions_index != null) {
 							if (s.positions[s.positions_index].side === 'buy') {
 								let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
 								let target_price = n(s.quote.ask).format(s.product.increment, Math.floor)
-								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'SELL'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at ' + formatCurrency(target_price, s.currency).yellow)
+								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'SELL'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at fixed ' + formatCurrency(target_price, s.currency).yellow)
 								s.eventBus.emit('manual', 'sell', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
 							}
 							else {
 								let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
 								let target_price = n(s.quote.bid).format(s.product.increment, Math.floor)
-								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'BUY'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at ' + formatCurrency(target_price, s.currency).yellow)
+								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'BUY'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at fixed ' + formatCurrency(target_price, s.currency).yellow)
 								s.eventBus.emit('manual', 'buy', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
 							}
 						}
@@ -650,7 +612,8 @@ module.exports = function (program, conf) {
 
 							s.tools.positionFlags(s.positions[s.positions_index], 'status', 'Free')
 							setTimeout(function() {
-								s.positionProcessingQueue.push({mode: 'delete', position_id: s.positions[s.positions_index].id})
+								let position = s.positions.splice(s.position_index, 1)[0]
+								s.positionProcessingQueue.push({mode: 'delete', position_id: position.id})
 								s.positions_index = null
 							}, so.order_poll_time)
 						}
@@ -675,11 +638,11 @@ module.exports = function (program, conf) {
 							let actual_key = String.fromCharCode(actual_code)
 							keyMap.set(actual_key, {desc: ('Strategia\t'.grey + strategy_name.white), action: function() {
 								clearStrategyKeys()
-								so.strategy[strategy_name].lib.getCommands.call(key_assign, s)
+								so.strategy[strategy_name].lib.getCommands.call(key_assign, s, strategy_name)
 								listKeys()
 							}})
 							actual_code++
-						}
+						}5
 					})
 
 
@@ -751,13 +714,13 @@ module.exports = function (program, conf) {
 							s.tools.listStrategyOptions(strategy_name, false)
 						})
 					}})
-					keyMap.set('z', {desc: ('toggle Long Position'.grey), action: function() {
+					keyMap.set('z', {desc: ('toggle '.grey + 'Long'.white + ' mode'.grey), action: function() {
 						so.active_long_position = !so.active_long_position
-						console.log('\nToggle Long position: ' + (so.active_long_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
+						console.log('\nToggle Long mode: ' + (so.active_long_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
 					}})
-					keyMap.set('Z', {desc: ('toggle Short Position'.grey), action: function() {
+					keyMap.set('Z', {desc: ('toggle '.grey + 'Short'.white + ' mode'.grey), action: function() {
 						so.active_short_position = !so.active_short_position
-						console.log('\nToggle Short position: ' + (so.active_short_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
+						console.log('\nToggle Short mode: ' + (so.active_short_position ? 'ON'.green.inverse : 'OFF'.red.inverse))
 					}})
 					keyMap.set('h', {desc: ('dump statistical output to HTML file'.grey), action: function() {
 						console.log('\nDumping statistics...'.grey)
@@ -823,7 +786,7 @@ module.exports = function (program, conf) {
 
 					s.db_periods.deleteMany({'time' : { $lt : fromTime }}, function (err, numRemoved) {
 						if (err) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.periods')
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db_periods')
 							console.error(err)
 						}
 						debug.msg('cleanDB - ' + numRemoved + ' period(s) deleted')
@@ -831,7 +794,7 @@ module.exports = function (program, conf) {
 
 					db_trades.deleteMany({'time' : { $lt : fromTime }}, function (err, numRemoved) {
 						if (err) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db.trades')
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - cleanDB - error cleaning db_trades')
 							console.error(err)
 						}
 						debug.msg('cleanDB - ' + numRemoved + ' trade(s) deleted')
@@ -855,7 +818,7 @@ module.exports = function (program, conf) {
 				s.wait_updatePositions = true
 				switch (task.mode) {
 				case 'update': {
-					var position = s.positions.find(x => x.id === task.position_id)
+					let position = s.positions.find(x => x.id === task.position_id)
 					position._id = position.id
 
 					db_my_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
@@ -869,31 +832,12 @@ module.exports = function (program, conf) {
 					break
 				}
 				case 'delete': {
-					var position_index = s.positions.findIndex(x => x.id === task.position_id)
-					var position = s.positions.find(x => x.id === task.position_id)
-
 					db_my_positions.deleteOne({'_id' : task.position_id}, function (err) {
-						//In ogni caso, elimino la posizione da s.positions
-						s.positions.splice(position_index,1)
-
 						if (err) {
 							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error deleting in db_my_positions')
 							console.error(err)
+
 							return callback(err)
-						}
-
-						//... e inserisco la posizione chiusa del db delle posizioni chiuse
-						if (position) {
-							position._id = position.id
-							s.db_my_closed_positions.updateOne({'_id' : task.position_id}, {$set: position}, {multi: false, upsert: true}, function (err) {
-								if (err) {
-									console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error saving in db_my_closed_positions')
-									console.error(err)
-									return callback(err)
-								}
-
-								s.tools.functionStrategies('onPositionClosed', task)
-							})
 						}
 					})
 					break
@@ -904,9 +848,9 @@ module.exports = function (program, conf) {
 			})
 
 			// Assegna una funzione di uscita
-			s.positionProcessingQueue.drain(function() {
-				debug.msg('s.positionProcessingQueue - All items have been processed')
-			})
+			// s.positionProcessingQueue.drain(function() {
+			// 	debug.msg('s.positionProcessingQueue - All items have been processed')
+			// })
 			/* End funzioni per le operazioni sul database delle posizioni */
 
 			/* To list options*/
@@ -954,9 +898,10 @@ module.exports = function (program, conf) {
 			function exit() {
 				s.exchange.getAllOrders(so.selector, function (err, orders) {
 					if (err) {
-						console.log('Quantum-trade - exit() - Errore: ' + err)
+						console.log('quantum-trade - exit err= ' + err)
+						return setTimeout(function() { exit() }, so.order_poll_time)
 					}
-					else if ((orders && orders.length === 0) || so.mode === 'paper') {
+					if ((orders && orders.length === 0) || so.mode === 'paper') {
 						console.log('\nExiting... ' + '\nWriting statistics...'.grey)
 						//Salvo la sessione
 						saveSession()
@@ -1009,10 +954,10 @@ module.exports = function (program, conf) {
 					output_lines.push(s.positions.length + ' positions opened.')
 					output_lines.push(s.orders.length + ' orders opened.')
 					output_lines.push(sizeof(s) + ' size of s')
-					output_lines.push(sizeof(s.period) + ' size of s.period')
-					output_lines.push(sizeof(s.lookback) + ' size of s.lookback')
+					output_lines.push(sizeof(s.period) + ' size of s.period (' + s.period.length + ')')
+					output_lines.push(sizeof(s.lookback) + ' size of s.lookback (' + s.lookback.length + ')')
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
-						output_lines.push(sizeof(s.options.strategy[strategy_name].calc_lookback) + ' size of ' + strategy_name + ' calc_lookback')
+						output_lines.push(sizeof(s.options.strategy[strategy_name].calc_lookback) + ' size of ' + strategy_name + ' calc_lookback (' + s.options.strategy[strategy_name].calc_lookback.length + ')')
 					})
 					output_lines.push(s.exchange.getMemory() + ' size of cache in exchange')
 				}
@@ -1029,7 +974,12 @@ module.exports = function (program, conf) {
 				}
 
 				var losses = 0, gains = 0
-				s.db_my_closed_positions.find({selector: so.selector.normalized}).toArray(function (err, position) {
+				s.db_my_closed_positions.find({ selector: so.selector.normalized }).toArray(function (err, position) {
+					if (err) {
+						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error finding in db_my_closed_positions')
+						console.error(err)
+					}
+
 					if (position.profit) {
 						if (position.profit > 0) {
 							gains++
@@ -1209,6 +1159,18 @@ module.exports = function (program, conf) {
 //			}
 //			/* End of implementing statistical status */
 
+			//Calcola il valore minimo di periodi da caricare per il pre-roll e da mantenere in memoria
+			so.min_periods = 1
+			Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
+				if (so.strategy[strategy_name].opts.min_periods) {
+					so.min_periods = Math.max(so.min_periods, so.strategy[strategy_name].opts.min_periods)
+				}
+			})
+
+			var db_cursor, trade_cursor
+			var query_start = tb().resize(so.period_length).subtract(so.min_periods + 10).toMilliseconds()
+			var days = Math.ceil((new Date().getTime() - query_start) / 86400000)
+
 			//Per caricare i dati dei trades, chiama zenbot.js backfill (so.selector.normalized) --days __ --conf __
 			var zenbot_cmd = process.platform === 'win32' ? 'zenbot.bat' : 'zenbot.sh'; // Use 'win32' for 64 bit windows too
 			var command_args = ['backfill', so.selector.normalized, '--days', days || 1]
@@ -1235,7 +1197,7 @@ module.exports = function (program, conf) {
 						sort: {
 							time: 1
 						},
-						limit: 1000
+						limit: 10000
 					}
 					if (db_cursor) {
 						opts.query.time = {$gt: db_cursor}
@@ -1247,19 +1209,22 @@ module.exports = function (program, conf) {
 					//Il download dei dati ha impiegato molto tempo, e altro tempo lo impiega db_trades.find
 					//Alla fine, quindi, i trades del preroll non saranno tutti, perchè il db scaricato sarà 
 					//completo solo fino al tempo di fine download. 
-					db_trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(function (err, filtered_trades) {
+					// db_trades.find(opts.query).limit(opts.limit).sort(opts.sort).toArray(async function (err, filtered_trades) {
+					db_trades.find(opts.query).sort(opts.sort).toArray(async function (err, filtered_trades) {
 						if (err) {
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error finding in db_trades')
+							console.error(err)
 							throw err
 						}
 						
 						//Se ci sono filtered_trades, allora non esegue questo blocco ma esegue engine.update che c'è dopo
 						//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco e non esegue engine.update (perché c'è un return in questo blocco)
 						if (!filtered_trades.length) {
-//							if (!engine.tradeProcessing()) {
-//								console.log('Pre-roll in progress...')
-//								setTimeout(getNext, 1000)
-//							}
-							var head = '------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
+							if (s.tradeProcessingQueue.length()) {
+								await s.tradeProcessingQueue.drain()
+							}
+
+							var head = '\n------------------------------------------ INITIALIZE  OUTPUT ------------------------------------------';
 							console.log(head)
 
 							//A che diavolo serve?
@@ -1315,7 +1280,10 @@ module.exports = function (program, conf) {
 
 								session._id = session.id
 								db_sessions.find({selector: so.selector.normalized}).limit(1).sort({started: -1}).toArray(function (err, prev_sessions) {
-									if (err) throw err
+									if (err) {
+										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - quantum-trade - error finding in db_sessions')
+										console.error(err)
+									}
 									var prev_session = prev_sessions[0]
 
 									if (prev_session && !cmd.reset && !raw_opts.currency_capital && !raw_opts.asset_capital && (so.mode === 'paper' || so.mode === 'live')) {
@@ -1351,12 +1319,48 @@ module.exports = function (program, conf) {
 									session.start_capital_asset = Number(s.start_capital_asset)
 									session.start_price = Number(s.start_price)
 
-									if (s.lookback.length > so.keep_lookback_periods) {
+									if (s.lookback.length > so.min_periods) {
 										s.lookback.splice(-1,1) //Toglie l'ultimo elemento
 									}
 
 									//Chiamata alla funzione forwardScan() ogni so.poll_trades
 									setInterval(forwardScan, so.poll_trades)
+
+									//Messaggi interattivi
+									if (so.mode === 'live' || so.mode === 'paper') {
+										s.tools.onMessage(function (msg) {
+											debug.msg('Notifier - Received message: ' + msg)
+											switch (msg) {
+												case '/long': {
+													so.active_long_position = !so.active_long_position
+													s.tools.pushMessage('', (so.active_long_position ? 'Long' : 'No long'))
+													break
+												}
+												case '/short': {
+													so.active_short_position = !so.active_short_position
+													s.tools.pushMessage('', (so.active_short_position ? 'Short' : 'No short'))
+													break
+												}
+												case '/status': {
+													engine.updateMessage()
+													break
+												}
+												case '/stop': {
+													debug.msg('Emergency stop!! - Deactivate long/short mode')
+													so.active_long_position = false
+													so.active_short_position = false
+													debug.msg('Emergency stop!! - Cancel all orders')
+													s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
+													setTimeout(function() {
+														debug.msg('Emergency stop!! - Cancel all further orders remained on exchange')
+														s.exchange.cancelAllOrders(opts_tmp, function() {
+															debug.msg('Emergency stop!! - Remaining orders on the exchange canceled')
+														})
+													}, so.wait_for_settlement)
+												}
+											}
+										})
+									}
 
 									//Se l'exchange non ha websocket, chiamata alla funzione getAllOrders() ogni so.order_poll_time
 									if (!s.exchange.websocket) { // && typeof s.exchange.getAllOrders === 'function') {
@@ -1381,38 +1385,6 @@ module.exports = function (program, conf) {
 												// @todo: cancel open orders before exit
 												console.log()
 												process.exit()
-											}
-										})
-									}
-
-									//Attivazione del bot di Telegram
-//									if (so.telegramBot && so.telegramBot.on) {
-									if (so.notifiers.telegram && so.notifiers.telegram.on) {
-//										const Telegram = require('node-telegram-bot-api')
-										
-//										const telegramBot = new Telegram(so.telegramBot.bot_token, options);
-//										const telegramBot = new Telegram(so.notifiers.telegram.bot_token, options);
-
-
-										telegramBot.onMessage(function(msg) {
-											switch (msg) {
-											case '/\/long/': {
-//												debug.msg('TelegramBot - ' + msg.text.toString())
-												so.active_long_position = !so.active_long_position
-												s.tools.pushMessage((so.active_long_position? 'Long' : 'No long'))
-												break
-											}
-											case '/\/short/': {
-//												debug.msg('TelegramBot - ' + msg.text.toString())
-												so.active_short_position = !so.active_short_position
-												s.tools.pushMessage((so.active_short_position? 'Short' : 'No short'))
-												break
-											}
-											case '/\/status/': {
-												debug.msg('TelegramBot - ' + msg.text.toString())
-												engine.updateMessage()
-												break
-											}											
 											}
 										})
 									}
@@ -1489,7 +1461,7 @@ module.exports = function (program, conf) {
 							if (!so.minimal_db) {
 								db_resume_markers.updateOne({'_id' : marker._id}, {$set : marker}, {multi: false, upsert : true}, function (err) {
 									if (err) {
-										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
+										console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving in db_resume_markers')
 										console.error(err)
 									}
 								})
@@ -1500,7 +1472,7 @@ module.exports = function (program, conf) {
 									my_trade.session_id = session.id
 									db_my_trades.updateOne({'_id' : my_trade._id}, {$set: my_trade}, {multi: false, upsert: true}, function (err) {
 										if (err) {
-											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
+											console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving in db_my_trades')
 											console.error(err)
 										}
 										//Se c'è stato un my_trade, allora è il caso di aggiornare la sessione
@@ -1510,22 +1482,22 @@ module.exports = function (program, conf) {
 								my_trades_size = s.my_trades.length
 							}
 
-							if (s.lookback.length > lookback_size) {
-//								if (!so.minimal_db) {
-//									savePeriod(s.lookback[0])
-//								}
-//								lookback_size = s.lookback.length
-//							}
-//							if (s.period) {
-//								if (!so.minimal_db) {
-//									savePeriod(s.period)
-//								}
-							} 
-							else {
-								readline.clearLine(process.stdout)
-								readline.cursorTo(process.stdout, 0)
-								process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
-							}
+// 							if (s.lookback.length > lookback_size) {
+// //								if (!so.minimal_db) {
+// //									savePeriod(s.lookback[0])
+// //								}
+// //								lookback_size = s.lookback.length
+// //							}
+// //							if (s.period) {
+// //								if (!so.minimal_db) {
+// //									savePeriod(s.period)
+// //								}
+// 							} 
+							// else {
+							// 	readline.clearLine(process.stdout)
+							// 	readline.cursorTo(process.stdout, 0)
+							// 	process.stdout.write('Waiting on first live trade to display reports, could be a few minutes ...')
+							// }
 						})
 					}
 
@@ -1562,22 +1534,12 @@ module.exports = function (program, conf) {
 					db_trades.updateOne({'_id' : trade._id}, {$set : trade}, {multi: false, upsert : true}, function (err) {
 						// ignore duplicate key errors
 						if (err && err.code !== 11000) {
-							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving trade')
+							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving in db_trades')
 							console.error(err)
 						}
 					})
 				}
 				/* End of saveTrade() */
-				
-//				function savePeriod (period) {
-//					s.db_periods.updateOne({'_id': period._id}, {$set: period}, {multi: false, upsert: true}, function (err) {
-//						if (err) {
-//							console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving db_periods')
-//							console.error(err)
-//						}
-//					})
-//				}
-				/* End of savePeriod() */
 			}
 			/* End of forwardScan() */
 
@@ -1633,7 +1595,7 @@ module.exports = function (program, conf) {
 
 				db_sessions.updateOne({'_id' : session._id}, {$set : session}, {multi: false, upsert : true}, function (err) {
 					if (err) {
-						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
+						console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving in db_sessions')
 						console.error(err)
 					}
 					else {

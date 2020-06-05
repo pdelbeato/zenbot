@@ -119,7 +119,7 @@ module.exports = function (program, conf) {
 								
 								//C'è la possibilità, in caso di coppie poco utilizzate, che non scarichi trades in un periodo passato.
 								//Con questo check, manda avanti il tempo di 5 minuti e ritenta il download.
-								console.log('\nBackfill - Downloaded 0 trades, but there is ' + days_left + ' remaining days. Trying to go on (' + get_trade_retry_count + ')...')
+								console.log('\nBackfill - Downloaded 0 trades (from: ' + opts.from + '), but there is ' + days_left + ' remaining days. Trying to go on (' + get_trade_retry_count + ')...')
 								get_trade_retry_count++
 								marker.to += 300000
 								setImmediate(getNext)
@@ -287,18 +287,18 @@ module.exports = function (program, conf) {
 					marker.newest_time = Math.max(marker.newest_time, trade.time)
 				}
 				let trade_promise = new Promise(function (resolve, reject) {
-					if (!conf.is_sim) {
-						db_trades.update({ "_id": trade._id }, { $set: trade }, { upsert: true }, function (err, result) {
-							if (err) {
-								console.log('Backfill - runTasks - promise reject. Err= ' + err)
-								reject(err)
-							}
-							if (result) {
-								resolve()
-							}
-						})
-					}
-					else {
+					// if (!conf.is_sim) {
+					// 	db_trades.update({ "_id": trade._id }, { $set: trade }, { upsert: true }, function (err, result) {
+					// 		if (err) {
+					// 			console.log('Backfill - runTasks - promise reject. Err= ' + err)
+					// 			reject(err)
+					// 		}
+					// 		if (result) {
+					// 			resolve()
+					// 		}
+					// 	})
+					// }
+					// else {
 						db_trades.updateOne({ "_id": trade._id }, { $set: trade }, { upsert: true }, function (err, result) {
 							if (err) {
 								console.log('Backfill - runTasks - promise reject. Err= ' + err)
@@ -308,7 +308,7 @@ module.exports = function (program, conf) {
 								resolve()
 							}
 						})
-					}
+					// }
 				})
 				return trade_promise
 			}

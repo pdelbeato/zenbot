@@ -293,10 +293,10 @@ module.exports = function sim (conf, s) {
 
 		// Compute fees
 		if (so.order_type === 'maker' && exchange.makerFee) {
-			fee = n(size).multiply(exchange.makerFee / 100).value()
+			fee = n(total).multiply(exchange.makerFee / 100).value()
 		}
 		else if (so.order_type === 'taker' && exchange.takerFee) {
-			fee = n(size).multiply(exchange.takerFee / 100).value()
+			fee = n(total).multiply(exchange.takerFee / 100).value()
 		}
 
 		// Update balance

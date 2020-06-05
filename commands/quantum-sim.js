@@ -67,7 +67,6 @@ module.exports = function (program, conf) {
 
       var data_array =  {}
 
-
       s.positions = []
       //		s.closed_positions = []
       s.my_trades = []
@@ -142,25 +141,31 @@ module.exports = function (program, conf) {
       so.selector = objectifySelector(selector || conf.selector)
       so.mode = 'sim'
 
+      //Aumento il poll time per evitare che i trade si sovrappongano al flusso dei checkOrder
+      so.order_poll_time = 60000
+
       // richiama quantum-engine
       var engine = engineFactory(s, conf)
       if (!so.min_periods) so.min_periods = 1
       var db_cursor, reversing, reverse_point
       var db_data_cursor
       var query_start = (so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null)
-
-      getNext()
-
-      function getNext () {
+      //var query_start = 1588202900000
+      so.signal = JSON.parse(fs.readFileSync('data.json'));
+      console.log(so.signal[0].Date)
+      var getNext = async () => {
         var opts = {
           query: {
             selector: so.selector.normalized
           },
-          sort: {time: 1},
-          limit: 1000
+          sort: {
+            time: 1
+          },
+          limit: 1000,
+          timeout: false
         }
         if (so.end) {
-          opts.query.time = {$lte: so.end}
+          opts.query.time = { $lte: so.end }
         }
         if (db_cursor) {
           if (reversing) {
@@ -169,52 +174,120 @@ module.exports = function (program, conf) {
             if (query_start) {
               opts.query.time['$gte'] = query_start
             }
-            opts.sort = {time: -1}
-          }
-          else {
-            if (!opts.query.time) opts.query.time = {}
+            opts.sort = {
+              time: -1
+            }
+          } else {
+            if (!opts.query.time) {
+              opts.query.time = {}
+            }
             opts.query.time['$gt'] = db_cursor
           }
-        }
-        else if (query_start) {
-          if (!opts.query.time) opts.query.time = {}
+        } else if (query_start) {
+          if (!opts.query.time) {
+            opts.query.time = {}
+          }
           opts.query.time['$gte'] = query_start
         }
-        var collectionCursor = db_trades.find(opts.query).sort(opts.sort).stream()
+
+        var collectionCursor = db_trades
+          .find(opts.query)
+          .sort(opts.sort)
+          .limit(opts.limit)
+
+        var totalTrades = await collectionCursor.count(true)
+        const collectionCursorStream = collectionCursor.stream()
         var numTrades = 0
         var lastTrade
 
-        collectionCursor.on('data', function(trade){
-          lastTrade = trade
-          numTrades++
-          if (so.symmetrical && reversing) {
-            trade.orig_time = trade.time
-            trade.time = reverse_point + (reverse_point - trade.time)
-          }
-          eventBus.emit('trade', trade)
-        })
-
-        collectionCursor.on('end', function(){
-          if(numTrades === 0){
+        var onCollectionCursorEnd = async () => {
+          if (numTrades === 0) {
             if (so.symmetrical && !reversing) {
               reversing = true
               reverse_point = db_cursor
               return getNext()
             }
-            engine.exit(exitSim)
+            if(s.tradeProcessingQueue.length()) {
+            	await s.tradeProcessingQueue.drain()
+            }
+            exitSim()
             return
-          } else {
-
+          }
+          else {
             if (reversing) {
               db_cursor = lastTrade.orig_time
             }
             else {
-              db_cursor = lastTrade.time
+              db_cursor = (lastTrade ? lastTrade.time : db_cursor)
             }
           }
-          setImmediate(getNext)
+          collectionCursorStream.close()
+          await s.tradeProcessingQueue.drain()
+          return getNext()
+        }
+
+        if(totalTrades === 0) {
+          onCollectionCursorEnd()
+        }
+
+        collectionCursorStream.on('data', function(trade) {
+        	lastTrade = trade
+        	numTrades++
+        	if (so.symmetrical && reversing) {
+        		trade.orig_time = trade.time
+        		trade.time = reverse_point + (reverse_point - trade.time)
+        	}
+
+          form_date=GetFormattedDate(new Date(trade.time))
+          new_signal=so.signal.find(x => x.Date === form_date)
+          if (typeof new_signal !== 'undefined') {
+            if (new_signal.json_signal=="buy"){
+              so.active_long_position=true
+              so.active_short_position=false
+            }else{
+              so.active_long_position=false
+              so.active_short_position=true
+            }
+          }
+
+          eventBus.emit('trade', trade, function (err, result) {
+            let a = result
+          })
+
+        	if (numTrades && totalTrades && totalTrades == numTrades) {
+        		onCollectionCursorEnd()
+        	}
+        })
+
+        collectionCursorStream.on('error', function (err) {
+          console.log('Streaming error: ' + err)
+
+          if (reversing) {
+            db_cursor = lastTrade.orig_time
+          }
+          else {
+            db_cursor = (lastTrade ? lastTrade.time : db_cursor)
+          }
+
+          collectionCursorStream.close()
+          return getNext()
         })
       }
+
+      return getNext()
+
+
+      function GetFormattedDate(unform_date) {
+        var month = unform_date .getMonth()+1
+        if (month < 10) {
+          month="0".concat(month)}
+        var day = unform_date .getDate()
+        if (day < 10) {
+          day="0".concat(day)}
+        var year = unform_date .getFullYear()
+        return year + "-" + day + "-" + month;
+      }
+
 
       function exitSim() {
         if (!s.period) {
@@ -247,9 +320,9 @@ module.exports = function (program, conf) {
 
         //s.balance.asset = 0
         //        s.lookback.unshift(s.period)
-        s.db_periods.updateOne({'_id': s.period._id}, {$set: s.period}, {multi: false, upsert: true}, function (err) {
+        s.db_periods.updateOne({ '_id': s.period._id }, { $set: s.period }, { multi: false, upsert: true }, function (err) {
           if (err) {
-            console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ': quantum-sim - exitSim - Error saving db_periods:')
+            console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ': quantum-sim - exitSim - Error saving in db_periods:')
             console.error(err)
           }
         })
@@ -274,7 +347,7 @@ module.exports = function (program, conf) {
         console.log('\nstart_capital', n(s.start_capital_currency).format('0.00000000').yellow)
         //console.log('start_price', n(s.start_price).format('0.00000000').yellow)
         //		console.log('start_price', n(s.lookback[s.lookback.length - 1].close).format('0.00000000').yellow)
-        console.log(s.start_price)
+
         console.log('start_price', n(s.start_price).format('0.00000000').yellow)
         console.log('close_price', n(s.period.close).format('0.00000000').yellow)
         var buy_hold = (s.start_price ? n(s.period.close).multiply(n(s.start_capital_currency).divide(s.start_price)) : n(s.balance.currency))
@@ -323,7 +396,7 @@ module.exports = function (program, conf) {
         }
 
         for (var i = 0; i < 4; i++) {
-          	console.log(output_lines[i])
+          console.log(output_lines[i])
         }
 
         if (so.backtester_generation >= 0) {
@@ -341,11 +414,11 @@ module.exports = function (program, conf) {
             query: {
               selector: so.selector.normalized
             },
-            sort: {time: 1},
+            sort: { time: 1 },
             limit: 1000
           }
           if (so.end) {
-            opts.query.time = {$lte: so.end}
+            opts.query.time = { $lte: so.end }
           }
           if (db_data_cursor) {
             if (!opts.query.time) opts.query.time = {}
@@ -362,7 +435,7 @@ module.exports = function (program, conf) {
           //          var data = s.lookback.slice(0, s.lookback.length).map(function (period) {
           var data = s.db_periods.find(opts.query).stream()
           var numdata = 0
-          data.on('data', function(period){
+          data.on('data', function (period) {
 
             //lastdata = period
             numdata++
@@ -372,74 +445,166 @@ module.exports = function (program, conf) {
               data_el[keys[i]] = period[keys[i]]
             }
             //return data
-            data_array[numdata]=data_el
+            data_array[numdata] = data_el
 
           })
 
-          data.on('end', function(){
+          data.on('end', function () {
             // console.log(data_array)
             var result = Object.keys(data_array).map(function (key) {
 
               return data_array[key]
             })
-            var data_chart=[]
+            var data_chart = []; var i = 0; var data_chart_period = []
 
             result = result.map(function (d) {
               d.date = new Date(d.time)
               if (typeof d.strategy === 'object') {
-
-
-                // format per bollinger
-                if (typeof d.strategy.bollinger_stocaz.data.bollinger === 'object') {
-                  d.upperBound=d.strategy.bollinger_stocaz.data.bollinger.upperBound
-                  d.midBound=d.strategy.bollinger_stocaz.data.bollinger.midBound
-                  d.lowerBound=d.strategy.bollinger_stocaz.data.bollinger.lowerBound
-                  d.stoch_K=d.strategy.bollinger_stocaz.data.stoch.stoch_K
-                } else {
-                  d.upperBound=d.open
-                  d.midBound=d.open
-                  d.lowerBound=d.open
-                }
-                data_chart.push ([
+                i++
+                data_chart.push([
                   d.date,
                   d.open,
                   d.high,
                   d.low,
                   d.close,
-                  d.upperBound,
-                  d.midBound,
-                  d.lowerBound,
-                  d.volume,
-                  d.stoch_K
-                ]);
+                  d.volume
+                ])
+
+                if (d.date.getMinutes() % 15 === 0  ) {
+
+                  data_chart_period.push ([
+                    d.date,
+                    d.open,
+                    d.high,
+                    d.low,
+                    d.close,
+                    d.volume
+
+                  ]);
+                  }
+                Object.keys(so.chart).map(function (key) {
+                  var strategy = key
+
+                  Object.keys(so.chart[key].data).map(function (sub_key) {
+                    if (typeof d.strategy[strategy] === 'object') {
+                      ///// Grafica bollinger
+                      if (sub_key === 'bollinger') {
+
+                        if (typeof d.strategy[strategy].data[sub_key] === 'object') {
+                          d.upperBound = d.strategy[strategy].data[sub_key].upperBound
+                          d.midBound = d.strategy[strategy].data[sub_key].midBound
+                          d.lowerBound = d.strategy[strategy].data[sub_key].lowerBound
+
+                        } else {
+                          d.upperBound = d.open
+                          d.midBound = d.open
+                          d.lowerBound = d.open
+                        }
+                        data_chart[i - 1].push(d.upperBound)
+                        data_chart[i - 1].push(d.midBound)
+                        data_chart[i - 1].push(d.lowerBound)
+                      }
+
+                      if (sub_key === 'vwap') {
+
+                        if (typeof d.strategy[strategy].data[sub_key] === 'object') {
+                          if (d.strategy[strategy].data[sub_key].vwap>0) {
+                            data_chart[i - 1].push(d.strategy[strategy].data[sub_key].vwap)
+                          }else{
+                            data_chart[i - 1].push(d.open)
+                          }
+                        }
+                      }
+                      ///// Grafica stochastic K
+                      if (sub_key === 'stoch') {
+                        if (typeof d.strategy[strategy].data[sub_key] === 'object') {
+
+                          data_chart[i - 1].push(d.strategy[strategy].data[sub_key].k)
+
+                        }
+                      }
+                    }
+                  })
+                })
 
 
               }
               return d
             })
 
-            var trades_chart_buy=[];var trades_chart_sell=[]
-            var coeff = 1000 * 60;
-            trades = s.my_trades.map(function (t,index) {
 
-              t.date = new Date(Math.round(t.time/ coeff) * coeff)
-              if (t.signal === "buy" && t.time!==null) {
-                trades_chart_buy.push ([
+            var trades_chart_buy = []; var trades_chart_sell = [];var data_markers_buy=[];var data_markers_sell=[]
+            var trades_chart_buy_period = [];var trades_chart_sell_period = []
+            var coeff = 1000 * 60; var coeff1= 1000 * 60 *15;
+            s.my_trades.map(function (t, index) {
+
+              t.date = new Date(Math.round(t.time / coeff) * coeff)
+              descr1="id: "
+              if (t.signal === 'buy' && t.time !== null) {
+                trades_chart_buy.push([
                   t.date,
                   t.price
-                ]);
+                ])
+                trades_chart_buy_period.push([
+                  new Date(Math.round(t.time / coeff1) * coeff1),
+                  t.price
+                ])
+                data_markers_buy.push({
+                  "date": t.date,
+                  "description":  descr1.concat(t.id,"  timestamp: ", t.time),
+                  "id": t.id,
+                  "value":t.price,
+                  "time":t.time
+                })
+
+
+
               }
-              if (t.signal === "sell"&& t.time!==null) {
-                trades_chart_sell.push ([
+              if (t.signal === 'sell' && t.time !== null) {
+                trades_chart_sell.push([
                   t.date,
                   t.price
-                ]);
+                ])
+                trades_chart_sell_period.push([
+                  new Date(Math.round(t.time / coeff1) * coeff1),
+                  t.price
+                ])
+                data_markers_sell.push({
+                  "date": t.date,
+                  "description":  descr1.concat(t.id," timestamp: ", t.time),
+                  "id": t.id,
+                  "value":t.price,
+                  "time":t.time
+                })
               }
 
             })
+
+
+
+
+
+            var trade_segment = []
+            data_markers_buy.map(function (t) {
+              var id_match=data_markers_sell.find(x => x.id === t.id)
+              if (typeof id_match!== 'undefined'){
+                console.log(id_match)
+                trade_segment.push({
+                  xAnchor: GetFormattedDate(new Date(t.time)),
+                  valueAnchor: t.value,
+                  secondXAnchor: GetFormattedDate(new Date(id_match.time)),
+                  secondValueAnchor: id_match.match
+
+                })
+              }
+
+            })
+            console.log(trade_segment)
             var code = 'var data = ' + JSON.stringify(data_chart) + ';\n'
             code += 'var trades_chart_buy = ' + JSON.stringify(trades_chart_buy) + ';\n'
             code += 'var trades_chart_sell = ' + JSON.stringify(trades_chart_sell) + ';\n'
+            code += 'var data_markers_buy = ' + JSON.stringify(data_markers_buy) + ';\n'
+            code += 'var data_markers_sell = ' + JSON.stringify(data_markers_sell) + ';\n'
             code += 'var options = ' + JSON.stringify(s.options) + ';\n'
             // console.log(code)
             var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart4.html.tpl'), { encoding: 'utf8' })
@@ -455,15 +620,34 @@ module.exports = function (program, conf) {
             fs.writeFileSync(out_target, out)
             console.log('wrote', out_target)
 
+            //simulation in Strategy periods
+            var code = 'var data = ' + JSON.stringify(data_chart_period) + ';\n'
+            code += 'var trades_chart_buy_period = ' + JSON.stringify(trades_chart_buy_period) + ';\n'
+            code += 'var trades_chart_sell_period = ' + JSON.stringify(trades_chart_sell_period) + ';\n'
+            code += 'var data_markers_buy = ' + JSON.stringify(data_markers_buy) + ';\n'
+            code += 'var data_markers_sell = ' + JSON.stringify(data_markers_sell) + ';\n'
+            code += 'var options = ' + JSON.stringify(s.options) + ';\n'
+            var tpl2 = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart_Str_period.html.tpl'), { encoding: 'utf8' })
+
+            var json = JSON.stringify(data_chart_period)
+
+
+
+            var out = tpl2
+              .replace('{{code}}', code)
+              .replace('{{trend_ema_period}}', so.trend_ema || 36)
+              .replace('{{output}}', html_output)
+              .replace(/\{\{symbol\}\}/g, so.selector.normalized + ' - zenbot ' + require('../package.json').version)
+
+            var out_target = so.filename || 'simulations/sim_result_Strategy_period' + so.selector.normalized + '_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
+            fs.writeFileSync(out_target, out)
+            fs.writeFileSync("./simulations/indicator_testing/data/data.json", json)
+            console.log('wrote', out_target)
 
 
             db_data_cursor = data.time
           })
-
-
         }
-
-
       }
     })
 }

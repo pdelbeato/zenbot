@@ -61,7 +61,19 @@ module.exports = function (cb) {
 			connectionString = 'mongodb://' + authStr + zenbot.conf.mongo.host + ':' + zenbot.conf.mongo.port + '/' + zenbot.conf.mongo.db + '?' +
 				(zenbot.conf.mongo.replicaSet ? '&replicaSet=' + zenbot.conf.mongo.replicaSet : '') +
 				(authMechanism ? '&authMechanism=' + authMechanism : '')
+				//+ '&keepAlive=true' +
+				// '&poolSize=30' +
+				// '&autoReconnect=true' +
+				// '&socketTimeoutMS=360000' +
+				// '&connectTimeoutMS=360000' +
+				// '&useMongoClient=true'
 		}
+
+		//Da vedere se può essere utile
+		// process.on('unhandledRejection', error => {
+
+		// 	console.log('unhandledRejection', error.message);
+		//   });
 
 		require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
 			if (err) {
@@ -71,6 +83,8 @@ module.exports = function (cb) {
 				cb(null, zenbot)
 				return
 			}
+
+			//Aggiungere catch se non esiste il mongo db
 			var db = client.db(zenbot.conf.mongo.db)
 			_.set(zenbot, 'conf.db.mongo', db)
 

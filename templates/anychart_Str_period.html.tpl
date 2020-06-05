@@ -32,7 +32,13 @@ function ac_add_style(css){
 ac_add_link('https://cdn.anychart.com/releases/8.7.1/css/anychart-ui.min.css?hcode=a0c21fc77e1449cc86299c5faa067dc4');
 ac_add_style(document.getElementById("ac_style_samples-stock-range-selection-01").innerHTML);
 ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;height:450px;}");
-})();</script>
+})();
+</script>
+<button onclick="Bollinger()">Bollinger</button>
+<button onclick="Volume()">Volume</button>
+<button onclick="add()">Add Series</button>
+<button onclick="remove()">Remove Series</button>
+<button onclick="removeAll()">Remove All Series</button>
   <div id="container"></div>
   <!-- <script src="https://cdn.anychart.com/releases/v8/js/anychart-base.min.js?hcode=c11e6e3cfefb406e8ce8d99fa8368d33"></script> -->
   <script src="https://cdn.anychart.com/releases/8.7.1/js/anychart-core.min.js?hcode=a0c21fc77e1449cc86299c5faa067dc4"></script>
@@ -48,15 +54,31 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
       margin: 0;
       padding: 0;
   }
+  button {
+      margin: 10px 0 0 10px;
+  }
   </div>
   <script type="text/javascript">
+  function Bollinger(){
 
 
-    var withData = function (data, trades_chart_buy, trades_chart_sell, data_markers_buy, data_markers_sell, options) {
+    chart.plot(0).bbands(mapping);
 
 
-      console.log(data_markers_buy)
-      console.log(data_markers_sell)
+  };
+
+  function remove(){
+    //if (chart.getSeriesCount()>0)
+
+  };
+
+  function removeAll(){
+    chart.refresh();
+  };
+
+    var withData = function (data, trades_chart_buy_period, trades_chart_sell_period, data_markers_buy, options) {
+      console.log(trades_chart_buy_period)
+
   var i =0; var strategy_sel =[]
   Object.keys(options.chart).map(function (key) {
     var strategy=key
@@ -78,14 +100,13 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
       table = anychart.data.table();
       table.addData(data_chart);
 
-      // table_period = anychart.data.table();
-      // table_period.addData(data_chart_period);
+
 
       table_trades_buy = anychart.data.table();
-      table_trades_buy.addData(trades_chart_buy);
+      table_trades_buy.addData(trades_chart_buy_period);
 
       table_trades_sell = anychart.data.table();
-      table_trades_sell.addData(trades_chart_sell);
+      table_trades_sell.addData(trades_chart_sell_period);
 
       // map the data
       mapping = table.mapAs();
@@ -93,14 +114,8 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
       mapping.addField('high', 2);
       mapping.addField('low', 3);
       mapping.addField('close', 4);
-      mapping.addField('volume',5)
+      //mapping.addField('volume',8)
 
-      // // map the data in the strategy period
-      // mapping_period = table_period.mapAs();
-      // mapping_period.addField('open', 1);
-      // mapping_period.addField('high', 2);
-      // mapping_period.addField('low', 3);
-      // mapping_period.addField('close', 4);
 
       // map the trades
       mapping_trades_buy = table_trades_buy.mapAs();
@@ -112,78 +127,30 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
 
 
       // chart type
-      var chart = anychart.stock();
-
-
-      if (strategy_sel.includes('bollinger')) {
-      // map the data Bollinger
-        mapping_BBu = table.mapAs();
-        mapping_BBu.addField('value', 6);
-        mapping_BBm = table.mapAs();
-        mapping_BBm.addField('value', 7);
-        mapping_BBd = table.mapAs();
-        mapping_BBd.addField('value', 8);
-
-        // set the series
-        var series_BBu = chart.plot(0).line(mapping_BBu);
-        series_BBu.name("BB upper");
-        var series_BBm = chart.plot(0).line(mapping_BBm);
-        series_BBm.name("BB middle");
-        var series_BBd = chart.plot(0).line(mapping_BBd);
-        series_BBd.name("BB lower");
-
-      }
-
-      if (strategy_sel.includes('vwap')) {
-        // map the data Stochastic
-          mapping_vwap = table.mapAs();
-          mapping_vwap.addField('value', 6);
-
-          // set the series
-          var series_vwap = chart.plot(0).line(mapping_vwap);
-          series_vwap.name("VWAP");
-          }
-
-
-      if (strategy_sel.includes('stoch')) {
-        // map the data Stochastic
-          mapping_Stoch_K = table.mapAs();
-          mapping_Stoch_K.addField('value', 9);
-
-          // set the series
-          var series_Stoch_K = chart.plot(1).line(mapping_Stoch_K);
-          series_Stoch_K.name("Stoch K");
-          }
-
-
-
-
+       chart = anychart.stock();
 
 
       // create a plot on the chart
       var plot = chart.plot(0);
-      // //
-      // // create Bollinger Bands indicator
-      // //chart.plot(0).bbands(mapping_period);
-      // var bbands = plot.bbands(mapping 20, 2, "line", "line", "line");
-      // //
-      // // color the series
-      // bbands.upperSeries().stroke('#bf360c');
-      // bbands.middleSeries().stroke('#ff6600');
-      // bbands.lowerSeries().stroke('#bf360c');
+
       // //bbands.rangeSeries().fill('#ffd54f 0.2');
 
-      // set the series
-      var series_trades_buy = chart.plot(0).marker(mapping_trades_buy);
+    //   // set the series
+       var series_trades_buy = chart.plot(0).marker(mapping_trades_buy);
       series_trades_buy.size(7)
       series_trades_buy.fill("#0BE518")
       series_trades_buy.name("BUY_trades");
       series_trades_buy.stroke({color: '#000000', thickness: 1, lineCap: 'round'});
-      var series_trades_sell = chart.plot(0).marker(mapping_trades_sell);
+      series_trades_buy.type("triangle-up")
+       var series_trades_sell = chart.plot(0).marker(mapping_trades_sell);
       series_trades_sell.name("SELL_trades");
       series_trades_sell.fill("#FF0000")
       series_trades_sell.size(7)
       series_trades_sell.stroke({color: '#000000', thickness: 1,  lineCap: 'round'});
+      series_trades_sell.type("triangle-down")
+
+
+
 
       var rangePicker = anychart.ui.rangePicker();
       var rangeSelector = anychart.ui.rangeSelector();
@@ -196,22 +163,22 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
       series.name("Stock prices");
 
 
-      // //add event markers
-      // var data_markers=[
-      //   {
-      //     "format": "B",
-      //     "data": data_markers_buy
-      //   },
-      //   {
-      //     "format": "S",
-      //     "data": data_markers_sell
-      //   }
-      // ]
-      //
-      // plot.eventMarkers({"groups": data_markers});
-      // // bind event markers to the first series
-      // plot.eventMarkers().position("series");
-      // plot.eventMarkers().seriesId(0);
+      //add event markers
+      var data_markers=[
+        {
+          "format": "B",
+          "data": data_markers_buy
+        },
+        {
+          "format": "S",
+          "data": data_markers_sell
+        }
+      ]
+
+      plot.eventMarkers({"groups": data_markers});
+      // bind event markers to the first series
+      plot.eventMarkers().position("series");
+      plot.eventMarkers().seriesId(0);
 
       // // create the second plot on the chart
       // var plot_1 = chart.plot(1);
@@ -233,15 +200,18 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
       rangePicker.render(chart);
       rangeSelector.render(chart);
 
-
-
       })
-  };</script></body>
+
+  };
+
+
+
+</script></body>
   <script>
 {{code}}
 //withData(data, trades, options)
   </script>
-  <body onload="withData(data, trades_chart_buy, trades_chart_sell, data_markers_buy,data_markers_sell, options)">
+  <body onload="withData(data, trades_chart_buy_period, trades_chart_sell_period, data_markers_buy, options)">
 
   <!-- <pre><code>{{output}}</code></pre> -->
   </body>
