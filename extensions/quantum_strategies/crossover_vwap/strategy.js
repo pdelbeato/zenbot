@@ -12,7 +12,7 @@ var n = require('numbro')
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate VWAP every period_calc time
 //		size: 10,					//****** Min period_calc for vwap to start
-//		vwap_max: 8000,				//****** Max history for vwap. Increasing this makes it more sensitive to short-term changes
+//		vwap_max: 96,				//****** Max history for vwap. Increasing this makes it more sensitive to short-term changes
 //		upper_threshold_pct: 0.2,		//****** Upper threshold percentage (buy if price goes higher)
 //		lower_threshold_pct: 0.2,		//****** Lower threshold percentage (sell if price goes lower)
 //		order_type: 'taker',		//****** Order type ['taker', 'maker'] (if null, order_type as conf_file)
@@ -75,6 +75,11 @@ module.exports = {
 			if (!position.strategy_parameters[strat_name]) {
 				position.strategy_parameters[strat_name] = {}
 			}
+			
+			//Se la posizione è stata aperta da crossover_vwap, la rendo esclusiva di questa strategia.
+			if (!(position.opened_by & ~s.strategyFlag[strat_name])) {
+				s.tools.positionFlags(position, 'locked', 'Set', strat_name)
+			}
 		})
 
 		callback(null, null)
@@ -83,10 +88,11 @@ module.exports = {
 	getOptions: function (strategy_name) {
 		this.option(strategy_name, 'period_calc', 'Calculate VWAP every period_calc time', String, '15m')
 	    this.option(strategy_name, 'vwap_length', 'Min periods for vwap to start', Number, 10 )
-		this.option(strategy_name, 'vwap_max', 'Max history for vwap. Increasing this makes it more sensitive to short-term changes', Number, 8000)
+		this.option(strategy_name, 'vwap_max', 'Max history for vwap, afterwards it will be reset (default 1d)', Number, 92)
 		this.option(strategy_name, 'upper_threshold_pct', 'Upper threshold percentage (buy if price goes higher)', Number, 0.1)
 		this.option(strategy_name, 'lower_threshold_pct', 'Lower threshold percentage (sell if price goes lower)', Number, 0.1)
-	    this.option(strategy_name, 'order_type', 'Order type [taker, maker] (if null, order_type as conf_file)', String, null)
+	    this.option(strategy_name, 'order_type', 'Order type [\'taker\', \'maker\'] (if null, order_type as conf_file)', String, null)
+	    this.option(strategy_name, 'on_trade_period', 'If true, signal will be shot on trade period, not on strategy pariod', Boolean, false)
 	},
 
 	getCommands: function (s, strategy_name) {
