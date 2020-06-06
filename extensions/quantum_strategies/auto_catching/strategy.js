@@ -445,7 +445,7 @@ module.exports = {
 					let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
 					let target_price = null
 
-					if (!position_locking && !position_status && !position.opened_by && !s.tools.positionFlags(position, 'status', 'Check', strat_name)) {
+					if (!position_locking && !position_status && !position_opened_by && !s.tools.positionFlags(position, 'status', 'Check', strat_name)) {
 						let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 						if (position.side === 'buy') {
 							target_price = n(position.price_open).multiply(1 + strat.opts.catch_gain_pct / 100).format(s.product.increment, Math.floor)
