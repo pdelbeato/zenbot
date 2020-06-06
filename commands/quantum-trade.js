@@ -988,64 +988,64 @@ module.exports = function (program, conf) {
 							losses++
 						}
 					}
-				})
+					
+					if (gains > 0) {
+						if (!statsOnly) {
+							output_lines.push('win/loss: ' + gains + '/' + losses)
+							output_lines.push('error rate: ' + (n(losses).divide(gains + losses).format('0.00%')).yellow)
+						}
 
-				if (gains > 0) {
-					if (!statsOnly) {
-						output_lines.push('win/loss: ' + gains + '/' + losses)
-						output_lines.push('error rate: ' + (n(losses).divide(gains + losses).format('0.00%')).yellow)
+						//for API
+						s.stats.win = gains
+						s.stats.losses = losses
+						s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%')
 					}
 
-					//for API
-					s.stats.win = gains
-					s.stats.losses = losses
-					s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%')
-				}
+					if (!statsOnly) {
+						output_lines.forEach(function (line) {
+							console.log(line)
+						})
+					}
 
-				if (!statsOnly) {
-					output_lines.forEach(function (line) {
-						console.log(line)
-					})
-				}
+					if (quit || dump) {
+						// var html_output = output_lines.map(function (line) {
+						// 	return colors.stripColors(line)
+						// }).join('\n')
+						// var data = s.lookback.slice(0, s.lookback.length - so.min_periods).map(function (period) {
+						// 	var data = {}
+						// 	var keys = Object.keys(period)
+						// 	for(var i = 0; i < keys.length; i++){
+						// 		data[keys[i]] = period[keys[i]]
+						// 	}
+						// 	return data
+						// })
+						// var code = 'var data = ' + JSON.stringify(data) + ';\n'
+						// code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
+						// var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '9sim_result.html.tpl'), {encoding: 'utf8'})
+						// var out = tpl
+						// .replace('{{code}}', code)
+						// .replace('{{trend_ema_period}}', so.trend_ema || 36)
+						// .replace('{{output}}', html_output)
+						// .replace(/\{\{symbol\}\}/g,  so.selector.normalized + ' - zenbot ' + require('../package.json').version)
+						// if (so.filename !== 'none') {
+						// 	var out_target
+						// 	var out_target_prefix = so.paper ? 'simulations/paper_result_' : 'stats/trade_result_'
+						// 		if (dump) {
+						// 			var dt = new Date().toISOString()
 
-				if (quit || dump) {
-					// var html_output = output_lines.map(function (line) {
-					// 	return colors.stripColors(line)
-					// }).join('\n')
-					// var data = s.lookback.slice(0, s.lookback.length - so.min_periods).map(function (period) {
-					// 	var data = {}
-					// 	var keys = Object.keys(period)
-					// 	for(var i = 0; i < keys.length; i++){
-					// 		data[keys[i]] = period[keys[i]]
-					// 	}
-					// 	return data
-					// })
-					// var code = 'var data = ' + JSON.stringify(data) + ';\n'
-					// code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
-					// var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '9sim_result.html.tpl'), {encoding: 'utf8'})
-					// var out = tpl
-					// .replace('{{code}}', code)
-					// .replace('{{trend_ema_period}}', so.trend_ema || 36)
-					// .replace('{{output}}', html_output)
-					// .replace(/\{\{symbol\}\}/g,  so.selector.normalized + ' - zenbot ' + require('../package.json').version)
-					// if (so.filename !== 'none') {
-					// 	var out_target
-					// 	var out_target_prefix = so.paper ? 'simulations/paper_result_' : 'stats/trade_result_'
-					// 		if (dump) {
-					// 			var dt = new Date().toISOString()
+						// 			//ymd
+						// 			var today = dt.slice(2, 4) + dt.slice(5, 7) + dt.slice(8, 10)
+						// 			out_target = so.filename || out_target_prefix + so.selector.normalized +'_' + today + '_UTC.html'
+						// 			fs.writeFileSync(out_target, out)
+						// 		} else
+						// 			out_target = so.filename || out_target_prefix + so.selector.normalized +'_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
 
-					// 			//ymd
-					// 			var today = dt.slice(2, 4) + dt.slice(5, 7) + dt.slice(8, 10)
-					// 			out_target = so.filename || out_target_prefix + so.selector.normalized +'_' + today + '_UTC.html'
-					// 			fs.writeFileSync(out_target, out)
-					// 		} else
-					// 			out_target = so.filename || out_target_prefix + so.selector.normalized +'_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
-
-					// 			fs.writeFileSync(out_target, out)
-					// 			console.log('\nwrote'.grey, out_target)
-					// }
-					if (quit) process.exit(0)
-				}
+						// 			fs.writeFileSync(out_target, out)
+						// 			console.log('\nwrote'.grey, out_target)
+						// }
+						if (quit) process.exit(0)
+					}
+				})				
 			}
 			/* The end of printTrade */
 
