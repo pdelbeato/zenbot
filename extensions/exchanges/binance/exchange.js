@@ -391,6 +391,7 @@ module.exports = function binance (conf) {
 						// {"code":-2010,"msg":"Account has insufficient balance for requested action"}
 
 						if (error.message.match(new RegExp(/-1013|MIN_NOTIONAL|-2010/))) {
+							console.error('exchange.buy - error.message= ' + error.message)
 							return cb(null, {
 								status: 'rejected',
 								reject_reason: 'balance'
@@ -398,7 +399,7 @@ module.exports = function binance (conf) {
 						}
 						
 						if (error.name.match(new RegExp(/-1013|MIN_NOTIONAL|-2010|InsufficientFunds/))) {
-							console.error('exchange.sell - error.name= ' + error.name)
+							console.error('exchange.buy - error.name= ' + error.name)
 							return cb(null, {
 								status: 'rejected',
 								reject_reason: 'balance'
