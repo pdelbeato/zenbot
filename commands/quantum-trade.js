@@ -49,7 +49,7 @@ module.exports = function (program, conf) {
 	.option('--conf <path>', 'path to optional conf overrides file')
 	.option('--order_type <type>', 'order type to use (maker/taker)', /^(maker|taker)$/i, conf.order_type)
 	.option('--paper', 'use paper trading mode (no real trades will take place)', Boolean, false)
-	.option('--manual', 'watch price and account balance, but do not perform trades automatically', Boolean, false)
+//	.option('--manual', 'watch price and account balance, but do not perform trades automatically', Boolean, false)
 	.option('--non_interactive', 'disable keyboard inputs to the bot', Boolean, false)
 	.option('--filename <filename>', 'filename for the result output (ex: result.html). "none" to disable', String, conf.filename)
 	.option('--currency_capital <amount>', 'for paper trading, amount of start capital in currency. For live trading, amount of new starting capital in currency.', Number, conf.currency_capital)
@@ -315,12 +315,12 @@ module.exports = function (program, conf) {
 
 				keyMap.set('l', {desc: ('list available commands'.grey), 	action: function() { listKeys()}})
 
-				keyMap.set('m', {desc: ('toggle MANUAL trade in LIVE mode ON / OFF'.grey), action: function() {
-					if (so.mode === 'live') {
-						so.manual = !so.manual
-						console.log('\nMANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse))
-					}
-				}})
+//				keyMap.set('m', {desc: ('toggle MANUAL trade in LIVE mode ON / OFF'.grey), action: function() {
+//					if (so.mode === 'live') {
+//						so.manual = !so.manual
+//						console.log('\nMANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse))
+//					}
+//				}})
 				keyMap.set('x', {desc: ('print statistical output'.grey), action: function() { printTrade(false)}})
 				keyMap.set('P', {desc: ('list positions opened'.grey), action: function() {
 					debug.obj('\nListing positions opened...'.grey, s.positions, false, true)
@@ -642,7 +642,7 @@ module.exports = function (program, conf) {
 								listKeys()
 							}})
 							actual_code++
-						}5
+						}
 					})
 
 
@@ -954,7 +954,7 @@ module.exports = function (program, conf) {
 					output_lines.push(s.positions.length + ' positions opened.')
 					output_lines.push(s.orders.length + ' orders opened.')
 					output_lines.push(sizeof(s) + ' size of s')
-					output_lines.push(sizeof(s.period) + ' size of s.period (' + s.period.length + ')')
+					output_lines.push(sizeof(s.period) + ' size of s.period')
 					output_lines.push(sizeof(s.lookback) + ' size of s.lookback (' + s.lookback.length + ')')
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
 						output_lines.push(sizeof(s.options.strategy[strategy_name].calc_lookback) + ' size of ' + strategy_name + ' calc_lookback (' + s.options.strategy[strategy_name].calc_lookback.length + ')')
@@ -1346,17 +1346,30 @@ module.exports = function (program, conf) {
 													break
 												}
 												case '/stop': {
-													debug.msg('Emergency stop!! - Deactivate long/short mode')
+													console.error('Emergency stop!! - Deactivate long/short mode')
 													so.active_long_position = false
 													so.active_short_position = false
-													debug.msg('Emergency stop!! - Cancel all orders')
+
+													console.error('Emergency stop!! - Cancel all orders')
 													s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
+
 													setTimeout(function() {
-														debug.msg('Emergency stop!! - Cancel all further orders remained on exchange')
+														console.error('Emergency stop!! - Cancel all further orders remained on exchange')
 														s.exchange.cancelAllOrders(opts_tmp, function() {
-															debug.msg('Emergency stop!! - Remaining orders on the exchange canceled')
+															console.error('Emergency stop!! - Remaining orders on the exchange canceled')
 														})
 													}, so.wait_for_settlement)
+
+													console.error('Emergency stop!! - Deactivate all the strategies')
+													s.tools.functionStrategies('deactivate'
+														, null
+														, function(err) {
+															if (err) {
+																console.error('Emergency stop!! - deactivate strategies - Error: ' + err)
+															}
+															
+															console.error('Emergency stop!! - All the strategies deactivated')
+														})
 												}
 											}
 										})

@@ -14,7 +14,7 @@ var n = require('numbro')
 //		size: 96,					//****** Use 'size' period to calculate linear regression
 //		upper_threshold: 0.2,		//****** Upper threshold (long if price is higher)
 //		lower_threshold: -0.2,		//****** Lower threshold (short if price is lower)
-//		activated: false,			//****** Activate this strategy
+//		active: false,				//****** Activate this strategy
 //	},
 //---------------------------------------------
 
@@ -124,8 +124,8 @@ module.exports = {
 			this.command('i', {
 				desc: ('Linear Regression Trend - Toggle activation'.grey),
 				action: function () {
-					strat.opts.activated = !strat.opts.activated
-					console.log('\nToggle activation: ' + (strat.opts.activated ? 'ON'.green.inverse : 'OFF'.red.inverse))
+					strat.opts.active = !strat.opts.active
+					console.log('\nToggle activation: ' + (strat.opts.active ? 'ON'.green.inverse : 'OFF'.red.inverse))
 				}
 			})
 		}
@@ -218,7 +218,7 @@ module.exports = {
 			function _onStrategyPeriod(cb) {
 				ta_linearRegSlope(s, 'close', 'linear_reg_trend', strat.opts.size)
 					.then(function (result) {
-						if (strat.opts.activated) {
+						if (strat.opts.active) {
 							if (strat.data.slope > strat.opts.upper_threshold) {
 								s.options.active_long_position = true
 								s.options.active_short_position = false
@@ -395,6 +395,23 @@ module.exports = {
 	// 	}
 	// },
 
+	deactivate: function(s, callback = function() {}) {
+		let strat_name = this.name
+		let strat = s.options.strategy[strat_name]
+		
+		_deactivate(callback)
+		
+		///////////////////////////////////////////
+		// _deactivate
+		///////////////////////////////////////////
+		
+		function _deactivate(cb) {
+			strat.opts.active = false
+			
+			cb(null, null)
+		}
+	},
+	
 	printOptions: function (s, opts = { only_opts: false }, callback) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy[this.name]))
 		delete so_tmp.calc_lookback
