@@ -1298,7 +1298,7 @@ module.exports = function (program, conf) {
 													break
 												}
 												case '/stop': {
-													emergencyStop()
+													emergencyStop(true)
 												}
 											}
 										})
@@ -1547,7 +1547,11 @@ module.exports = function (program, conf) {
 			}
 			/* End of saveSession()  */
 
-			function emergencyStop() {
+			function emergencyStop(message = false) {
+				if (message) {
+					s.tools.pushMessage('Emergency stop!!', 'Procedure started')
+				}
+				
 				console.error('\nEmergency stop!! - Deactivate long/short mode'.red)
 				so.active_long_position = false
 				so.active_short_position = false
@@ -1571,10 +1575,13 @@ module.exports = function (program, conf) {
 					, null
 					, function (err) {
 						if (err) {
-							console.error('Emergency stop!! - deactivate strategies - Error: ' + err)
+							console.error('Emergency stop!! - Deactivate strategies - Error: ' + err)
 						}
 
 						console.error('Emergency stop!! - All the strategies deactivated')
+						if (message) {
+							s.tools.pushMessage('Emergency stop!!', 'Procedure finished')
+						}
 					})
 			}
 		})

@@ -336,7 +336,7 @@ module.exports = {
 	// 	}
 	// },
 
-//	deactivate: function(s, callback = function() {}) {
+//	deactivate: function(s, opts = {}, callback = function() {}) {
 //		let strat_name = this.name
 //		let strat = s.options.strategy[strat_name]
 //		
