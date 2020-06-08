@@ -8,14 +8,10 @@ var n = require('numbro')
 //---------------------------------------------
 //c.strategy['price_limits'] = {
 //	opts: {							//****** To store options
-//		limit: {
-//			buy: null,				//Switch off/on long mode if price is above/below this limit
-//			sell: null,				//Switch off/on short mode if price is below/above this limit
-//		}
-//		is_active: {
-//			buy: false,				//Protection on buy (long) active
-//			sell: false,			//Protecion on sell (short) active
-//		}
+//		limit_buy: null,				//Switch off/on long mode if price is above/below this limit
+//		limit_sell: null,				//Switch off/on short mode if price is below/above this limit
+//		is_active_buy: false,				//Protection on buy (long) active
+//		is_active_sell: false,			//Protecion on sell (short) active
 //	}
 //}
 //---------------------------------------------
@@ -72,10 +68,10 @@ module.exports = {
 	},
 
 	getOptions: function (strategy_name) {
-		this.option(strategy_name, 'limit.buy', 'Switch off/on long mode if price is above/below this limit', Number, 100000)
-		this.option(strategy_name, 'limit.sell', 'Switch off/on short mode if price is below/above this limit', Number, 0)
-		this.option(strategy_name, 'is_active.buy', 'Protection on buy (long) active', Boolean, false)
-		this.option(strategy_name, 'is_active.sell', 'Protection on sell (short) active', Boolean, false)
+		this.option(strategy_name, 'limit_buy', 'Switch off/on long mode if price is above/below this limit', Number, 100000)
+		this.option(strategy_name, 'limit_sell', 'Switch off/on short mode if price is below/above this limit', Number, 0)
+		this.option(strategy_name, 'is_active_buy', 'Protection on buy (long) active', Boolean, false)
+		this.option(strategy_name, 'is_active_sell', 'Protection on sell (short) active', Boolean, false)
 	},
 
 	getCommands: function (s, strategy_name) {
@@ -88,61 +84,68 @@ module.exports = {
 		})
 		
 		this.command('+', {
-			desc: ('Price limits - Buy price limit '.grey + 'INCREASE'.green), action: function () {
-				if (!strat.opts.is_active.buy) {
-					strat.opts.is_active.buy = true
-					strat.opts.limit.buy = Number(s.quote.bid)
+			desc: ('Price limits - Buy price limit '.grey + 'INCREASE'.green + ' (if not active, set bid price as limit)'.grey), action: function () {
+				if (!strat.opts.is_active_buy) {
+					strat.opts.is_active_buy = true
+					strat.opts.limit_buy = Number(s.quote.bid)
 				}
-				strat.opts.limit.buy = (strat.opts.limit.buy + 100 * s.product.increment)
-				console.log('\n' + 'Price limits - Buy price limit ' + 'INCREASE'.green + ' -> ' + strat.opts.limit.buy)
+				strat.opts.limit_buy = (strat.opts.limit_buy + 100 * s.product.increment)
+				console.log('\n' + 'Price limits - Buy price limit ' + 'INCREASE'.green + ' -> ' + strat.opts.limit_buy)
 			}
 		})
 		this.command('-', {
-			desc: ('Price limits - Buy price limit '.grey + 'DECREASE'.red), action: function () {
-				if (!strat.opts.is_active.buy) {
-					strat.opts.is_active.buy = true
-					strat.opts.limit.buy = Number(s.quote.bid)
+			desc: ('Price limits - Buy price limit '.grey + 'DECREASE'.red + ' (if not active, set bid price as limit)'.grey), action: function () {
+				if (!strat.opts.is_active_buy) {
+					strat.opts.is_active_buy = true
+					strat.opts.limit_buy = Number(s.quote.bid)
 				}
-				strat.opts.limit.buy = (strat.opts.limit.buy - 100 * s.product.increment)
-				console.log('\n' + 'Price limits - Buy price limit ' + 'DECREASE'.red + ' -> ' + strat.opts.limit.buy)
+				strat.opts.limit_buy = (strat.opts.limit_buy - 100 * s.product.increment)
+				console.log('\n' + 'Price limits - Buy price limit ' + 'DECREASE'.red + ' -> ' + strat.opts.limit_buy)
 			}
 		})
 		this.command('*', {
-			desc: ('Price limits - Sell price limit '.grey + 'INCREASE'.green), action: function () {
-				if (!strat.opts.is_active.sell) {
-					strat.opts.is_active.sell = true
-					strat.opts.limit.sell = Number(s.quote.ask)
+			desc: ('Price limits - Sell price limit '.grey + 'INCREASE'.green + ' (if not active, set ask price as limit)'.grey), action: function () {
+				if (!strat.opts.is_active_sell) {
+					strat.opts.is_active_sell = true
+					strat.opts.limit_sell = Number(s.quote.ask)
 				}
-				strat.opts.limit.sell = (strat.opts.limit.sell + 100 * s.product.increment)
-				console.log('\n' + 'Price limits - Sell price limit ' + 'INCREASE'.green + ' -> ' + strat.opts.limit.sell)
+				strat.opts.limit_sell = (strat.opts.limit_sell + 100 * s.product.increment)
+				console.log('\n' + 'Price limits - Sell price limit ' + 'INCREASE'.green + ' -> ' + strat.opts.limit_sell)
 			}
 		})
 		this.command('_', {
-			desc: ('Price limits - Sell price limit '.grey + 'DECREASE'.red), action: function () {
-				if (!strat.opts.is_active.sell) {
-					strat.opts.is_active.sell = true
-					strat.opts.limit.sell = Number(s.quote.ask)
+			desc: ('Price limits - Sell price limit '.grey + 'DECREASE'.red + ' (if not active, set ask price as limit)'.grey), action: function () {
+				if (!strat.opts.is_active_sell) {
+					strat.opts.is_active_sell = true
+					strat.opts.limit_sell = Number(s.quote.ask)
 				}
-				strat.opts.limit.sell = (strat.opts.limit.sell - 100 * s.product.increment)
-				console.log('\n' + 'Price limits - Sell price limit ' + 'DECREASE'.red + ' -> ' + strat.opts.limit.sell)
+				strat.opts.limit_sell = (strat.opts.limit_sell - 100 * s.product.increment)
+				console.log('\n' + 'Price limits - Sell price limit ' + 'DECREASE'.red + ' -> ' + strat.opts.limit_sell)
 			}
 		})		
 		this.command('u', {
-			desc: ('Price limits - Toggle '.grey + 'BUY limit'.green), action: function () {
-				strat.opts.is_active.buy = !strat.opts.is_active.buy
-				if (strat.opts.is_active.buy) {
-					strat.opts.limit.buy = Number(s.quote.bid)
+			desc: ('Price limits - Toggle '.grey + 'BUY limit'.green + ' (if no price limit is set, set bid price as limit)'.grey), action: function () {
+				strat.opts.is_active_buy = !strat.opts.is_active_buy
+				if (strat.opts.is_active_buy && !strat.opts.limit_buy) {
+					strat.opts.limit_buy = Number(s.quote.bid)
 				}
-				console.log('\nToggle BUY Limit: ' + (strat.opts.is_active.buy ? 'ON'.green.inverse : 'OFF'.red.inverse))
+				console.log('\nToggle BUY Limit: ' + (strat.opts.is_active_buy ? 'ON'.green.inverse : 'OFF'.red.inverse))
 			}
 		})
 		this.command('j', {
-			desc: ('Price limits - Toggle '.grey + 'SELL limit'.red), action: function () {
-				strat.opts.is_active.sell = !strat.opts.is_active.sell
-				if (strat.opts.is_active.sell) {
-					strat.opts.limit.sell = Number(s.quote.ask)
+			desc: ('Price limits - Toggle '.grey + 'SELL limit'.red + ' (if no price limit is set, set ask price as limit)'.grey), action: function () {
+				strat.opts.is_active_sell = !strat.opts.is_active_sell
+				if (strat.opts.is_active_sell && !strat.opts.limit_sell) {
+					strat.opts.limit_sell = Number(s.quote.ask)
 				}
-				console.log('\nToggle SELL Limit: ' + (strat.opts.is_active.sell ? 'ON'.green.inverse : 'OFF'.red.inverse))
+				console.log('\nToggle SELL Limit: ' + (strat.opts.is_active_sell ? 'ON'.green.inverse : 'OFF'.red.inverse))
+			}
+		})
+		this.command('H', {
+			desc: ('Price limits - '.grey + 'ZEROIZE'.white + ' (cancel all the limits)'.grey), action: function () {
+				strat.lib.deactivate(s, function () {
+					console.log('\nPrice limits zeroized!'.white)
+				})
 			}
 		})
 	},
@@ -208,11 +211,11 @@ module.exports = {
 		function _onTradePeriod(cb) {
 			s.options.manual = false
 			
-			if(strat.opts.is_active.buy && (opts.trade.price > strat.opts.limit.buy)) {
+			if(strat.opts.is_active_buy && (opts.trade.price > strat.opts.limit_buy)) {
 				s.options.manual = true
 			}
 			
-			if(strat.opts.is_active.sell && (opts.trade.price < strat.opts.limit.sell)) {
+			if(strat.opts.is_active_sell && (opts.trade.price < strat.opts.limit_sell)) {
 				s.options.manual = true
 			}
 			
@@ -256,7 +259,7 @@ module.exports = {
 		/////////////////////////////////////////////////////
 
 		function _onReport(cb) {			
-			if (strat.opts.is_active.buy || strat.opts.is_active.sell) {
+			if (strat.opts.is_active_buy || strat.opts.is_active_sell) {
 				if (s.options.manual) {
 					cols.push('Price Limits!!')
 				}
@@ -281,7 +284,7 @@ module.exports = {
 		function _onUpdateMessage(cb) {
 			let result = null
 			
-			if ((strat.opts.is_active.buy || strat.opts.is_active.sell) && s.options.manual) {
+			if ((strat.opts.is_active_buy || strat.opts.is_active_sell) && s.options.manual) {
 				result = 'Price Limits!!';
 			}
 			
@@ -385,10 +388,11 @@ module.exports = {
 		///////////////////////////////////////////
 		
 		function _deactivate(cb) {
-			strat.opts.is_active = {
-				buy: false,
-				sell: false,
-			}
+			strat.opts.is_active_buy = false
+			strat.opts.is_active_sell = false
+			strat.opts.limit_buy = null
+			strat.opts.limit_sell = null
+			s.options.manual = false
 			
 			cb(null, null)
 		}

@@ -334,6 +334,9 @@ module.exports = function (program, conf) {
 					s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 					exit()
 				}})
+				keyMap.set('E', {desc: ('Emergency stop'.grey), action: function() {
+					emergencyStop()
+				}})
 
 				switch (mode) {
 				case 0: {
@@ -644,57 +647,6 @@ module.exports = function (program, conf) {
 							actual_code++
 						}
 					})
-
-
-//					Tutta questa roba deve entrare nei comandi per le strategie!!!
-//					//Modo LIMITS
-//					keyMap.set('q', {desc: ('Buy price limit'.grey + ' INCREASE'.green), action: function() {
-//					if (!so.buy_price_limit) {
-//					so.buy_price_limit = Number(s.quote.bid)
-//					}
-//					so.buy_price_limit += 10
-//					console.log('\n' + 'Buy price limit' + ' INCREASE'.green + ' -> ' + so.buy_price_limit)
-//					}})
-//					keyMap.set('a', {desc: ('Buy price limit'.grey + ' DECREASE'.red), action: function() {
-//					if (!so.buy_price_limit) {
-//					so.buy_price_limit = Number(s.quote.bid)
-//					}
-//					so.buy_price_limit -= 10
-//					console.log('\n' + 'Buy price limit' + ' DECREASE'.red + ' -> ' + so.buy_price_limit)
-//					}})
-//					keyMap.set('w', {desc: ('Sell price limit'.grey + ' INCREASE'.green), action: function() {
-//					if (!so.sell_price_limit) {
-//					so.sell_price_limit = Number(s.quote.ask)
-//					}
-//					so.sell_price_limit += 10
-//					console.log('\n' + 'Sell price limit' + ' INCREASE'.green + ' -> ' + so.sell_price_limit)
-//					}})
-//					keyMap.set('s', {desc: ('Sell price limit'.grey + ' DECREASE'.red), action: function() {
-//					if (!so.sell_price_limit) {
-//					so.sell_price_limit = Number(s.quote.ask)
-//					}
-//					so.sell_price_limit -= 10
-//					console.log('\n' + 'Sell price limit' + ' DECREASE'.red + ' -> ' + so.sell_price_limit)
-//					}})
-//					keyMap.set('z', {desc: ('Buy/Sell price limit'.grey + ' CANCEL'.yellow), action: function() {
-//					so.buy_price_limit = null
-//					so.sell_price_limit = null
-//					console.log('\n' + 'Buy/Sell price limit' + ' CANCELED'.yellow)
-//					}})
-
-
-
-
-//					keyMap.set('o', {desc: ('Actual values for limits'.grey), action: function() {
-//					actual_values = '\nActual values for limits:'
-//					actual_values += '\n-------------------------'
-//					actual_values += '\nBuy price limit= ' + so.buy_price_limit
-//					actual_values += '\nSell price limit= ' + so.sell_price_limit
-//					actual_values += '\nSell gain pct= ' + so.sell_gain_pct
-//					actual_values += '\nBuy gain pct= ' + so.buy_gain_pct
-
-//					console.log(actual_values)
-//					}})
 					break
 				}
 				case 6: {
@@ -872,7 +824,7 @@ module.exports = function (program, conf) {
 					].join('') + '\n');
 
 				process.stdout.write([
-					s.tools.zeroFill(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
+					s.tools.zeroFill(15, ((so.manual === false || typeof so.manual === 'undefined') ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
 					s.tools.zeroFill(12, so.period_length, ' '),
 					s.tools.zeroFill(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
 					s.tools.zeroFill(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
@@ -886,8 +838,8 @@ module.exports = function (program, conf) {
 					].join('') + '\n');
 
 				process.stdout.write([
-					s.tools.zeroFill(10, so.active_long_position, ' '),
-					s.tools.zeroFill(8, so.active_short_position, ' ')
+					s.tools.zeroFill(9, so.active_long_position, ' '),
+					s.tools.zeroFill(9, so.active_short_position, ' ')
 					].join('') + '\n\n');
 
 				process.stdout.write('');
@@ -1346,30 +1298,7 @@ module.exports = function (program, conf) {
 													break
 												}
 												case '/stop': {
-													console.error('Emergency stop!! - Deactivate long/short mode')
-													so.active_long_position = false
-													so.active_short_position = false
-
-													console.error('Emergency stop!! - Cancel all orders')
-													s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
-
-													setTimeout(function() {
-														console.error('Emergency stop!! - Cancel all further orders remained on exchange')
-														s.exchange.cancelAllOrders(opts_tmp, function() {
-															console.error('Emergency stop!! - Remaining orders on the exchange canceled')
-														})
-													}, so.wait_for_settlement)
-
-													console.error('Emergency stop!! - Deactivate all the strategies')
-													s.tools.functionStrategies('deactivate'
-														, null
-														, function(err) {
-															if (err) {
-																console.error('Emergency stop!! - deactivate strategies - Error: ' + err)
-															}
-															
-															console.error('Emergency stop!! - All the strategies deactivated')
-														})
+													emergencyStop()
 												}
 											}
 										})
@@ -1617,6 +1546,37 @@ module.exports = function (program, conf) {
 				})
 			}
 			/* End of saveSession()  */
+
+			function emergencyStop() {
+				console.error('\nEmergency stop!! - Deactivate long/short mode'.red)
+				so.active_long_position = false
+				so.active_short_position = false
+
+				console.error('Emergency stop!! - Cancel all orders'.red)
+				s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
+
+				setTimeout(function () {
+					console.error('Emergency stop!! - Cancel all further orders remained on exchange'.red)
+
+					let opts_tmp = {
+						product_id: so.selector.product_id
+					}
+					s.exchange.cancelAllOrders(opts_tmp, function () {
+						console.error('Emergency stop!! - Remaining orders on the exchange canceled'.red)
+					})
+				}, so.wait_for_settlement)
+
+				console.error('Emergency stop!! - Deactivate all the strategies'.red)
+				s.tools.functionStrategies('deactivate', null
+					, null
+					, function (err) {
+						if (err) {
+							console.error('Emergency stop!! - deactivate strategies - Error: ' + err)
+						}
+
+						console.error('Emergency stop!! - All the strategies deactivated')
+					})
+			}
 		})
 		.catch(function(error) {
 			console.log('Errore nella gestione db!')

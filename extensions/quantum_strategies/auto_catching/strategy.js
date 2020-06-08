@@ -255,9 +255,15 @@ module.exports = {
 
 		function _onStrategyPeriod(cb) {
 			if (!s.in_preroll && (strat.opts.catch_auto_long || strat.opts.catch_auto_short)) {
-				//Calcolo il pivot price (strat.data.sma). Uso period_length e non period_calc, quindi usi min_periods, e non size.
-				strat.data.sma = roundToNearest(sma(s, null, strat.opts.min_periods, 'close'))
-
+				if (strat.opts.size) {
+					//Calcolo il pivot price (strat.data.sma). Uso period_length e non period_calc, quindi uso min_periods, e non size.
+					strat.data.sma = roundToNearest(sma(s, null, strat.opts.min_periods, 'close'))
+				}
+				else {
+					//Se non c'è opts.size, allora prendo come riferimento l'apertura del periodo
+					strat.data.sma = s.period.open
+				}
+				
 				if (strat.data.sma) {
 					//Cancello gli ordini vecchi
 					console.log('\nAuto-catching Orders - '.grey + 'Cancel ALL Auto-catch orders')
