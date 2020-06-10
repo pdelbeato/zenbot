@@ -549,18 +549,26 @@ module.exports = function (program, conf) {
 					}})
 					keyMap.set('K', {desc: ('set a manual '.grey + so.order_type.toUpperCase() + ' close order (fixed price) on the position'.grey), action: function() {
 						if (s.positions_index != null) {
-							if (s.positions[s.positions_index].side === 'buy') {
-								let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-								let target_price = n(s.quote.ask).format(s.product.increment, Math.floor)
-								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'SELL'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at fixed ' + formatCurrency(target_price, s.currency).yellow)
-								s.eventBus.emit('manual', 'sell', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
-							}
-							else {
-								let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-								let target_price = n(s.quote.bid).format(s.product.increment, Math.floor)
-								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'BUY'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at fixed ' + formatCurrency(target_price, s.currency).yellow)
-								s.eventBus.emit('manual', 'buy', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
-							}
+							engine.syncBalance(function (err) {
+								if (err) {
+									if (err.desc) console.error(err.desc)
+									if (err.body) console.error(err.body)
+									throw err
+								}
+								
+								if (s.positions[s.positions_index].side === 'buy') {
+									let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+									let target_price = n(s.quote.ask).format(s.product.increment, Math.floor)
+									console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'SELL'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at fixed ' + formatCurrency(target_price, s.currency).yellow)
+									s.eventBus.emit('manual', 'sell', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
+								}
+								else {
+									let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+									let target_price = n(s.quote.bid).format(s.product.increment, Math.floor)
+									console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'BUY'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at fixed ' + formatCurrency(target_price, s.currency).yellow)
+									s.eventBus.emit('manual', 'buy', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
+								}
+							})
 						}
 						else {
 							console.log('\nNo position in control.')
@@ -1556,29 +1564,29 @@ module.exports = function (program, conf) {
 				so.active_long_position = false
 				so.active_short_position = false
 
-				console.error('Emergency stop!! - Cancel all orders'.red)
+				console.error('\nEmergency stop!! - Cancel all orders'.red)
 				s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 
 				setTimeout(function () {
-					console.error('Emergency stop!! - Cancel all further orders remained on exchange'.red)
+					console.error('\nEmergency stop!! - Cancel all further orders remained on exchange'.red)
 
 					let opts_tmp = {
 						product_id: so.selector.product_id
 					}
 					s.exchange.cancelAllOrders(opts_tmp, function () {
-						console.error('Emergency stop!! - Remaining orders on the exchange canceled'.red)
+						console.error('\nEmergency stop!! - Remaining orders on the exchange canceled'.red)
 					})
 				}, so.wait_for_settlement)
 
-				console.error('Emergency stop!! - Deactivate all the strategies'.red)
+				console.error('\nEmergency stop!! - Deactivate all the strategies'.red)
 				s.tools.functionStrategies('deactivate', null
 					, null
 					, function (err) {
 						if (err) {
-							console.error('Emergency stop!! - Deactivate strategies - Error: ' + err)
+							console.error('\nEmergency stop!! - Deactivate strategies - Error: '.red + err)
 						}
 
-						console.error('Emergency stop!! - All the strategies deactivated')
+						console.error('\nEmergency stop!! - All the strategies deactivated'.red)
 						if (message) {
 							s.tools.pushMessage('Emergency stop!!', 'Procedure finished')
 						}
