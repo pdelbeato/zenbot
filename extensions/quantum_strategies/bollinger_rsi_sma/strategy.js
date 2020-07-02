@@ -575,7 +575,9 @@ module.exports = {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 
-		// opts.position.strategy_parameters[strat_name] = {}
+		opts.position.strategy_parameters[strat_name] = {
+			to_be_closed: false,
+		}
 
 		_onPositionOpened(callback)
 
