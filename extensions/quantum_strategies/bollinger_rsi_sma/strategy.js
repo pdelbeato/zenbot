@@ -58,7 +58,7 @@ var n = require('numbro')
 
 module.exports = {
 	name: 'bollinger_rsi_sma',
-	description: 'Buy when [(Price ≤ Lower Bollinger Band) && (rsi > rsi_buy_threshold)] and sell when touching sma after [(Price ≥ Upper Bollinger Band) && (rsi < rsi_sell_threshold)].',
+	description: 'Buy when [(Price ≤ Lower Bollinger Band) && (rsi > rsi_buy_threshold)] and sell when touching SMA after [(Price ≥ Upper Bollinger Band) && (rsi < rsi_sell_threshold)].',
 	noHoldCheck: false,
 
 	init: function (s, callback = function() {}) {
@@ -268,7 +268,7 @@ module.exports = {
 					}
 					
 					//Verifico se la posizione è da chiudere
-					if (position.strategy_parameters[strat_name].to_be_closed) {
+					if (position.strategy_parameters[strat_name].to_be_closed && (position.side ? (opts.trade.price < strat.data.bollinger.midBound) : (opts.trade.price > strat.data.bollinger.midBound))) {
 						//s.eventBus.on(strat_name, side, 			position_tmp_id						  , fixedSize, fixdPrice, protectionFree, locking, reorder, maker_taker)
 						s.eventBus.emit(strat_name, side, strat.data.max_profit_position[opposite_side].id)
 					}
@@ -380,19 +380,17 @@ module.exports = {
 					}
 
 					if (condition[side][1]) {
-						s.signal = side[0].toUpperCase() + ' Boll.';
-
-						// if (!s.in_preroll) {
 						if (strat.data.max_profit_position[opposite_side] && strat.data.max_profit_position[opposite_side].profit_net_pct >= min_pct[side]) {
 							strat.data.max_profit_position[opposite_side].strategy_parameters[strat_name].to_be_closed = true
 						}
 						else if (condition[side][2]) {
+							s.signal = side[0].toUpperCase() + ' Boll.';
+							
 							s.eventBus.emit(strat_name, side)
 						}
 						else {
 							debug.msg('Strategy Bollinger - No same price protection: strat.period.close= ' + strat.period.close + '; limit_open_price ' + strat.data.limit_open_price[side] + '; delta limit_open_price ' + (strat.data.limit_open_price[side] * strat.opts.delta_pct / 100))
 						}
-						// }
 					}
 
 					cb_cc(null, null)
