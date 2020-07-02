@@ -255,8 +255,14 @@ module.exports = {
 
 		function _onStrategyPeriod(cb) {
 			if (!s.in_preroll && (strat.opts.catch_auto_long || strat.opts.catch_auto_short)) {
-				//Calcolo il pivot price (strat.data.sma). Uso period_length e non period_calc, quindi uso min_periods, e non size.
-				strat.data.sma = roundToNearest(sma(s, null, strat.opts.min_periods, 'close'))
+				if (strat.opts.size) {
+					//Calcolo il pivot price (strat.data.sma). Uso period_length e non period_calc, quindi uso min_periods, e non size.
+					strat.data.sma = roundToNearest(sma(s, null, strat.opts.min_periods, 'close'))
+				}
+				else {
+					//Se non c'è opts.size, allora prendo come riferimento l'apertura del periodo
+					strat.data.sma = s.period.open
+				}
 
 				if (strat.data.sma) {
 					//Cancello gli ordini vecchi
@@ -445,7 +451,7 @@ module.exports = {
 					let position_opened_by = (position.opened_by & ~s.strategyFlag[strat_name])
 					let target_price = null
 
-					if (!position_locking && !position_status && !position.opened_by && !s.tools.positionFlags(position, 'status', 'Check', strat_name)) {
+					if (!position_locking && !position_status && !position_opened_by && !s.tools.positionFlags(position, 'status', 'Check', strat_name)) {
 						let position_opposite_signal = (position.side === 'buy' ? 'sell' : 'buy')
 						if (position.side === 'buy') {
 							target_price = n(position.price_open).multiply(1 + strat.opts.catch_gain_pct / 100).format(s.product.increment, Math.floor)
@@ -465,6 +471,24 @@ module.exports = {
 		}
 	},
 
+	deactivate: function(s, opts = {}, callback = function() {}) {
+		let strat_name = this.name
+		let strat = s.options.strategy[strat_name]
+		
+		_deactivate(callback)
+		
+		///////////////////////////////////////////
+		// _deactivate
+		///////////////////////////////////////////
+		
+		function _deactivate(cb) {
+			strat.opts.catch_auto_long = false
+			strat.opts.catch_auto_short = false
+			
+			cb(null, null)
+		}
+	},
+	
 	printOptions: function (s, opts = { only_opts: false }, callback) {
 		let so_tmp = JSON.parse(JSON.stringify(s.options.strategy[this.name]))
 		delete so_tmp.calc_lookback

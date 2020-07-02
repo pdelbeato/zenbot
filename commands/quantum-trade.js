@@ -49,7 +49,7 @@ module.exports = function (program, conf) {
 	.option('--conf <path>', 'path to optional conf overrides file')
 	.option('--order_type <type>', 'order type to use (maker/taker)', /^(maker|taker)$/i, conf.order_type)
 	.option('--paper', 'use paper trading mode (no real trades will take place)', Boolean, false)
-	.option('--manual', 'watch price and account balance, but do not perform trades automatically', Boolean, false)
+//	.option('--manual', 'watch price and account balance, but do not perform trades automatically', Boolean, false)
 	.option('--non_interactive', 'disable keyboard inputs to the bot', Boolean, false)
 	.option('--filename <filename>', 'filename for the result output (ex: result.html). "none" to disable', String, conf.filename)
 	.option('--currency_capital <amount>', 'for paper trading, amount of start capital in currency. For live trading, amount of new starting capital in currency.', Number, conf.currency_capital)
@@ -315,12 +315,12 @@ module.exports = function (program, conf) {
 
 				keyMap.set('l', {desc: ('list available commands'.grey), 	action: function() { listKeys()}})
 
-				keyMap.set('m', {desc: ('toggle MANUAL trade in LIVE mode ON / OFF'.grey), action: function() {
-					if (so.mode === 'live') {
-						so.manual = !so.manual
-						console.log('\nMANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse))
-					}
-				}})
+//				keyMap.set('m', {desc: ('toggle MANUAL trade in LIVE mode ON / OFF'.grey), action: function() {
+//					if (so.mode === 'live') {
+//						so.manual = !so.manual
+//						console.log('\nMANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse))
+//					}
+//				}})
 				keyMap.set('x', {desc: ('print statistical output'.grey), action: function() { printTrade(false)}})
 				keyMap.set('P', {desc: ('list positions opened'.grey), action: function() {
 					debug.obj('\nListing positions opened...'.grey, s.positions, false, true)
@@ -333,6 +333,9 @@ module.exports = function (program, conf) {
 					so.manual = true
 					s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
 					exit()
+				}})
+				keyMap.set('E', {desc: ('Emergency stop'.grey), action: function() {
+					emergencyStop()
 				}})
 
 				switch (mode) {
@@ -546,18 +549,26 @@ module.exports = function (program, conf) {
 					}})
 					keyMap.set('K', {desc: ('set a manual '.grey + so.order_type.toUpperCase() + ' close order (fixed price) on the position'.grey), action: function() {
 						if (s.positions_index != null) {
-							if (s.positions[s.positions_index].side === 'buy') {
-								let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-								let target_price = n(s.quote.ask).format(s.product.increment, Math.floor)
-								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'SELL'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at fixed ' + formatCurrency(target_price, s.currency).yellow)
-								s.eventBus.emit('manual', 'sell', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
-							}
-							else {
-								let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
-								let target_price = n(s.quote.bid).format(s.product.increment, Math.floor)
-								console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'BUY'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at fixed ' + formatCurrency(target_price, s.currency).yellow)
-								s.eventBus.emit('manual', 'buy', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
-							}
+							engine.syncBalance(function (err) {
+								if (err) {
+									if (err.desc) console.error(err.desc)
+									if (err.body) console.error(err.body)
+									throw err
+								}
+								
+								if (s.positions[s.positions_index].side === 'buy') {
+									let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+									let target_price = n(s.quote.ask).format(s.product.increment, Math.floor)
+									console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'SELL'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at fixed ' + formatCurrency(target_price, s.currency).yellow)
+									s.eventBus.emit('manual', 'sell', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
+								}
+								else {
+									let protectionFree = s.protectionFlag['calmdown'] + s.protectionFlag['long_short']
+									let target_price = n(s.quote.bid).format(s.product.increment, Math.floor)
+									console.log('\nSet a manual ' + so.order_type.toUpperCase() + ' close ' + 'BUY'.yellow + ' order on the position: ' + s.positions[s.positions_index].id + ' at fixed ' + formatCurrency(target_price, s.currency).yellow)
+									s.eventBus.emit('manual', 'buy', s.positions[s.positions_index].id, null, target_price, protectionFree, 'manual', false, so.order_type)
+								}
+							})
 						}
 						else {
 							console.log('\nNo position in control.')
@@ -642,59 +653,8 @@ module.exports = function (program, conf) {
 								listKeys()
 							}})
 							actual_code++
-						}5
+						}
 					})
-
-
-//					Tutta questa roba deve entrare nei comandi per le strategie!!!
-//					//Modo LIMITS
-//					keyMap.set('q', {desc: ('Buy price limit'.grey + ' INCREASE'.green), action: function() {
-//					if (!so.buy_price_limit) {
-//					so.buy_price_limit = Number(s.quote.bid)
-//					}
-//					so.buy_price_limit += 10
-//					console.log('\n' + 'Buy price limit' + ' INCREASE'.green + ' -> ' + so.buy_price_limit)
-//					}})
-//					keyMap.set('a', {desc: ('Buy price limit'.grey + ' DECREASE'.red), action: function() {
-//					if (!so.buy_price_limit) {
-//					so.buy_price_limit = Number(s.quote.bid)
-//					}
-//					so.buy_price_limit -= 10
-//					console.log('\n' + 'Buy price limit' + ' DECREASE'.red + ' -> ' + so.buy_price_limit)
-//					}})
-//					keyMap.set('w', {desc: ('Sell price limit'.grey + ' INCREASE'.green), action: function() {
-//					if (!so.sell_price_limit) {
-//					so.sell_price_limit = Number(s.quote.ask)
-//					}
-//					so.sell_price_limit += 10
-//					console.log('\n' + 'Sell price limit' + ' INCREASE'.green + ' -> ' + so.sell_price_limit)
-//					}})
-//					keyMap.set('s', {desc: ('Sell price limit'.grey + ' DECREASE'.red), action: function() {
-//					if (!so.sell_price_limit) {
-//					so.sell_price_limit = Number(s.quote.ask)
-//					}
-//					so.sell_price_limit -= 10
-//					console.log('\n' + 'Sell price limit' + ' DECREASE'.red + ' -> ' + so.sell_price_limit)
-//					}})
-//					keyMap.set('z', {desc: ('Buy/Sell price limit'.grey + ' CANCEL'.yellow), action: function() {
-//					so.buy_price_limit = null
-//					so.sell_price_limit = null
-//					console.log('\n' + 'Buy/Sell price limit' + ' CANCELED'.yellow)
-//					}})
-
-
-
-
-//					keyMap.set('o', {desc: ('Actual values for limits'.grey), action: function() {
-//					actual_values = '\nActual values for limits:'
-//					actual_values += '\n-------------------------'
-//					actual_values += '\nBuy price limit= ' + so.buy_price_limit
-//					actual_values += '\nSell price limit= ' + so.sell_price_limit
-//					actual_values += '\nSell gain pct= ' + so.sell_gain_pct
-//					actual_values += '\nBuy gain pct= ' + so.buy_gain_pct
-
-//					console.log(actual_values)
-//					}})
 					break
 				}
 				case 6: {
@@ -872,7 +832,7 @@ module.exports = function (program, conf) {
 					].join('') + '\n');
 
 				process.stdout.write([
-					s.tools.zeroFill(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
+					s.tools.zeroFill(15, ((so.manual === false || typeof so.manual === 'undefined') ? '        ' + 'AUTO'.black.bgRed + '   ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
 					s.tools.zeroFill(12, so.period_length, ' '),
 					s.tools.zeroFill(26, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
 					s.tools.zeroFill(28, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
@@ -886,8 +846,8 @@ module.exports = function (program, conf) {
 					].join('') + '\n');
 
 				process.stdout.write([
-					s.tools.zeroFill(10, so.active_long_position, ' '),
-					s.tools.zeroFill(8, so.active_short_position, ' ')
+					s.tools.zeroFill(9, so.active_long_position, ' '),
+					s.tools.zeroFill(9, so.active_short_position, ' ')
 					].join('') + '\n\n');
 
 				process.stdout.write('');
@@ -954,7 +914,7 @@ module.exports = function (program, conf) {
 					output_lines.push(s.positions.length + ' positions opened.')
 					output_lines.push(s.orders.length + ' orders opened.')
 					output_lines.push(sizeof(s) + ' size of s')
-					output_lines.push(sizeof(s.period) + ' size of s.period (' + s.period.length + ')')
+					output_lines.push(sizeof(s.period) + ' size of s.period')
 					output_lines.push(sizeof(s.lookback) + ' size of s.lookback (' + s.lookback.length + ')')
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
 						output_lines.push(sizeof(s.options.strategy[strategy_name].calc_lookback) + ' size of ' + strategy_name + ' calc_lookback (' + s.options.strategy[strategy_name].calc_lookback.length + ')')
@@ -988,64 +948,64 @@ module.exports = function (program, conf) {
 							losses++
 						}
 					}
-				})
-
-				if (gains > 0) {
-					if (!statsOnly) {
-						output_lines.push('win/loss: ' + gains + '/' + losses)
-						output_lines.push('error rate: ' + (n(losses).divide(gains + losses).format('0.00%')).yellow)
-					}
-
-					//for API
-					s.stats.win = gains
-					s.stats.losses = losses
-					s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%')
-				}
-
-				if (!statsOnly) {
-					output_lines.forEach(function (line) {
-						console.log(line)
-					})
-				}
-
-				if (quit || dump) {
-					var html_output = output_lines.map(function (line) {
-						return colors.stripColors(line)
-					}).join('\n')
-					var data = s.lookback.slice(0, s.lookback.length - so.min_periods).map(function (period) {
-						var data = {}
-						var keys = Object.keys(period)
-						for(var i = 0; i < keys.length; i++){
-							data[keys[i]] = period[keys[i]]
+					
+					if (gains > 0) {
+						if (!statsOnly) {
+							output_lines.push('win/loss: ' + gains + '/' + losses)
+							output_lines.push('error rate: ' + (n(losses).divide(gains + losses).format('0.00%')).yellow)
 						}
-						return data
-					})
-					var code = 'var data = ' + JSON.stringify(data) + ';\n'
-					code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
-					var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '9sim_result.html.tpl'), {encoding: 'utf8'})
-					var out = tpl
-					.replace('{{code}}', code)
-					.replace('{{trend_ema_period}}', so.trend_ema || 36)
-					.replace('{{output}}', html_output)
-					.replace(/\{\{symbol\}\}/g,  so.selector.normalized + ' - zenbot ' + require('../package.json').version)
-					if (so.filename !== 'none') {
-						var out_target
-						var out_target_prefix = so.paper ? 'simulations/paper_result_' : 'stats/trade_result_'
-							if (dump) {
-								var dt = new Date().toISOString()
 
-								//ymd
-								var today = dt.slice(2, 4) + dt.slice(5, 7) + dt.slice(8, 10)
-								out_target = so.filename || out_target_prefix + so.selector.normalized +'_' + today + '_UTC.html'
-								fs.writeFileSync(out_target, out)
-							} else
-								out_target = so.filename || out_target_prefix + so.selector.normalized +'_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
-
-								fs.writeFileSync(out_target, out)
-								console.log('\nwrote'.grey, out_target)
+						//for API
+						s.stats.win = gains
+						s.stats.losses = losses
+						s.stats.error_rate = n(losses).divide(gains + losses).format('0.00%')
 					}
-					if (quit) process.exit(0)
-				}
+
+					if (!statsOnly) {
+						output_lines.forEach(function (line) {
+							console.log(line)
+						})
+					}
+
+					if (quit || dump) {
+						// var html_output = output_lines.map(function (line) {
+						// 	return colors.stripColors(line)
+						// }).join('\n')
+						// var data = s.lookback.slice(0, s.lookback.length - so.min_periods).map(function (period) {
+						// 	var data = {}
+						// 	var keys = Object.keys(period)
+						// 	for(var i = 0; i < keys.length; i++){
+						// 		data[keys[i]] = period[keys[i]]
+						// 	}
+						// 	return data
+						// })
+						// var code = 'var data = ' + JSON.stringify(data) + ';\n'
+						// code += 'var trades = ' + JSON.stringify(s.my_trades) + ';\n'
+						// var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', '9sim_result.html.tpl'), {encoding: 'utf8'})
+						// var out = tpl
+						// .replace('{{code}}', code)
+						// .replace('{{trend_ema_period}}', so.trend_ema || 36)
+						// .replace('{{output}}', html_output)
+						// .replace(/\{\{symbol\}\}/g,  so.selector.normalized + ' - zenbot ' + require('../package.json').version)
+						// if (so.filename !== 'none') {
+						// 	var out_target
+						// 	var out_target_prefix = so.paper ? 'simulations/paper_result_' : 'stats/trade_result_'
+						// 		if (dump) {
+						// 			var dt = new Date().toISOString()
+
+						// 			//ymd
+						// 			var today = dt.slice(2, 4) + dt.slice(5, 7) + dt.slice(8, 10)
+						// 			out_target = so.filename || out_target_prefix + so.selector.normalized +'_' + today + '_UTC.html'
+						// 			fs.writeFileSync(out_target, out)
+						// 		} else
+						// 			out_target = so.filename || out_target_prefix + so.selector.normalized +'_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
+
+						// 			fs.writeFileSync(out_target, out)
+						// 			console.log('\nwrote'.grey, out_target)
+						// }
+						if (quit) process.exit(0)
+					}
+				})				
 			}
 			/* The end of printTrade */
 
@@ -1346,17 +1306,7 @@ module.exports = function (program, conf) {
 													break
 												}
 												case '/stop': {
-													debug.msg('Emergency stop!! - Deactivate long/short mode')
-													so.active_long_position = false
-													so.active_short_position = false
-													debug.msg('Emergency stop!! - Cancel all orders')
-													s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
-													setTimeout(function() {
-														debug.msg('Emergency stop!! - Cancel all further orders remained on exchange')
-														s.exchange.cancelAllOrders(opts_tmp, function() {
-															debug.msg('Emergency stop!! - Remaining orders on the exchange canceled')
-														})
-													}, so.wait_for_settlement)
+													emergencyStop(true)
 												}
 											}
 										})
@@ -1604,6 +1554,44 @@ module.exports = function (program, conf) {
 				})
 			}
 			/* End of saveSession()  */
+
+			function emergencyStop(message = false) {
+				if (message) {
+					s.tools.pushMessage('Emergency stop!!', 'Procedure started')
+				}
+				
+				console.error('\nEmergency stop!! - Deactivate long/short mode'.red)
+				so.active_long_position = false
+				so.active_short_position = false
+
+				console.error('\nEmergency stop!! - Cancel all orders'.red)
+				s.tools.orderStatus(undefined, undefined, undefined, undefined, 'Free')
+
+				setTimeout(function () {
+					console.error('\nEmergency stop!! - Cancel all further orders remained on exchange'.red)
+
+					let opts_tmp = {
+						product_id: so.selector.product_id
+					}
+					s.exchange.cancelAllOrders(opts_tmp, function () {
+						console.error('\nEmergency stop!! - Remaining orders on the exchange canceled'.red)
+					})
+				}, so.wait_for_settlement)
+
+				console.error('\nEmergency stop!! - Deactivate all the strategies'.red)
+				s.tools.functionStrategies('deactivate', null
+					, null
+					, function (err) {
+						if (err) {
+							console.error('\nEmergency stop!! - Deactivate strategies - Error: '.red + err)
+						}
+
+						console.error('\nEmergency stop!! - All the strategies deactivated'.red)
+						if (message) {
+							s.tools.pushMessage('Emergency stop!!', 'Procedure finished')
+						}
+					})
+			}
 		})
 		.catch(function(error) {
 			console.log('Errore nella gestione db!')

@@ -693,6 +693,24 @@ module.exports = {
   //     cb(null, null)
   //   }
   // },
+  
+//  deactivate: function(s, opts = {}, callback = function() {}) {
+//	  let strat_name = this.name
+//	  let strat = s.options.strategy[strat_name]
+//
+//	  _deactivate(callback)
+//
+//	  ///////////////////////////////////////////
+//	  // _deactivate
+//	  ///////////////////////////////////////////
+//
+//	  function _deactivate(cb) {
+//		  strat.opts.catch_auto_long = false
+//		  strat.opts.catch_auto_short = false
+//
+//		  cb(null, null)
+//	  }
+//  },
 
   printOptions: function (s, opts = { only_opts: false }, callback) {
     let so_tmp = JSON.parse(JSON.stringify(s.options.strategy[this.name]))

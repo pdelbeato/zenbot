@@ -304,13 +304,13 @@ module.exports = function binance (conf) {
 									// decide if this error is allowed for a retry
 
 									if (err.message && err.message.match(new RegExp(/-2011|UNKNOWN_ORDER/))) {
-										console.error(('\nexchange.cancelAllOrder - Unknown Order: ' + JSON.stringify(opts) + ' - ' + err).cyan)
+										console.error(('\nexchange.cancelAllOrders - Unknown Order: ' + JSON.stringify(opts) + ' - ' + err).cyan)
 //										retry('cancelAllOrder', func_args, undefined, err)
 										cb(err)
 									} else {
 										// retry is allowed for this error
-										console.error('\nexchange.cancelAllOrder - cancelOrder error. Retry...')
-										retry('cancelAllOrder', func_args, undefined, err)
+										console.error('\nexchange.cancelAllOrders - cancelOrder error. Retry...')
+										retry('cancelAllOrders', func_args, undefined, err)
 									}
 								}
 							})
@@ -318,13 +318,13 @@ module.exports = function binance (conf) {
 						
 						cb(null, body)
 					}, function(err) {
-						console.error('\nexchange.cancelAllOrder - fetchOpenOrders error. Retry...')
+						console.error('\nexchange.cancelAllOrders - fetchOpenOrders error. Retry...')
 						return retry('cancelAllOrders', func_args, undefined, err)
 					})		
 				}
 				else {
-					debug.msg('\nexchange.cancelAllOrder - Rate Limit (now()=' + now() + ' ; next_request ' + next_request + '). Retry...')
-					retry('cancelAllOrder', func_args, (next_request - now() + 1))
+					debug.msg('\nexchange.cancelAllOrders - Rate Limit (now()=' + now() + ' ; next_request ' + next_request + '). Retry...')
+					retry('cancelAllOrders', func_args, (next_request - now() + 1))
 				}
 			},
 			
@@ -391,6 +391,15 @@ module.exports = function binance (conf) {
 						// {"code":-2010,"msg":"Account has insufficient balance for requested action"}
 
 						if (error.message.match(new RegExp(/-1013|MIN_NOTIONAL|-2010/))) {
+							console.error('exchange.buy - error.message= ' + error.message)
+							return cb(null, {
+								status: 'rejected',
+								reject_reason: 'balance'
+							})
+						}
+						
+						if (error.name.match(new RegExp(/-1013|MIN_NOTIONAL|-2010|InsufficientFunds/))) {
+							console.error('exchange.buy - error.name= ' + error.name)
 							return cb(null, {
 								status: 'rejected',
 								reject_reason: 'balance'
