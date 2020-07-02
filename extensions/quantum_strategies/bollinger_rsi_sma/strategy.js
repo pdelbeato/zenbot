@@ -257,6 +257,16 @@ module.exports = {
 					buy: null,
 					sell: null,
 				}
+				
+				var min_pct = {
+					buy: strat.opts.buy_min_pct,
+					sell: strat.opts.sell_min_pct,
+				}
+
+				if (condition[side][1]) {
+					if (strat.data.max_profit_position[opposite_side] && strat.data.max_profit_position[opposite_side].profit_net_pct >= min_pct[side]) {
+						
+					}
 
 				s.positions.forEach(function (position, index) {
 					//Aggiorno le posizioni con massimo profitto, tranne che per le posizioni locked
@@ -268,9 +278,16 @@ module.exports = {
 					}
 					
 					//Verifico se la posizione è da chiudere
+					let opposite_side = (position.side === 'buy' ? 'sell' : 'buy')
+					
 					if (position.strategy_parameters[strat_name].to_be_closed && (position.side ? (opts.trade.price < strat.data.bollinger.midBound) : (opts.trade.price > strat.data.bollinger.midBound))) {
-						//s.eventBus.on(strat_name, 				side					  , position_tmp_id, fixedSize, fixdPrice, protectionFree, locking, reorder, maker_taker)						
-						s.eventBus.emit(strat_name, (position.side === 'buy' ? 'sell' : 'buy'), position.id)
+						if (position.profit_net_pct >= min_pct[opposite_side]) {
+							//s.eventBus.on(strat_name, 	side     , position_tmp_id, fixedSize, fixdPrice, protectionFree, locking, reorder, maker_taker)						
+							s.eventBus.emit(strat_name, opposite_side, position.id)
+						}
+						else {
+							position.strategy_parameters[strat_name].to_be_closed = false
+						}
 					}
 				})
 
