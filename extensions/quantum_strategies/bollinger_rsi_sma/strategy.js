@@ -269,8 +269,8 @@ module.exports = {
 					
 					//Verifico se la posizione è da chiudere
 					if (position.strategy_parameters[strat_name].to_be_closed && (position.side ? (opts.trade.price < strat.data.bollinger.midBound) : (opts.trade.price > strat.data.bollinger.midBound))) {
-						//s.eventBus.on(strat_name, side, 			position_tmp_id						  , fixedSize, fixdPrice, protectionFree, locking, reorder, maker_taker)
-						s.eventBus.emit(strat_name, side, strat.data.max_profit_position[opposite_side].id)
+						//s.eventBus.on(strat_name, 				side					  , position_tmp_id, fixedSize, fixdPrice, protectionFree, locking, reorder, maker_taker)						
+						s.eventBus.emit(strat_name, (position.side === 'buy' ? 'sell' : 'buy'), position.id)
 					}
 				})
 
