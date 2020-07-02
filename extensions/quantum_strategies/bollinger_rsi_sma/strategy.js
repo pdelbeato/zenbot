@@ -101,7 +101,7 @@ module.exports = {
 		 s.positions.forEach(function (position, index) {
 		 	if (!position.strategy_parameters[strat_name]) {
 		 		position.strategy_parameters[strat_name] = {
-		 			to_be_closed = false
+		 			to_be_closed: false,
 		 		}
 		 	}
 		 })
@@ -262,11 +262,6 @@ module.exports = {
 					buy: strat.opts.buy_min_pct,
 					sell: strat.opts.sell_min_pct,
 				}
-
-				if (condition[side][1]) {
-					if (strat.data.max_profit_position[opposite_side] && strat.data.max_profit_position[opposite_side].profit_net_pct >= min_pct[side]) {
-						
-					}
 
 				s.positions.forEach(function (position, index) {
 					//Aggiorno le posizioni con massimo profitto, tranne che per le posizioni locked
