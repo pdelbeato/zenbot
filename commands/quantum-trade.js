@@ -1296,9 +1296,27 @@ module.exports = function (program, conf) {
 													s.tools.pushMessage('', (so.active_long_position ? 'Long' : 'No long'))
 													break
 												}
+												case '/only_long': {
+													so.active_long_position = true
+													so.active_short_position = false
+													s.tools.pushMessage('', 'Only Long')
+													break
+												}
 												case '/short': {
 													so.active_short_position = !so.active_short_position
 													s.tools.pushMessage('', (so.active_short_position ? 'Short' : 'No short'))
+													break
+												}
+												case '/only_short': {
+													so.active_long_position = false
+													so.active_short_position = true
+													s.tools.pushMessage('', 'Only Short')
+													break
+												}
+												case '/none': {
+													so.active_long_position = false
+													so.active_short_position = false
+													s.tools.pushMessage('', 'No Long - No Short')
 													break
 												}
 												case '/status': {
