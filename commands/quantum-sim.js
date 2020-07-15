@@ -146,7 +146,7 @@ module.exports = function (program, conf) {
 
       // richiama quantum-engine
       var engine = engineFactory(s, conf)
-      if (!so.min_periods) so.min_periods = 1
+      // if (!so.min_periods) so.min_periods = 1
       var db_cursor, reversing, reverse_point
       var db_data_cursor
       var query_start = (so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null)

@@ -1119,13 +1119,13 @@ module.exports = function (program, conf) {
 //			}
 //			/* End of implementing statistical status */
 
-			//Calcola il valore minimo di periodi da caricare per il pre-roll e da mantenere in memoria
-			so.min_periods = 1
-			Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
-				if (so.strategy[strategy_name].opts.min_periods) {
-					so.min_periods = Math.max(so.min_periods, so.strategy[strategy_name].opts.min_periods)
-				}
-			})
+			// //Calcola il valore minimo di periodi da caricare per il pre-roll e da mantenere in memoria
+			// so.min_periods = 1
+			// Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
+			// 	if (so.strategy[strategy_name].opts.min_periods) {
+			// 		so.min_periods = Math.max(so.min_periods, so.strategy[strategy_name].opts.min_periods)
+			// 	}
+			// })
 
 			var db_cursor, trade_cursor
 			var query_start = tb().resize(so.period_length).subtract(so.min_periods + 10).toMilliseconds()
