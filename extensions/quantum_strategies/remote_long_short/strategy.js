@@ -8,10 +8,10 @@ var n = require('numbro')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
-//c.strategy[_name_] = {
+//c.strategy['remote_mode'] = {
 //	opts: {
 //		period_calc: '15m',
-//		option_2: null,
+//		active: false,
 //	}
 //}
 //---------------------------------------------
@@ -40,8 +40,8 @@ var n = require('numbro')
 //maxLength: 2048           // Truncate output if longer
 
 module.exports = {
-  name: 'daily_check',
-  description: '_Description_',
+  name: 'remote_long_short',
+  description: 'Retrieve long/short mode from an url',
   noHoldCheck: false,
 
   init: function (s, callback = function() {}) {
@@ -56,16 +56,7 @@ module.exports = {
     }
 
     strat.data = {
-      //	data_1: {
-      //		data_1_1: null,
-      //		data_1_2: null,
-      //	},
-      //	data_2: {
-      //		data_2_1: null,
-      //		data_2_2: null,
-      //	}
     }
-
 
     s.positions.forEach(function (position, index) {
       if (!position.strategy_parameters[strat_name]) {
@@ -77,8 +68,8 @@ module.exports = {
   },
 
   getOptions: function (strategy_name) {
-    this.option(strategy_name, 'period_calc', 'check every period_calc time', String, '15m')
-    this.option(strategy_name, 'url', 'url upload neuralbuck strategy', String, 'https://neuralbuck.000webhostapp.com/signal.json')
+    this.option(strategy_name, 'period_calc', 'Retrieve every period_calc time', String, '15m')
+    this.option(strategy_name, 'url', 'URL where to retrieve remote mode commands', String, 'https://neuralbuck.000webhostapp.com/signal.json')
 
   },
 
@@ -86,38 +77,39 @@ module.exports = {
     let strat = s.options.strategy[strategy_name]
 
     this.command('o', {
-      desc: ('_name_ - List options'.grey), action: function () {
+      desc: ('Remote long/short - List options'.grey), action: function () {
         s.tools.listStrategyOptions(strategy_name, false)
       }
     })
 
-    this.command('g', {
-      desc: ('_name_ - Description'), action: function () {
-        //User defined
-      }
-    })
+    this.command('i', {
+			desc: ('Remote long/short - '.grey + 'Toggle'.white), action: function () {
+				strat.opts.active = !strat.opts.active
+				console.log('\nToggle Remote long/short: ' + (strat.opts.active ? 'ON'.green.inverse : 'OFF'.red.inverse))
+			}
+		})
   },
 
-  onTrade: function (s, opts = {}, callback = function () { }) {
-    // var opts = {
-    // 		trade: trade,
-    // 		is_preroll: is_preroll
-    // }
-    let strat_name = this.name
-    let strat = s.options.strategy[strat_name]
-
-    _onTrade(callback)
-
-    ///////////////////////////////////////////
-    // _onTrade
-    ///////////////////////////////////////////
-
-    function _onTrade(cb) {
-      //User defined
-
-      cb()
-    }
-  },
+//  onTrade: function (s, opts = {}, callback = function () { }) {
+//    // var opts = {
+//    // 		trade: trade,
+//    // 		is_preroll: is_preroll
+//    // }
+//    let strat_name = this.name
+//    let strat = s.options.strategy[strat_name]
+//
+//    _onTrade(callback)
+//
+//    ///////////////////////////////////////////
+//    // _onTrade
+//    ///////////////////////////////////////////
+//
+//    function _onTrade(cb) {
+//      //User defined
+//
+//      cb()
+//    }
+//  },
 
   onTradePeriod: function (s, opts = {}, callback = function () { }) {
     // var opts = {
@@ -127,38 +119,6 @@ module.exports = {
 
     let strat_name = this.name
     let strat = s.options.strategy[strat_name]
-
-
-
-    var url = strat.opts.url //'https://neuralbuck.000webhostapp.com/signal.json'
-
-
-
-    request.get({url: url, json: true}, (err, res, data) => {
-		  if (err) {
-			// handle error
-			console.log('url not found or network error')
-		  } else if (res.statusCode === 200) {
-
-        if (data == 'only_short') {
-          s.options.active_long_position = false
-          s.options.active_short_position = true
-        } else if (data == 'only_long') {
-          s.options.active_long_position = true
-          s.options.active_short_position = false
-        } else if (data == 'long_short'){
-          s.options.active_long_position = true
-          s.options.active_short_position = true
-        }
-
-		  } else {
-		    // response other than 200 OK
-		  }
-    })
-
-
-
-
 
     if (strat.opts.period_calc && (opts.trade.time > strat.calc_close_time)) {
       strat.calc_lookback.unshift(strat.period)
@@ -189,15 +149,10 @@ module.exports = {
     ///////////////////////////////////////////
 
     function _onTradePeriod(cb) {
-      //User defined
-
-      cb()
+    	//User defined
+    	
+    	cb()
     }
-
-
-
-
-
   },
 
   onStrategyPeriod: function (s, opts = {}, callback = function () { }) {
@@ -211,38 +166,60 @@ module.exports = {
     ///////////////////////////////////////////
 
     function _onStrategyPeriod(cb) {
-      //User defined
+    	var url = strat.opts.url //'https://neuralbuck.000webhostapp.com/signal.json'
 
-      cb(null, null)
+    	request.get({url: url, json: true}, (err, res, data) => {
+    		if (err) {
+    			// handle error
+    			console.error('URL not found or network error')
+    		}
+    		else if (res.statusCode === 200) {
+    			if (data == 'only_short') {
+    				s.options.active_long_position = false
+    				s.options.active_short_position = true
+    			} else if (data == 'only_long') {
+    				s.options.active_long_position = true
+    				s.options.active_short_position = false
+    			} else if (data == 'long_short'){
+    				s.options.active_long_position = true
+    				s.options.active_short_position = true
+    			}
+    		}
+    		else {
+    			// response other than 200 OK
+    		}
+    	})
+
+    	cb(null, null)
     }
   },
 
 
-  onReport: function (s, opts = {}, callback = function () { }) {
-    let strat_name = this.name
-    let strat = s.options.strategy[strat_name]
-
-    var cols = []
-
-    _onReport(function() {
-      cols.forEach(function (col) {
-        process.stdout.write(col)
-      })
-      callback(null, null)
-    })
-
-    /////////////////////////////////////////////////////
-    // _onReport() deve inserire in cols[] le informazioni da stampare a video
-    /////////////////////////////////////////////////////
-
-    function _onReport(cb) {
-      //User defined
-
-      //cols.push('_something_')
-
-      cb()
-    }
-  },
+//  onReport: function (s, opts = {}, callback = function () { }) {
+//    let strat_name = this.name
+//    let strat = s.options.strategy[strat_name]
+//
+//    var cols = []
+//
+//    _onReport(function() {
+//      cols.forEach(function (col) {
+//        process.stdout.write(col)
+//      })
+//      callback(null, null)
+//    })
+//
+//    /////////////////////////////////////////////////////
+//    // _onReport() deve inserire in cols[] le informazioni da stampare a video
+//    /////////////////////////////////////////////////////
+//
+//    function _onReport(cb) {
+//      //User defined
+//
+//      //cols.push('_something_')
+//
+//      cb()
+//    }
+//  },
 
   onUpdateMessage: function (s, opts = {}, callback) {
     let strat_name = this.name
@@ -257,96 +234,100 @@ module.exports = {
     ///////////////////////////////////////////
 
     function _onUpdateMessage(cb) {
-      //User defined
+    	let result = null
+		
+		if (strat.opts.active) {
+			result = 'Remote long/short: ' + strat.opts.active
+		}
 
       cb(null, result)
     }
   },
 
-  onPositionOpened: function (s, opts = {}, callback = function () { }) {
-    //var opts = {
-    //	position_id: position_id,
-    //	position: position
-    //};
+//  onPositionOpened: function (s, opts = {}, callback = function () { }) {
+//    //var opts = {
+//    //	position_id: position_id,
+//    //	position: position
+//    //};
+//
+//    let strat_name = this.name
+//    let strat = s.options.strategy[strat_name]
+//
+//    opts.position.strategy_parameters[strat_name] = {}
+//
+//    _onPositionOpened(callback)
+//
+//    ///////////////////////////////////////////
+//    // _onPositionOpened
+//    ///////////////////////////////////////////
+//
+//    function _onPositionOpened(cb) {
+//      //User defined
+//
+//      cb(null, null)
+//    }
+//  },
 
-    let strat_name = this.name
-    let strat = s.options.strategy[strat_name]
+//  onPositionUpdated: function (s, opts = {}, callback = function () { }) {
+//    //var opts = {
+//    //	position_id: position_id,
+//    //	position: position
+//    //};
+//
+//    let strat_name = this.name
+//    let strat = s.options.strategy[strat_name]
+//
+//    _onPositionUpdated(callback)
+//
+//    ///////////////////////////////////////////
+//    // _onPositionUpdated
+//    ///////////////////////////////////////////
+//
+//    function _onPositionUpdated(cb) {
+//      //User defined
+//
+//      cb(null, null)
+//    }
+//  },
 
-    opts.position.strategy_parameters[strat_name] = {}
+//  onPositionClosed: function (s, opts = {}, callback = function () { }) {
+//    //var opts = {
+//    //	position_id: position_id,
+//    //	position: position
+//    //};
+//
+//    let strat_name = this.name
+//    let strat = s.options.strategy[strat_name]
+//
+//    _onPositionClosed(callback)
+//
+//    ///////////////////////////////////////////
+//    // _onPositionClosed
+//    ///////////////////////////////////////////
+//
+//    function _onPositionClosed(cb) {
+//      //User defined
+//      //e.g. strat.lib.onPositionOpened()
+//      cb(null, null)
+//    }
+//  },
 
-    _onPositionOpened(callback)
-
-    ///////////////////////////////////////////
-    // _onPositionOpened
-    ///////////////////////////////////////////
-
-    function _onPositionOpened(cb) {
-      //User defined
-
-      cb(null, null)
-    }
-  },
-
-  onPositionUpdated: function (s, opts = {}, callback = function () { }) {
-    //var opts = {
-    //	position_id: position_id,
-    //	position: position
-    //};
-
-    let strat_name = this.name
-    let strat = s.options.strategy[strat_name]
-
-    _onPositionUpdated(callback)
-
-    ///////////////////////////////////////////
-    // _onPositionUpdated
-    ///////////////////////////////////////////
-
-    function _onPositionUpdated(cb) {
-      //User defined
-
-      cb(null, null)
-    }
-  },
-
-  onPositionClosed: function (s, opts = {}, callback = function () { }) {
-    //var opts = {
-    //	position_id: position_id,
-    //	position: position
-    //};
-
-    let strat_name = this.name
-    let strat = s.options.strategy[strat_name]
-
-    _onPositionClosed(callback)
-
-    ///////////////////////////////////////////
-    // _onPositionClosed
-    ///////////////////////////////////////////
-
-    function _onPositionClosed(cb) {
-      //User defined
-      //e.g. strat.lib.onPositionOpened()
-      cb(null, null)
-    }
-  },
-
-  onOrderExecuted: function (s, opts = {}, callback = function () { }) {
-    let strat_name = this.name
-    let strat = s.options.strategy[strat_name]
-
-    _onOrderExecuted(callback)
-
-    ///////////////////////////////////////////
-    // _onOrderExecuted
-    ///////////////////////////////////////////
-
-    function _onOrderExecuted(cb) {
-      //User defined
-
-      cb(null, null)
-    }
-  },
+//  onOrderExecuted: function (s, opts = {}, callback = function () { }) {
+//    let strat_name = this.name
+//    let strat = s.options.strategy[strat_name]
+//
+//    _onOrderExecuted(callback)
+//
+//    ///////////////////////////////////////////
+//    // _onOrderExecuted
+//    ///////////////////////////////////////////
+//
+//    function _onOrderExecuted(cb) {
+//      //User defined
+//
+//      cb(null, null)
+//    }
+//  },
 
   deactivate: function(s, opts = {}, callback = function() {}) {
     let strat_name = this.name
@@ -359,7 +340,7 @@ module.exports = {
     ///////////////////////////////////////////
 
     function _deactivate(cb) {
-      //User defined
+      strat.opts.active = false
 
       cb(null, null)
     }
