@@ -114,12 +114,14 @@ module.exports = function (program, conf) {
 
       // chiama la funzione timebucket - riporta in ms
       if (so.start) {
+        s.start=so.start
         so.start = moment(so.start, 'YYYYMMDDhhmm').valueOf()
         if (so.days && !so.end) {
           so.end = tb(so.start).resize('1d').add(so.days).toMilliseconds()
         }
       }
       if (so.end) {
+        s.end=so.end
         so.end = moment(so.end, 'YYYYMMDDhhmm').valueOf()
         if (so.days && !so.start) {
           so.start = tb(so.end).resize('1d').subtract(so.days).toMilliseconds()
@@ -151,8 +153,8 @@ module.exports = function (program, conf) {
       var db_data_cursor
       var query_start = (so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null)
       //var query_start = 1588202900000
-      so.signal = JSON.parse(fs.readFileSync('data.json'));
-      console.log(so.signal[0].Date)
+      so.signal = JSON.parse(fs.readFileSync('data.json'))
+
       var getNext = async () => {
         var opts = {
           query: {
@@ -240,15 +242,15 @@ module.exports = function (program, conf) {
 
           form_date=GetFormattedDate(new Date(trade.time))
           new_signal=so.signal.find(x => x.Date === form_date)
-          // if (typeof new_signal !== 'undefined') {
-          //   if (new_signal.json_signal=="buy"){
-          //     so.active_long_position=true
-          //     so.active_short_position=false
-          //   }else{
-          //     so.active_long_position=false
-          //     so.active_short_position=true
-          //   }
-          // }
+          if (typeof new_signal !== 'undefined') {
+            if (new_signal.json_signal=="buy"){
+              so.active_long_position=true
+              so.active_short_position=false
+            }else{
+              so.active_long_position=false
+              so.active_short_position=true
+            }
+          }
 
           eventBus.emit('trade', trade, function (err, result) {
             let a = result
@@ -285,7 +287,7 @@ module.exports = function (program, conf) {
         if (day < 10) {
           day="0".concat(day)}
         var year = unform_date .getFullYear()
-        return year + "-" + day + "-" + month;
+        return year + "-" + month + "-" + day;
       }
 
 
@@ -342,6 +344,13 @@ module.exports = function (program, conf) {
         //var profit = (s.options.currency_capital ? n(tmp_capital_currency).subtract(s.options.currency_capital).divide(s.options.currency_capital) : n(0))
 
 
+        if (s.start) {
+          console.log('start_date', s.start)
+        }
+
+        if (s.end) {
+          console.log('end_date', s.end)
+        }
 
         output_lines.push('end balance:     capital currency: ' + n(tmp_capital_currency).format('0.00000000').yellow + '   capital asset: ' + n(tmp_capital_asset).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
         console.log('\nstart_capital', n(s.start_capital_currency).format('0.00000000').yellow)
@@ -350,12 +359,14 @@ module.exports = function (program, conf) {
 
         console.log('start_price', n(s.start_price).format('0.00000000').yellow)
         console.log('close_price', n(s.period.close).format('0.00000000').yellow)
-        var buy_hold = (s.start_price ? n(s.period.close).multiply(n(s.start_capital_currency).divide(s.start_price)) : n(s.balance.currency))
+        var buy_hold = (s.start_price ? n(s.period.close).multiply(n(s.start_capital_asset)) : n(s.balance.currency))
         //console.log('buy hold', buy_hold.format('0.00000000'))
         var buy_hold_profit = (s.start_capital_currency ? n(buy_hold).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0))
 
         output_lines.push('buy hold: ' + buy_hold.format('0.00000000').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
-        output_lines.push('vs. buy hold: ' + n(s.currency_capital).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
+        //output_lines.push('vs. buy hold: ' + n(s.currency_capital).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
+
+        output_lines.push('vs. buy hold: ' + n(n(tmp_capital_currency).subtract(buy_hold)).divide(tmp_capital_currency).format('0.00%').yellow)
         output_lines.push(n(s.my_trades.length).format('0').yellow + ' trades over ' + n(s.day_count).format('0').yellow + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00').yellow + ' trades/day)')
 
         var losses = 0
