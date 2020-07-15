@@ -10,7 +10,7 @@ var n = require('numbro')
 //---------------------------------------------
 //c.strategy['remote_mode'] = {
 //opts: {
-//period_calc: '15m',
+//period_calc: '1h',
 //active: false,
 //}
 //}
@@ -176,6 +176,8 @@ module.exports = {
 					console.error('URL not found or network error')
 				}
 				else if (res.statusCode === 200) {
+					console.log('\nRemote long/short - '.grey + 'Retrieved mode: ' + data)
+					
 					if (data == 'only_short') {
 						s.options.active_long_position = false
 						s.options.active_short_position = true
