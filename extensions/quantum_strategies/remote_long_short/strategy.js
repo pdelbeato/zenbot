@@ -8,7 +8,7 @@ var n = require('numbro')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
-//c.strategy['remote_mode'] = {
+//c.strategy['remote_long_short'] = {
 //opts: {
 //period_calc: '1h',
 //active: false,
@@ -81,6 +81,17 @@ module.exports = {
 		this.command('o', {
 			desc: ('Remote long/short - List options'.grey), action: function () {
 				s.tools.listStrategyOptions(strategy_name, false)
+			}
+		})
+
+		this.command('k', {
+			desc: ('Remote long/short - '.grey + 'Retrieve now!'.white), action: function () {
+				if (strat.opts.active) {
+					strat.lib.onStrategyPeriod(s)
+				}
+				else {
+					console.log('\nRemote long/short - '.grey + 'Strategy not active!'.red)
+				}
 			}
 		})
 
@@ -170,29 +181,31 @@ module.exports = {
 		function _onStrategyPeriod(cb) {
 			var url = strat.opts.url //'https://neuralbuck.000webhostapp.com/signal.json'
 
-			request.get({url: url, json: true}, (err, res, data) => {
-				if (err) {
-					// handle error
-					console.error('URL not found or network error')
-				}
-				else if (res.statusCode === 200) {
-					console.log('\nRemote long/short - '.grey + 'Retrieved mode: ' + data)
-					
-					if (data == 'only_short') {
-						s.options.active_long_position = false
-						s.options.active_short_position = true
-					} else if (data == 'only_long') {
-						s.options.active_long_position = true
-						s.options.active_short_position = false
-					} else if (data == 'long_short'){
-						s.options.active_long_position = true
-						s.options.active_short_position = true
+			if (strat.opts.active) {
+				request.get({ url: url, json: true }, (err, res, data) => {
+					if (err) {
+						// handle error
+						console.error('URL not found or network error')
 					}
-				}
-				else {
-					// response other than 200 OK
-				}
-			})
+					else if (res.statusCode === 200) {
+						console.log('\nRemote long/short - '.grey + 'Retrieved mode: ' + data.cyan)
+
+						if (data == 'only_short') {
+							s.options.active_long_position = false
+							s.options.active_short_position = true
+						} else if (data == 'only_long') {
+							s.options.active_long_position = true
+							s.options.active_short_position = false
+						} else if (data == 'long_short') {
+							s.options.active_long_position = true
+							s.options.active_short_position = true
+						}
+					}
+					else {
+						// response other than 200 OK
+					}
+				})
+			}
 
 			cb(null, null)
 		}
