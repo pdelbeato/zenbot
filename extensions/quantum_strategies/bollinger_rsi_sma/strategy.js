@@ -106,7 +106,7 @@ module.exports = {
 		 	}
 		 })
 
-		strat.lib.onPositionClosed(s, callback)
+		strat.lib.onPositionClosed(s, {}, callback)
 	},
 
 	getOptions: function (strategy_name) {
