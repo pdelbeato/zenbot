@@ -914,6 +914,9 @@ module.exports = function (program, conf) {
 					output_lines.push(s.positions.length + ' positions opened.')
 					output_lines.push(s.orders.length + ' orders opened.')
 					output_lines.push(sizeof(s) + ' size of s')
+					Object.keys(s).forEach(function (s_part, index) {
+						output_lines.push(sizeof(s[s_part]) + ' size of ' + s_part)
+					})
 					output_lines.push(sizeof(s.period) + ' size of s.period')
 					output_lines.push(sizeof(s.lookback) + ' size of s.lookback (' + s.lookback.length + ')')
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
