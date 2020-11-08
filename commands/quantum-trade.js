@@ -764,9 +764,9 @@ module.exports = function (program, conf) {
 			
 			/* To compact databases */
 			function compactDatabases(cb = function () {}) {
-				//db_my_trades
+				db_my_trades.compactCollection(cb)
 				db_my_positions.compactCollection(cb)
-				//db_my_closed_positions
+				db_my_closed_positions.compactCollection(cb)
 				//db_periods
 				db_sessions.compactCollection(cb)
 				db_resume_markers.compactCollection(cb)
@@ -914,9 +914,9 @@ module.exports = function (program, conf) {
 					output_lines.push(s.positions.length + ' positions opened.')
 					output_lines.push(s.orders.length + ' orders opened.')
 					output_lines.push(sizeof(s) + ' size of s')
-//					Object.keys(s).forEach(function (s_part, index) {
-//						output_lines.push(sizeof(s[s_part]) + ' size of ' + s_part)
-//					})
+					Object.keys(s).forEach(function (s_part, index) {
+						output_lines.push(sizeof(s[s_part]) + ' size of ' + s_part)
+					})
 					output_lines.push(sizeof(s.period) + ' size of s.period')
 					output_lines.push(sizeof(s.lookback) + ' size of s.lookback (' + s.lookback.length + ')')
 					Object.keys(so.strategy).forEach(function (strategy_name, index) {
