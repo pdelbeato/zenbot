@@ -1,4 +1,3 @@
-
 var semver = require('semver')
 var path = require('path')
 var program = require('commander')
@@ -14,6 +13,7 @@ if (semver.gt('8.3.0', versions.node)) {
 var fs = require('fs')
   , boot = require('./boot')
 
+//Passo a boot il comando che sto inviando a zenbot.js (quantum-trade, quantum-sim, etc.)
 boot(function (err, zenbot) {
   if (err) {
     throw err

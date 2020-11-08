@@ -444,17 +444,17 @@ data = data.map(function (d) {
   return d
 })
 
-//console.log(data)
+console.log(data)
 rem_index=[];var index_trade=[];var trade_closed=[]
 
 trades = trades.map(function (t,index) {
 
   t.date = new Date(t.time)
-  if (t.side === "buy") {
+  if (t.signal === "buy") {
     t.arrows="arrowUp";
     t.background="#00CC00"
   }
-  if (t.side === "sell") {
+  if (t.signal === "sell") {
     t.arrows="arrowDown";
     t.background="#ff0000"
   }
@@ -572,14 +572,18 @@ for (i = 0; i < trades.length; i++) {
     "graph": "g1",
     "description": trades[i].id
   });
-if (trades[i].side==="buy") {
+
+if (trades[i].signal==="buy") {
+
   stepC_c= -1*parseFloat(trades[i].value)
   stepC_a= parseFloat(trades[i].size)
 }
-if (trades[i].side==="sell") {
+if (trades[i].signal==="sell") {
+
   stepC_c= parseFloat(trades[i].value)
   stepC_a= -1*parseFloat(trades[i].size)
 }
+
 if (i===0) {
   init_asset[i]=init_asset[0]
   init_currency[i]=init_currency[0]

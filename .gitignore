@@ -6,6 +6,7 @@ t.js
 node_modules
 npm-debug.log
 db.json
+db_*
 dump
 conf/secret.json
 github.pub
@@ -18,6 +19,7 @@ conf-*
 conf_*
 conf/*
 !conf-sample.js
+!conf-default.js
 sim_result*
 trade_result*
 paper_result*
@@ -41,3 +43,4 @@ gen.*.sh
 .env
 scripts/auto_backtester/backtesting_*.csv
 database/*
+.vscode/launch.json

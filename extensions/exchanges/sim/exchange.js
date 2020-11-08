@@ -1,6 +1,7 @@
 let path = require('path')
 , n = require('numbro')
 , _ = require('lodash')
+, debug = require('../../../lib/debug')
 
 module.exports = function sim (conf, s) {
 
@@ -233,6 +234,10 @@ module.exports = function sim (conf, s) {
 			getMemory: function() {
 				return 'sim'
 			},
+			
+			cancelConnection: function() {
+				real_exchange.cancelConnection()
+			},
 
 			processTrade: function(trade) {
 				if (!s.wait_processTrade) {
@@ -288,10 +293,10 @@ module.exports = function sim (conf, s) {
 
 		// Compute fees
 		if (so.order_type === 'maker' && exchange.makerFee) {
-			fee = n(size).multiply(exchange.makerFee / 100).value()
+			fee = n(total).multiply(exchange.makerFee / 100).value()
 		}
 		else if (so.order_type === 'taker' && exchange.takerFee) {
-			fee = n(size).multiply(exchange.takerFee / 100).value()
+			fee = n(total).multiply(exchange.takerFee / 100).value()
 		}
 
 		// Update balance

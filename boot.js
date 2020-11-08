@@ -17,7 +17,7 @@ module.exports = function (cb) {
 	module.exports.debug = args.debug
 
 	// 1. load conf overrides file if present
-	if(!_.isUndefined(args.conf)){
+	if (!_.isUndefined(args.conf)) {
 		try {
 			overrides = require(path.resolve(process.cwd(), args.conf))
 		} catch (err) {
@@ -36,11 +36,66 @@ module.exports = function (cb) {
 	var defaults = require('./conf-default')
 	_.defaultsDeep(config, overrides, conf, defaults)
 	zenbot.conf = config
+	zenbot.conf.is_sim = (minimist(process.argv).is_sim || (process.argv[2] === 'quantum-sim') || false)
 
 	var eventBus = new EventEmitter()
 	zenbot.conf.eventBus = eventBus
 
-	collectionService(zenbot.conf, function() {
-		cb(null, zenbot)
-	})
+	if (zenbot.conf.is_sim) {
+		var authStr = '', authMechanism, connectionString
+
+		if (zenbot.conf.mongo.username) {
+			authStr = encodeURIComponent(zenbot.conf.mongo.username)
+
+			if (zenbot.conf.mongo.password) authStr += ':' + encodeURIComponent(zenbot.conf.mongo.password)
+
+			authStr += '@'
+
+			// authMechanism could be a conf.js parameter to support more mongodb authentication methods
+			authMechanism = zenbot.conf.mongo.authMechanism || 'DEFAULT'
+		}
+
+		if (zenbot.conf.mongo.connectionString) {
+			connectionString = zenbot.conf.mongo.connectionString
+		} else {
+			connectionString = 'mongodb://' + authStr + zenbot.conf.mongo.host + ':' + zenbot.conf.mongo.port + '/' + zenbot.conf.mongo.db + '?' +
+				(zenbot.conf.mongo.replicaSet ? '&replicaSet=' + zenbot.conf.mongo.replicaSet : '') +
+				(authMechanism ? '&authMechanism=' + authMechanism : '')
+				//+ '&keepAlive=true' +
+				// '&poolSize=30' +
+				// '&autoReconnect=true' +
+				// '&socketTimeoutMS=360000' +
+				// '&connectTimeoutMS=360000' +
+				// '&useMongoClient=true'
+		}
+
+		//Da vedere se può essere utile
+		// process.on('unhandledRejection', error => {
+
+		// 	console.log('unhandledRejection', error.message);
+		//   });
+
+		require('mongodb').MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
+			if (err) {
+				console.error('WARNING: MongoDB Connection Error: ', err)
+				console.error('WARNING: without MongoDB some features (such as backfilling/simulation) may be disabled.')
+				console.error('Attempted authentication string: ' + connectionString)
+				cb(null, zenbot)
+				return
+			}
+
+			//Aggiungere catch se non esiste il mongo db
+			var db = client.db(zenbot.conf.mongo.db)
+			_.set(zenbot, 'conf.db.mongo', db)
+
+			collectionService(zenbot.conf, function () {
+				cb(null, zenbot)
+			})
+		})
+	}
+	else {
+		collectionService(zenbot.conf, function () {
+			cb(null, zenbot)
+		})
+	}
 }
