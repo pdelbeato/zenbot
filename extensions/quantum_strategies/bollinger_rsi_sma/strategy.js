@@ -9,7 +9,7 @@ var n = require('numbro')
 
 //Parte da includere nel file di configurazione
 //---------------------------------------------
-//c.strategy[bollinger_rsi] = {
+//c.strategy[bollinger_rsi_sma] = {
 //	opts: {							//****** To store options
 //		period_calc: '15m',			//****** Calculate Bollinger Bands every period_calc time
 //		size: 20,					//****** Size of period_calc for bollinger
@@ -57,8 +57,8 @@ var n = require('numbro')
 //maxLength: 2048           // Truncate output if longer
 
 module.exports = {
-	name: 'bollinger_rsi',
-	description: 'Buy when [(Price ≤ Lower Bollinger Band) && (rsi > rsi_buy_threshold)] and sell when [(Price ≥ Upper Bollinger Band) && (rsi < rsi_sell_threshold)].',
+	name: 'bollinger_rsi_sma',
+	description: 'Buy when [(Price ≤ Lower Bollinger Band) && (rsi > rsi_buy_threshold)] and sell when touching SMA after [(Price ≥ Upper Bollinger Band) && (rsi < rsi_sell_threshold)].',
 	noHoldCheck: false,
 
 	init: function (s, callback = function() {}) {
@@ -98,11 +98,13 @@ module.exports = {
 			},
 		}
 
-		// s.positions.forEach(function (position, index) {
-		// 	if (!position.strategy_parameters[strat_name]) {
-		// 		position.strategy_parameters[strat_name] = {}
-		// 	}
-		// })
+		 s.positions.forEach(function (position, index) {
+		 	if (!position.strategy_parameters[strat_name]) {
+		 		position.strategy_parameters[strat_name] = {
+		 			to_be_closed: false,
+		 		}
+		 	}
+		 })
 
 		strat.lib.onPositionClosed(s, {}, callback)
 	},
@@ -255,6 +257,11 @@ module.exports = {
 					buy: null,
 					sell: null,
 				}
+				
+				var min_pct = {
+					buy: strat.opts.buy_min_pct,
+					sell: strat.opts.sell_min_pct,
+				}
 
 				s.positions.forEach(function (position, index) {
 					//Aggiorno le posizioni con massimo profitto, tranne che per le posizioni locked
@@ -264,10 +271,22 @@ module.exports = {
 						strat.data.max_profit_position[position.side] = position
 						//					debug.msg('Bollinger - onTradePeriod - position_max_profit_index= ' + index, false)
 					}
+					
+					//Verifico se la posizione è da chiudere
+					let opposite_side = (position.side === 'buy' ? 'sell' : 'buy')
+					
+					if (position.strategy_parameters[strat_name].to_be_closed && (position.side ? (opts.trade.price < strat.data.bollinger.midBound) : (opts.trade.price > strat.data.bollinger.midBound))) {
+						if (position.profit_net_pct >= min_pct[opposite_side]) {
+							//s.eventBus.on(strat_name, 	side     , position_tmp_id, fixedSize, fixdPrice, protectionFree, locking, reorder, maker_taker)						
+							s.eventBus.emit(strat_name, opposite_side, position.id)
+						}
+						else {
+							position.strategy_parameters[strat_name].to_be_closed = false
+						}
+					}
 				})
 
 				if (strat.data.bollinger && strat.data.bollinger.midBound) {
-					//				if (strat.data.upperBound && strat.data.lowerBound) {
 					let upperBound = strat.data.bollinger.upperBound
 					let lowerBound = strat.data.bollinger.lowerBound
 					let midBound = strat.data.bollinger.midBound
@@ -373,19 +392,17 @@ module.exports = {
 					}
 
 					if (condition[side][1]) {
-						s.signal = side[0].toUpperCase() + ' Boll.';
-
-						// if (!s.in_preroll) {
 						if (strat.data.max_profit_position[opposite_side] && strat.data.max_profit_position[opposite_side].profit_net_pct >= min_pct[side]) {
-							s.eventBus.emit(strat_name, side, strat.data.max_profit_position[opposite_side].id)
+							strat.data.max_profit_position[opposite_side].strategy_parameters[strat_name].to_be_closed = true
 						}
 						else if (condition[side][2]) {
+							s.signal = side[0].toUpperCase() + ' Boll.';
+							
 							s.eventBus.emit(strat_name, side)
 						}
 						else {
 							debug.msg('Strategy Bollinger - No same price protection: strat.period.close= ' + strat.period.close + '; limit_open_price ' + strat.data.limit_open_price[side] + '; delta limit_open_price ' + (strat.data.limit_open_price[side] * strat.opts.delta_pct / 100))
 						}
-						// }
 					}
 
 					cb_cc(null, null)
@@ -558,7 +575,9 @@ module.exports = {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 
-		// opts.position.strategy_parameters[strat_name] = {}
+		opts.position.strategy_parameters[strat_name] = {
+			to_be_closed: false,
+		}
 
 		_onPositionOpened(callback)
 

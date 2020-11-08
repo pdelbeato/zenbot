@@ -1122,13 +1122,13 @@ module.exports = function (program, conf) {
 //			}
 //			/* End of implementing statistical status */
 
-			//Calcola il valore minimo di periodi da caricare per il pre-roll e da mantenere in memoria
-			so.min_periods = 1
-			Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
-				if (so.strategy[strategy_name].opts.min_periods) {
-					so.min_periods = Math.max(so.min_periods, so.strategy[strategy_name].opts.min_periods)
-				}
-			})
+			// //Calcola il valore minimo di periodi da caricare per il pre-roll e da mantenere in memoria
+			// so.min_periods = 1
+			// Object.keys(so.strategy).forEach(function (strategy_name, index, array) {
+			// 	if (so.strategy[strategy_name].opts.min_periods) {
+			// 		so.min_periods = Math.max(so.min_periods, so.strategy[strategy_name].opts.min_periods)
+			// 	}
+			// })
 
 			var db_cursor, trade_cursor
 			var query_start = tb().resize(so.period_length).subtract(so.min_periods + 10).toMilliseconds()
@@ -1299,9 +1299,27 @@ module.exports = function (program, conf) {
 													s.tools.pushMessage('', (so.active_long_position ? 'Long' : 'No long'))
 													break
 												}
+												case '/only_long': {
+													so.active_long_position = true
+													so.active_short_position = false
+													s.tools.pushMessage('', 'Only Long')
+													break
+												}
 												case '/short': {
 													so.active_short_position = !so.active_short_position
 													s.tools.pushMessage('', (so.active_short_position ? 'Short' : 'No short'))
+													break
+												}
+												case '/only_short': {
+													so.active_long_position = false
+													so.active_short_position = true
+													s.tools.pushMessage('', 'Only Short')
+													break
+												}
+												case '/none': {
+													so.active_long_position = false
+													so.active_short_position = false
+													s.tools.pushMessage('', 'No Long - No Short')
 													break
 												}
 												case '/status': {

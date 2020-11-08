@@ -206,6 +206,8 @@ module.exports = {
 
 				//vwap(s, strat_name, strat.opts.vwap_length, strat.opts.vwap_max, 'close')
 
+				strat.period.trend = strat.calc_lookback[0].trend
+
 				s.positions.some(function (position, index) {
 					//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
 					let position_locking = (position.locked & ~s.strategyFlag[strat_name])
@@ -262,6 +264,8 @@ module.exports = {
 				strat.data.vwap_lower = strat.period.vwap * (1 - strat.opts.lower_threshold_pct/100)
 
 				if (strat.period.vwap && !strat.opts.on_trade_period) {
+					strat.period.trend = strat.calc_lookback[0].trend
+					
 					s.positions.some(function (position, index) {
 						//Verifico l'esistenza di una posizione aperta (e non bloccata da altri) da crossover_vwap
 						let position_locking = (position.locked & ~s.strategyFlag[strat_name])
