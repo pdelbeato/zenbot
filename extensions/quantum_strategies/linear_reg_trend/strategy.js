@@ -51,12 +51,20 @@ module.exports = {
 		let strat = s.options.strategy[strat_name]
 
 		try {
-			if (strat.opts.size && strat.opts.period_calc) {
+			if (strat.opts.size == undefined) {
+				strat.opts.size = 0
+			}
+			
+			if (strat.opts.period_calc == undefined) {
+				strat.opts.period_calc = '1m'
+			}
+			
+//			if (strat.opts.size && strat.opts.period_calc) {
 				strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
-			}
-			else {
-				strat.opts.min_periods = 0
-			}
+//			}
+//			else {
+//				strat.opts.min_periods = 0
+//			}
 
 			strat.data = {
 				slope: null,
@@ -173,7 +181,7 @@ module.exports = {
 					strat.calc_close_time = tb(opts.trade.time).resize(strat.opts.period_calc).add(1).toMilliseconds() - 1
 				
 					// Ripulisce so.strategy[strategy_name].calc_lookback a un max di valori
-					if (strat.calc_lookback.length > strat.opts.min_periods) {
+					if (strat.calc_lookback.length > strat.opts.size) {
 						strat.calc_lookback.pop()
 					}
 

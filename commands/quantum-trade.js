@@ -766,7 +766,7 @@ module.exports = function (program, conf) {
 			function compactDatabases(cb = function () {}) {
 				db_my_trades.compactCollection(cb)
 				db_my_positions.compactCollection(cb)
-				db_my_closed_positions.compactCollection(cb)
+				s.db_my_closed_positions.compactCollection(cb)
 				//db_periods
 				db_sessions.compactCollection(cb)
 				db_resume_markers.compactCollection(cb)

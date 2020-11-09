@@ -44,6 +44,20 @@ module.exports = {
 		description: 'Static Grid Strategy',
 		
 		init: function (s) {
+			if (strat.opts.size == undefined) {
+				strat.opts.size = 0
+			}
+			
+			if (strat.opts.period_calc == undefined) {
+				strat.opts.period_calc = '1m'
+			}
+			
+//			if (strat.opts.size && strat.opts.period_calc) {
+				strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
+//			}
+//			else {
+//				strat.opts.min_periods = 0
+//			}
 		},
 		
 		getOptions: function (s) {

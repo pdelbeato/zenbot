@@ -78,17 +78,31 @@ module.exports = {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 		
-
-		strat.data = {
-			//	data_1: {
-			//		data_1_1: null,
-			//		data_1_2: null,
-			//	},
-			//	data_2: {
-			//		data_2_1: null,
-			//		data_2_2: null,
-			//	}
+		if (strat.opts.size == undefined) {
+			strat.opts.size = 0
 		}
+		
+		if (strat.opts.period_calc == undefined) {
+			strat.opts.period_calc = '1m'
+		}
+		
+//		if (strat.opts.size && strat.opts.period_calc) {
+			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
+//		}
+//		else {
+//			strat.opts.min_periods = 0
+//		}
+			
+//		strat.data = {
+//				data_1: {
+//					data_1_1: null,
+//					data_1_2: null,
+//				},
+//				data_2: {
+//					data_2_1: null,
+//					data_2_2: null,
+//				}
+//		}
 
 		s.positions.forEach(function (position, index) {
 			if (!position.strategy_parameters[strat_name]) {

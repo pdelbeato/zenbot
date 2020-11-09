@@ -53,12 +53,20 @@ module.exports = {
 		let strat_name = this.name
 		let strat = s.options.strategy[strat_name]
 		
-		if (strat.opts.size && strat.opts.period_calc) {
+		if (strat.opts.size == undefined) {
+			strat.opts.size = 0
+		}
+		
+		if (strat.opts.period_calc == undefined) {
+			strat.opts.period_calc = '1m'
+		}
+		
+//		if (strat.opts.size && strat.opts.period_calc) {
 			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
-		}
-		else {
-			strat.opts.min_periods = 0
-		}
+//		}
+//		else {
+//			strat.opts.min_periods = 0
+//		}
 
 		strat.data = {
 			vwap: {
