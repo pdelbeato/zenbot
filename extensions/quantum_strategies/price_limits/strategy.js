@@ -231,22 +231,22 @@ module.exports = {
 		}
 	},
 
-//	onStrategyPeriod: function (s, opts = {}, callback = function () { }) {
-//		let strat_name = this.name
-//		let strat = s.options.strategy[strat_name]
-//
-//		_onStrategyPeriod(callback)
-//
-//		///////////////////////////////////////////
-//		// _onStrategyPeriod
-//		///////////////////////////////////////////
-//
-//		function _onStrategyPeriod(cb) {
-//			//User defined
-//			
-//			cb(null, null)
-//		}
-//	},
+	onStrategyPeriod: function (s, opts = {}, callback = function () { }) {
+		let strat_name = this.name
+		let strat = s.options.strategy[strat_name]
+
+		_onStrategyPeriod(callback)
+
+		///////////////////////////////////////////
+		// _onStrategyPeriod
+		///////////////////////////////////////////
+
+		function _onStrategyPeriod(cb) {
+			//User defined
+			
+			cb(null, null)
+		}
+	},
 
 
 	onReport: function (s, opts = {}, callback = function () { }) {
