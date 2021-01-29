@@ -163,19 +163,22 @@ ac_add_style(".anychart-embed-samples-stock-range-selection-01{width:600px;heigh
       series.name("Stock prices");
 
 
-      //add event markers
-      var data_markers=[
-        {
-          "format": "B",
-          "data": data_markers_buy
-        },
-        {
-          "format": "S",
-          "data": data_markers_sell
-        }
-      ]
+      // //add event markers
+      // var data_markers=[
+      //   {
+      //     "format": "B",
+      //     "data": data_markers_buy
+      //   },
+      //   {
+      //     "format": "S",
+      //     "data": data_markers_sell
+      //   }
+      // ]
+      //
+      // plot.eventMarkers({"groups": data_markers});
 
-      plot.eventMarkers({"groups": data_markers});
+
+      
       // bind event markers to the first series
       plot.eventMarkers().position("series");
       plot.eventMarkers().seriesId(0);

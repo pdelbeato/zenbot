@@ -73,6 +73,9 @@ module.exports = function (program, conf) {
       //		s.trades = []
       s.lookback = []
       s.orders = []
+      s.dayly = []
+      s.monthly = []
+      s.flagday=false
 
       //Carico le funzioni di utilità
       quantumTools(s, conf)
@@ -153,7 +156,14 @@ module.exports = function (program, conf) {
       var db_data_cursor
       var query_start = (so.start ? tb(so.start).resize(so.period_length).subtract(so.min_periods + 2).toMilliseconds() : null)
       //var query_start = 1588202900000
-      so.signal = JSON.parse(fs.readFileSync('data.json'))
+      try {
+      if (fs.existsSync('data.json')) {
+        so.signal = JSON.parse(fs.readFileSync('data.json'))
+          }
+        } catch(err) {
+          console.error('data.json not present')
+        }
+
 
       var getNext = async () => {
         var opts = {
@@ -239,18 +249,25 @@ module.exports = function (program, conf) {
         		trade.orig_time = trade.time
         		trade.time = reverse_point + (reverse_point - trade.time)
         	}
+          CheckDayGain(new Date(trade.time))
+
 
           form_date=GetFormattedDate(new Date(trade.time))
-          new_signal=so.signal.find(x => x.Date === form_date)
-          if (typeof new_signal !== 'undefined') {
-            if (new_signal.json_signal=="buy"){
-              so.active_long_position=true
-              so.active_short_position=false
-            }else{
-              so.active_long_position=false
-              so.active_short_position=true
+          if (typeof so.signal !== 'undefined') {
+            new_signal=so.signal.find(x => x.Date === form_date)
+
+
+            if (typeof new_signal !== 'undefined') {
+              if (new_signal.json_signal=="buy"){
+                so.active_long_position=true
+                so.active_short_position=false
+              }else{
+                so.active_long_position=false
+                so.active_short_position=true
+              }
             }
-          }
+            }
+
 
           eventBus.emit('trade', trade, function (err, result) {
             let a = result
@@ -288,6 +305,48 @@ module.exports = function (program, conf) {
           day="0".concat(day)}
         var year = unform_date .getFullYear()
         return year + "-" + month + "-" + day;
+      }
+      function CheckDayGain(unform_date) {
+        var day = unform_date .getDate()
+        var month = unform_date .getMonth()+1
+        var year = unform_date .getFullYear()
+        if (month < 10) {
+          month="0".concat(month)}
+        if (day == 1 && s.flagday==false && s.period !== null)  {
+          s.flagday=true
+          var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
+          var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
+          var profit = (s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)).format('0.00%')
+          var buy_hold = (s.start_price ? n(s.period.close).multiply(n(s.start_capital_asset)) : n(s.balance.currency))
+          var buy_hold_profit = (s.start_capital_currency ? n(buy_hold).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)).format('0.00%')
+          s.monthly.push({
+            "month":  month+"/"+year,
+            "capital_currency":  tmp_capital_currency,
+            "capital_asset": tmp_capital_asset,
+            "profit": profit,
+            "buy_hold" : buy_hold,
+            "buy_hold_profit": buy_hold_profit
+          })
+        }
+        if (day == 28) {s.flagday=false}
+        if (day != s.daycheck && s.period !== null) {
+          s.daycheck = day
+          var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
+          var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
+          var profit = (s.start_capital_currency ? n(tmp_capital_currency).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)).format('0.00%')
+          var buy_hold = (s.start_price ? n(s.period.close).multiply(n(s.start_capital_asset)) : n(s.balance.currency))
+          var buy_hold_profit = (s.start_capital_currency ? n(buy_hold).subtract(s.start_capital_currency).divide(s.start_capital_currency) : n(0)).format('0.00%')
+          s.dayly.push({
+            "day":  day+"/"+month+"/"+year,
+            "capital_currency":  tmp_capital_currency,
+            "capital_asset": tmp_capital_asset,
+            "profit": profit,
+            "buy_hold" : buy_hold,
+            "buy_hold_profit": buy_hold_profit
+
+          })
+        }
+        //return flagday;
       }
 
 
@@ -368,6 +427,8 @@ module.exports = function (program, conf) {
 
         output_lines.push('vs. buy hold: ' + n(n(tmp_capital_currency).subtract(buy_hold)).divide(tmp_capital_currency).format('0.00%').yellow)
         output_lines.push(n(s.my_trades.length).format('0').yellow + ' trades over ' + n(s.day_count).format('0').yellow + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00').yellow + ' trades/day)')
+
+
 
         var losses = 0
         var wins = 0
@@ -610,15 +671,17 @@ module.exports = function (program, conf) {
               }
 
             })
-            console.log(trade_segment)
+
             var code = 'var data = ' + JSON.stringify(data_chart) + ';\n'
             code += 'var trades_chart_buy = ' + JSON.stringify(trades_chart_buy) + ';\n'
             code += 'var trades_chart_sell = ' + JSON.stringify(trades_chart_sell) + ';\n'
             code += 'var data_markers_buy = ' + JSON.stringify(data_markers_buy) + ';\n'
             code += 'var data_markers_sell = ' + JSON.stringify(data_markers_sell) + ';\n'
             code += 'var options = ' + JSON.stringify(s.options) + ';\n'
+
             // console.log(code)
-            var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart4.html.tpl'), { encoding: 'utf8' })
+            //console.log(code)
+            var tpl = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'anychart5.html.tpl'), { encoding: 'utf8' })
 
 
             var out = tpl
@@ -628,6 +691,20 @@ module.exports = function (program, conf) {
               .replace(/\{\{symbol\}\}/g, so.selector.normalized + ' - zenbot ' + require('../package.json').version)
 
             var out_target = so.filename || 'simulations/sim_result_' + so.selector.normalized + '_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
+            fs.writeFileSync(out_target, out)
+            console.log('wrote', out_target)
+
+            // Gain Chart
+            var code_gain = 'var data_daily_gain = ' + JSON.stringify(s.dayly) + ';\n'
+            code_gain += 'var data_monthly_gain = ' + JSON.stringify(s.monthly) + ';\n'
+            var tpl_gain = fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'gainchart.html.tpl'), { encoding: 'utf8' })
+            var out = tpl_gain
+              .replace('{{code}}', code_gain)
+              .replace('{{trend_ema_period}}', so.trend_ema || 36)
+              .replace('{{output}}', html_output)
+              .replace(/\{\{symbol\}\}/g, so.selector.normalized + ' - zenbot ' + require('../package.json').version)
+
+            var out_target = so.filename || 'simulations/Gain_result_' + so.selector.normalized + '_' + new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/-/g, '').replace(/:/g, '').replace(/20/, '') + '_UTC.html'
             fs.writeFileSync(out_target, out)
             console.log('wrote', out_target)
 
