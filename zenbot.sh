@@ -1,2 +1,3 @@
 #!/bin/sh
-env node zenbot.js $@
+
+env node --max-old-space-size=8192 zenbot.js $@ 

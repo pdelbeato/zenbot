@@ -68,11 +68,11 @@ module.exports = {
 		if (strat.opts.size == undefined) {
 			strat.opts.size = 0
 		}
-		
+
 		if (strat.opts.period_calc == undefined) {
 			strat.opts.period_calc = '1m'
 		}
-		
+
 //		if (strat.opts.size && strat.opts.period_calc) {
 			strat.opts.min_periods = tb(strat.opts.size, strat.opts.period_calc).resize(s.options.period_length).value
 //		}
@@ -203,19 +203,19 @@ module.exports = {
 	// 	// 		trade: trade,
 	// 	// 		is_preroll: is_preroll
 	// 	// }
-		
+
 	// 	let strat_name = this.name
 	// 	let strat = s.options.strategy[strat_name]
-		
+
 	// 	_onTrade(callback)
-		
+
 	// 	///////////////////////////////////////////
 	// 	// _onTrade
 	// 	///////////////////////////////////////////
-		
+
 	// 	function _onTrade(cb) {
 	// 		//User defined
-			
+
 	// 		cb()
 	// 	}
 	// },
@@ -235,9 +235,9 @@ module.exports = {
 			s.tools.initPeriod(strat.period, opts.trade, strat.opts.period_calc)
 			strat.lib.onStrategyPeriod(s, opts, function (err, result) {
 				strat.calc_close_time = tb(opts.trade.time).resize(strat.opts.period_calc).add(1).toMilliseconds() - 1
-			
+
 				// Ripulisce so.strategy[strategy_name].calc_lookback a un max di valori
-				if (strat.calc_lookback.length > strat.opts.size) {
+				if (strat.calc_lookback.length > 2*strat.opts.size) {
 					strat.calc_lookback.pop()
 				}
 
@@ -265,7 +265,7 @@ module.exports = {
 					buy: null,
 					sell: null,
 				}
-				
+
 				var min_pct = {
 					buy: strat.opts.buy_min_pct,
 					sell: strat.opts.sell_min_pct,
@@ -279,13 +279,13 @@ module.exports = {
 						strat.data.max_profit_position[position.side] = position
 						//					debug.msg('Bollinger - onTradePeriod - position_max_profit_index= ' + index, false)
 					}
-					
+
 					//Verifico se la posizione è da chiudere
 					let opposite_side = (position.side === 'buy' ? 'sell' : 'buy')
-					
+
 					if (position.strategy_parameters[strat_name].to_be_closed && (position.side ? (opts.trade.price < strat.data.bollinger.midBound) : (opts.trade.price > strat.data.bollinger.midBound))) {
 						if (position.profit_net_pct >= min_pct[opposite_side]) {
-							//s.eventBus.on(strat_name, 	side     , position_tmp_id, fixedSize, fixdPrice, protectionFree, locking, reorder, maker_taker)						
+							//s.eventBus.on(strat_name, 	side     , position_tmp_id, fixedSize, fixdPrice, protectionFree, locking, reorder, maker_taker)
 							s.eventBus.emit(strat_name, opposite_side, position.id)
 						}
 						else {
@@ -405,7 +405,7 @@ module.exports = {
 						}
 						else if (condition[side][2]) {
 							s.signal = side[0].toUpperCase() + ' Boll.';
-							
+
 							s.eventBus.emit(strat_name, side)
 						}
 						else {
@@ -459,7 +459,7 @@ module.exports = {
 			})
 			callback(null, null)
 		})
-		
+
 		/////////////////////////////////////////////////////
 		// _onReport() deve inserire in cols[] le informazioni da stampare a video
 		/////////////////////////////////////////////////////
@@ -563,13 +563,13 @@ module.exports = {
 			let side_max_profit = null
 			let pct_max_profit = null
 			let result = null
-			
+
 			if (strat.data.max_profit_position.buy != null || strat.data.max_profit_position.sell != null) {
 				side_max_profit =  ((strat.data.max_profit_position.buy ? strat.data.max_profit_position.buy.profit_net_pct : -100) > (strat.data.max_profit_position.sell ? strat.data.max_profit_position.sell.profit_net_pct : -100) ? 'buy' : 'sell')
 				pct_max_profit = strat.data.max_profit_position[side_max_profit].profit_net_pct
 				result = ('Bollinger position: ' + side_max_profit[0].toUpperCase() + formatPercent(pct_max_profit/100))
 			}
-						
+
 			cb(null, result)
 		}
 	},
@@ -603,16 +603,16 @@ module.exports = {
 	// 	//	position_id: position_id,
 	// 	//	position: position
 	// 	//};
-		
+
 	// 	// let strat_name = this.name
 	// 	// let strat = s.options.strategy[strat_name]
 
 	// 	_onPositionUpdated(callback)
-		
+
 	// 	///////////////////////////////////////////
 	// 	// _onPositionUpdated
 	// 	///////////////////////////////////////////
-		
+
 	// 	function _onPositionUpdated(cb) {
 	// 		cb(null, null)
 	// 	}
@@ -628,11 +628,11 @@ module.exports = {
 		let strat = s.options.strategy[strat_name]
 
 		_onPositionClosed(callback)
-		
+
 		///////////////////////////////////////////
 		// _onPositionClosed
 		///////////////////////////////////////////
-		
+
 		function _onPositionClosed(cb) {
 			if (strat.opts.no_same_price) {
 				strat.data.limit_open_price.buy = 1000000
@@ -651,7 +651,7 @@ module.exports = {
 					}
 				})
 			}
-	
+
 			cb(null, null)
 		}
 	},
@@ -661,29 +661,29 @@ module.exports = {
 	// 	// let strat = s.options.strategy[strat_name]
 
 	// 	_onOrderExecuted(callback)
-		
+
 	// 	///////////////////////////////////////////
 	// 	// _onOrderExecuted
 	// 	///////////////////////////////////////////
-		
+
 	// 	function _onOrderExecuted(cb) {
 	// 		cb(null, null)
 	// 	}
 	// },
-	
+
 //	deactivate: function(s, opts = {}, callback = function() {}) {
 //		let strat_name = this.name
 //		let strat = s.options.strategy[strat_name]
-//		
+//
 //		_deactivate(callback)
-//		
+//
 //		///////////////////////////////////////////
 //		// _deactivate
 //		///////////////////////////////////////////
-//		
+//
 //		function _deactivate(cb) {
 //			//User defined
-//			
+//
 //			cb(null, null)
 //		}
 //	},
