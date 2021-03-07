@@ -151,7 +151,7 @@ module.exports = {
 		})
 		this.command('H', {
 			desc: ('Price limits - '.grey + 'ZEROIZE'.white + ' (cancel all the limits)'.grey), action: function () {
-				strat.lib.deactivate(s, function () {
+				strat.lib.deactivate(s, null, function () {
 					console.log('\nPrice limits zeroized!'.white)
 				})
 			}

@@ -177,12 +177,14 @@ module.exports = function (program, conf) {
 		var db_resume_markers = conf.db.resume_markers
 		var db_trades = conf.db.trades
 
+		//Il marker è connesso alla sessione.
 		var marker = {
 			id: crypto.randomBytes(4).toString('hex'),
 			selector: so.selector.normalized,
-			from: null,
-			to: null,
-			oldest_time: null
+			from: null,			//trade_cursor iniziale di sessione
+			to: null, 			//trade_cursor finale di sessione
+			oldest_time: null,	//time del trade iniziale di sessione
+			newest_time: null	//time del trade finale di sessione
 		}
 		marker._id = marker.id
 
@@ -686,6 +688,9 @@ module.exports = function (program, conf) {
 						console.log('\nDumping statistics...'.grey)
 						printTrade(false, true)
 					}})
+					keyMap.set('X', {desc: ('print verbose statistical output'.grey), action: function() {
+						printTrade(false, false, false, true)
+					}})
 //					keyMap.set('H', {desc: ('toggle automatic HTML dump to file'.grey), action: function() {
 //					console.log('\nDumping statistics...'.grey)
 //					toggleStats()
@@ -769,7 +774,7 @@ module.exports = function (program, conf) {
 				s.db_my_closed_positions.compactCollection(cb)
 				//db_periods
 				db_sessions.compactCollection(cb)
-				db_resume_markers.compactCollection(cb)
+				//db_resume_markers.compactCollection(cb)
 				//db_trades
 			}
 
@@ -876,7 +881,7 @@ module.exports = function (program, conf) {
 			}
 
 			/* Implementing statistical Exit */
-			function printTrade (quit, dump, statsOnly = false) {
+			function printTrade (quit, dump, statsOnly = false, verbose = false) {
 				var tmp_capital_currency = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00')
 				var tmp_capital_asset = n(s.balance.asset).add(n(s.balance.currency).divide(s.period.close)).format('0.00000000')
 				if (quit) {
@@ -913,16 +918,18 @@ module.exports = function (program, conf) {
 					output_lines.push('Total profit: ' + formatCurrency(s.total_profit, s.currency).yellow)
 					output_lines.push(s.positions.length + ' positions opened.')
 					output_lines.push(s.orders.length + ' orders opened.')
-					output_lines.push(sizeof(s) + ' size of s')
-					Object.keys(s).forEach(function (s_part, index) {
-						output_lines.push(sizeof(s[s_part]) + ' size of s.' + s_part)
-					})
-					output_lines.push(sizeof(s.period) + ' size of s.period')
-					output_lines.push(sizeof(s.lookback) + ' size of s.lookback (' + s.lookback.length + ')')
-					Object.keys(so.strategy).forEach(function (strategy_name, index) {
-						output_lines.push(sizeof(s.options.strategy[strategy_name].calc_lookback) + ' size of ' + strategy_name + ' calc_lookback (' + s.options.strategy[strategy_name].calc_lookback.length + ')')
-					})
-					output_lines.push(s.exchange.getMemory() + ' size of cache in exchange')
+					if (verbose) {
+						output_lines.push(sizeof(s) + ' size of s')
+						Object.keys(s).forEach(function (s_part, index) {
+							output_lines.push(sizeof(s[s_part]) + ' size of s.' + s_part)
+						})
+						output_lines.push(sizeof(s.period) + ' size of s.period')
+						output_lines.push(sizeof(s.lookback) + ' size of s.lookback (' + s.lookback.length + ')')
+						Object.keys(so.strategy).forEach(function (strategy_name, index) {
+							output_lines.push(sizeof(s.options.strategy[strategy_name].calc_lookback) + ' size of ' + strategy_name + ' calc_lookback (' + s.options.strategy[strategy_name].calc_lookback.length + ')')
+						})
+						output_lines.push(s.exchange.getMemory() + ' size of cache in exchange')
+					}
 				}
 				// Build stats for UI
 				s.stats = {
@@ -1181,7 +1188,7 @@ module.exports = function (program, conf) {
 						}
 						
 						//Se ci sono filtered_trades, allora non esegue questo blocco ma esegue engine.update che c'è dopo
-						//Una volta stampati i trade vecchi, trades è vuoto, quindi esegue questo blocco e non esegue engine.update (perché c'è un return in questo blocco)
+						//Una volta stampati i trade vecchi, filtered_trades è vuoto, quindi esegue questo blocco e non esegue engine.update (perché c'è un return in questo blocco)
 						if (!filtered_trades.length) {
 							if (s.tradeProcessingQueue.length()) {
 								await s.tradeProcessingQueue.drain()
@@ -1199,11 +1206,12 @@ module.exports = function (program, conf) {
 								console.log('!!! Paper mode enabled. No real trades are performed until you remove --paper from the startup command.')
 							}
 
-							//Se è attiva l'opzione minimal_db, cancello i db trades e periods
+							//Se è attiva l'opzione minimal_db, cancello i db trades, periods e resume_markers
 							if(so.minimal_db) {
 								console.log('Option minimal_db is active! Delete db_periods and db_trades')
 								s.db_periods = conf.db.periods = null
 								db_trades = conf.db.trades = null
+								db_resume_markers = null
 							}
 							
 							//Inizializzo i comandi dell'interfaccia
